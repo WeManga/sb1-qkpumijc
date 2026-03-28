@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { supabase } from '../../lib/supabase';
 import { translations, Language } from '../../lib/i18n';
 import { ProgramSection } from './ProgramSection';
-import { motion, AnimatePresence } from 'framer-motion'; // Correction de l'import ici
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Calendar, 
   Users, 
@@ -43,9 +43,14 @@ export function GuestView({ invitation }: GuestViewProps) {
   const t = translations[lang].guest;
   const emojis = THEME_EMOJIS[invitation?.event_type] || THEME_EMOJIS.default;
 
-  // Style de positionnement dynamique de la photo
+  // STYLES DYNAMIQUES (Photo + Police)
   const imagePosition = {
-    objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%`
+    objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%`,
+    objectFit: 'cover' as const
+  };
+
+  const globalFontStyle = {
+    fontFamily: invitation.font_style || 'inherit'
   };
 
   useEffect(() => {
@@ -58,6 +63,14 @@ export function GuestView({ invitation }: GuestViewProps) {
       audioRef.current.play().catch(() => console.log("Audio blocked"));
     }
   }, [view, invitation?.music_url]);
+
+  const toggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (audioRef.current) {
+      audioRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
+    }
+  };
 
   const EmojiRain = () => {
     const particles = useMemo(() => Array.from({ length: 40 }).map((_, i) => ({
@@ -109,9 +122,19 @@ export function GuestView({ invitation }: GuestViewProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F5F7] overflow-x-hidden">
+    <div className="min-h-screen bg-[#F5F5F7] overflow-x-hidden" style={globalFontStyle}>
       {invitation?.music_url && <audio ref={audioRef} src={invitation.music_url} loop />}
       {view !== 'envelope' && <EmojiRain />}
+
+      {/* BOUTON MUTE GLOBAL */}
+      {view !== 'envelope' && invitation?.music_url && (
+        <button 
+          onClick={toggleMute}
+          className="fixed top-6 right-6 z-[110] w-12 h-12 bg-white/80 backdrop-blur-md rounded-full flex items-center justify-center shadow-xl text-gray-800 border border-white/50"
+        >
+          {isMuted ? <VolumeX size={20}/> : <Volume2 size={20} className="animate-pulse"/>}
+        </button>
+      )}
 
       <AnimatePresence mode="wait">
         {view === 'envelope' && (
@@ -150,7 +173,7 @@ export function GuestView({ invitation }: GuestViewProps) {
                      <div className="w-16 h-16 rounded-full border-[6px] border-[#111] overflow-hidden bg-white shadow-inner">
                         <img 
                           src={invitation.main_photo_url} 
-                          className="w-full h-full object-cover rounded-full" 
+                          className="w-full h-full" 
                           style={imagePosition}
                         />
                      </div>
@@ -164,7 +187,7 @@ export function GuestView({ invitation }: GuestViewProps) {
                 transition={{ type: "spring", damping: 12, stiffness: 90, delay: 0.3 }}
                 className="z-20 w-full bg-white rounded-[3rem] shadow-2xl p-10 border border-gray-100 text-center relative paper-texture"
               >
-                <h2 className="text-3xl font-black text-gray-800 uppercase tracking-tighter mb-2">{invitation.title}</h2>
+                <h2 className="text-3xl font-black text-gray-800 uppercase tracking-tighter mb-2" style={globalFontStyle}>{invitation.title}</h2>
                 <div className="w-12 h-1 bg-amber-400 mx-auto mb-6 rounded-full" />
                 <p className="text-gray-400 text-[10px] font-bold uppercase tracking-[0.2em] mb-12 italic">{invitation.host_names}</p>
                 <button 
@@ -183,7 +206,7 @@ export function GuestView({ invitation }: GuestViewProps) {
             <div className="h-[50vh] relative overflow-hidden">
               <img 
                 src={invitation.main_photo_url} 
-                className="w-full h-full object-cover" 
+                className="w-full h-full" 
                 style={imagePosition}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent" />
@@ -192,7 +215,7 @@ export function GuestView({ invitation }: GuestViewProps) {
 
             <div className="max-w-2xl mx-auto px-6 -mt-20 relative z-20 pb-20">
               <div className="bg-white/90 backdrop-blur-xl p-10 rounded-[3rem] shadow-xl border border-white mb-10 text-center">
-                <h1 className="text-4xl font-black mb-6 tracking-tighter">{invitation.title}</h1>
+                <h1 className="text-4xl font-black mb-6 tracking-tighter" style={globalFontStyle}>{invitation.title}</h1>
                 <div className="flex flex-col items-center gap-4 text-gray-500">
                   <div className="flex items-center gap-2 font-bold text-sm">
                     <Calendar size={18} className="text-amber-400"/> 
