@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, X, Calendar, Volume2, VolumeX } from 'lucide-react';
+import { Sparkles, X, Calendar, Volume2, VolumeX, MapPin, Clock } from 'lucide-react';
 
 const THEME_EMOJIS: Record<string, string[]> = {
   wedding: ['🤍', '💍', '🕊️', '✨', '🌸'],
@@ -84,15 +84,17 @@ export function InvitationPreview({ invitation }: any) {
                 </div>
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-24 h-24 bg-white rounded-full border-[5px] border-[#111] overflow-hidden">
-                    <img src={invitation.main_photo_url} className="w-full h-full" style={imageStyle} />
+                    {invitation.main_photo_url && <img src={invitation.main_photo_url} className="w-full h-full" style={imageStyle} />}
                   </div>
                 </div>
               </div>
             </motion.div>
 
             <motion.div initial={{ scale: 0.8, y: 200 }} animate={isOpened ? { scale: 1, y: 135 } : {}} transition={{ type: "spring", damping: 20, delay: 0.4 }} onClick={() => isOpened && setView('content')} className="z-30 w-[310px] h-[370px] bg-white rounded-[3rem] shadow-xl p-10 flex flex-col items-center justify-between border border-gray-100 cursor-pointer">
-              <div className="text-center pt-14">
-                <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tighter mb-4" style={globalFontStyle}>{invitation?.title || "Titre"}</h2>
+              <div className="text-center pt-14 w-full">
+                <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tighter mb-4 break-words" style={globalFontStyle}>
+                  {invitation?.title || "Votre Titre"}
+                </h2>
                 <div className="w-8 h-1 bg-amber-400 mx-auto mb-4" />
                 <p className="text-gray-400 text-[9px] font-bold uppercase tracking-[0.3em]">Découvrir le programme</p>
               </div>
@@ -102,7 +104,7 @@ export function InvitationPreview({ invitation }: any) {
             <AnimatePresence>
               {!isOpened && (
                 <motion.div exit={{ y: "-100%" }} transition={{ duration: 0.9 }} className="absolute inset-0 z-50 flex flex-col items-center justify-center" style={{ backgroundColor: invitation?.envelope_color || '#FEE2E2' }}>
-                  <button onClick={() => setIsOpened(true)} className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-2xl text-amber-500"><Sparkles className="w-8 h-8"/></button>
+                  <button onClick={() => setIsOpened(true)} className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-2xl text-amber-500 hover:scale-110 transition-transform"><Sparkles className="w-8 h-8"/></button>
                   <p className="text-white font-black text-[10px] uppercase tracking-[0.5em] mt-8">Ouvrir</p>
                 </motion.div>
               )}
@@ -110,16 +112,41 @@ export function InvitationPreview({ invitation }: any) {
           </motion.div>
         ) : (
           <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full h-full bg-white z-[100] flex flex-col">
-            <div className="h-[25%] relative overflow-hidden shrink-0">
+            <div className="h-[30%] relative overflow-hidden shrink-0">
                <img src={invitation.main_photo_url} className="w-full h-full" style={imageStyle} />
-               <button onClick={() => setView('envelope')} className="absolute top-6 left-6 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center"><X size={20}/></button>
+               <div className="absolute inset-0 bg-gradient-to-t from-white/80 to-transparent" />
+               <button onClick={() => setView('envelope')} className="absolute top-6 left-6 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-md"><X size={20}/></button>
             </div>
-            <div className="flex-1 p-8 overflow-y-auto">
-              <div className="text-center mb-8">
-                <h2 className="text-3xl font-black text-gray-900 mb-2" style={globalFontStyle}>{invitation?.host_names}</h2>
-                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{invitation?.event_address}</p>
+
+            <div className="flex-1 p-8 overflow-y-auto bg-white">
+              <div className="text-center mb-10">
+                <h2 className="text-3xl font-black text-gray-900 mb-4 leading-tight" style={globalFontStyle}>{invitation?.host_names || "Noms des Hôtes"}</h2>
+                <div className="flex flex-col items-center gap-2 text-gray-400 font-bold text-[10px] uppercase tracking-widest">
+                  <div className="flex items-center gap-2"><Calendar size={14} className="text-amber-500"/> {invitation.event_date ? new Date(invitation.event_date).toLocaleDateString('fr-FR', {day:'numeric', month:'long', year:'numeric'}) : "Date à venir"}</div>
+                  <div className="flex items-center gap-2"><MapPin size={14} className="text-amber-500"/> {invitation.event_address || "Lieu non défini"}</div>
+                </div>
               </div>
-              {/* Le reste des détails suit ici... */}
+
+              {/* PROGRAMME DANS LA PREVIEW */}
+              <div className="space-y-6">
+                <h3 className="text-[10px] font-black text-amber-600 uppercase tracking-[0.3em] text-center mb-6">Le Programme</h3>
+                {(invitation.event_program || []).length > 0 ? (
+                  invitation.event_program.map((step: any, i: number) => (
+                    <div key={i} className="flex items-center gap-4 py-3 border-b border-gray-50 last:border-0">
+                      <div className="w-16 text-[11px] font-black text-gray-900 bg-gray-50 py-1 px-2 rounded-lg text-center flex items-center gap-1">
+                        <Clock size={10} className="text-amber-500"/> {step.time}
+                      </div>
+                      <div className="text-xs font-bold text-gray-600 uppercase tracking-wide">{step.activity}</div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-center text-[10px] text-gray-300 italic">Aucun programme défini</p>
+                )}
+              </div>
+              
+              <div className="mt-10 py-5 bg-amber-50 rounded-3xl text-center">
+                 <p className="text-[10px] font-black text-amber-800 uppercase tracking-widest">Confirmation souhaitée</p>
+              </div>
             </div>
           </motion.div>
         )}
