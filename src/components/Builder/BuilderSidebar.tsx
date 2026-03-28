@@ -12,7 +12,8 @@ import {
   Music, 
   Image as ImageIcon, 
   Loader2, 
-  Calendar 
+  Calendar,
+  Move
 } from 'lucide-react';
 
 const PASTELS = [
@@ -43,7 +44,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
   const t = translations[lang].builder;
 
-  // FONCTION UPLOAD CORRIGÉE
   const uploadFile = async (e: any, field: string) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -185,10 +185,17 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       {activeTab === 'media' && (
         <div className="space-y-6">
           <div>
-            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">{t.photo_label}</label>
+            {/* CHANGEMENT : JUSTE "MEDIA" COMME DEMANDÉ */}
+            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">MEDIA</label>
+            
             <label className="relative flex flex-col items-center justify-center h-56 bg-gray-50 rounded-[2.5rem] border-2 border-dashed border-gray-200 cursor-pointer overflow-hidden hover:bg-gray-100 transition-colors">
                {invitation.main_photo_url ? (
-                 <img src={invitation.main_photo_url} className="w-full h-full object-cover" alt="Preview" />
+                 <img 
+                    src={invitation.main_photo_url} 
+                    className="w-full h-full object-cover" 
+                    style={{ objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%` }}
+                    alt="Preview" 
+                 />
                ) : (
                  <div className="text-center">
                    <ImageIcon className="w-8 h-8 mx-auto text-gray-300"/>
@@ -198,6 +205,35 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                <input type="file" className="hidden" accept="image/*" onChange={e => uploadFile(e, 'main_photo_url')} />
                {uploading && <div className="absolute inset-0 bg-white/60 flex items-center justify-center"><Loader2 className="animate-spin text-amber-500"/></div>}
             </label>
+
+            {/* NOUVEAU : REPOSITIONNEMENT DE L'IMAGE */}
+            {invitation.main_photo_url && (
+              <div className="mt-4 p-4 bg-gray-50 rounded-2xl space-y-4">
+                <div className="flex items-center gap-2 text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">
+                  <Move size={12}/> Ajuster la position
+                </div>
+                <div className="space-y-3">
+                  <div>
+                    <div className="flex justify-between text-[8px] font-bold text-gray-400 uppercase mb-1"><span>Horizontal</span><span>{invitation.photo_pos_x || 50}%</span></div>
+                    <input 
+                      type="range" min="0" max="100" 
+                      value={invitation.photo_pos_x || 50} 
+                      onChange={e => onInvitationChange({...invitation, photo_pos_x: e.target.value})}
+                      className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                    />
+                  </div>
+                  <div>
+                    <div className="flex justify-between text-[8px] font-bold text-gray-400 uppercase mb-1"><span>Vertical</span><span>{invitation.photo_pos_y || 50}%</span></div>
+                    <input 
+                      type="range" min="0" max="100" 
+                      value={invitation.photo_pos_y || 50} 
+                      onChange={e => onInvitationChange({...invitation, photo_pos_y: e.target.value})}
+                      className="w-full h-1.5 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="p-6 bg-amber-50/50 rounded-[2.5rem] border border-amber-100">
