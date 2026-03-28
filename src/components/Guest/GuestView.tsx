@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { supabase } from '../../lib/supabase';
 import { translations, Language } from '../../lib/i18n';
 import { ProgramSection } from './ProgramSection';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence } from 'framer-motion'; // Correction de l'import ici
 import { 
   Calendar, 
   Users, 
@@ -29,7 +29,9 @@ interface GuestViewProps {
 
 export function GuestView({ invitation }: GuestViewProps) {
   const [view, setView] = useState<'envelope' | 'card' | 'content'>('envelope');
-  const [lang, setLang] = useState<Language>('fr');
+  const [lang, setLang] = useState<Language>(
+    (localStorage.getItem('invite_lang') as Language) || 'fr'
+  );
   const [isMuted, setIsMuted] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -40,6 +42,11 @@ export function GuestView({ invitation }: GuestViewProps) {
 
   const t = translations[lang].guest;
   const emojis = THEME_EMOJIS[invitation?.event_type] || THEME_EMOJIS.default;
+
+  // Style de positionnement dynamique de la photo
+  const imagePosition = {
+    objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%`
+  };
 
   useEffect(() => {
     const browserLang = navigator.language.split('-')[0] as Language;
@@ -141,7 +148,11 @@ export function GuestView({ invitation }: GuestViewProps) {
                    <div className="absolute inset-0" style={{ background: 'repeating-radial-gradient(circle, #333 0, #000 2px, #111 4px)' }} />
                    <div className="absolute inset-0 flex items-center justify-center">
                      <div className="w-16 h-16 rounded-full border-[6px] border-[#111] overflow-hidden bg-white shadow-inner">
-                        <img src={invitation.main_photo_url} className="w-full h-full object-cover rounded-full" />
+                        <img 
+                          src={invitation.main_photo_url} 
+                          className="w-full h-full object-cover rounded-full" 
+                          style={imagePosition}
+                        />
                      </div>
                    </div>
                 </div>
@@ -170,7 +181,11 @@ export function GuestView({ invitation }: GuestViewProps) {
         {view === 'content' && (
           <motion.div key="step3" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="relative z-10 w-full">
             <div className="h-[50vh] relative overflow-hidden">
-              <img src={invitation.main_photo_url} className="w-full h-full object-cover" />
+              <img 
+                src={invitation.main_photo_url} 
+                className="w-full h-full object-cover" 
+                style={imagePosition}
+              />
               <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent" />
               <button onClick={() => setView('card')} className="absolute top-6 left-6 w-10 h-10 bg-white/80 rounded-full flex items-center justify-center shadow-lg"><X size={20}/></button>
             </div>
@@ -197,7 +212,6 @@ export function GuestView({ invitation }: GuestViewProps) {
 
               <ProgramSection program={invitation.event_program || []} />
 
-              {/* SECTION ADRESSE & MAP SANS ERREUR API */}
               <div className="mt-20 bg-white p-8 rounded-[3.5rem] shadow-xl border border-gray-50 text-center">
                  <div className="flex flex-col items-center gap-3 mb-8">
                     <div className="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center mb-2">
