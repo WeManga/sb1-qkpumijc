@@ -15,21 +15,24 @@ export function InvitationPreview({ invitation }: any) {
   const [view, setView] = useState<'envelope' | 'content'>('envelope');
   const [isMuted, setIsMuted] = useState(false);
   
-  // Référence pour le lecteur audio
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const eventList = invitation?.event_program || [];
   const emojis = THEME_EMOJIS[invitation?.event_type] || THEME_EMOJIS.default;
   const envelopeColor = invitation?.envelope_color || '#FEE2E2';
 
-  // Gestion de la musique à l'ouverture
+  // CALCUL DE LA POSITION DE L'IMAGE DYNAMIQUE
+  const imageStyle = {
+    objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%`,
+    objectFit: 'cover' as const
+  };
+
   useEffect(() => {
     if (isOpened && invitation?.music_url && audioRef.current) {
-      audioRef.current.play().catch(err => console.log("Lecture auto bloquée par le navigateur"));
+      audioRef.current.play().catch(err => console.log("Lecture auto bloquée"));
     }
   }, [isOpened, invitation?.music_url]);
 
-  // Couper/Activer le son
   const toggleMute = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (audioRef.current) {
@@ -62,7 +65,6 @@ export function InvitationPreview({ invitation }: any) {
   return (
     <div className="relative w-full h-full max-h-[650px] flex items-center justify-center overflow-hidden bg-white rounded-[3.5rem] shadow-2xl border-[12px] border-gray-50/50">
       
-      {/* LECTEUR AUDIO INVISIBLE */}
       {invitation?.music_url && (
         <audio ref={audioRef} src={invitation.music_url} loop />
       )}
@@ -73,7 +75,6 @@ export function InvitationPreview({ invitation }: any) {
         {view === 'envelope' ? (
           <motion.div key="env" className="relative w-full h-full flex items-center justify-center">
             
-            {/* BOUTON MUTE (Visible seulement si musique et ouvert) */}
             {isOpened && invitation?.music_url && (
               <button 
                 onClick={toggleMute}
@@ -83,7 +84,6 @@ export function InvitationPreview({ invitation }: any) {
               </button>
             )}
 
-            {/* LE DISQUE VINYLE */}
             <motion.div 
               initial={{ y: -450 }} 
               animate={isOpened ? { y: 25 } : { y: -450 }} 
@@ -98,7 +98,11 @@ export function InvitationPreview({ invitation }: any) {
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-24 h-24 bg-white rounded-full border-[5px] border-[#111] overflow-hidden shadow-inner">
                     {invitation?.main_photo_url ? (
-                      <img src={invitation.main_photo_url} className="w-full h-full object-cover" />
+                      <img 
+                        src={invitation.main_photo_url} 
+                        className="w-full h-full" 
+                        style={imageStyle} // Ajout de la position dynamique ici
+                      />
                     ) : (
                       <div className="w-full h-full bg-amber-100 flex items-center justify-center text-amber-500 font-bold text-[10px] uppercase p-4 text-center">Photo ici</div>
                     )}
@@ -107,7 +111,6 @@ export function InvitationPreview({ invitation }: any) {
               </div>
             </motion.div>
 
-            {/* LA CARTE */}
             <motion.div 
               initial={{ scale: 0.8, y: 200 }} 
               animate={isOpened ? { scale: 1, y: 135 } : {}} 
@@ -123,7 +126,6 @@ export function InvitationPreview({ invitation }: any) {
               <div className="w-full py-4 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase text-center tracking-widest shadow-lg">Voir les détails</div>
             </motion.div>
 
-            {/* L'ENVELOPPE */}
             <AnimatePresence>
               {!isOpened && (
                 <motion.div 
@@ -146,7 +148,6 @@ export function InvitationPreview({ invitation }: any) {
             </AnimatePresence>
           </motion.div>
         ) : (
-          /* VUE DÉTAILLÉE */
           <motion.div 
             key="content" 
             initial={{ opacity: 0 }} 
@@ -154,11 +155,16 @@ export function InvitationPreview({ invitation }: any) {
             className="w-full h-full bg-white z-[100] paper-texture flex flex-col"
           >
             <div className="h-[25%] relative overflow-hidden shrink-0">
-               {invitation?.main_photo_url && <img src={invitation.main_photo_url} className="w-full h-full object-cover" />}
+               {invitation?.main_photo_url && (
+                 <img 
+                   src={invitation.main_photo_url} 
+                   className="w-full h-full" 
+                   style={imageStyle} // Ajout de la position dynamique ici aussi
+                 />
+               )}
                <div className="absolute inset-0 bg-black/10" />
                <button onClick={() => setView('envelope')} className="absolute top-6 left-6 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg text-gray-800"><X size={20}/></button>
                
-               {/* Rappel du bouton mute dans la vue contenu */}
                {invitation?.music_url && (
                 <button onClick={toggleMute} className="absolute top-6 right-6 w-10 h-10 bg-white/90 backdrop-blur-sm rounded-full flex items-center justify-center shadow-lg text-gray-800">
                   {isMuted ? <VolumeX size={18}/> : <Volume2 size={18}/>}
@@ -172,7 +178,6 @@ export function InvitationPreview({ invitation }: any) {
                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{invitation?.event_address}</p>
               </div>
 
-              {/* CHEMIN D'OR */}
               <div className="relative pl-2">
                 <div className="absolute left-[7px] top-2 bottom-2 timeline-path animate-draw-path" />
                 <div className="space-y-12 relative z-10">
