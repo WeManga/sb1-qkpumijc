@@ -3,7 +3,7 @@ import { supabase } from '../../lib/supabase';
 import { translations, Language } from '../../lib/i18n';
 import { 
   Heart, PartyPopper, Sparkles, Baby, MapPin, 
-  Music, Image as ImageIcon, Loader2, Calendar, Move, Plus, Trash2, Clock 
+  Music, Image as ImageIcon, Loader2, Calendar, Move, Plus, X, Clock 
 } from 'lucide-react';
 
 const COLOR_PALETTES = [
@@ -45,9 +45,8 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     } catch (err) { alert("Erreur d'upload"); } finally { setUploading(false); }
   };
 
-  // Gestion du programme
   const addProgramStep = () => {
-    const newProgram = [...(invitation.event_program || []), { time: '', activity: '' }];
+    const newProgram = [...(invitation.event_program || []), { time: '12:00', activity: '' }];
     onInvitationChange({ ...invitation, event_program: newProgram });
   };
 
@@ -66,14 +65,13 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     <div className="w-full space-y-8 pb-10">
       {activeTab === 'content' && (
         <div className="space-y-8">
-          {/* INFOS GENERALES */}
           <div className="space-y-4">
             <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Informations</label>
-            <input type="text" value={invitation.title || ''} onChange={e => onInvitationChange({...invitation, title: e.target.value})} className="w-full bg-gray-50 border-none h-14 px-4 rounded-2xl text-sm" placeholder="Titre (ex: Mariage de Julie & Thomas)" />
+            <input type="text" value={invitation.title || ''} onChange={e => onInvitationChange({...invitation, title: e.target.value})} className="w-full bg-gray-50 border-none h-14 px-4 rounded-2xl text-sm" placeholder="Titre de l'événement" />
             <input type="text" value={invitation.host_names || ''} onChange={e => onInvitationChange({...invitation, host_names: e.target.value})} className="w-full bg-gray-50 border-none h-14 px-4 rounded-2xl text-sm" placeholder="Noms des hôtes" />
             <div className="relative">
               <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 w-4 h-4" />
-              <input type="text" value={invitation.event_address || ''} onChange={e => onInvitationChange({...invitation, event_address: e.target.value})} className="w-full bg-gray-50 border-none h-14 pl-12 pr-4 rounded-2xl text-sm" placeholder="Lieu de l'événement" />
+              <input type="text" value={invitation.event_address || ''} onChange={e => onInvitationChange({...invitation, event_address: e.target.value})} className="w-full bg-gray-50 border-none h-14 pl-12 pr-4 rounded-2xl text-sm" placeholder="Adresse" />
             </div>
             <div className="relative">
               <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 w-4 h-4" />
@@ -81,7 +79,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </div>
 
-          {/* PROGRAMME DÉTAILLÉ */}
           <div className="space-y-4">
             <div className="flex items-center justify-between ml-1">
               <label className="text-[10px] font-black uppercase text-gray-400">Programme</label>
@@ -92,22 +89,30 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             
             <div className="space-y-3">
               {(invitation.event_program || []).map((step: any, index: number) => (
-                <div key={index} className="flex gap-2 items-start bg-white p-3 rounded-2xl border border-gray-100 shadow-sm">
+                <div key={index} className="flex gap-2 items-center bg-white p-3 rounded-2xl border border-gray-100 shadow-sm relative group">
                   <div className="w-24 shrink-0">
-                    <div className="relative">
-                      <Clock className="absolute left-2 top-1/2 -translate-y-1/2 text-gray-300 w-3 h-3" />
-                      <input type="text" value={step.time} onChange={e => updateProgramStep(index, 'time', e.target.value)} placeholder="18:00" className="w-full bg-gray-50 border-none h-10 pl-7 pr-2 rounded-xl text-[11px]" />
-                    </div>
+                    <input 
+                      type="time" 
+                      value={step.time} 
+                      onChange={e => updateProgramStep(index, 'time', e.target.value)} 
+                      className="w-full bg-gray-50 border-none h-10 px-2 rounded-xl text-[11px] font-bold text-gray-700" 
+                    />
                   </div>
-                  <input type="text" value={step.activity} onChange={e => updateProgramStep(index, 'activity', e.target.value)} placeholder="Cocktail, Dîner..." className="flex-1 bg-gray-50 border-none h-10 px-3 rounded-xl text-[11px]" />
-                  <button onClick={() => removeProgramStep(index)} className="p-2.5 text-gray-300 hover:text-red-500 transition-colors">
-                    <Trash2 size={14} />
+                  <input 
+                    type="text" 
+                    value={step.activity} 
+                    onChange={e => updateProgramStep(index, 'activity', e.target.value)} 
+                    placeholder="Activité..." 
+                    className="flex-1 bg-gray-50 border-none h-10 px-3 rounded-xl text-[11px]" 
+                  />
+                  <button 
+                    onClick={() => removeProgramStep(index)} 
+                    className="p-1.5 bg-red-50 text-red-500 rounded-full hover:bg-red-100 transition-colors shrink-0"
+                  >
+                    <X size={14} strokeWidth={3} />
                   </button>
                 </div>
               ))}
-              {(!invitation.event_program || invitation.event_program.length === 0) && (
-                <p className="text-[10px] text-gray-400 italic text-center py-4 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-100">Aucune étape ajoutée</p>
-              )}
             </div>
           </div>
         </div>
@@ -115,7 +120,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
       {activeTab === 'style' && (
         <div className="space-y-8">
-          {/* COULEURS SLIDER */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">Couleur de l'enveloppe</label>
             <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4">
@@ -130,7 +134,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </div>
 
-          {/* POLICES */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">Style d'écriture</label>
             <div className="grid grid-cols-2 gap-2">
@@ -139,7 +142,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                   key={f.id}
                   onClick={() => onInvitationChange({...invitation, font_style: f.family})}
                   style={{ fontFamily: f.family }}
-                  className={`p-4 rounded-xl border-2 text-sm transition-all text-center ${invitation.font_style === f.family ? 'bg-amber-50 border-amber-400 text-amber-900 shadow-sm' : 'bg-white border-gray-100 text-gray-500 hover:border-gray-200'}`}
+                  className={`p-4 rounded-xl border-2 text-sm transition-all text-center ${invitation.font_style === f.family ? 'bg-amber-50 border-amber-400 text-amber-900' : 'bg-white border-gray-100 text-gray-500 hover:border-gray-200'}`}
                 >
                   {f.name}
                 </button>
@@ -147,9 +150,8 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </div>
 
-          {/* THÈMES */}
           <div>
-            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">Thème émoji (Pluie)</label>
+            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">Thème émoji</label>
             <div className="grid grid-cols-2 gap-3">
               {[ 
                 {id: 'wedding', icon: <Heart size={16}/>, l: 'Mariage'}, 
@@ -187,12 +189,8 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             <div className="p-5 bg-gray-50 rounded-[2rem] space-y-5 border border-gray-100">
               <div className="flex items-center gap-2 text-[9px] font-black text-gray-400 uppercase tracking-widest"><Move size={12}/> Ajuster le cadrage</div>
               <div className="space-y-1">
-                <div className="flex justify-between text-[8px] uppercase text-gray-400 font-bold"><span>Horizontal</span><span>{invitation.photo_pos_x || 50}%</span></div>
                 <input type="range" min="0" max="100" value={invitation.photo_pos_x || 50} onChange={e => onInvitationChange({...invitation, photo_pos_x: e.target.value})} className="w-full h-1.5 bg-gray-200 rounded-lg accent-amber-500" />
-              </div>
-              <div className="space-y-1">
-                <div className="flex justify-between text-[8px] uppercase text-gray-400 font-bold"><span>Vertical</span><span>{invitation.photo_pos_y || 50}%</span></div>
-                <input type="range" min="0" max="100" value={invitation.photo_pos_y || 50} onChange={e => onInvitationChange({...invitation, photo_pos_y: e.target.value})} className="w-full h-1.5 bg-gray-200 rounded-lg accent-amber-500" />
+                <input type="range" min="0" max="100" value={invitation.photo_pos_y || 50} onChange={e => onInvitationChange({...invitation, photo_pos_y: e.target.value})} className="w-full h-1.5 bg-gray-200 rounded-lg accent-amber-500 mt-2" />
               </div>
             </div>
           )}
@@ -203,7 +201,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 <Music className="w-6 h-6 text-amber-300"/><span className="text-[9px] font-black text-amber-400 uppercase mt-2">Uploader MP3</span>
                 <input type="file" className="hidden" accept="audio/mp3,audio/mpeg" onChange={e => uploadFile(e, 'music_url')} />
              </label>
-             {invitation.music_url && <p className="text-[9px] text-green-600 font-bold text-center mt-3 uppercase tracking-tighter">✓ Musique prête</p>}
+             {invitation.music_url && <p className="text-[9px] text-green-600 font-bold text-center mt-3 uppercase">✓ Musique prête</p>}
           </div>
         </div>
       )}
