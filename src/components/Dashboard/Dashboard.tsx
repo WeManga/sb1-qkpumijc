@@ -84,32 +84,33 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     <div className="absolute inset-0 overflow-y-auto bg-gradient-to-b from-gray-50 to-white scrollbar-hide">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10 pb-32">
         
-        {/* TOP BAR AVEC GRID - STRUCTURE PROPRE */}
-        <div className="grid grid-cols-3 items-center mb-10 sm:mb-16 border-b border-gray-100 pb-5 min-h-[120px]">
+        {/* TOP BAR AVEC GRID - Logo énorme et collé, Titre centré */}
+        <div className="grid grid-cols-3 items-center mb-10 sm:mb-16 border-b border-gray-100 pb-1 min-h-[140px]">
           
-          {/* GAUCHE : Logo Géant */}
+          {/* ZONE GAUCHE : Logo Géant et Collé */}
           <div className="flex justify-start">
-            <div className="w-[300px] h-[100px]">
+            {/* Taille augmentée, aucune marge à gauche, et marge négative en haut pour "coller" */}
+            <div className="w-[400px] h-[140px] -mt-4 flex items-center justify-start overflow-hidden">
               <img 
                 src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
-                alt="Logo" 
-                className="w-full h-full object-contain object-left" 
+                alt="Logo Invit Studio" 
+                className="w-full h-full object-contain object-left-top scale-110" 
               />
             </div>
           </div>
 
-          {/* CENTRE : Titre Invit Studio */}
+          {/* ZONE CENTRE : Titre Invit Studio Toujours Centré */}
           <div className="flex justify-center">
             <h1 className="text-3xl font-serif tracking-tight text-gray-900 whitespace-nowrap">
               Invit Studio
             </h1>
           </div>
 
-          {/* DROITE : Bouton déconnexion */}
+          {/* ZONE DROITE : Bouton déconnexion */}
           <div className="flex justify-end">
             <button
               onClick={() => signOut()}
-              className="flex items-center gap-2 text-gray-400 hover:text-rose-500 transition-colors text-[10px] sm:text-[11px] font-bold uppercase tracking-widest"
+              className="flex items-center gap-2 text-gray-400 hover:text-rose-500 transition-colors text-[10px] sm:text-[11px] font-bold uppercase tracking-widest relative z-10"
             >
               <LogOut className="w-3.5 h-3.5 sm:w-4 h-4" />
               <span className="hidden xs:inline">{tAuth.logout}</span>
@@ -118,7 +119,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
         </div>
 
         {/* RESTE DU DASHBOARD */}
-        <div className="text-center mb-10 sm:mb-16">
+        <div className="text-center mb-10 sm:mb-16 relative z-10">
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight mb-2">
             {t.welcome}
           </h1>
@@ -126,11 +127,11 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
         </div>
 
         {loading ? (
-          <div className="flex flex-col items-center justify-center py-20">
+          <div className="flex flex-col items-center justify-center py-20 relative z-10">
             <Loader2 className="w-8 h-8 animate-spin text-amber-500 mb-4" />
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 relative z-10">
             <button
               onClick={onCreateNew}
               className="min-h-[250px] sm:min-h-[300px] bg-white rounded-[2rem] sm:rounded-[2.5rem] border-2 border-dashed border-gray-100 hover:border-amber-400 hover:shadow-xl transition-all flex flex-col items-center justify-center gap-4 group"
@@ -157,14 +158,14 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                     </div>
                   )}
                   
-                  <div className="absolute top-4 left-4">
+                  <div className="absolute top-4 left-4 z-10">
                     <div className="px-3 py-1.5 bg-gray-900 text-white rounded-full text-[9px] font-bold flex items-center gap-2 shadow-lg">
                       <Users className="w-3 h-3 text-amber-400" />
                       {invitation.response_count} CONFIRMÉ(S)
                     </div>
                   </div>
 
-                  <div className="absolute top-4 right-4">
+                  <div className="absolute top-4 right-4 z-10">
                     <span className="px-3 py-1 bg-white/90 backdrop-blur-sm rounded-full text-[9px] font-bold uppercase text-gray-400 border border-gray-100">
                       {invitation.event_type || 'Event'}
                     </span>
