@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../../contexts/AuthContext'; // Vérifie bien que le chemin est correct
+import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { Database } from '../../lib/database.types';
 import { translations, Language } from '../../lib/i18n';
@@ -15,7 +15,7 @@ interface DashboardProps {
 }
 
 export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
-  const { user, signOut } = useAuth(); // Correction ici : useAuth()
+  const { user, signOut } = useAuth();
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(true);
   const [lang, setLang] = useState<Language>(
@@ -84,15 +84,15 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     <div className="absolute inset-0 overflow-y-auto bg-gradient-to-b from-gray-50 to-white scrollbar-hide">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-0 pb-32">
         
-        {/* --- TOP BAR --- */}
+        {/* --- TOP BAR SYMÉTRIQUE --- */}
         <div className="flex items-center justify-between border-b border-gray-100 mb-8 pt-8 pb-4">
           
-          {/* GAUCHE : Logo agrandi */}
+          {/* GAUCHE : Logo (Mêmes paramètres que le bouton de droite) */}
           <div className="flex-1 flex justify-start">
             <img 
               src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
               alt="Logo Invit Studio" 
-              className="h-24 w-auto object-contain" 
+              className="h-20 w-auto object-contain" 
             />
           </div>
 
@@ -115,7 +115,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
           </div>
         </div>
 
-        {/* --- CONTENU DASHBOARD --- */}
+        {/* --- CONTENU --- */}
         <div className="text-center mb-10 relative z-10">
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight mb-2">
             {t.welcome}
