@@ -84,26 +84,26 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     <div className="absolute inset-0 overflow-y-auto bg-gradient-to-b from-gray-50 to-white scrollbar-hide">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10 pb-32">
         
-        {/* TOP BAR - NETTOYÉE ET RÉDUITE */}
+        {/* TOP BAR */}
         <div className="flex items-center justify-between mb-10 sm:mb-16 border-b border-gray-100 pb-5">
           
-          {/* Bloc Logo + Titre aligné à gauche et taille normale */}
+          {/* Bloc Logo + Titre aligné à gauche */}
           <div className="flex items-center gap-4">
-            {/* Logo réduit et fond supprimé */}
-            <div className="w-20 h-10 flex items-center justify-center overflow-hidden">
+            {/* Logo AGRANDI 5x (w-[400px] h-[200px] au lieu de w-20 h-10) */}
+            <div className="w-[400px] h-[200px] flex items-center justify-center overflow-hidden">
               <img 
                 src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
                 alt="Logo Invit Studio" 
                 className="w-full h-full object-contain"
               />
             </div>
-            {/* Titre réduit avec police Serif élégante */}
+            {/* Titre NON TOUCHÉ */}
             <h1 className="text-2xl font-serif tracking-tight text-gray-900">
               Invit Studio
             </h1>
           </div>
 
-          {/* Bouton déconnexion sagement à droite */}
+          {/* Bouton déconnexion à droite */}
           <div className="flex items-center gap-4">
             <button
               onClick={() => signOut()}
