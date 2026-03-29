@@ -50,16 +50,18 @@ export function AuthPage() {
       </div>
 
       <div className="w-full max-w-md">
-        <div className="text-center mb-12"> {/* Marge inférieure augmentée */}
-          {/* LOGO MASSIVEMENT AGRANDI ET FOND SUPPRIMÉ */}
-          <div className="inline-flex items-center justify-center w-48 h-48 mb-6">
+        <div className="text-center mb-10 flex flex-col items-center">
+          {/* LOGO ÉNORME SANS FOND NI MARGE BASSE */}
+          <div className="w-64 h-64 mb-0 flex items-center justify-center">
             <img 
               src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
               alt="Logo InviteStudio" 
               className="w-full h-full object-contain"
             />
           </div>
-          <h1 className="text-4xl font-light tracking-wide text-gray-800 mb-2">
+          
+          {/* TITRE COLLÉ AU LOGO */}
+          <h1 className="text-4xl font-light tracking-wide text-gray-800 -mt-4 mb-2">
             {t.title}
           </h1>
           <p className="text-gray-600 font-light italic">
