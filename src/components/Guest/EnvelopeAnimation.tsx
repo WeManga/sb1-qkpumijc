@@ -75,7 +75,11 @@ export function EnvelopeAnimation({ envelopeColor, onOpenEnvelope }: EnvelopePro
         {step === 0 && (
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50">
             <div className="w-20 h-20 bg-white rounded-full shadow-2xl flex items-center justify-center overflow-hidden p-1 animate-pulse border-2 border-white/50">
-              <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png.png" className="w-full h-full object-contain scale-125" alt="Sceau" />
+              <img 
+                src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
+                className="w-full h-full object-contain scale-125" 
+                alt="Sceau" 
+              />
             </div>
           </div>
         )}
