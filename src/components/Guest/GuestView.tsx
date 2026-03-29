@@ -147,7 +147,11 @@ export function GuestView({ invitation }: GuestViewProps) {
             onClick={() => setView('card')}
           >
             <motion.div whileHover={{ scale: 1.1 }} className="w-24 h-24 bg-white rounded-full flex items-center justify-center border-2 border-white/30 shadow-2xl p-1 overflow-hidden">
-               <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png.png" className="w-full h-full object-contain scale-125" alt="Logo" />
+               <img 
+                 src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
+                 className="w-full h-full object-contain scale-125" 
+                 alt="Logo" 
+               />
             </motion.div>
             <p className="text-white font-black text-[10px] uppercase tracking-[0.5em] mt-8">Ouvrir</p>
           </motion.div>
@@ -238,7 +242,7 @@ export function GuestView({ invitation }: GuestViewProps) {
               <div className="mt-20 bg-white p-8 rounded-[3.5rem] shadow-xl border border-gray-50 text-center">
                  <div className="flex flex-col items-center gap-3 mb-8">
                     <div className="w-12 h-12 bg-amber-50 rounded-full flex items-center justify-center mb-2">
-                       <MapPin className="text-amber-500 w-6 h-6" />
+                        <MapPin className="text-amber-500 w-6 h-6" />
                     </div>
                     <span className="text-sm font-black uppercase tracking-widest px-4">{invitation.event_address}</span>
                  </div>
