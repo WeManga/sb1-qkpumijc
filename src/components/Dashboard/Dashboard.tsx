@@ -85,14 +85,16 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-0 pb-32">
         
         {/* --- TOP BAR ALIGNÉE --- */}
-        <div className="flex items-center justify-between border-b border-gray-100 mb-8 pt-8 pb-4">
+        {/* pt-6 pb-2 pour compenser la hauteur du logo plus grand */}
+        <div className="flex items-center justify-between border-b border-gray-100 mb-8 pt-6 pb-2">
           
-          {/* GAUCHE : Logo Taille Normale */}
+          {/* GAUCHE : Logo Taille Agrandie */}
           <div className="flex-1 flex justify-start">
             <img 
               src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
               alt="Logo Invit Studio" 
-              className="h-12 w-auto object-contain" 
+              {/* Hauteur h-20 au lieu de h-12 pour grossir le logo */}
+              className="h-20 w-auto object-contain" 
             />
           </div>
 
