@@ -84,23 +84,25 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     <div className="absolute inset-0 overflow-y-auto bg-gradient-to-b from-gray-50 to-white scrollbar-hide">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10 pb-32">
         
-        {/* TOP BAR - Modifiée pour centrer le logo et changer le texte */}
-        <div className="relative flex justify-center items-center mb-10 sm:mb-16 border-b border-gray-100 pb-5">
-          {/* Bloc Logo + Titre centré */}
-          <div className="flex items-center gap-3 absolute left-1/2 -translate-x-1/2">
-            <div className="w-9 h-9 flex items-center justify-center overflow-hidden">
-              <img 
-                src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
-                alt="Logo" 
-                className="w-full h-full object-contain"
-              />
-            </div>
-            {/* Texte modifié en Invit Studio */}
-            <span className="text-base sm:text-lg font-bold tracking-tighter text-gray-900">Invit Studio</span>
+        {/* TOP BAR MODIFIÉE - Logo géant à gauche, Titre centré */}
+        <div className="relative flex items-center mb-10 sm:mb-16 border-b border-gray-100 pb-5 min-h-[100px]">
+          
+          {/* 1. Logo GÉANT à gauche */}
+          <div className="w-40 h-20 flex items-center justify-center overflow-hidden">
+            <img 
+              src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
+              alt="Logo Invit Studio" 
+              className="w-full h-full object-contain"
+            />
           </div>
 
-          {/* Bouton déconnexion aligné à droite */}
-          <div className="flex items-center gap-4 ml-auto z-10">
+          {/* 2. Titre "Invit Studio" CENTRÉ ABSOLU avec police Serif */}
+          <h1 className="absolute left-1/2 -translate-x-1/2 text-4xl font-serif tracking-tight text-gray-900 z-10">
+            Invit Studio
+          </h1>
+
+          {/* 3. Bouton déconnexion aligné à droite */}
+          <div className="flex items-center gap-4 ml-auto z-20">
             <button
               onClick={() => signOut()}
               className="flex items-center gap-2 text-gray-400 hover:text-rose-500 transition-colors text-[10px] sm:text-[11px] font-bold uppercase tracking-widest"
