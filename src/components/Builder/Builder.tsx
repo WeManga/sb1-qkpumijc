@@ -14,6 +14,8 @@ interface BuilderProps {
 
 export function Builder({ invitationId, onBack }: BuilderProps) {
   const { user } = useAuth();
+  
+  // MISE À JOUR : Ajout des valeurs par défaut pour les nouveaux champs
   const [invitation, setInvitation] = useState<Partial<Invitation>>({
     event_type: 'wedding',
     title: 'Notre Mariage',
@@ -21,10 +23,13 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
     event_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
     event_address: '',
     event_program: [],
-    envelope_color: '#b45309',
+    envelope_color: '#FEE2E2', // Couleur par défaut plus douce
+    font_style: 'Inter, sans-serif', // Nouvelle valeur par défaut
+    photo_pos_x: 50, // Nouveau
+    photo_pos_y: 50, // Nouveau
     is_published: false,
   });
-  const [photos, setPhotos] = useState<string[]>([]);
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -39,23 +44,16 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
   const loadInvitation = async () => {
     if (!invitationId) return;
     try {
-      const { data: invData } = await supabase
+      const { data: invData, error } = await supabase
         .from('invitations')
         .select('*')
         .eq('id', invitationId)
         .maybeSingle();
 
+      if (error) throw error;
       if (invData) setInvitation(invData);
-
-      const { data: photosData } = await supabase
-        .from('invitation_photos')
-        .select('*')
-        .eq('invitation_id', invitationId)
-        .order('position');
-
-      if (photosData) setPhotos(photosData.map(p => p.photo_url));
     } catch (error) {
-      console.error('Erreur:', error);
+      console.error('Erreur chargement:', error);
     } finally {
       setLoading(false);
     }
@@ -68,29 +66,36 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
   const handleSave = async () => {
     if (!user) return;
     setSaving(true);
+
     try {
-      let currentId = invitationId;
-      if (!currentId) {
-        const { data, error } = await supabase
+      // On prépare les données proprement
+      const payload = {
+        ...invitation,
+        user_id: user.id,
+        // On s'assure que les positions sont des nombres entiers
+        photo_pos_x: parseInt(String(invitation.photo_pos_x || 50)),
+        photo_pos_y: parseInt(String(invitation.photo_pos_y || 50)),
+        updated_at: new Date().toISOString(),
+      };
+
+      if (!invitationId) {
+        const { error } = await supabase
           .from('invitations')
-          .insert({
-            ...invitation,
-            user_id: user.id,
-            slug: generateSlug(),
-          })
-          .select().single();
+          .insert([{ ...payload, slug: generateSlug() }]);
         if (error) throw error;
-        currentId = data.id;
       } else {
         const { error } = await supabase
           .from('invitations')
-          .update({ ...invitation, updated_at: new Date().toISOString() })
-          .eq('id', currentId);
+          .update(payload)
+          .eq('id', invitationId);
         if (error) throw error;
       }
+      
       alert('Enregistré avec succès !');
-    } catch (error) {
-      alert('Erreur lors de la sauvegarde');
+    } catch (error: any) {
+      console.error('Erreur sauvegarde:', error);
+      // Aide au diagnostic si la colonne manque en BDD
+      alert(`Erreur: ${error.message || 'Impossible de sauvegarder'}`);
     } finally {
       setSaving(false);
     }
@@ -104,7 +109,6 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
     );
   }
 
-  // ON RENVOIE LE MOBILE APP AU LIEU DE L'ANCIENNE STRUCTURE
   return (
     <MobileApp 
       invitation={invitation} 
