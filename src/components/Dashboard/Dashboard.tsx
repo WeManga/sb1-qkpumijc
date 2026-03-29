@@ -82,40 +82,34 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
 
   return (
     <div className="absolute inset-0 overflow-y-auto bg-gradient-to-b from-gray-50 to-white scrollbar-hide">
-      {/* Utilisation de px-0 pour permettre au logo de se coller au bord */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-0 sm:py-0 pb-32">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-0 pb-32">
         
-        {/* TOP BAR : ALIGNEMENT HAUT (items-start) */}
-        {/* pb-0 pour coller en bas */}
-        <div className="grid grid-cols-3 items-start border-b border-gray-100 mb-10 sm:mb-16 min-h-[220px] pb-0">
+        {/* --- TOP BAR --- */}
+        <div className="grid grid-cols-3 items-start border-b border-gray-100 mb-10 sm:mb-16 min-h-[250px] pb-0">
           
-          {/* GAUCHE : Logo ÉNORME et DÉCALLÉ À GAUCHE */}
-          <div className="flex justify-start">
-            {/* Taille massive (w-[700px] h-[220px]) et décalage négatif à gauche (-ml-20) */}
-            <div className="w-[700px] h-[220px] overflow-hidden -ml-20">
+          {/* GAUCHE : Logo ÉNORME et DÉCALÉ À GAUCHE */}
+          <div className="flex justify-start relative">
+            <div className="absolute -top-6 -left-20 w-[800px] h-[280px] overflow-hidden">
               <img 
                 src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
                 alt="Logo Invit Studio" 
-                {/* Scale augmenté pour un logo encore plus gros */}
-                className="w-full h-full object-contain object-left-top scale-125" 
+                className="w-full h-full object-contain object-left-top scale-150" 
               />
             </div>
           </div>
 
-          {/* CENTRE : Titre maintenu aligné vers le haut */}
-          {/* pt-12 ajusté pour l'alignement avec le nouveau logo */}
-          <div className="flex justify-center pt-12">
-            <h1 className="text-3xl font-serif tracking-tight text-gray-900 whitespace-nowrap">
+          {/* CENTRE : Titre Invit Studio aligné en haut */}
+          <div className="flex justify-center pt-10">
+            <h1 className="text-3xl font-serif tracking-tight text-gray-900 whitespace-nowrap z-10">
               Invit Studio
             </h1>
           </div>
 
-          {/* DROITE : Bouton déconnexion maintenu aligné vers le haut */}
-          {/* pt-14 ajusté pour l'alignement */}
-          <div className="flex justify-end pt-14">
+          {/* DROITE : Bouton déconnexion aligné en haut */}
+          <div className="flex justify-end pt-12">
             <button
               onClick={() => signOut()}
-              className="flex items-center gap-2 text-gray-400 hover:text-rose-500 transition-colors text-[10px] sm:text-[11px] font-bold uppercase tracking-widest relative z-10"
+              className="flex items-center gap-2 text-gray-400 hover:text-rose-500 transition-colors text-[10px] sm:text-[11px] font-bold uppercase tracking-widest relative z-20"
             >
               <LogOut className="w-3.5 h-3.5 sm:w-4 h-4" />
               <span className="hidden xs:inline">{tAuth.logout}</span>
@@ -123,7 +117,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
           </div>
         </div>
 
-        {/* RESTE DU DASHBOARD (avec z-10 pour être au-dessus du débordement éventuel du logo) */}
+        {/* --- CONTENU DASHBOARD --- */}
         <div className="text-center mb-10 sm:mb-16 relative z-10">
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight mb-2">
             {t.welcome}
@@ -137,6 +131,8 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 relative z-10">
+            
+            {/* Bouton Nouvelle Création */}
             <button
               onClick={onCreateNew}
               className="min-h-[250px] sm:min-h-[300px] bg-white rounded-[2rem] sm:rounded-[2.5rem] border-2 border-dashed border-gray-100 hover:border-amber-400 hover:shadow-xl transition-all flex flex-col items-center justify-center gap-4 group"
@@ -149,6 +145,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
               </span>
             </button>
 
+            {/* Liste des Invitations */}
             {invitations.map((invitation) => (
               <div
                 key={invitation.id}
