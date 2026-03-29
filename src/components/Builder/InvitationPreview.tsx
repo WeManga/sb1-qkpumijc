@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, X, Calendar, Volume2, VolumeX, MapPin, Clock } from 'lucide-react';
+import { X, Calendar, Volume2, VolumeX, MapPin, Clock } from 'lucide-react';
 
 const THEME_EMOJIS: Record<string, string[]> = {
   wedding: ['🤍', '💍', '🕊️', '✨', '🌸'],
@@ -104,7 +104,9 @@ export function InvitationPreview({ invitation }: any) {
             <AnimatePresence>
               {!isOpened && (
                 <motion.div exit={{ y: "-100%" }} transition={{ duration: 0.9 }} className="absolute inset-0 z-50 flex flex-col items-center justify-center" style={{ backgroundColor: invitation?.envelope_color || '#FEE2E2' }}>
-                  <button onClick={() => setIsOpened(true)} className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-2xl text-amber-500 hover:scale-110 transition-transform"><Sparkles className="w-8 h-8"/></button>
+                  <button onClick={() => setIsOpened(true)} className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-transform p-2 overflow-hidden">
+                    <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png.png" className="w-full h-full object-contain scale-125" alt="Sceau" />
+                  </button>
                   <p className="text-white font-black text-[10px] uppercase tracking-[0.5em] mt-8">Ouvrir</p>
                 </motion.div>
               )}
@@ -127,7 +129,6 @@ export function InvitationPreview({ invitation }: any) {
                 </div>
               </div>
 
-              {/* PROGRAMME DANS LA PREVIEW */}
               <div className="space-y-6">
                 <h3 className="text-[10px] font-black text-amber-600 uppercase tracking-[0.3em] text-center mb-6">Le Programme</h3>
                 {(invitation.event_program || []).length > 0 ? (
