@@ -84,32 +84,32 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     <div className="absolute inset-0 overflow-y-auto bg-gradient-to-b from-gray-50 to-white scrollbar-hide">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-0 pb-32">
         
-        {/* --- TOP BAR --- */}
-        <div className="grid grid-cols-3 items-start border-b border-gray-100 mb-10 sm:mb-16 min-h-[200px] pb-0">
+        {/* --- TOP BAR : ALIGNEMENT STRICT --- */}
+        <div className="grid grid-cols-3 items-start border-b border-gray-100 mb-10 sm:mb-16 min-h-[180px]">
           
-          {/* GAUCHE : Logo décalé au maximum à gauche */}
-          <div className="flex justify-start relative">
-            <div className="absolute -top-4 -left-32 w-[600px] h-[200px] overflow-hidden">
+          {/* GAUCHE : Logo aligné sur le padding haut (pt-8) */}
+          <div className="flex justify-start pt-8">
+            <div className="w-[450px] h-[120px] overflow-hidden">
               <img 
                 src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
                 alt="Logo Invit Studio" 
-                className="w-full h-full object-contain object-left-top scale-125" 
+                className="w-full h-full object-contain object-left-top scale-110" 
               />
             </div>
           </div>
 
-          {/* CENTRE : Titre Invit Studio */}
+          {/* CENTRE : Titre Invit Studio aligné sur le même padding (pt-8) */}
           <div className="flex justify-center pt-8">
-            <h1 className="text-3xl font-serif tracking-tight text-gray-900 whitespace-nowrap z-10">
+            <h1 className="text-3xl font-serif tracking-tight text-gray-900 whitespace-nowrap">
               Invit Studio
             </h1>
           </div>
 
-          {/* DROITE : Déconnexion */}
-          <div className="flex justify-end pt-10">
+          {/* DROITE : Déconnexion aligné sur le même padding (pt-8) */}
+          <div className="flex justify-end pt-8">
             <button
               onClick={() => signOut()}
-              className="flex items-center gap-2 text-gray-400 hover:text-rose-500 transition-colors text-[10px] sm:text-[11px] font-bold uppercase tracking-widest relative z-20"
+              className="flex items-center gap-2 text-gray-400 hover:text-rose-500 transition-colors text-[10px] sm:text-[11px] font-bold uppercase tracking-widest"
             >
               <LogOut className="w-3.5 h-3.5 sm:w-4 h-4" />
               <span className="hidden xs:inline">{tAuth.logout}</span>
