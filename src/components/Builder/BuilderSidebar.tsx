@@ -220,6 +220,18 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 {invitation.music_url && <p className="text-[9px] text-green-600 font-bold text-center mt-3 uppercase">✓ Musique prête</p>}
              </div>
           </div>
+
+          {/* AJOUT DE LA SECTION PHOTOS ADDITIONNELLES (PREMIUM) ICI */}
+          <div>
+            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">Photos additionnelles</label>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="p-4 rounded-xl border-2 border-dashed border-gray-100 bg-gray-50/50 flex flex-col items-center justify-center gap-1 opacity-60 min-h-[80px]">
+                <Lock size={14} className="text-gray-400" />
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Premium</span>
+              </div>
+            </div>
+          </div>
+
         </div>
       )}
     </div>
