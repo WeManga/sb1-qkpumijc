@@ -84,36 +84,42 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     <div className="absolute inset-0 overflow-y-auto bg-gradient-to-b from-gray-50 to-white scrollbar-hide">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-0 pb-32">
         
-        {/* --- TOP BAR : ALIGNEMENT STRICT --- */}
-        <div className="relative flex items-center justify-center border-b border-gray-100 mb-8 pt-8 pb-4">
+        {/* --- TOP BAR : LOGO ET BOUTON AUX EXTRÉMITÉS --- */}
+        <div className="flex items-center justify-between border-b border-gray-100 mb-8 pt-8 pb-4">
           
-          {/* GAUCHE : Logo poussé à l'extrémité gauche */}
-          <div className="absolute left-0">
-            <img 
-              src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
-              alt="Logo Invit Studio" 
-              className="h-24 w-auto object-contain" 
-            />
+          {/* GAUCHE : Logo collé à l'extrémité gauche via -ml (marge négative) */}
+          <div className="flex-1 flex justify-start">
+            <div className="-ml-4 sm:-ml-6"> 
+              <img 
+                src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
+                alt="Logo Invit Studio" 
+                className="h-24 w-auto object-contain" 
+              />
+            </div>
           </div>
 
-          {/* CENTRE : Titre (Reste bien au milieu de la page) */}
-          <h1 className="text-2xl font-serif tracking-tight text-gray-900">
-            Invit Studio
-          </h1>
+          {/* CENTRE : Titre */}
+          <div className="flex-shrink-0">
+            <h1 className="text-2xl font-serif tracking-tight text-gray-900 whitespace-nowrap">
+              Invit Studio
+            </h1>
+          </div>
 
-          {/* DROITE : Déconnexion poussé à l'extrémité droite */}
-          <div className="absolute right-0">
-            <button
-              onClick={() => signOut()}
-              className="flex items-center gap-2 text-gray-400 hover:text-rose-500 transition-colors text-[10px] sm:text-[11px] font-bold uppercase tracking-widest"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden xs:inline">{tAuth.logout}</span>
-            </button>
+          {/* DROITE : Déconnexion collé à l'extrémité droite via -mr (marge négative) */}
+          <div className="flex-1 flex justify-end">
+            <div className="-mr-2 sm:-mr-4">
+              <button
+                onClick={() => signOut()}
+                className="flex items-center gap-2 text-gray-400 hover:text-rose-500 transition-colors text-[10px] sm:text-[11px] font-bold uppercase tracking-widest px-4 py-2"
+              >
+                <LogOut className="w-4 h-4" />
+                <span className="hidden xs:inline">{tAuth.logout}</span>
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* --- CONTENU --- */}
+        {/* --- CONTENU DASHBOARD --- */}
         <div className="text-center mb-10 relative z-10">
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight mb-2">
             {t.welcome}
@@ -144,7 +150,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                 key={invitation.id}
                 className="flex flex-col bg-white rounded-[2rem] sm:rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-300"
               >
-                {/* ... reste de la carte (inchangé pour gagner en clarté) ... */}
                 <div className="h-40 sm:h-44 relative bg-gray-50 overflow-hidden">
                   {invitation.main_photo_url ? (
                     <img src={invitation.main_photo_url} alt="" className="w-full h-full object-cover" />
@@ -159,8 +164,8 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                   <div className="mt-auto space-y-3">
                     <div className="grid grid-cols-4 gap-2">
                       <button onClick={() => onEdit(invitation.id)} className="col-span-2 py-3 bg-gray-900 text-white rounded-2xl text-[9px] font-bold uppercase tracking-widest flex items-center justify-center gap-2"><Edit className="w-3 h-3" /> {t.edit}</button>
-                      <button onClick={() => window.open(`/invite/${invitation.id}`, '_blank')} className="py-3 bg-gray-50 text-gray-400 rounded-2xl flex items-center justify-center"><Eye className="w-4 h-4" /></button>
-                      <button onClick={() => handleDelete(invitation.id)} className="py-3 bg-rose-50 text-rose-300 rounded-2xl flex items-center justify-center"><Trash2 className="w-4 h-4" /></button>
+                      <button onClick={() => window.open(`/invite/${invitation.id}`, '_blank')} className="py-3 bg-gray-50 text-gray-400 rounded-2xl flex items-center justify-center hover:bg-gray-100 border border-gray-100"><Eye className="w-4 h-4" /></button>
+                      <button onClick={() => handleDelete(invitation.id)} className="py-3 bg-rose-50 text-rose-300 rounded-2xl flex items-center justify-center hover:bg-rose-100 hover:text-rose-600 border border-rose-100"><Trash2 className="w-4 h-4" /></button>
                     </div>
                     <button onClick={() => handleCopyLink(invitation.id)} className="w-full py-2.5 bg-amber-50 text-amber-700 rounded-xl text-[9px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-amber-100 border border-amber-100">
                       <Copy className="w-3 h-3" /> {t.share}
