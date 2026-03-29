@@ -76,7 +76,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     }
   };
 
-  // --- CORRECTION DU LIEN ICI ---
   const handleCopyLink = (id: string) => {
     const url = `${window.location.origin}/invite/${id}`;
     navigator.clipboard.writeText(url);
@@ -90,11 +89,11 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
         {/* TOP BAR */}
         <div className="flex justify-between items-center mb-16 border-b border-gray-100 pb-6">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-amber-400 rounded-lg flex items-center justify-center shadow-sm overflow-hidden p-1">
+            <div className="w-9 h-9 bg-amber-400 rounded-lg flex items-center justify-center shadow-sm overflow-hidden p-1">
               <img 
                 src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png.png" 
-                className="w-full h-full object-contain scale-125" 
                 alt="Logo" 
+                className="w-full h-full object-contain"
               />
             </div>
             <span className="text-lg font-bold tracking-tighter text-gray-900">InviteStudio</span>
