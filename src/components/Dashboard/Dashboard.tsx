@@ -85,28 +85,32 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-0 pb-32">
         
         {/* --- TOP BAR --- */}
-        <div className="grid grid-cols-3 items-start border-b border-gray-100 mb-10 sm:mb-16 min-h-[250px] pb-0">
+        <div className="grid grid-cols-3 items-start border-b border-gray-100 mb-10 sm:mb-16 min-h-[200px] pb-0">
           
-          {/* GAUCHE : Logo ÉNORME et DÉCALÉ À GAUCHE */}
+          {/* GAUCHE : Logo ÉNORME et DÉCALÉ ENCORE PLUS À GAUCHE, TAILLE RÉDUITE */}
           <div className="flex justify-start relative">
-            <div className="absolute -top-6 -left-20 w-[800px] h-[280px] overflow-hidden">
+            {/* -left-32 pour coller encore plus, taille réduite w-[600px] h-[200px] */}
+            <div className="absolute -top-4 -left-32 w-[600px] h-[200px] overflow-hidden">
               <img 
                 src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
                 alt="Logo Invit Studio" 
-                className="w-full h-full object-contain object-left-top scale-150" 
+                {/* scale-125 au lieu de scale-150 pour réduire la taille */}
+                className="w-full h-full object-contain object-left-top scale-125" 
               />
             </div>
           </div>
 
           {/* CENTRE : Titre Invit Studio aligné en haut */}
-          <div className="flex justify-center pt-10">
+          {/* pt-8 pour aligner avec le logo plus petit */}
+          <div className="flex justify-center pt-8">
             <h1 className="text-3xl font-serif tracking-tight text-gray-900 whitespace-nowrap z-10">
               Invit Studio
             </h1>
           </div>
 
           {/* DROITE : Bouton déconnexion aligné en haut */}
-          <div className="flex justify-end pt-12">
+          {/* pt-10 pour aligner avec le logo plus petit */}
+          <div className="flex justify-end pt-10">
             <button
               onClick={() => signOut()}
               className="flex items-center gap-2 text-gray-400 hover:text-rose-500 transition-colors text-[10px] sm:text-[11px] font-bold uppercase tracking-widest relative z-20"
