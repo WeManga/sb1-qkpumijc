@@ -114,12 +114,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
         </div>
 
         {/* --- RESTE DU CONTENU DASHBOARD --- */}
-        <div className="text-center mb-10 relative z-10">
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight mb-2">
-            {t.welcome}
-          </h1>
-          <div className="w-10 h-1 bg-amber-400 mx-auto rounded-full" />
-        </div>
+
 
         {!loading && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 relative z-10">
