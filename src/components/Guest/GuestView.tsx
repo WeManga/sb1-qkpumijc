@@ -146,14 +146,19 @@ export function GuestView({ invitation }: GuestViewProps) {
             style={{ backgroundColor: invitation?.envelope_color || '#FEE2E2' }}
             onClick={() => setView('card')}
           >
-            <motion.div whileHover={{ scale: 1.1 }} className="w-24 h-24 bg-white rounded-full flex items-center justify-center border-2 border-white/30 shadow-2xl p-1 overflow-hidden">
+            {/* Logo Massif sans fond blanc */}
+            <motion.div 
+              whileHover={{ scale: 1.05 }} 
+              className="w-[32rem] h-[32rem] flex items-center justify-center overflow-visible"
+            >
                <img 
                  src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
-                 className="w-full h-full object-contain scale-125" 
+                 className="w-full h-full object-contain" 
                  alt="Logo" 
                />
             </motion.div>
-            <p className="text-white font-black text-[10px] uppercase tracking-[0.5em] mt-8">Ouvrir</p>
+            {/* Texte collé au logo avec marge négative */}
+            <p className="text-white font-black text-[10px] uppercase tracking-[0.5em] -mt-4">Ouvrir</p>
           </motion.div>
         )}
 
