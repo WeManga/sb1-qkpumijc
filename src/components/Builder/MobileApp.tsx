@@ -22,7 +22,7 @@ export default function MobileApp({ invitation, onInvitationChange, onSave, onBa
         <button onClick={onBack} className="flex items-center gap-2 text-[#007AFF] font-medium"><ArrowLeft size={20} /><span>Retour</span></button>
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 bg-amber-500 rounded-full animate-pulse" />
-          <span className="font-bold text-sm tracking-tight text-gray-900">InviteStudio<span className="text-amber-500">.</span></span>
+          <span className="font-bold text-sm tracking-tight text-gray-900">Invit Studio<span className="text-amber-500">.</span></span>
         </div>
         <button onClick={onSave} disabled={saving} className="bg-black text-white px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2 shadow-lg">
           {saving ? <Loader2 className="w-3 h-3 animate-spin"/> : <Check className="w-3 h-3"/>}
