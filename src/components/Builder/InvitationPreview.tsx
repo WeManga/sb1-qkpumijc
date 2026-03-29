@@ -104,15 +104,15 @@ export function InvitationPreview({ invitation }: any) {
             <AnimatePresence>
               {!isOpened && (
                 <motion.div exit={{ y: "-100%" }} transition={{ duration: 0.9 }} className="absolute inset-0 z-50 flex flex-col items-center justify-center" style={{ backgroundColor: invitation?.envelope_color || '#FEE2E2' }}>
-                  {/* Taille du logo augmentée (w-80 h-80) */}
-                  <button onClick={() => setIsOpened(true)} className="w-80 h-80 flex items-center justify-center hover:scale-110 transition-transform p-0 overflow-visible active:scale-95 active:duration-75">
+                  {/* Taille du logo augmentée drastiquement (w-[26rem] h-[26rem]) */}
+                  <button onClick={() => setIsOpened(true)} className="w-[26rem] h-[26rem] flex items-center justify-center hover:scale-110 transition-transform p-0 overflow-visible active:scale-95 active:duration-75">
                     <img 
                       src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
                       className="w-full h-full object-contain" 
                       alt="Sceau" 
                     />
                   </button>
-                  {/* Espace réduit avec le texte (mt-0) */}
+                  {/* Espace totalement supprimé avec le texte (mt-0) */}
                   <p className="text-white font-black text-[10px] uppercase tracking-[0.5em] mt-0">Ouvrir</p>
                 </motion.div>
               )}
