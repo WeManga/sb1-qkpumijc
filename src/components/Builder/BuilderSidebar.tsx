@@ -63,8 +63,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
   return (
     <div className="w-full space-y-8 pb-10">
-      
-      {/* SECTION 1 : CONTENU */}
       {activeTab === 'content' && (
         <div className="space-y-8">
           <div className="space-y-4">
@@ -75,9 +73,17 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
               <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 w-4 h-4" />
               <input type="text" value={invitation.event_address || ''} onChange={e => onInvitationChange({...invitation, event_address: e.target.value})} className="w-full bg-gray-50 border-none h-14 pl-12 pr-4 rounded-2xl text-sm" placeholder="Adresse" />
             </div>
+            
+            {/* INPUT DATE CORRIGÉ ICI */}
             <div className="relative">
-              <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 w-4 h-4" />
-              <input type="date" value={invitation.event_date?.split('T')[0] || ''} onChange={e => onInvitationChange({...invitation, event_date: e.target.value})} className="w-full bg-gray-50 border-none h-14 pl-12 pr-4 rounded-2xl text-sm" />
+              <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 w-4 h-4 pointer-events-none z-10" />
+              <input 
+                type="date" 
+                value={invitation.event_date?.split('T')[0] || ''} 
+                onChange={e => onInvitationChange({...invitation, event_date: e.target.value})} 
+                className="w-full bg-gray-50 border-none h-14 pl-12 pr-4 rounded-2xl text-sm appearance-none block" 
+                style={{ minHeight: '3.5rem', WebkitAppearance: 'none' }}
+              />
             </div>
           </div>
 
@@ -120,7 +126,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
         </div>
       )}
 
-      {/* SECTION 2 : STYLE */}
       {activeTab === 'style' && (
         <div className="space-y-8">
           <div>
@@ -171,7 +176,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
         </div>
       )}
 
-      {/* SECTION 3 : MEDIA */}
       {activeTab === 'media' && (
         <div className="space-y-6">
           <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">Photo principale</label>
