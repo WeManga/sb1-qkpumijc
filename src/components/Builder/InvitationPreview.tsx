@@ -104,14 +104,14 @@ export function InvitationPreview({ invitation }: any) {
             <AnimatePresence>
               {!isOpened && (
                 <motion.div exit={{ y: "-100%" }} transition={{ duration: 0.9 }} className="absolute inset-0 z-50 flex flex-col items-center justify-center" style={{ backgroundColor: invitation?.envelope_color || '#FEE2E2' }}>
-                  <button onClick={() => setIsOpened(true)} className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 transition-transform p-2 overflow-hidden">
+                  <button onClick={() => setIsOpened(true)} className="w-64 h-64 flex items-center justify-center hover:scale-110 transition-transform p-0 overflow-visible">
                     <img 
                       src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
-                      className="w-full h-full object-contain scale-125" 
+                      className="w-full h-full object-contain" 
                       alt="Sceau" 
                     />
                   </button>
-                  <p className="text-white font-black text-[10px] uppercase tracking-[0.5em] mt-8">Ouvrir</p>
+                  <p className="text-white font-black text-[10px] uppercase tracking-[0.5em] mt-2">Ouvrir</p>
                 </motion.div>
               )}
             </AnimatePresence>
