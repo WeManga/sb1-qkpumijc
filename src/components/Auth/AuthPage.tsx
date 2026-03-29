@@ -51,8 +51,8 @@ export function AuthPage() {
 
       <div className="w-full max-w-md">
         <div className="text-center mb-10 flex flex-col items-center">
-          {/* LOGO MASSIVEMENT AGRANDI (w-100, h-100) SANS FOND NI MARGE BASSE */}
-          <div className="w-[400px] h-[400px] mb-0 flex items-center justify-center overflow-hidden">
+          {/* LOGO ÉNORME (w-[350px]) SANS MARGE BASSE NI ESPACEMENT INTERNE */}
+          <div className="w-[350px] h-[350px] mb-0 p-0 flex items-center justify-center overflow-hidden">
             <img 
               src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
               alt="Logo InviteStudio" 
@@ -60,8 +60,8 @@ export function AuthPage() {
             />
           </div>
           
-          {/* TITRE COLLÉ AU LOGO (Marge supérieure négative encore augmentée) */}
-          <h1 className="text-4xl font-light tracking-wide text-gray-800 -mt-10 mb-2">
+          {/* TITRE COLLÉ AU LOGO (Marge supérieure négative maximale) */}
+          <h1 className="text-4xl font-light tracking-wide text-gray-800 -mt-16 mb-2">
             {t.title}
           </h1>
           <p className="text-gray-600 font-light italic">
