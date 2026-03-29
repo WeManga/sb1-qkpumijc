@@ -82,15 +82,14 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
 
   return (
     <div className="absolute inset-0 overflow-y-auto bg-gradient-to-b from-gray-50 to-white scrollbar-hide">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10 pb-32">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-0 sm:py-0 pb-32">
         
-        {/* TOP BAR AVEC GRID - Logo énorme et collé, Titre centré */}
-        <div className="grid grid-cols-3 items-center mb-10 sm:mb-16 border-b border-gray-100 pb-1 min-h-[140px]">
+        {/* TOP BAR : ALIGNEMENT HAUT (items-start) */}
+        <div className="grid grid-cols-3 items-start border-b border-gray-100 mb-10 sm:mb-16 min-h-[160px]">
           
-          {/* ZONE GAUCHE : Logo Géant et Collé */}
+          {/* GAUCHE : Logo encore plus gros et collé en haut */}
           <div className="flex justify-start">
-            {/* Taille augmentée, aucune marge à gauche, et marge négative en haut pour "coller" */}
-            <div className="w-[400px] h-[140px] -mt-4 flex items-center justify-start overflow-hidden">
+            <div className="w-[500px] h-[160px] overflow-hidden">
               <img 
                 src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
                 alt="Logo Invit Studio" 
@@ -99,15 +98,15 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
             </div>
           </div>
 
-          {/* ZONE CENTRE : Titre Invit Studio Toujours Centré */}
-          <div className="flex justify-center">
+          {/* CENTRE : Titre remonté au même niveau que le haut du logo */}
+          <div className="flex justify-center pt-8">
             <h1 className="text-3xl font-serif tracking-tight text-gray-900 whitespace-nowrap">
               Invit Studio
             </h1>
           </div>
 
-          {/* ZONE DROITE : Bouton déconnexion */}
-          <div className="flex justify-end">
+          {/* DROITE : Bouton déconnexion remonté au même niveau */}
+          <div className="flex justify-end pt-10">
             <button
               onClick={() => signOut()}
               className="flex items-center gap-2 text-gray-400 hover:text-rose-500 transition-colors text-[10px] sm:text-[11px] font-bold uppercase tracking-widest relative z-10"
