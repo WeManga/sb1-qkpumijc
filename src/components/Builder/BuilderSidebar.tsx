@@ -3,7 +3,7 @@ import { supabase } from '../../lib/supabase';
 import { translations, Language } from '../../lib/i18n';
 import { 
   Heart, PartyPopper, Sparkles, Baby, MapPin, 
-  Music, Image as ImageIcon, Loader2, Calendar, Move, Plus, X, Clock 
+  Music, Image as ImageIcon, Loader2, Calendar, Move, Plus, X, Clock, Lock
 } from 'lucide-react';
 
 const COLOR_PALETTES = [
@@ -13,7 +13,7 @@ const COLOR_PALETTES = [
   { name: 'Ambre', color: '#FEF3C7' },
   { name: 'Rouge Passion', color: '#EF4444' },
   { name: 'Bleu Profond', color: '#1E3A8A' },
-  { name: 'Noir Mat', color: '#111827' },
+  // NOIR MAT SUPPRIMÉ ICI
   { name: 'Sable', color: '#F5F5DC' },
   { name: 'Violet Satin', color: '#7C3AED' },
   { name: 'Eucalyptus', color: '#374151' }
@@ -74,7 +74,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
               <input type="text" value={invitation.event_address || ''} onChange={e => onInvitationChange({...invitation, event_address: e.target.value})} className="w-full bg-gray-50 border-none h-14 pl-12 pr-4 rounded-2xl text-sm" placeholder="Adresse" />
             </div>
             
-            {/* INPUT DATE CORRIGÉ ICI */}
             <div className="relative">
               <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 w-4 h-4 pointer-events-none z-10" />
               <input 
@@ -130,7 +129,8 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
         <div className="space-y-8">
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">Couleur de l'enveloppe</label>
-            <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4">
+            {/* Correction du "rond mangé" : ajout de pt-2 et pb-4 pour laisser de la place au cercle de sélection */}
+            <div className="flex gap-3 overflow-x-auto pt-2 pb-6 scrollbar-hide -mx-4 px-4">
               {COLOR_PALETTES.map(p => (
                 <button 
                   key={p.color} 
@@ -155,6 +155,12 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                   {f.name}
                 </button>
               ))}
+              
+              {/* CASE CADENAS (BLOQUÉE) */}
+              <div className="p-4 rounded-xl border-2 border-dashed border-gray-100 bg-gray-50/50 flex flex-col items-center justify-center gap-1 opacity-60">
+                <Lock size={14} className="text-gray-400" />
+                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Premium</span>
+              </div>
             </div>
           </div>
 
