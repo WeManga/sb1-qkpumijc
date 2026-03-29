@@ -146,8 +146,8 @@ export function GuestView({ invitation }: GuestViewProps) {
             style={{ backgroundColor: invitation?.envelope_color || '#FEE2E2' }}
             onClick={() => setView('card')}
           >
-            <motion.div whileHover={{ scale: 1.1 }} className="w-24 h-24 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border-2 border-white/30 shadow-2xl">
-              <span className="text-4xl animate-pulse">✨</span>
+            <motion.div whileHover={{ scale: 1.1 }} className="w-24 h-24 bg-white rounded-full flex items-center justify-center border-2 border-white/30 shadow-2xl p-1 overflow-hidden">
+               <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png.png" className="w-full h-full object-contain scale-125" alt="Logo" />
             </motion.div>
             <p className="text-white font-black text-[10px] uppercase tracking-[0.5em] mt-8">Ouvrir</p>
           </motion.div>
@@ -247,6 +247,7 @@ export function GuestView({ invitation }: GuestViewProps) {
                     <img 
                       src="https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=1000" 
                       className="w-full h-full object-cover opacity-40 grayscale"
+                      alt="Map Placeholder"
                     />
                     <div className="absolute inset-0 flex items-center justify-center bg-black/5">
                       <a 
