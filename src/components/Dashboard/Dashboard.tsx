@@ -84,11 +84,11 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     <div className="absolute inset-0 overflow-y-auto bg-gradient-to-b from-gray-50 to-white scrollbar-hide">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10 pb-32">
         
-        {/* TOP BAR MODIFIÉE - Logo géant à gauche, Titre centré */}
-        <div className="relative flex items-center mb-10 sm:mb-16 border-b border-gray-100 pb-5 min-h-[100px]">
+        {/* TOP BAR MODIFIÉE - Logo géant séparé en haut à gauche, Titre centré */}
+        <div className="relative flex items-center mb-10 sm:mb-16 border-b border-gray-100 pb-5 min-h-[100px] pt-36">
           
-          {/* 1. Logo GÉANT à gauche */}
-          <div className="w-40 h-20 flex items-center justify-center overflow-hidden">
+          {/* 1. Logo GÉANT séparé en haut à gauche */}
+          <div className="absolute top-4 left-4 w-[600px] h-[300px] flex items-center justify-center overflow-hidden z-0">
             <img 
               src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
               alt="Logo Invit Studio" 
@@ -97,12 +97,12 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
           </div>
 
           {/* 2. Titre "Invit Studio" CENTRÉ ABSOLU avec police Serif */}
-          <h1 className="absolute left-1/2 -translate-x-1/2 text-4xl font-serif tracking-tight text-gray-900 z-10">
+          <h1 className="absolute left-1/2 -translate-x-1/2 text-5xl font-serif tracking-tight text-gray-900 z-10">
             Invit Studio
           </h1>
 
           {/* 3. Bouton déconnexion aligné à droite */}
-          <div className="flex items-center gap-4 ml-auto z-20">
+          <div className="flex items-center gap-4 ml-auto z-20 relative">
             <button
               onClick={() => signOut()}
               className="flex items-center gap-2 text-gray-400 hover:text-rose-500 transition-colors text-[10px] sm:text-[11px] font-bold uppercase tracking-widest"
