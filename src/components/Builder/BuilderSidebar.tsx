@@ -13,7 +13,6 @@ const COLOR_PALETTES = [
   { name: 'Ambre', color: '#FEF3C7' },
   { name: 'Rouge Passion', color: '#EF4444' },
   { name: 'Bleu Profond', color: '#1E3A8A' },
-  // NOIR MAT SUPPRIMÉ ICI
   { name: 'Sable', color: '#F5F5DC' },
   { name: 'Violet Satin', color: '#7C3AED' },
   { name: 'Eucalyptus', color: '#374151' }
@@ -63,6 +62,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
   return (
     <div className="w-full space-y-8 pb-10">
+      {/* SECTION 1 : CONTENU */}
       {activeTab === 'content' && (
         <div className="space-y-8">
           <div className="space-y-4">
@@ -125,11 +125,11 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
         </div>
       )}
 
+      {/* SECTION 2 : STYLE */}
       {activeTab === 'style' && (
         <div className="space-y-8">
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">Couleur de l'enveloppe</label>
-            {/* Correction du "rond mangé" : ajout de pt-2 et pb-4 pour laisser de la place au cercle de sélection */}
             <div className="flex gap-3 overflow-x-auto pt-2 pb-6 scrollbar-hide -mx-4 px-4">
               {COLOR_PALETTES.map(p => (
                 <button 
@@ -155,8 +155,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                   {f.name}
                 </button>
               ))}
-              
-              {/* CASE CADENAS (BLOQUÉE) */}
               <div className="p-4 rounded-xl border-2 border-dashed border-gray-100 bg-gray-50/50 flex flex-col items-center justify-center gap-1 opacity-60">
                 <Lock size={14} className="text-gray-400" />
                 <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Premium</span>
@@ -182,40 +180,45 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
         </div>
       )}
 
+      {/* SECTION 3 : MEDIAS */}
       {activeTab === 'media' && (
-        <div className="space-y-6">
-          <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">Photo principale</label>
-          <label className="relative flex flex-col items-center justify-center h-56 bg-gray-50 rounded-[2.5rem] border-2 border-dashed border-gray-200 cursor-pointer overflow-hidden group">
-             {invitation.main_photo_url ? (
-               <img 
-                 src={invitation.main_photo_url} 
-                 className="w-full h-full object-cover transition-transform group-hover:scale-105" 
-                 style={{ objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%` }} 
-               />
-             ) : (
-               <div className="text-center"><ImageIcon className="w-8 h-8 mx-auto text-gray-300"/><span className="text-[9px] font-bold text-gray-400 uppercase mt-2 block">Ajouter une photo</span></div>
-             )}
-             <input type="file" className="hidden" accept="image/*" onChange={e => uploadFile(e, 'main_photo_url')} />
-             {uploading && <div className="absolute inset-0 bg-white/60 flex items-center justify-center"><Loader2 className="animate-spin text-amber-500"/></div>}
-          </label>
+        <div className="space-y-8">
+          <div>
+            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">Photo principale</label>
+            <label className="relative flex flex-col items-center justify-center h-56 bg-gray-50 rounded-[2.5rem] border-2 border-dashed border-gray-200 cursor-pointer overflow-hidden group">
+               {invitation.main_photo_url ? (
+                 <img 
+                   src={invitation.main_photo_url} 
+                   className="w-full h-full object-cover transition-transform group-hover:scale-105" 
+                   style={{ objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%` }} 
+                 />
+               ) : (
+                 <div className="text-center"><ImageIcon className="w-8 h-8 mx-auto text-gray-300"/><span className="text-[9px] font-bold text-gray-400 uppercase mt-2 block">Ajouter une photo</span></div>
+               )}
+               <input type="file" className="hidden" accept="image/*" onChange={e => uploadFile(e, 'main_photo_url')} />
+               {uploading && <div className="absolute inset-0 bg-white/60 flex items-center justify-center"><Loader2 className="animate-spin text-amber-500"/></div>}
+            </label>
 
-          {invitation.main_photo_url && (
-            <div className="p-5 bg-gray-50 rounded-[2rem] space-y-5 border border-gray-100">
-              <div className="flex items-center gap-2 text-[9px] font-black text-gray-400 uppercase tracking-widest"><Move size={12}/> Ajuster le cadrage</div>
-              <div className="space-y-1">
-                <input type="range" min="0" max="100" value={invitation.photo_pos_x || 50} onChange={e => onInvitationChange({...invitation, photo_pos_x: e.target.value})} className="w-full h-1.5 bg-gray-200 rounded-lg accent-amber-500" />
-                <input type="range" min="0" max="100" value={invitation.photo_pos_y || 50} onChange={e => onInvitationChange({...invitation, photo_pos_y: e.target.value})} className="w-full h-1.5 bg-gray-200 rounded-lg accent-amber-500 mt-2" />
+            {invitation.main_photo_url && (
+              <div className="p-5 mt-4 bg-gray-50 rounded-[2rem] space-y-5 border border-gray-100">
+                <div className="flex items-center gap-2 text-[9px] font-black text-gray-400 uppercase tracking-widest"><Move size={12}/> Ajuster le cadrage</div>
+                <div className="space-y-1">
+                  <input type="range" min="0" max="100" value={invitation.photo_pos_x || 50} onChange={e => onInvitationChange({...invitation, photo_pos_x: e.target.value})} className="w-full h-1.5 bg-gray-200 rounded-lg accent-amber-500" />
+                  <input type="range" min="0" max="100" value={invitation.photo_pos_y || 50} onChange={e => onInvitationChange({...invitation, photo_pos_y: e.target.value})} className="w-full h-1.5 bg-gray-200 rounded-lg accent-amber-500 mt-2" />
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
-          <div className="p-6 bg-amber-50/50 rounded-[2.5rem] border border-amber-100">
-             <label className="text-[10px] font-black uppercase text-amber-800 mb-4 block text-center">Musique de fond</label>
-             <label className="flex flex-col items-center justify-center h-24 bg-white rounded-2xl border-2 border-dashed border-amber-200 cursor-pointer hover:border-amber-400 transition-colors">
-                <Music className="w-6 h-6 text-amber-300"/><span className="text-[9px] font-black text-amber-400 uppercase mt-2">Uploader MP3</span>
-                <input type="file" className="hidden" accept="audio/mp3,audio/mpeg" onChange={e => uploadFile(e, 'music_url')} />
-             </label>
-             {invitation.music_url && <p className="text-[9px] text-green-600 font-bold text-center mt-3 uppercase">✓ Musique prête</p>}
+          <div>
+             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">Musique de fond</label>
+             <div className="p-6 bg-amber-50/50 rounded-[2.5rem] border border-amber-100">
+                <label className="flex flex-col items-center justify-center h-24 bg-white rounded-2xl border-2 border-dashed border-amber-200 cursor-pointer hover:border-amber-400 transition-colors">
+                   <Music className="w-6 h-6 text-amber-300"/><span className="text-[9px] font-black text-amber-400 uppercase mt-2">Uploader MP3</span>
+                   <input type="file" className="hidden" accept="audio/mp3,audio/mpeg" onChange={e => uploadFile(e, 'music_url')} />
+                </label>
+                {invitation.music_url && <p className="text-[9px] text-green-600 font-bold text-center mt-3 uppercase">✓ Musique prête</p>}
+             </div>
           </div>
         </div>
       )}
