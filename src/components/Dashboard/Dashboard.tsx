@@ -84,12 +84,12 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     <div className="absolute inset-0 overflow-y-auto bg-gradient-to-b from-gray-50 to-white scrollbar-hide">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-0 pb-32">
         
-        {/* --- TOP BAR : ALIGNEMENT PARFAIT --- */}
-        <div className="grid grid-cols-3 items-start border-b border-gray-100 mb-10 sm:mb-16 min-h-[250px] pb-0">
+        {/* --- TOP BAR : COLLÉE EN BAS (pb-0 et min-h-0) --- */}
+        <div className="grid grid-cols-3 items-start border-b border-gray-100 mb-10 sm:mb-16 min-h-0 pb-0">
           
-          {/* GAUCHE : Logo Géant aligné en haut */}
-          <div className="flex justify-start pt-8">
-            <div className="w-[600px] h-[200px] overflow-hidden">
+          {/* GAUCHE : Logo Géant aligné en haut, sans espace en bas */}
+          <div className="flex justify-start pt-8 pb-0">
+            <div className="w-[600px] h-[160px] overflow-hidden">
               <img 
                 src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
                 alt="Logo Invit Studio" 
@@ -98,14 +98,14 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
             </div>
           </div>
 
-          {/* CENTRE : Invit Studio aligné sur la même ligne (pt-8) */}
+          {/* CENTRE : Titre aligné en haut */}
           <div className="flex justify-center pt-8">
             <h1 className="text-3xl font-serif tracking-tight text-gray-900 whitespace-nowrap">
               Invit Studio
             </h1>
           </div>
 
-          {/* DROITE : Déconnexion aligné sur la même ligne (pt-8) */}
+          {/* DROITE : Déconnexion aligné en haut */}
           <div className="flex justify-end pt-8">
             <button
               onClick={() => signOut()}
