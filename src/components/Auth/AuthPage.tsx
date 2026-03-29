@@ -50,9 +50,9 @@ export function AuthPage() {
       </div>
 
       <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          {/* LOGO MODIFIÉ : Fond supprimé, taille ajustée */}
-          <div className="inline-flex items-center justify-center w-24 h-24 mb-4">
+        <div className="text-center mb-12"> {/* Marge inférieure augmentée */}
+          {/* LOGO MASSIVEMENT AGRANDI ET FOND SUPPRIMÉ */}
+          <div className="inline-flex items-center justify-center w-48 h-48 mb-6">
             <img 
               src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
               alt="Logo InviteStudio" 
