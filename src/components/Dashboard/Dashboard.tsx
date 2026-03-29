@@ -84,42 +84,36 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     <div className="absolute inset-0 overflow-y-auto bg-gradient-to-b from-gray-50 to-white scrollbar-hide">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-0 pb-32">
         
-        {/* --- TOP BAR : LOGO ET BOUTON AUX EXTRÉMITÉS --- */}
-        <div className="flex items-center justify-between border-b border-gray-100 mb-8 pt-8 pb-4">
+        {/* --- TOP BAR : ALIGNEMENT MAXIMUM AUX BORDS --- */}
+        <div className="relative flex items-center justify-center border-b border-gray-100 mb-8 pt-8 pb-4">
           
-          {/* GAUCHE : Logo collé à l'extrémité gauche via -ml (marge négative) */}
-          <div className="flex-1 flex justify-start">
-            <div className="-ml-4 sm:-ml-6"> 
-              <img 
-                src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
-                alt="Logo Invit Studio" 
-                className="h-24 w-auto object-contain" 
-              />
-            </div>
+          {/* GAUCHE : Logo poussé au bord extrême via absolute et marges négatives */}
+          <div className="absolute left-0 -ml-4 sm:-ml-6">
+            <img 
+              src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
+              alt="Logo Invit Studio" 
+              className="h-24 w-auto object-contain" 
+            />
           </div>
 
-          {/* CENTRE : Titre */}
-          <div className="flex-shrink-0">
-            <h1 className="text-2xl font-serif tracking-tight text-gray-900 whitespace-nowrap">
-              Invit Studio
-            </h1>
-          </div>
+          {/* CENTRE : Titre (Parfaitement centré au milieu de la barre) */}
+          <h1 className="text-2xl font-serif tracking-tight text-gray-900 whitespace-nowrap">
+            Invit Studio
+          </h1>
 
-          {/* DROITE : Déconnexion collé à l'extrémité droite via -mr (marge négative) */}
-          <div className="flex-1 flex justify-end">
-            <div className="-mr-2 sm:-mr-4">
-              <button
-                onClick={() => signOut()}
-                className="flex items-center gap-2 text-gray-400 hover:text-rose-500 transition-colors text-[10px] sm:text-[11px] font-bold uppercase tracking-widest px-4 py-2"
-              >
-                <LogOut className="w-4 h-4" />
-                <span className="hidden xs:inline">{tAuth.logout}</span>
-              </button>
-            </div>
+          {/* DROITE : Déconnexion poussé au bord extrême droit */}
+          <div className="absolute right-0 -mr-2 sm:-mr-4">
+            <button
+              onClick={() => signOut()}
+              className="flex items-center gap-2 text-gray-400 hover:text-rose-500 transition-colors text-[10px] sm:text-[11px] font-bold uppercase tracking-widest px-4 py-2"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="hidden xs:inline">{tAuth.logout}</span>
+            </button>
           </div>
         </div>
 
-        {/* --- CONTENU DASHBOARD --- */}
+        {/* --- CONTENU --- */}
         <div className="text-center mb-10 relative z-10">
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight mb-2">
             {t.welcome}
