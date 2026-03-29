@@ -84,12 +84,12 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     <div className="absolute inset-0 overflow-y-auto bg-gradient-to-b from-gray-50 to-white scrollbar-hide">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10 pb-32">
         
-        {/* TOP BAR - Optimisée Mobile */}
+        {/* TOP BAR */}
         <div className="flex justify-between items-center mb-10 sm:mb-16 border-b border-gray-100 pb-5">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 bg-amber-400 rounded-lg flex items-center justify-center shadow-sm overflow-hidden p-1">
               <img 
-                src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png.png" 
+                src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
                 alt="Logo" 
                 className="w-full h-full object-contain"
               />
