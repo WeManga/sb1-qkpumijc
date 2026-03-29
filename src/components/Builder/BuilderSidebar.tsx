@@ -221,13 +221,14 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
              </div>
           </div>
 
-          {/* AJOUT DE LA SECTION PHOTOS ADDITIONNELLES (PREMIUM) ICI */}
+          {/* PHOTOS ADDITIONNELLES - PLEINE LARGEUR */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">Photos additionnelles</label>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="p-4 rounded-xl border-2 border-dashed border-gray-100 bg-gray-50/50 flex flex-col items-center justify-center gap-1 opacity-60 min-h-[80px]">
-                <Lock size={14} className="text-gray-400" />
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">Premium</span>
+            <div className="p-6 bg-gray-50/50 rounded-[2.5rem] border-2 border-dashed border-gray-100 flex flex-col items-center justify-center gap-2 opacity-60 min-h-[120px]">
+              <Lock size={20} className="text-gray-400" />
+              <div className="text-center">
+                <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">Album Premium</span>
+                <p className="text-[9px] font-bold text-gray-400 mt-1 uppercase">Bientôt disponible</p>
               </div>
             </div>
           </div>
