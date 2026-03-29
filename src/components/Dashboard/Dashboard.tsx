@@ -82,31 +82,37 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
 
   return (
     <div className="absolute inset-0 overflow-y-auto bg-gradient-to-b from-gray-50 to-white scrollbar-hide">
+      {/* Utilisation de px-0 pour permettre au logo de se coller au bord */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-0 sm:py-0 pb-32">
         
         {/* TOP BAR : ALIGNEMENT HAUT (items-start) */}
-        <div className="grid grid-cols-3 items-start border-b border-gray-100 mb-10 sm:mb-16 min-h-[160px]">
+        {/* pb-0 pour coller en bas */}
+        <div className="grid grid-cols-3 items-start border-b border-gray-100 mb-10 sm:mb-16 min-h-[220px] pb-0">
           
-          {/* GAUCHE : Logo encore plus gros et collé en haut */}
+          {/* GAUCHE : Logo ÉNORME et DÉCALLÉ À GAUCHE */}
           <div className="flex justify-start">
-            <div className="w-[500px] h-[160px] overflow-hidden">
+            {/* Taille massive (w-[700px] h-[220px]) et décalage négatif à gauche (-ml-20) */}
+            <div className="w-[700px] h-[220px] overflow-hidden -ml-20">
               <img 
                 src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
                 alt="Logo Invit Studio" 
-                className="w-full h-full object-contain object-left-top scale-110" 
+                {/* Scale augmenté pour un logo encore plus gros */}
+                className="w-full h-full object-contain object-left-top scale-125" 
               />
             </div>
           </div>
 
-          {/* CENTRE : Titre remonté au même niveau que le haut du logo */}
-          <div className="flex justify-center pt-8">
+          {/* CENTRE : Titre maintenu aligné vers le haut */}
+          {/* pt-12 ajusté pour l'alignement avec le nouveau logo */}
+          <div className="flex justify-center pt-12">
             <h1 className="text-3xl font-serif tracking-tight text-gray-900 whitespace-nowrap">
               Invit Studio
             </h1>
           </div>
 
-          {/* DROITE : Bouton déconnexion remonté au même niveau */}
-          <div className="flex justify-end pt-10">
+          {/* DROITE : Bouton déconnexion maintenu aligné vers le haut */}
+          {/* pt-14 ajusté pour l'alignement */}
+          <div className="flex justify-end pt-14">
             <button
               onClick={() => signOut()}
               className="flex items-center gap-2 text-gray-400 hover:text-rose-500 transition-colors text-[10px] sm:text-[11px] font-bold uppercase tracking-widest relative z-10"
@@ -117,7 +123,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
           </div>
         </div>
 
-        {/* RESTE DU DASHBOARD */}
+        {/* RESTE DU DASHBOARD (avec z-10 pour être au-dessus du débordement éventuel du logo) */}
         <div className="text-center mb-10 sm:mb-16 relative z-10">
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight mb-2">
             {t.welcome}
