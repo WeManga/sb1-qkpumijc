@@ -3,7 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { Database } from '../../lib/database.types';
 import { translations, Language } from '../../lib/i18n';
-import { Plus, Calendar, Eye, CreditCard as Edit, LogOut, Trash2, Copy, Loader2, Sparkles, Users } from 'lucide-react';
+import { Plus, Calendar, Eye, CreditCard as Edit, LogOut, Trash2, Copy, Loader2, Users } from 'lucide-react';
 
 type Invitation = Database['public']['Tables']['invitations']['Row'] & {
   response_count?: number; // On ajoute un champ virtuel pour le compteur
@@ -90,8 +90,12 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
         {/* TOP BAR */}
         <div className="flex justify-between items-center mb-16 border-b border-gray-100 pb-6">
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-amber-400 rounded-lg flex items-center justify-center shadow-sm">
-              <Sparkles className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 bg-amber-400 rounded-lg flex items-center justify-center shadow-sm overflow-hidden p-1">
+              <img 
+                src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png.png" 
+                className="w-full h-full object-contain scale-125" 
+                alt="Logo" 
+              />
             </div>
             <span className="text-lg font-bold tracking-tighter text-gray-900">InviteStudio</span>
           </div>
