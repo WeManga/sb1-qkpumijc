@@ -43,33 +43,33 @@ export function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-amber-50 flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-amber-50 flex flex-col items-center justify-center p-4 overflow-x-hidden">
       {/* Sélecteur de langue en haut à droite */}
-      <div className="fixed top-6 right-6">
+      <div className="fixed top-6 right-6 z-50">
         <LanguageSelector currentLang={lang} onLangChange={handleLangChange} />
       </div>
 
-      <div className="w-full max-w-md">
-        <div className="text-center mb-6 flex flex-col items-center">
-          {/* LOGO FORMAT GÉANT SANS AUCUNE MARGE BASSE */}
-          <div className="w-[500px] h-[400px] mb-0 p-0 flex items-center justify-center overflow-hidden">
+      <div className="w-full max-w-md flex flex-col items-center">
+        <div className="text-center mb-2 flex flex-col items-center w-full">
+          {/* LOGO GIGANTESQUE SANS AUCUNE MARGE */}
+          <div className="w-[800px] h-[450px] mb-0 p-0 flex items-center justify-center">
             <img 
               src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
               alt="Logo InviteStudio" 
-              className="w-full h-full object-contain"
+              className="w-full h-full object-contain scale-150" 
             />
           </div>
           
-          {/* TITRE "INVITESTUDIO" COLLÉ AU LOGO PAR UNE MARGE NÉGATIVE IMPORTANTE */}
-          <h1 className="text-4xl font-light tracking-wide text-gray-800 -mt-24 mb-2 relative z-10">
+          {/* TITRE FUSIONNÉ AVEC LE LOGO */}
+          <h1 className="text-5xl font-light tracking-widest text-gray-800 -mt-36 mb-2 relative z-10">
             {t.title}
           </h1>
-          <p className="text-gray-600 font-light italic">
+          <p className="text-gray-600 font-light italic mb-8">
             {t.subtitle}
           </p>
         </div>
 
-        <div className="backdrop-blur-lg bg-white/60 rounded-3xl shadow-2xl border border-white/40 p-8">
+        <div className="backdrop-blur-lg bg-white/60 rounded-3xl shadow-2xl border border-white/40 p-8 w-full relative z-20">
           <div className="flex gap-2 mb-8 bg-gray-100/50 p-1 rounded-2xl">
             <button
               onClick={() => setIsLogin(true)}
