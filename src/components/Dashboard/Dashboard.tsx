@@ -84,20 +84,23 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     <div className="absolute inset-0 overflow-y-auto bg-gradient-to-b from-gray-50 to-white scrollbar-hide">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10 pb-32">
         
-        {/* TOP BAR */}
-        <div className="flex justify-between items-center mb-10 sm:mb-16 border-b border-gray-100 pb-5">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-amber-400 rounded-lg flex items-center justify-center shadow-sm overflow-hidden p-1">
+        {/* TOP BAR - Modifiée pour centrer le logo et changer le texte */}
+        <div className="relative flex justify-center items-center mb-10 sm:mb-16 border-b border-gray-100 pb-5">
+          {/* Bloc Logo + Titre centré */}
+          <div className="flex items-center gap-3 absolute left-1/2 -translate-x-1/2">
+            <div className="w-9 h-9 flex items-center justify-center overflow-hidden">
               <img 
                 src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
                 alt="Logo" 
                 className="w-full h-full object-contain"
               />
             </div>
-            <span className="text-base sm:text-lg font-bold tracking-tighter text-gray-900">InviteStudio</span>
+            {/* Texte modifié en Invit Studio */}
+            <span className="text-base sm:text-lg font-bold tracking-tighter text-gray-900">Invit Studio</span>
           </div>
 
-          <div className="flex items-center gap-4">
+          {/* Bouton déconnexion aligné à droite */}
+          <div className="flex items-center gap-4 ml-auto z-10">
             <button
               onClick={() => signOut()}
               className="flex items-center gap-2 text-gray-400 hover:text-rose-500 transition-colors text-[10px] sm:text-[11px] font-bold uppercase tracking-widest"
