@@ -12,7 +12,6 @@ export function AuthPage() {
   const [error, setError] = useState('');
   const { signIn, signUp } = useAuth();
 
-  // Gestion de la langue
   const [lang, setLang] = useState<Language>(
     (localStorage.getItem('invite_lang') as Language) || 'en'
   );
@@ -44,15 +43,15 @@ export function AuthPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-amber-50 flex flex-col items-center justify-center p-4 overflow-x-hidden">
-      {/* Sélecteur de langue en haut à droite */}
+      {/* Sélecteur de langue fixe en haut */}
       <div className="fixed top-6 right-6 z-50">
         <LanguageSelector currentLang={lang} onLangChange={handleLangChange} />
       </div>
 
-      <div className="w-full max-w-md flex flex-col items-center -mt-20"> {/* Remontée globale légère */}
+      <div className="w-full max-w-md flex flex-col items-center -mt-10">
         <div className="text-center flex flex-col items-center w-full">
           
-          {/* LOGO GÉANT SANS FOND */}
+          {/* LOGO GÉANT - L'espace au-dessus est géré par le centrage flex du parent */}
           <div className="w-[700px] h-[350px] mb-0 p-0 flex items-center justify-center">
             <img 
               src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
@@ -61,15 +60,16 @@ export function AuthPage() {
             />
           </div>
           
-          {/* TITRE "Invit Studio" COLLÉ AU LOGO, LÉGÈREMENT DESCENDU */}
-          <h1 className="text-5xl font-serif tracking-tight text-gray-900 -mt-24 mb-1 relative z-10">
+          {/* TITRE Invit Studio - Espacement ajusté pour la symétrie (-mt-16 au lieu de -mt-24) */}
+          <h1 className="text-5xl font-serif tracking-tight text-gray-900 -mt-16 mb-2 relative z-10">
             Invit Studio
           </h1>
-          <p className="text-gray-500 font-light italic tracking-widest text-sm mb-10">
+          <p className="text-gray-500 font-light italic tracking-widest text-sm mb-12">
             {t.subtitle}
           </p>
         </div>
 
+        {/* CARTE D'AUTHENTIFICATION */}
         <div className="backdrop-blur-lg bg-white/60 rounded-3xl shadow-2xl border border-white/40 p-8 w-full relative z-20">
           <div className="flex gap-2 mb-8 bg-gray-100/50 p-1 rounded-2xl">
             <button
