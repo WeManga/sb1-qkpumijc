@@ -82,28 +82,29 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
 
   return (
     <div className="absolute inset-0 overflow-y-auto bg-gradient-to-b from-gray-50 to-white scrollbar-hide">
+      {/* LOGO POSITIONNÉ DANS LE COIN SUPÉRIEUR GAUCHE SANS AUCUN ÉCART */}
+      <div className="absolute top-0 left-0 w-[400px] h-[200px] z-50 overflow-hidden pointer-events-none">
+        <img 
+          src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
+          alt="Logo Invit Studio" 
+          className="w-full h-full object-contain object-left-top scale-110" 
+        />
+      </div>
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-10 pb-32">
         
-        {/* TOP BAR */}
-        <div className="flex items-center justify-between mb-10 sm:mb-16 border-b border-gray-100 pb-5">
+        {/* TOP BAR - TITRE ET LOGOUT UNIQUEMENT */}
+        <div className="relative flex items-center justify-between mb-10 sm:mb-16 border-b border-gray-100 pb-5 h-20">
           
-          {/* Bloc Logo + Titre aligné à gauche */}
-          <div className="flex items-center gap-4">
-            {/* Logo AGRANDI 5x (w-[400px] h-[200px] au lieu de w-20 h-10) */}
-            <div className="w-[400px] h-[200px] flex items-center justify-center overflow-hidden">
-              <img 
-                src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
-                alt="Logo Invit Studio" 
-                className="w-full h-full object-contain"
-              />
-            </div>
-            {/* Titre NON TOUCHÉ */}
-            <h1 className="text-2xl font-serif tracking-tight text-gray-900">
-              Invit Studio
-            </h1>
-          </div>
+          {/* Espace réservé pour le logo à gauche pour ne pas chevaucher le titre si l'écran est petit */}
+          <div className="w-[400px] hidden lg:block"></div>
 
-          {/* Bouton déconnexion à droite */}
+          {/* TITRE Invit Studio - Toujours avec la police Serif */}
+          <h1 className="text-2xl font-serif tracking-tight text-gray-900">
+            Invit Studio
+          </h1>
+
+          {/* Bouton déconnexion */}
           <div className="flex items-center gap-4">
             <button
               onClick={() => signOut()}
@@ -128,7 +129,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-            
             <button
               onClick={onCreateNew}
               className="min-h-[250px] sm:min-h-[300px] bg-white rounded-[2rem] sm:rounded-[2.5rem] border-2 border-dashed border-gray-100 hover:border-amber-400 hover:shadow-xl transition-all flex flex-col items-center justify-center gap-4 group"
