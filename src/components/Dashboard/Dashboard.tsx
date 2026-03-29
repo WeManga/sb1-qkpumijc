@@ -84,42 +84,38 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     <div className="absolute inset-0 overflow-y-auto bg-gradient-to-b from-gray-50 to-white scrollbar-hide">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-0 pb-32">
         
-        {/* --- TOP BAR --- */}
-        {/* Utilisation de items-start et pt-10 pour que tout commence à la même hauteur */}
-        <div className="grid grid-cols-3 items-start border-b border-gray-100 mb-6 min-h-0 pb-0 pt-10">
+        {/* --- TOP BAR ALIGNÉE --- */}
+        <div className="flex items-center justify-between border-b border-gray-100 mb-8 pt-8 pb-4">
           
-          {/* GAUCHE : Logo Géant et Décalé */}
-          <div className="flex justify-start relative">
-            {/* On utilise absolute pour le décalage, mais on l'aligne sur le top-0 du parent pt-10 */}
-            <div className="absolute top-0 -left-32 w-[600px] h-[180px] overflow-hidden">
-              <img 
-                src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
-                alt="Logo Invit Studio" 
-                className="w-full h-full object-contain object-left-top scale-125 origin-top-left" 
-              />
-            </div>
+          {/* GAUCHE : Logo Taille Normale */}
+          <div className="flex-1 flex justify-start">
+            <img 
+              src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
+              alt="Logo Invit Studio" 
+              className="h-12 w-auto object-contain" 
+            />
           </div>
 
-          {/* CENTRE : Titre aligné sur le haut (top-0 par rapport au pt-10) */}
-          <div className="flex justify-center">
-            <h1 className="text-3xl font-serif tracking-tight text-gray-900 whitespace-nowrap">
+          {/* CENTRE : Titre */}
+          <div className="flex-1 flex justify-center">
+            <h1 className="text-2xl font-serif tracking-tight text-gray-900 whitespace-nowrap">
               Invit Studio
             </h1>
           </div>
 
-          {/* DROITE : Déconnexion alignée sur le haut */}
-          <div className="flex justify-end">
+          {/* DROITE : Déconnexion */}
+          <div className="flex-1 flex justify-end">
             <button
               onClick={() => signOut()}
-              className="flex items-center gap-2 text-gray-400 hover:text-rose-500 transition-colors text-[10px] sm:text-[11px] font-bold uppercase tracking-widest relative z-20"
+              className="flex items-center gap-2 text-gray-400 hover:text-rose-500 transition-colors text-[10px] sm:text-[11px] font-bold uppercase tracking-widest"
             >
-              <LogOut className="w-3.5 h-3.5 sm:w-4 h-4" />
+              <LogOut className="w-4 h-4" />
               <span className="hidden xs:inline">{tAuth.logout}</span>
             </button>
           </div>
         </div>
 
-        {/* --- CONTENU DASHBOARD --- */}
+        {/* --- CONTENU --- */}
         <div className="text-center mb-10 relative z-10">
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight mb-2">
             {t.welcome}
