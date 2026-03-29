@@ -88,7 +88,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
         <div className="relative flex items-center justify-center border-b border-gray-100 mb-8 pt-8 pb-4">
           
           {/* LOGO : Poussé encore plus vers la gauche via -ml-20 */}
-          <div className="absolute left-0 -ml-18">
+          <div className="absolute left-0 -ml-14">
             <img 
               src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
               alt="Logo Invit Studio" 
