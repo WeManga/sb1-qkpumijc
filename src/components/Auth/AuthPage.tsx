@@ -12,6 +12,7 @@ export function AuthPage() {
   const [error, setError] = useState('');
   const { signIn, signUp } = useAuth();
 
+  // Gestion de la langue
   const [lang, setLang] = useState<Language>(
     (localStorage.getItem('invite_lang') as Language) || 'en'
   );
@@ -43,26 +44,26 @@ export function AuthPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-amber-50 flex flex-col items-center justify-center p-4 overflow-x-hidden">
-      {/* Sélecteur de langue fixe en haut */}
+      {/* Sélecteur de langue en haut à droite */}
       <div className="fixed top-6 right-6 z-50">
         <LanguageSelector currentLang={lang} onLangChange={handleLangChange} />
       </div>
 
-      <div className="w-full max-w-md flex flex-col items-center -mt-20"> {/* Remontée globale de la section */}
+      <div className="w-full max-w-md flex flex-col items-center -mt-20"> {/* Remontée globale légère */}
         <div className="text-center flex flex-col items-center w-full">
           
-          {/* LOGO GÉANT POSITIONNÉ PLUS HAUT */}
+          {/* LOGO GÉANT SANS FOND */}
           <div className="w-[700px] h-[350px] mb-0 p-0 flex items-center justify-center">
             <img 
               src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
-              alt="Logo InviteStudio" 
+              alt="Logo Invit Studio" 
               className="w-full h-full object-contain scale-150" 
             />
           </div>
           
-          {/* TITRE AVEC NOUVELLE POLICE SERIF ÉLÉGANTE ET COLLÉ AU LOGO */}
-          <h1 className="text-5xl font-serif tracking-tight text-gray-900 -mt-28 mb-1 relative z-10">
-            InviteStudio
+          {/* TITRE "Invit Studio" COLLÉ AU LOGO, LÉGÈREMENT DESCENDU */}
+          <h1 className="text-5xl font-serif tracking-tight text-gray-900 -mt-24 mb-1 relative z-10">
+            Invit Studio
           </h1>
           <p className="text-gray-500 font-light italic tracking-widest text-sm mb-10">
             {t.subtitle}
