@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { Mail, Lock, Sparkles } from 'lucide-react';
+import { Mail, Lock } from 'lucide-react';
 import { translations, Language } from '../../lib/i18n';
-import { LanguageSelector } from '../LanguageSelector'; // On l'utilise ici aussi !
+import { LanguageSelector } from '../LanguageSelector';
 
 export function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -51,8 +51,12 @@ export function AuthPage() {
 
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-amber-400 to-rose-400 rounded-full mb-4 shadow-lg">
-            <Sparkles className="w-8 h-8 text-white" />
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-br from-amber-400 to-rose-400 rounded-full mb-4 shadow-lg overflow-hidden p-3">
+            <img 
+              src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
+              alt="Logo InviteStudio" 
+              className="w-full h-full object-contain"
+            />
           </div>
           <h1 className="text-4xl font-light tracking-wide text-gray-800 mb-2">
             {t.title}
