@@ -84,32 +84,32 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     <div className="absolute inset-0 overflow-y-auto bg-gradient-to-b from-gray-50 to-white scrollbar-hide">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-0 pb-32">
         
-        {/* --- TOP BAR : ESPACE SUPPRIMÉ --- */}
-        <div className="grid grid-cols-3 items-start border-b border-gray-100 mb-6 pb-0">
+        {/* --- TOP BAR --- */}
+        <div className="flex items-start justify-between border-b border-gray-100 mb-6 pb-0 min-h-0 pt-8">
           
-          {/* GAUCHE : Logo aligné haut, hauteur auto pour ne pas pousser vers le bas */}
-          <div className="flex justify-start pt-8 pb-0">
+          {/* GAUCHE : Logo Géant, aligné verticalement avec le bouton de déconnexion */}
+          <div className="flex justify-start">
             <div className="w-[450px] h-auto overflow-hidden">
               <img 
                 src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
                 alt="Logo Invit Studio" 
-                className="w-full h-full object-contain object-left-top scale-125 origin-top-left" 
+                className="w-full h-full object-contain object-left scale-125 origin-left" 
               />
             </div>
           </div>
 
           {/* CENTRE : Titre Invit Studio */}
-          <div className="flex justify-center pt-8">
+          <div className="flex justify-center flex-1">
             <h1 className="text-3xl font-serif tracking-tight text-gray-900 whitespace-nowrap">
               Invit Studio
             </h1>
           </div>
 
           {/* DROITE : Déconnexion */}
-          <div className="flex justify-end pt-8">
+          <div className="flex justify-end pt-2">
             <button
               onClick={() => signOut()}
-              className="flex items-center gap-2 text-gray-400 hover:text-rose-500 transition-colors text-[10px] sm:text-[11px] font-bold uppercase tracking-widest"
+              className="flex items-center gap-2 text-gray-400 hover:text-rose-500 transition-colors text-[10px] sm:text-[11px] font-bold uppercase tracking-widest relative z-20"
             >
               <LogOut className="w-3.5 h-3.5 sm:w-4 h-4" />
               <span className="hidden xs:inline">{tAuth.logout}</span>
@@ -117,7 +117,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
           </div>
         </div>
 
-        {/* --- CONTENU DASHBOARD (Remonté grâce au mb-6 ci-dessus) --- */}
+        {/* --- CONTENU DASHBOARD --- */}
         <div className="text-center mb-10 relative z-10">
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight mb-2">
             {t.welcome}
