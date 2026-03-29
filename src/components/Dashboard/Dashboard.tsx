@@ -87,29 +87,25 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
         {/* --- TOP BAR --- */}
         <div className="grid grid-cols-3 items-start border-b border-gray-100 mb-10 sm:mb-16 min-h-[200px] pb-0">
           
-          {/* GAUCHE : Logo ÉNORME et DÉCALÉ ENCORE PLUS À GAUCHE, TAILLE RÉDUITE */}
+          {/* GAUCHE : Logo décalé au maximum à gauche */}
           <div className="flex justify-start relative">
-            {/* -left-32 pour coller encore plus, taille réduite w-[600px] h-[200px] */}
             <div className="absolute -top-4 -left-32 w-[600px] h-[200px] overflow-hidden">
               <img 
                 src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
                 alt="Logo Invit Studio" 
-                {/* scale-125 au lieu de scale-150 pour réduire la taille */}
                 className="w-full h-full object-contain object-left-top scale-125" 
               />
             </div>
           </div>
 
-          {/* CENTRE : Titre Invit Studio aligné en haut */}
-          {/* pt-8 pour aligner avec le logo plus petit */}
+          {/* CENTRE : Titre Invit Studio */}
           <div className="flex justify-center pt-8">
             <h1 className="text-3xl font-serif tracking-tight text-gray-900 whitespace-nowrap z-10">
               Invit Studio
             </h1>
           </div>
 
-          {/* DROITE : Bouton déconnexion aligné en haut */}
-          {/* pt-10 pour aligner avec le logo plus petit */}
+          {/* DROITE : Déconnexion */}
           <div className="flex justify-end pt-10">
             <button
               onClick={() => signOut()}
@@ -121,7 +117,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
           </div>
         </div>
 
-        {/* --- CONTENU DASHBOARD --- */}
+        {/* --- CONTENU --- */}
         <div className="text-center mb-10 sm:mb-16 relative z-10">
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 tracking-tight mb-2">
             {t.welcome}
@@ -136,7 +132,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 relative z-10">
             
-            {/* Bouton Nouvelle Création */}
             <button
               onClick={onCreateNew}
               className="min-h-[250px] sm:min-h-[300px] bg-white rounded-[2rem] sm:rounded-[2.5rem] border-2 border-dashed border-gray-100 hover:border-amber-400 hover:shadow-xl transition-all flex flex-col items-center justify-center gap-4 group"
@@ -149,7 +144,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
               </span>
             </button>
 
-            {/* Liste des Invitations */}
             {invitations.map((invitation) => (
               <div
                 key={invitation.id}
