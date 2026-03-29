@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from '../../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext'; // Vérifie bien que le chemin est correct
 import { supabase } from '../../lib/supabase';
 import { Database } from '../../lib/database.types';
 import { translations, Language } from '../../lib/i18n';
@@ -15,7 +15,7 @@ interface DashboardProps {
 }
 
 export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
-  const { user, signOut } = userAuth();
+  const { user, signOut } = useAuth(); // Correction ici : useAuth()
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(true);
   const [lang, setLang] = useState<Language>(
@@ -30,7 +30,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     };
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
+  }, [user]);
 
   const t = translations[lang].dashboard;
   const tAuth = translations[lang].sidebar;
@@ -87,7 +87,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
         {/* --- TOP BAR --- */}
         <div className="flex items-center justify-between border-b border-gray-100 mb-8 pt-8 pb-4">
           
-          {/* GAUCHE : Logo agrandi sans déformer l'alignement */}
+          {/* GAUCHE : Logo agrandi */}
           <div className="flex-1 flex justify-start">
             <img 
               src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
@@ -103,7 +103,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
             </h1>
           </div>
 
-          {/* DROITE : Déconnexion (aligné sur le logo) */}
+          {/* DROITE : Déconnexion */}
           <div className="flex-1 flex justify-end">
             <button
               onClick={() => signOut()}
