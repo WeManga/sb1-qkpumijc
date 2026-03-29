@@ -39,6 +39,7 @@ export const translations = {
       activity_placeholder: "e.g. Cocktail hour",
       add_step: "+ Add a step",
       envelope_color: "Envelope Color",
+      font_style_label: "Font Style",
       theme_label: "Theme (Emoji rain)",
       theme_wedding: "Wedding",
       theme_birthday: "Birthday",
@@ -46,9 +47,13 @@ export const translations = {
       theme_baptism: "Baptism",
       photo_label: "Vinyl photo & background",
       upload_photo: "Upload a photo",
-      music_label: "Music (MP3)",
+      adjust_photo: "Adjust framing",
+      music_label: "Background Music",
       upload_music: "Upload MP3",
-      music_saved: "Music saved"
+      music_saved: "Music saved",
+      additional_photos: "Additional Photos",
+      premium_album: "Premium Album",
+      coming_soon: "Coming Soon"
     },
     guest: {
       tap_open: "Tap to open the invitation",
@@ -102,6 +107,7 @@ export const translations = {
       activity_placeholder: "Ex: Vin d'honneur",
       add_step: "+ Ajouter une étape",
       envelope_color: "Couleur de l'enveloppe",
+      font_style_label: "Style d'écriture",
       theme_label: "Thème (Pluie d'émojis)",
       theme_wedding: "Mariage",
       theme_birthday: "Anniversaire",
@@ -109,9 +115,13 @@ export const translations = {
       theme_baptism: "Baptême",
       photo_label: "Photo du disque & fond",
       upload_photo: "Uploader une photo",
-      music_label: "Musique (MP3)",
+      adjust_photo: "Ajuster le cadrage",
+      music_label: "Musique de fond",
       upload_music: "Uploader MP3",
-      music_saved: "Musique enregistrée"
+      music_saved: "Musique enregistrée",
+      additional_photos: "Photos additionnelles",
+      premium_album: "Album Premium",
+      coming_soon: "Bientôt disponible"
     },
     guest: {
       tap_open: "Appuyez pour ouvrir l'invitation",
@@ -165,6 +175,7 @@ export const translations = {
       activity_placeholder: "Ví dụ: Khai tiệc",
       add_step: "+ Thêm sự kiện",
       envelope_color: "Màu phong bì",
+      font_style_label: "Kiểu chữ",
       theme_label: "Chủ đề (Mưa Emoji)",
       theme_wedding: "Đám cưới",
       theme_birthday: "Sinh nhật",
@@ -172,9 +183,13 @@ export const translations = {
       theme_baptism: "Lễ rửa tội",
       photo_label: "Ảnh đĩa nhạc & nền",
       upload_photo: "Tải ảnh lên",
-      music_label: "Âm nhạc (MP3)",
+      adjust_photo: "Điều chỉnh khung hình",
+      music_label: "Nhạc nền",
       upload_music: "Tải nhạc MP3",
-      music_saved: "Đã lưu nhạc"
+      music_saved: "Đã lưu nhạc",
+      additional_photos: "Ảnh bổ sung",
+      premium_album: "Album Cao cấp",
+      coming_soon: "Sắp ra mắt"
     },
     guest: {
       tap_open: "Nhấn để mở lời mời",
