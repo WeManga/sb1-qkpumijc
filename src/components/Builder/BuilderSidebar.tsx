@@ -52,10 +52,10 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     <div className="w-full space-y-8 pb-10">
       {activeTab === 'content' && (
         <div className="space-y-4">
-          <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Infos générales</label>
-          <input type="text" value={invitation.title || ''} onChange={e => onInvitationChange({...invitation, title: e.target.value})} className="w-full bg-gray-50 border-none h-14 px-4 rounded-2xl text-sm" placeholder="Nom de l'événement" />
-          <input type="text" value={invitation.host_names || ''} onChange={e => onInvitationChange({...invitation, host_names: e.target.value})} className="w-full bg-gray-50 border-none h-14 px-4 rounded-2xl text-sm" placeholder="Nom des hôtes" />
-          <input type="text" value={invitation.event_address || ''} onChange={e => onInvitationChange({...invitation, event_address: e.target.value})} className="w-full bg-gray-50 border-none h-14 px-4 rounded-2xl text-sm" placeholder="Lieu de l'événement" />
+          <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Informations</label>
+          <input type="text" value={invitation.title || ''} onChange={e => onInvitationChange({...invitation, title: e.target.value})} className="w-full bg-gray-50 border-none h-14 px-4 rounded-2xl text-sm" placeholder="Nom de l'invitation" />
+          <input type="text" value={invitation.host_names || ''} onChange={e => onInvitationChange({...invitation, host_names: e.target.value})} className="w-full bg-gray-50 border-none h-14 px-4 rounded-2xl text-sm" placeholder="Hôtes" />
+          <input type="text" value={invitation.event_address || ''} onChange={e => onInvitationChange({...invitation, event_address: e.target.value})} className="w-full bg-gray-50 border-none h-14 px-4 rounded-2xl text-sm" placeholder="Adresse" />
         </div>
       )}
 
@@ -65,13 +65,13 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block">Texture du papier</label>
             <div className="grid grid-cols-2 gap-2">
               {PAPER_TYPES.map(p => (
-                <button key={p.id} onClick={() => onInvitationChange({...invitation, paper_type: p.id})} className={`p-3 rounded-xl border-2 text-[11px] font-bold transition-all ${invitation.paper_type === p.id ? 'border-amber-400 bg-amber-50 text-amber-700 shadow-sm' : 'border-gray-100 bg-white text-gray-400 hover:border-gray-200'}`}>{p.name}</button>
+                <button key={p.id} onClick={() => onInvitationChange({...invitation, paper_type: p.id})} className={`p-3 rounded-xl border-2 text-[11px] font-bold transition-all ${invitation.paper_type === p.id ? 'border-amber-400 bg-amber-50 text-amber-700' : 'border-gray-100 bg-white text-gray-400 hover:border-gray-200'}`}>{p.name}</button>
               ))}
             </div>
           </div>
 
           <div>
-            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block">Style d'écriture</label>
+            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block">Police</label>
             <div className="grid grid-cols-2 gap-2">
               {FONTS.map(f => (
                 <button key={f.id} onClick={() => onInvitationChange({...invitation, font_style: f.family})} style={{ fontFamily: f.family }} className={`p-4 rounded-xl border-2 text-sm transition-all ${invitation.font_style === f.family ? 'bg-amber-50 border-amber-400 text-amber-900 shadow-sm' : 'bg-white border-gray-100 text-gray-500 hover:border-gray-200'}`}>{f.name}</button>
@@ -80,15 +80,15 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
           </div>
 
           <div>
-            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block">Catégorie</label>
+            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block">Catégorie d'événement</label>
             <div className="grid grid-cols-2 gap-3">
               {[ 
                 {id: 'wedding', icon: <Heart size={16}/>, l: 'Mariage'}, 
                 {id: 'birthday', icon: <PartyPopper size={16}/>, l: 'Anniversaire'}, 
                 {id: 'party', icon: <Sparkles size={16}/>, l: 'Fête'}, 
-                {id: 'baptism', icon: <AngelIcon size={18}/>, l: 'Baptême'},
-                {id: 'baby_shower', icon: <BabyBottleIcon size={18}/>, l: 'Baby Shower'},
-                {id: 'evjf_evg', icon: <CrossIcon size={18}/>, l: 'Enterrement'}
+                {id: 'baptism', icon: <AngelIcon size={18}/>, l: 'BAPTÊME'},
+                {id: 'baby_shower', icon: <BabyBottleIcon size={18}/>, l: 'BABYSHOWER'},
+                {id: 'evjf_evg', icon: <CrossIcon size={18}/>, l: 'ENTERREMENTS'}
               ].map(t_item => (
                 <button key={t_item.id} onClick={() => onInvitationChange({...invitation, event_type: t_item.id})} className={`p-4 rounded-2xl border-2 flex items-center gap-3 text-[10px] font-bold uppercase transition-all ${invitation.event_type === t_item.id ? 'bg-amber-50 border-amber-200 text-amber-700 shadow-sm' : 'bg-white border-gray-100 text-gray-400'}`}>{t_item.icon} {t_item.l}</button>
               ))}
