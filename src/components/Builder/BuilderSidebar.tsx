@@ -2,37 +2,35 @@ import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { translations, Language } from '../../lib/i18n';
 import { 
-  Heart, PartyPopper, Sparkles, MapPin, 
-  Music, Image as ImageIcon, Loader2, Calendar, Move, Plus, X 
+  Heart, PartyPopper, Sparkles, Baby, MapPin, 
+  Music, Image as ImageIcon, Calendar, Plus, X, Move
 } from 'lucide-react';
 
-const CrossIcon = ({ size = 16 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 2h2v20h-2z" /><path d="M7 7h10v2H7z" /></svg>
-);
-const AngelIcon = ({ size = 16 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="7" r="2" /><path d="M12 9v7l-3 4" /><path d="M12 16l3 4" /><path d="M7 10c-2 0-3 1-3 3s1 3 3 3h1" /><path d="M17 10c2 0 3 1 3 3s-1 3-3 3h-1" /></svg>
-);
-const BabyBottleIcon = ({ size = 16 }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M9 10h6v10a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2V10z" /><path d="M10 10V5a2 2 0 0 1 4 0v5" /><path d="M12 2v2" /></svg>
-);
-
-const PAPER_TYPES = [
-  { id: 'smooth', name: 'Lisse' },
-  { id: 'parchment', name: 'Parchemin' },
-  { id: 'grainy', name: 'Granulé' },
-  { id: 'cotton', name: 'Coton' }
+const COLOR_PALETTES = [
+  { color: '#FEE2E2' }, { color: '#E0F2FE' }, { color: '#DCFCE7' },
+  { color: '#FEF3C7' }, { color: '#EF4444' }, { color: '#1E3A8A' },
+  { color: '#F5F5DC' }, { color: '#7C3AED' }, { color: '#374151' }
 ];
 
 const FONTS = [
   { id: 'font-sans', name: 'Moderne', family: 'Inter, sans-serif' },
   { id: 'font-serif', name: 'Classique', family: 'Georgia, serif' },
   { id: 'font-elegant', name: 'Élégant', family: "'Playfair Display', serif" },
-  { id: 'font-script', name: 'Manuscrit', family: "'Dancing Script', cursive" }
+  { id: 'font-script', name: 'Manuscrit', family: "'Dancing Script', cursive" },
+  { id: 'font-mono', name: 'Minimalist', family: 'monospace' }
+];
+
+const EVENT_TYPES = [
+  { id: 'wedding', name: 'Mariage', icon: Heart },
+  { id: 'birthday', name: 'Anniversaire', icon: PartyPopper },
+  { id: 'party', name: 'Fête', icon: Sparkles },
+  { id: 'baptism', name: 'Baptême', icon: Baby }
 ];
 
 export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: any) {
   const [uploading, setUploading] = useState(false);
   const [lang] = useState<Language>((localStorage.getItem('invite_lang') as Language) || 'fr');
+  const t = translations[lang].builder;
 
   const uploadFile = async (e: any, field: string) => {
     const file = e.target.files?.[0];
@@ -44,83 +42,138 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       if (error) throw error;
       const { data } = supabase.storage.from('invitations').getPublicUrl(fileName);
       onInvitationChange({ ...invitation, [field]: data.publicUrl });
-    } catch (err) { alert("Erreur d'upload"); } finally { setUploading(false); }
+    } catch (err) { alert("Erreur d'upload"); } 
+    finally { setUploading(false); }
+  };
+
+  const addProgramStep = () => {
+    const newProgram = [...(invitation.event_program || []), { time: '12:00', activity: '' }];
+    onInvitationChange({ ...invitation, event_program: newProgram });
+  };
+
+  const updateProgramStep = (index: number, field: string, value: string) => {
+    const newProgram = [...(invitation.event_program || [])];
+    newProgram[index] = { ...newProgram[index], [field]: value };
+    onInvitationChange({ ...invitation, event_program: newProgram });
+  };
+
+  const removeProgramStep = (index: number) => {
+    const newProgram = invitation.event_program.filter((_: any, i: number) => i !== index);
+    onInvitationChange({ ...invitation, event_program: newProgram });
   };
 
   return (
     <div className="w-full space-y-8 pb-10">
-      {/* ONGLET CONTENU */}
+      {/* SECTION 1 : CONTENU - STRICTEMENT TON CODE D'ORIGINE */}
       {activeTab === 'content' && (
-        <div className="space-y-6">
+        <div className="space-y-8">
           <div className="space-y-4">
-            <label className="text-[10px] font-black uppercase text-gray-400">Texte principal</label>
-            <input type="text" value={invitation.title || ''} onChange={e => onInvitationChange({...invitation, title: e.target.value})} className="w-full bg-gray-50 border-none h-14 px-4 rounded-2xl text-sm" placeholder="Titre" />
-            <input type="text" value={invitation.host_names || ''} onChange={e => onInvitationChange({...invitation, host_names: e.target.value})} className="w-full bg-gray-50 border-none h-14 px-4 rounded-2xl text-sm" placeholder="Hôtes" />
-            <input type="text" value={invitation.event_address || ''} onChange={e => onInvitationChange({...invitation, event_address: e.target.value})} className="w-full bg-gray-50 border-none h-14 px-4 rounded-2xl text-sm" placeholder="Lieu" />
+            <label className="text-[10px] font-black uppercase text-gray-400 ml-1">{t.general_info}</label>
+            <input type="text" value={invitation.title || ''} onChange={e => onInvitationChange({...invitation, title: e.target.value})} className="w-full bg-gray-50 border-none h-14 px-4 rounded-2xl text-sm" placeholder={t.title_placeholder} />
+            <input type="text" value={invitation.host_names || ''} onChange={e => onInvitationChange({...invitation, host_names: e.target.value})} className="w-full bg-gray-50 border-none h-14 px-4 rounded-2xl text-sm" placeholder={t.hosts_placeholder} />
+            <div className="relative">
+              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 w-4 h-4" />
+              <input type="text" value={invitation.event_address || ''} onChange={e => onInvitationChange({...invitation, event_address: e.target.value})} className="w-full bg-gray-50 border-none h-14 pl-12 pr-4 rounded-2xl text-sm" placeholder={t.address_placeholder} />
+            </div>
+            <div className="relative">
+              <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 w-4 h-4 pointer-events-none z-10" />
+              <input type="date" value={invitation.event_date?.split('T')[0] || ''} onChange={e => onInvitationChange({...invitation, event_date: e.target.value})} className="w-full bg-gray-50 border-none h-14 pl-12 pr-4 rounded-2xl text-sm" />
+            </div>
           </div>
 
+          {/* MÉDIAS D'ORIGINE */}
           <div className="space-y-4">
-            <label className="text-[10px] font-black uppercase text-gray-400 block">Médias (Photo & Musique)</label>
+            <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Médias</label>
             <div className="grid grid-cols-2 gap-4">
-              <label className="flex flex-col items-center justify-center aspect-square bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
+              <label className="flex flex-col items-center justify-center aspect-square bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-200 cursor-pointer">
                 <ImageIcon className="text-gray-400 mb-2" />
                 <span className="text-[10px] font-bold text-gray-400 uppercase">Photo</span>
-                <input type="file" className="hidden" accept="image/*" onChange={e => uploadFile(e, 'main_photo_url')} />
+                <input type="file" className="hidden" accept="image/*" onChange={(e) => uploadFile(e, 'main_photo_url')} />
               </label>
-              <label className="flex flex-col items-center justify-center aspect-square bg-gray-50 rounded-3xl border-2 border-dashed border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
+              <label className="flex flex-col items-center justify-center aspect-square bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-200 cursor-pointer">
                 <Music className="text-gray-400 mb-2" />
                 <span className="text-[10px] font-bold text-gray-400 uppercase">Musique</span>
-                <input type="file" className="hidden" accept="audio/*" onChange={e => uploadFile(e, 'music_url')} />
+                <input type="file" className="hidden" accept="audio/*" onChange={(e) => uploadFile(e, 'music_url')} />
               </label>
             </div>
           </div>
-          
-          {/* Positionnement Photo */}
+
+          {/* AJUSTEMENT PHOTO D'ORIGINE */}
           {invitation.main_photo_url && (
-            <div className="space-y-4 bg-gray-50 p-6 rounded-[2rem]">
-              <label className="text-[10px] font-black uppercase text-gray-400 flex items-center gap-2"><Move size={14}/> Position de la photo</label>
-              <div className="space-y-6">
-                <input type="range" min="0" max="100" value={invitation.photo_pos_x || 50} onChange={e => onInvitationChange({...invitation, photo_pos_x: parseInt(e.target.value)})} className="w-full accent-amber-500" />
-                <input type="range" min="0" max="100" value={invitation.photo_pos_y || 50} onChange={e => onInvitationChange({...invitation, photo_pos_y: parseInt(e.target.value)})} className="w-full accent-amber-500 h-10 [writing-mode:bt-lr] appearance-slider-vertical" />
+            <div className="bg-amber-50/50 p-6 rounded-[2rem] border border-amber-100 space-y-4">
+              <span className="text-[10px] font-black uppercase text-amber-800 tracking-wider flex items-center gap-2"><Move size={12}/> Ajustement Photo</span>
+              <div className="space-y-4">
+                <input type="range" min="0" max="100" value={invitation.photo_pos_x || 50} onChange={(e) => onInvitationChange({ ...invitation, photo_pos_x: parseInt(e.target.value) })} className="w-full accent-amber-600" />
+                <input type="range" min="0" max="100" value={invitation.photo_pos_y || 50} onChange={(e) => onInvitationChange({ ...invitation, photo_pos_y: parseInt(e.target.value) })} className="w-full accent-amber-600" />
               </div>
             </div>
           )}
+
+          {/* PROGRAMME D'ORIGINE */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between ml-1">
+              <label className="text-[10px] font-black uppercase text-gray-400">{t.program_title}</label>
+              <button onClick={addProgramStep} className="p-2 bg-amber-50 text-amber-600 rounded-lg"><Plus size={16} /></button>
+            </div>
+            <div className="space-y-3">
+              {(invitation.event_program || []).map((step: any, index: number) => (
+                <div key={index} className="flex gap-2 items-center bg-white p-3 rounded-2xl border border-gray-100 shadow-sm">
+                  <input type="time" value={step.time} onChange={e => updateProgramStep(index, 'time', e.target.value)} className="w-24 bg-gray-50 border-none h-10 px-2 rounded-xl text-[11px] font-bold" />
+                  <input type="text" value={step.activity} onChange={e => updateProgramStep(index, 'activity', e.target.value)} placeholder={t.activity_placeholder} className="flex-1 bg-gray-50 border-none h-10 px-3 rounded-xl text-[11px]" />
+                  <button onClick={() => removeProgramStep(index)} className="p-1.5 bg-red-50 text-red-500 rounded-full"><X size={14}/></button>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
-      {/* ONGLET STYLE */}
+      {/* SECTION 2 : STYLE - AVEC LES NOUVEAUTÉS */}
       {activeTab === 'style' && (
         <div className="space-y-8">
           <div>
-            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block">Texture du papier</label>
-            <div className="grid grid-cols-2 gap-2">
-              {PAPER_TYPES.map(p => (
-                <button key={p.id} onClick={() => onInvitationChange({...invitation, paper_type: p.id})} className={`p-3 rounded-xl border-2 text-[11px] font-bold transition-all ${invitation.paper_type === p.id ? 'border-amber-400 bg-amber-50 text-amber-700' : 'border-gray-100 bg-white text-gray-400'}`}>{p.name}</button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block">Style de police</label>
-            <div className="grid grid-cols-2 gap-2">
-              {FONTS.map(f => (
-                <button key={f.id} onClick={() => onInvitationChange({...invitation, font_style: f.family})} style={{ fontFamily: f.family }} className={`p-4 rounded-xl border-2 text-sm transition-all ${invitation.font_style === f.family ? 'bg-amber-50 border-amber-400 text-amber-900 shadow-sm' : 'bg-white border-gray-100 text-gray-500'}`}>{f.name}</button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block">Type d'événement</label>
+            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">Type d'événement</label>
             <div className="grid grid-cols-2 gap-3">
-              {[ 
-                {id: 'wedding', icon: <Heart size={16}/>, l: 'Mariage'}, 
-                {id: 'birthday', icon: <PartyPopper size={16}/>, l: 'Anniversaire'}, 
-                {id: 'party', icon: <Sparkles size={16}/>, l: 'Fête'}, 
-                {id: 'baptism', icon: <AngelIcon size={18}/>, l: 'Baptême'},
-                {id: 'baby_shower', icon: <BabyBottleIcon size={18}/>, l: 'Babyshower'},
-                {id: 'evjf_evg', icon: <CrossIcon size={18}/>, l: 'Enterrements'}
-              ].map(t_item => (
-                <button key={t_item.id} onClick={() => onInvitationChange({...invitation, event_type: t_item.id})} className={`p-4 rounded-2xl border-2 flex items-center gap-3 text-[10px] font-bold uppercase transition-all ${invitation.event_type === t_item.id ? 'bg-amber-50 border-amber-200 text-amber-700' : 'bg-white border-gray-100 text-gray-400'}`}>{t_item.icon} {t_item.l}</button>
+              {EVENT_TYPES.map(type => (
+                <button key={type.id} onClick={() => onInvitationChange({...invitation, event_type: type.id})} 
+                  className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all ${invitation.event_type === type.id ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}>
+                  <type.icon size={18} className={invitation.event_type === type.id ? 'text-amber-500' : 'text-gray-400'} />
+                  <span className="text-[10px] font-bold uppercase">{type.name}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">Texture du papier</label>
+            <div className="grid grid-cols-2 gap-2">
+              {['smooth', 'parchment', 'grainy', 'cotton'].map(p => (
+                <button key={p} onClick={() => onInvitationChange({...invitation, paper_type: p})} 
+                  className={`p-4 rounded-xl border-2 text-[10px] font-bold transition-all ${invitation.paper_type === p ? 'border-amber-400 bg-amber-50' : 'bg-gray-50 border-transparent'}`}>
+                  {p.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">Couleur de l'enveloppe</label>
+            <div className="flex gap-3 overflow-x-auto pt-2 pb-6 px-4 -mx-4 scrollbar-hide">
+              {COLOR_PALETTES.map(p => (
+                <button key={p.color} onClick={() => onInvitationChange({...invitation, envelope_color: p.color})} style={{backgroundColor: p.color}} 
+                  className={`h-12 w-12 shrink-0 rounded-full border-4 transition-all ${invitation.envelope_color === p.color ? 'border-amber-400 scale-110 shadow-lg' : 'border-white shadow-sm'}`} />
+              ))}
+            </div>
+          </div>
+          
+          <div>
+            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">Style d'écriture</label>
+            <div className="space-y-2">
+              {FONTS.map(f => (
+                <button key={f.id} onClick={() => onInvitationChange({...invitation, font_style: f.family})} 
+                  className={`w-full h-14 px-4 rounded-2xl text-left border-2 transition-all ${invitation.font_style === f.family ? 'border-amber-400 bg-amber-50' : 'bg-gray-50 border-transparent'}`} style={{ fontFamily: f.family }}>
+                  {f.name}
+                </button>
               ))}
             </div>
           </div>
