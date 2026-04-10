@@ -1,6 +1,3 @@
-import { useEffect, useState } from 'react';
-import { Calendar, MapPin, Volume2, VolumeX, Sparkles } from 'lucide-react';
-
 export function InvitationPreview({ invitation }: any) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [audio] = useState(new Audio());
@@ -10,77 +7,47 @@ export function InvitationPreview({ invitation }: any) {
     return () => audio.pause();
   }, [invitation.music_url]);
 
-  const toggleMusic = () => { isPlaying ? audio.pause() : audio.play(); setIsPlaying(!isPlaying); };
-
-  const getEmojis = () => {
-    switch (invitation.event_type) {
-      case 'wedding': return ['❤️', '💍', '🥂'];
-      case 'birthday': return ['🎂', '🎈', '🎉'];
-      case 'party': return ['✨', '🥳', '💃'];
-      case 'baptism': return ['👼', '✨', '🕊️'];
-      case 'baby_shower': return ['🍼', '🧸', '👶'];
-      case 'evjf_evg': return ['✝️', '🕊️'];
-      default: return ['✨'];
-    }
-  };
-
-  const getPaperClass = () => {
-    switch(invitation.paper_type) {
-      case 'parchment': return 'paper-parchment shadow-[inset_0_0_50px_rgba(0,0,0,0.15)]';
-      case 'grainy': return 'paper-grainy';
-      case 'cotton': return 'paper-cotton';
-      default: return 'paper-smooth';
-    }
-  };
+  const toggleMusic = () => { if (isPlaying) audio.pause(); else audio.play(); setIsPlaying(!isPlaying); };
 
   return (
-    <div className="relative w-full max-w-md mx-auto bg-white shadow-2xl rounded-[3rem] overflow-hidden min-h-[800px] border-[8px] border-white">
-      {/* Pluie d'emojis */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden z-50">
-        {[...Array(12)].map((_, i) => (
-          <div key={i} className="absolute animate-fall" style={{ left: `${Math.random() * 100}%`, animationDelay: `${Math.random() * 5}s`, fontSize: '24px', top: '-50px' }}>
-            {getEmojis()[i % getEmojis().length]}
+    <div className="relative w-full max-w-md mx-auto bg-white rounded-[3rem] overflow-hidden min-h-[800px] border-[8px] border-white shadow-2xl">
+      
+      {/* PLUIE D'EMOJIS */}
+      <div className="absolute inset-0 pointer-events-none z-[60] overflow-hidden">
+        {[...Array(15)].map((_, i) => (
+          <div key={i} className="animate-fall" style={{ left: `${(i * 7) % 100}%`, animationDuration: `${3 + (i % 4)}s`, animationDelay: `${i * 0.5}s`, fontSize: '24px' }}>
+            {invitation.event_type === 'wedding' ? '❤️' : '✨'}
           </div>
         ))}
       </div>
 
-      {/* Musique */}
+      {/* DISQUE VINYLE ANIMÉ */}
       {invitation.music_url && (
-        <button onClick={toggleMusic} className="absolute top-6 right-6 z-50 p-4 bg-white/90 rounded-full shadow-xl text-amber-600 transition-transform active:scale-95">
-          {isPlaying ? <Volume2 size={24} /> : <VolumeX size={24} />}
-        </button>
+        <div className="absolute top-6 right-6 z-50">
+          <button onClick={toggleMusic} className={`w-16 h-16 bg-[#1D1D1F] rounded-full border-2 border-white/20 shadow-2xl flex items-center justify-center ${isPlaying ? 'animate-disk-spin' : ''}`}>
+            <div className="w-6 h-6 bg-[#3A3A3C] rounded-full flex items-center justify-center">
+              <Music size={12} className="text-amber-400" />
+            </div>
+          </button>
+        </div>
       )}
 
-      {/* Photo principale */}
+      {/* PHOTO AVEC POSITION X/Y */}
       <div className="h-[40vh] relative overflow-hidden">
-        {invitation.main_photo_url ? (
-          <img 
-            src={invitation.main_photo_url} 
-            className="w-full h-full object-cover" 
-            style={{ objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%` }} 
-          />
-        ) : ( <div className="w-full h-full bg-amber-50 flex items-center justify-center"><Sparkles className="text-amber-200" size={48} /></div> )}
-        <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent" />
+        <img src={invitation.main_photo_url} className="w-full h-full object-cover" 
+             style={{ objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%` }} />
+        <div className="absolute inset-0 bg-gradient-to-t from-white to-transparent" />
       </div>
 
-      {/* Carte de texte */}
+      {/* CARTE TEXTE AVEC TEXTURE PAPIER */}
       <div className="px-6 pb-12 -mt-16 relative z-10">
-        <div className={`rounded-[2.5rem] p-8 shadow-xl border border-white/50 text-center space-y-6 transition-all duration-500 ${getPaperClass()}`}>
-          <h1 className="text-4xl font-bold leading-tight" style={{ fontFamily: invitation.font_style || 'Inter' }}>
-            {invitation.title || "Titre de l'événement"}
-          </h1>
-          <p className="opacity-70 italic font-medium">{invitation.host_names || "Hôtes"}</p>
-          <div className="h-px bg-current opacity-10 w-full" />
-          <div className="space-y-4">
-            <div className="flex flex-col items-center gap-1">
-              <Calendar size={18} />
-              <span className="text-sm font-bold uppercase tracking-widest">{invitation.event_date || "Date"}</span>
-            </div>
-            <div className="flex flex-col items-center gap-1">
-              <MapPin size={18} />
-              <span className="text-xs font-medium">{invitation.event_address || "Adresse"}</span>
-            </div>
-          </div>
+        <div className={`rounded-[2.5rem] p-8 text-center space-y-6 ${
+          invitation.paper_type === 'parchment' ? 'paper-parchment' : 
+          invitation.paper_type === 'grainy' ? 'paper-grainy' : 
+          invitation.paper_type === 'cotton' ? 'paper-cotton' : 'paper-smooth'
+        }`}>
+          <h1 className="text-4xl font-bold" style={{ fontFamily: invitation.font_style }}>{invitation.title || "Titre"}</h1>
+          <p className="opacity-70 italic">{invitation.host_names || "Hôtes"}</p>
         </div>
       </div>
     </div>
