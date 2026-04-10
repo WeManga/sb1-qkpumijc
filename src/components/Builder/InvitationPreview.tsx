@@ -7,6 +7,8 @@ const THEME_EMOJIS: Record<string, string[]> = {
   birthday: ['🎂', '🎈', '✨', '🎉', '🍰'],
   party: ['✨', '🎸', '🥂', '🕺', '🌟'],
   baptism: ['👼', '☁️', '🤍', '✨', '🕊️'],
+  baby_shower: ['👶', '🍼', '🧸', '🎈', '🍼'],
+  evjf_evg: ['🥂', '🎉', '🔥', '🕶️', '🍺'],
   default: ['✨', '🌟', '🤍']
 };
 
@@ -18,7 +20,6 @@ export function InvitationPreview({ invitation }: any) {
 
   const emojis = THEME_EMOJIS[invitation?.event_type] || THEME_EMOJIS.default;
   
-  // STYLES DYNAMIQUES
   const imageStyle = {
     objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%`,
     objectFit: 'cover' as const
@@ -104,7 +105,6 @@ export function InvitationPreview({ invitation }: any) {
             <AnimatePresence>
               {!isOpened && (
                 <motion.div exit={{ y: "-100%" }} transition={{ duration: 0.9 }} className="absolute inset-0 z-50 flex flex-col items-center justify-center" style={{ backgroundColor: invitation?.envelope_color || '#FEE2E2' }}>
-                  {/* Logo Taille Maximale */}
                   <button onClick={() => setIsOpened(true)} className="w-[32rem] h-[32rem] flex items-center justify-center hover:scale-105 transition-transform p-0 overflow-visible active:scale-95">
                     <img 
                       src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
@@ -112,7 +112,6 @@ export function InvitationPreview({ invitation }: any) {
                       alt="Sceau" 
                     />
                   </button>
-                  {/* Espace supprimé avec marge négative */}
                   <p className="text-white font-black text-[10px] uppercase tracking-[0.5em] -mt-4">Ouvrir</p>
                 </motion.div>
               )}
