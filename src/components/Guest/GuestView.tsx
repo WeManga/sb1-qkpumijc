@@ -20,6 +20,8 @@ const THEME_EMOJIS: Record<string, string[]> = {
   birthday: ['🎂', '🎈', '✨', '🎉', '🍰'],
   party: ['✨', '🎸', '🥂', '🕺', '🌟'],
   baptism: ['👼', '☁️', '🤍', '✨', '🕊️'],
+  baby_shower: ['👶', '🍼', '🧸', '🎈', '🍼'],
+  evjf_evg: ['🥂', '🎉', '🔥', '🕶️', '🍺'],
   default: ['✨', '🌟', '🤍']
 };
 
@@ -43,7 +45,6 @@ export function GuestView({ invitation }: GuestViewProps) {
   const t = translations[lang].guest;
   const emojis = THEME_EMOJIS[invitation?.event_type] || THEME_EMOJIS.default;
 
-  // STYLES DYNAMIQUES (Photo + Police)
   const imagePosition = {
     objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%`,
     objectFit: 'cover' as const
@@ -126,7 +127,6 @@ export function GuestView({ invitation }: GuestViewProps) {
       {invitation?.music_url && <audio ref={audioRef} src={invitation.music_url} loop />}
       {view !== 'envelope' && <EmojiRain />}
 
-      {/* BOUTON MUTE GLOBAL */}
       {view !== 'envelope' && invitation?.music_url && (
         <button 
           onClick={toggleMute}
@@ -146,7 +146,6 @@ export function GuestView({ invitation }: GuestViewProps) {
             style={{ backgroundColor: invitation?.envelope_color || '#FEE2E2' }}
             onClick={() => setView('card')}
           >
-            {/* Logo Massif sans fond blanc */}
             <motion.div 
               whileHover={{ scale: 1.05 }} 
               className="w-[32rem] h-[32rem] flex items-center justify-center overflow-visible"
@@ -157,7 +156,6 @@ export function GuestView({ invitation }: GuestViewProps) {
                  alt="Logo" 
                />
             </motion.div>
-            {/* Texte collé au logo avec marge négative */}
             <p className="text-white font-black text-[10px] uppercase tracking-[0.5em] -mt-4">Ouvrir</p>
           </motion.div>
         )}
