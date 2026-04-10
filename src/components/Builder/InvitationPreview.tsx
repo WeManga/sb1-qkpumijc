@@ -1,162 +1,139 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Volume2, VolumeX, MapPin, Clock } from 'lucide-react';
-
-const THEME_EMOJIS: Record<string, string[]> = {
-  wedding: ['🤍', '💍', '🕊️', '✨', '🌸'],
-  birthday: ['🎂', '🎈', '✨', '🎉', '🍰'],
-  party: ['✨', '🎸', '🥂', '🕺', '🌟'],
-  baptism: ['👼', '☁️', '🤍', '✨', '🕊️'],
-  baby_shower: ['👶', '🍼', '🧸', '🎈', '🍼'],
-  evjf_evg: ['🥂', '🎉', '🔥', '🕶️', '🍺'],
-  default: ['✨', '🌟', '🤍']
-};
+import { useEffect, useState } from 'react';
+import { translations, Language } from '../../lib/i18n';
+import { 
+  Calendar, MapPin, Clock, Music2, Volume2, VolumeX, 
+  Heart, PartyPopper, Sparkles, Baby, Church 
+} from 'lucide-react';
 
 export function InvitationPreview({ invitation }: any) {
-  const [isOpened, setIsOpened] = useState(false);
-  const [view, setView] = useState<'envelope' | 'content'>('envelope');
-  const [isMuted, setIsMuted] = useState(false);
-  const audioRef = useRef<HTMLAudioElement>(null);
-
-  const emojis = THEME_EMOJIS[invitation?.event_type] || THEME_EMOJIS.default;
-  
-  const imageStyle = {
-    objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%`,
-    objectFit: 'cover' as const
-  };
-
-  const globalFontStyle = {
-    fontFamily: invitation.font_style || 'inherit'
-  };
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [audio] = useState(new Audio());
+  const [lang] = useState<Language>((localStorage.getItem('invite_lang') as Language) || 'fr');
+  const t = translations[lang].preview;
 
   useEffect(() => {
-    if (isOpened && invitation?.music_url && audioRef.current) {
-      audioRef.current.play().catch(() => {});
+    if (invitation.music_url) {
+      audio.src = invitation.music_url;
+      audio.loop = true;
     }
-  }, [isOpened, invitation?.music_url]);
+  }, [invitation.music_url]);
 
-  const toggleMute = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (audioRef.current) {
-      audioRef.current.muted = !isMuted;
-      setIsMuted(!isMuted);
-    }
+  const toggleMusic = () => {
+    if (isPlaying) audio.pause();
+    else audio.play();
+    setIsPlaying(!isPlaying);
   };
 
-  const EmojiRain = () => {
-    const particles = useMemo(() => Array.from({ length: 25 }).map((_, i) => ({
-      id: i,
-      emoji: emojis[i % emojis.length],
-      left: `${(i * 4) + (Math.random() * 3)}%`,
-      delay: Math.random() * 2,
-      duration: 4 + Math.random() * 2
-    })), [emojis]);
-
-    return (
-      <div className="absolute inset-0 z-[60] pointer-events-none overflow-hidden">
-        {particles.map((p) => (
-          <motion.span key={p.id} initial={{ y: -50, opacity: 0 }} animate={{ y: 800, opacity: [0, 1, 1, 0] }}
-            transition={{ duration: p.duration, repeat: Infinity, delay: p.delay, ease: "linear" }}
-            className="absolute text-3xl" style={{ left: p.left }}>{p.emoji}
-          </motion.span>
-        ))}
-      </div>
-    );
+  // Logique de la pluie d'emojis
+  const getEmojis = () => {
+    switch (invitation.event_type) {
+      case 'wedding': return ['❤️', '💍', '🥂'];
+      case 'birthday': return ['🎂', '🎈', '🎉'];
+      case 'party': return ['✨', '🥳', '💃'];
+      case 'baptism': return ['👼', '✨', '🕊️'];
+      case 'baby_shower': return ['🍼', '🧸', '👶'];
+      case 'evjf_evg': return ['✝️', '🕊️']; // Enterrements : Croix et Colombes
+      default: return ['✨'];
+    }
   };
 
   return (
-    <div className="relative w-full h-full max-h-[650px] flex items-center justify-center overflow-hidden bg-white rounded-[3.5rem] shadow-2xl border-[12px] border-gray-50/50" style={globalFontStyle}>
-      {invitation?.music_url && <audio ref={audioRef} src={invitation.music_url} loop />}
-      {isOpened && <EmojiRain />}
-      
-      <AnimatePresence mode="wait">
-        {view === 'envelope' ? (
-          <motion.div key="env" className="relative w-full h-full flex items-center justify-center">
-            {isOpened && invitation?.music_url && (
-              <button onClick={toggleMute} className="absolute top-6 right-6 z-[70] w-10 h-10 bg-white/80 rounded-full flex items-center justify-center shadow-lg">
-                {isMuted ? <VolumeX size={18}/> : <Volume2 size={18} className="animate-pulse"/>}
-              </button>
-            )}
+    <div className="relative w-full max-w-md mx-auto bg-white shadow-2xl rounded-[3rem] overflow-hidden min-h-[800px] border-[8px] border-white">
+      {/* Pluie d'emojis */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden z-50">
+        {[...Array(12)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute animate-fall"
+            style={{
+              left: `${Math.random() * 100}%`,
+              animationDelay: `${Math.random() * 5}s`,
+              fontSize: '24px',
+              top: '-50px'
+            }}
+          >
+            {getEmojis()[i % getEmojis().length]}
+          </div>
+        ))}
+      </div>
 
-            <motion.div initial={{ y: -450 }} animate={isOpened ? { y: 25 } : { y: -450 }} transition={{ type: "spring", damping: 25 }} className="absolute top-0 w-[270px] h-[270px] z-20">
-              <div className={`w-full h-full relative ${isOpened ? 'animate-disk-spin' : ''}`}>
-                <div className="absolute inset-0 rounded-full bg-[#111] overflow-hidden">
-                   <div className="absolute inset-0 opacity-30" style={{ background: 'repeating-radial-gradient(circle, #444 0, #000 2px, #111 4px)' }} />
-                </div>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-24 h-24 bg-white rounded-full border-[5px] border-[#111] overflow-hidden">
-                    {invitation.main_photo_url && <img src={invitation.main_photo_url} className="w-full h-full" style={imageStyle} />}
-                  </div>
-                </div>
-              </div>
-            </motion.div>
+      {/* Musique */}
+      {invitation.music_url && (
+        <button 
+          onClick={toggleMusic}
+          className="absolute top-6 right-6 z-50 p-4 bg-white/90 backdrop-blur-xl rounded-full shadow-xl hover:scale-110 transition-transform text-amber-600"
+        >
+          {isPlaying ? <Volume2 size={24} /> : <VolumeX size={24} />}
+        </button>
+      )}
 
-            <motion.div initial={{ scale: 0.8, y: 200 }} animate={isOpened ? { scale: 1, y: 135 } : {}} transition={{ type: "spring", damping: 20, delay: 0.4 }} onClick={() => isOpened && setView('content')} className="z-30 w-[310px] h-[370px] bg-white rounded-[3rem] shadow-xl p-10 flex flex-col items-center justify-between border border-gray-100 cursor-pointer">
-              <div className="text-center pt-14 w-full">
-                <h2 className="text-2xl font-black text-gray-800 uppercase tracking-tighter mb-4 break-words" style={globalFontStyle}>
-                  {invitation?.title || "Votre Titre"}
-                </h2>
-                <div className="w-8 h-1 bg-amber-400 mx-auto mb-4" />
-                <p className="text-gray-400 text-[9px] font-bold uppercase tracking-[0.3em]">Découvrir le programme</p>
-              </div>
-              <div className="w-full py-4 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase text-center tracking-widest">Voir les détails</div>
-            </motion.div>
-
-            <AnimatePresence>
-              {!isOpened && (
-                <motion.div exit={{ y: "-100%" }} transition={{ duration: 0.9 }} className="absolute inset-0 z-50 flex flex-col items-center justify-center" style={{ backgroundColor: invitation?.envelope_color || '#FEE2E2' }}>
-                  <button onClick={() => setIsOpened(true)} className="w-[32rem] h-[32rem] flex items-center justify-center hover:scale-105 transition-transform p-0 overflow-visible active:scale-95">
-                    <img 
-                      src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
-                      className="w-full h-full object-contain" 
-                      alt="Sceau" 
-                    />
-                  </button>
-                  <p className="text-white font-black text-[10px] uppercase tracking-[0.5em] -mt-4">Ouvrir</p>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
+      {/* Image de fond */}
+      <div className="h-[45vh] relative overflow-hidden">
+        {invitation.main_photo_url ? (
+          <img 
+            src={invitation.main_photo_url} 
+            className="w-full h-full object-cover"
+            style={{ objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%` }}
+          />
         ) : (
-          <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full h-full bg-white z-[100] flex flex-col">
-            <div className="h-[30%] relative overflow-hidden shrink-0">
-               <img src={invitation.main_photo_url} className="w-full h-full" style={imageStyle} />
-               <div className="absolute inset-0 bg-gradient-to-t from-white/80 to-transparent" />
-               <button onClick={() => setView('envelope')} className="absolute top-6 left-6 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-md"><X size={20}/></button>
-            </div>
-
-            <div className="flex-1 p-8 overflow-y-auto bg-white">
-              <div className="text-center mb-10">
-                <h2 className="text-3xl font-black text-gray-900 mb-4 leading-tight" style={globalFontStyle}>{invitation?.host_names || "Noms des Hôtes"}</h2>
-                <div className="flex flex-col items-center gap-2 text-gray-400 font-bold text-[10px] uppercase tracking-widest">
-                  <div className="flex items-center gap-2"><Calendar size={14} className="text-amber-500"/> {invitation.event_date ? new Date(invitation.event_date).toLocaleDateString('fr-FR', {day:'numeric', month:'long', year:'numeric'}) : "Date à venir"}</div>
-                  <div className="flex items-center gap-2"><MapPin size={14} className="text-amber-500"/> {invitation.event_address || "Lieu non défini"}</div>
-                </div>
-              </div>
-
-              <div className="space-y-6">
-                <h3 className="text-[10px] font-black text-amber-600 uppercase tracking-[0.3em] text-center mb-6">Le Programme</h3>
-                {(invitation.event_program || []).length > 0 ? (
-                  invitation.event_program.map((step: any, i: number) => (
-                    <div key={i} className="flex items-center gap-4 py-3 border-b border-gray-50 last:border-0">
-                      <div className="w-16 text-[11px] font-black text-gray-900 bg-gray-50 py-1 px-2 rounded-lg text-center flex items-center gap-1">
-                        <Clock size={10} className="text-amber-500"/> {step.time}
-                      </div>
-                      <div className="text-xs font-bold text-gray-600 uppercase tracking-wide">{step.activity}</div>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-center text-[10px] text-gray-300 italic">Aucun programme défini</p>
-                )}
-              </div>
-              
-              <div className="mt-10 py-5 bg-amber-50 rounded-3xl text-center">
-                 <p className="text-[10px] font-black text-amber-800 uppercase tracking-widest">Confirmation souhaitée</p>
-              </div>
-            </div>
-          </motion.div>
+          <div className="w-full h-full bg-gradient-to-br from-amber-50 to-orange-50 flex items-center justify-center">
+            <Sparkles className="w-12 h-12 text-amber-200" />
+          </div>
         )}
-      </AnimatePresence>
+        <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent" />
+      </div>
+
+      {/* Contenu */}
+      <div className="px-8 pb-12 -mt-20 relative z-10">
+        <div className="bg-white/80 backdrop-blur-xl rounded-[2.5rem] p-8 shadow-xl border border-white text-center space-y-6">
+          <h1 className="text-4xl font-bold text-gray-900 leading-tight" style={{ fontFamily: invitation.font_style || 'Inter' }}>
+            {invitation.title || t.default_title}
+          </h1>
+          
+          <p className="text-gray-500 font-medium italic tracking-wide">
+            {invitation.host_names || t.default_hosts}
+          </p>
+
+          <div className="h-px bg-gradient-to-r from-transparent via-amber-200 to-transparent w-full" />
+
+          <div className="grid grid-cols-1 gap-4 py-2">
+            <div className="flex flex-col items-center gap-2">
+              <div className="p-3 bg-amber-50 rounded-2xl text-amber-600">
+                <Calendar size={20} />
+              </div>
+              <span className="text-sm font-bold text-gray-800">
+                {invitation.event_date ? new Date(invitation.event_date).toLocaleDateString(lang === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'long', year: 'numeric' }) : t.default_date}
+              </span>
+            </div>
+            
+            <div className="flex flex-col items-center gap-2">
+              <div className="p-3 bg-amber-50 rounded-2xl text-amber-600">
+                <MapPin size={20} />
+              </div>
+              <span className="text-sm font-medium text-gray-600 px-4">
+                {invitation.event_address || t.default_address}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Programme */}
+        {invitation.event_program && invitation.event_program.length > 0 && (
+          <div className="mt-8 space-y-4">
+            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-400 text-center mb-6">{t.program_title}</h3>
+            <div className="space-y-3">
+              {invitation.event_program.map((step: any, i: number) => (
+                <div key={i} className="flex items-center gap-4 bg-gray-50/50 p-4 rounded-3xl border border-white shadow-sm">
+                  <div className="px-3 py-1 bg-white rounded-xl text-xs font-black text-amber-600 shadow-sm border border-amber-50">
+                    {step.time}
+                  </div>
+                  <div className="text-sm font-semibold text-gray-700">{step.activity}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
