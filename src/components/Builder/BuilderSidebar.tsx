@@ -3,19 +3,26 @@ import { supabase } from '../../lib/supabase';
 import { translations, Language } from '../../lib/i18n';
 import { 
   Heart, PartyPopper, Sparkles, Baby, MapPin, 
-  Music, Image as ImageIcon, Loader2, Calendar, Move, Plus, X, Lock
+  Music, Image as ImageIcon, Loader2, Calendar, Move, Plus, X, Lock,
+  Beer, Milk 
 } from 'lucide-react';
 
 const COLOR_PALETTES = [
-  { color: '#FEE2E2' },
-  { color: '#E0F2FE' },
-  { color: '#DCFCE7' },
-  { color: '#FEF3C7' },
-  { color: '#EF4444' },
-  { color: '#1E3A8A' },
-  { color: '#F5F5DC' },
-  { color: '#7C3AED' },
-  { color: '#374151' }
+  { color: '#FEE2E2' }, // Rose pâle
+  { color: '#E0F2FE' }, // Bleu ciel
+  { color: '#DCFCE7' }, // Menthe
+  { color: '#FEF3C7' }, // Crème
+  { color: '#EF4444' }, // Rouge
+  { color: '#1E3A8A' }, // Bleu Marine
+  { color: '#F5F5DC' }, // Beige
+  { color: '#7C3AED' }, // Violet
+  { color: '#374151' }, // Anthracite
+  { color: '#D4AF37' }, // Or
+  { color: '#BC6C25' }, // Terracotta
+  { color: '#2D6A4F' }, // Vert Sapin
+  { color: '#FFB7C5' }, // Rose Sakura
+  { color: '#E9D8FD' }, // Lilas
+  { color: '#A3B18A' }  // Vert Sauge
 ];
 
 const FONTS = [
@@ -30,7 +37,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
   const [uploading, setUploading] = useState(false);
   const [lang] = useState<Language>((localStorage.getItem('invite_lang') as Language) || 'fr');
   
-  // Accès facilité aux traductions
   const t = translations[lang].builder;
 
   const uploadFile = async (e: any, field: string) => {
@@ -182,9 +188,23 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 {id: 'wedding', icon: <Heart size={16}/>, l: t.theme_wedding}, 
                 {id: 'birthday', icon: <PartyPopper size={16}/>, l: t.theme_birthday}, 
                 {id: 'party', icon: <Sparkles size={16}/>, l: t.theme_party}, 
-                {id: 'baptism', icon: <Baby size={16}/>, l: t.theme_baptism} 
+                {id: 'baptism', icon: <Baby size={16}/>, l: t.theme_baptism},
+                {
+                  id: 'baby_shower', 
+                  icon: <Milk size={16}/>, 
+                  l: lang === 'fr' ? 'Baby Shower' : lang === 'vi' ? 'Lễ mừng đầy tháng' : 'Baby Shower'
+                },
+                {
+                  id: 'evjf_evg', 
+                  icon: <Beer size={16}/>, 
+                  l: lang === 'fr' ? 'Enterrement' : lang === 'vi' ? 'Tiệc độc thân' : 'Bachelor Party'
+                }
               ].map(t_item => (
-                <button key={t_item.id} onClick={() => onInvitationChange({...invitation, event_type: t_item.id})} className={`p-4 rounded-2xl border-2 flex items-center gap-3 text-[10px] font-bold uppercase transition-all ${invitation.event_type === t_item.id ? 'bg-amber-50 border-amber-200 text-amber-700' : 'bg-white border-gray-100 text-gray-400'}`}>
+                <button 
+                  key={t_item.id} 
+                  onClick={() => onInvitationChange({...invitation, event_type: t_item.id})} 
+                  className={`p-4 rounded-2xl border-2 flex items-center gap-3 text-[10px] font-bold uppercase transition-all ${invitation.event_type === t_item.id ? 'bg-amber-50 border-amber-200 text-amber-700' : 'bg-white border-gray-100 text-gray-400'}`}
+                >
                   {t_item.icon} {t_item.l}
                 </button>
               ))}
@@ -239,7 +259,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
              </div>
           </div>
 
-          {/* PHOTOS ADDITIONNELLES - PLEINE LARGEUR */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">
               {lang === 'vi' ? 'Ảnh bổ sung' : lang === 'en' ? 'Additional Photos' : 'Photos additionnelles'}
