@@ -2,27 +2,43 @@ import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
 import { translations, Language } from '../../lib/i18n';
 import { 
-  Heart, PartyPopper, Sparkles, Baby, MapPin, 
+  Heart, PartyPopper, Sparkles, MapPin, 
   Music, Image as ImageIcon, Loader2, Calendar, Move, Plus, X, Lock,
-  Beer, Milk 
+  Baby, // Pour Baptême
+  Church, // Alternative pour Enterrement si besoin, mais on va utiliser une icône personnalisée
+  Milestone // Alternative
 } from 'lucide-react';
 
+// --- NOUVEAUX COMPOSANTS D'ICÔNES PERSONNALISÉS ---
+const CrossIcon = ({ size = 16 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M11 2h2v20h-2z" /><path d="M7 7h10v2H7z" />
+  </svg>
+);
+
+const AngelIcon = ({ size = 16 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="7" r="2" />
+    <path d="M12 9v7l-3 4" /><path d="M12 16l3 4" />
+    <path d="M7 10c-2 0-3 1-3 3s1 3 3 3h1" /><path d="M17 10c2 0 3 1 3 3s-1 3-3 3h-1" />
+  </svg>
+);
+
+const BabyBottleIcon = ({ size = 16 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M9 10h6v10a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2V10z" />
+    <path d="M10 10V5a2 2 0 0 1 4 0v5" /><path d="M12 2v2" />
+  </svg>
+);
+
+// --- FIN DES ICÔNES ---
+
 const COLOR_PALETTES = [
-  { color: '#FEE2E2' }, // Rose pâle
-  { color: '#E0F2FE' }, // Bleu ciel
-  { color: '#DCFCE7' }, // Menthe
-  { color: '#FEF3C7' }, // Crème
-  { color: '#EF4444' }, // Rouge
-  { color: '#1E3A8A' }, // Bleu Marine
-  { color: '#F5F5DC' }, // Beige
-  { color: '#7C3AED' }, // Violet
-  { color: '#374151' }, // Anthracite
-  { color: '#D4AF37' }, // Or
-  { color: '#BC6C25' }, // Terracotta
-  { color: '#2D6A4F' }, // Vert Sapin
-  { color: '#FFB7C5' }, // Rose Sakura
-  { color: '#E9D8FD' }, // Lilas
-  { color: '#A3B18A' }  // Vert Sauge
+  { color: '#FEE2E2' }, { color: '#E0F2FE' }, { color: '#DCFCE7' }, 
+  { color: '#FEF3C7' }, { color: '#EF4444' }, { color: '#1E3A8A' }, 
+  { color: '#F5F5DC' }, { color: '#7C3AED' }, { color: '#374151' }, 
+  { color: '#D4AF37' }, { color: '#BC6C25' }, { color: '#2D6A4F' }, 
+  { color: '#FFB7C5' }, { color: '#E9D8FD' }, { color: '#A3B18A' }
 ];
 
 const FONTS = [
@@ -74,7 +90,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
   return (
     <div className="w-full space-y-8 pb-10">
-      {/* SECTION 1 : CONTENU */}
       {activeTab === 'content' && (
         <div className="space-y-8">
           <div className="space-y-4">
@@ -132,17 +147,11 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                   </button>
                 </div>
               ))}
-              {(!invitation.event_program || invitation.event_program.length === 0) && (
-                <button onClick={addProgramStep} className="w-full py-4 border-2 border-dashed border-gray-100 rounded-2xl text-[10px] font-bold text-gray-400 uppercase hover:bg-gray-50 transition-colors">
-                  {t.add_step}
-                </button>
-              )}
             </div>
           </div>
         </div>
       )}
 
-      {/* SECTION 2 : STYLE */}
       {activeTab === 'style' && (
         <div className="space-y-8">
           <div>
@@ -174,10 +183,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                   {f.name}
                 </button>
               ))}
-              <div className="p-4 rounded-xl border-2 border-dashed border-gray-100 bg-gray-50/50 flex flex-col items-center justify-center gap-1 opacity-60">
-                <Lock size={14} className="text-gray-400" />
-                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter text-center">Premium</span>
-              </div>
             </div>
           </div>
 
@@ -188,16 +193,16 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 {id: 'wedding', icon: <Heart size={16}/>, l: t.theme_wedding}, 
                 {id: 'birthday', icon: <PartyPopper size={16}/>, l: t.theme_birthday}, 
                 {id: 'party', icon: <Sparkles size={16}/>, l: t.theme_party}, 
-                {id: 'baptism', icon: <Baby size={16}/>, l: t.theme_baptism},
+                {id: 'baptism', icon: <AngelIcon size={18}/>, l: t.theme_baptism}, // Ange pour Baptême
                 {
                   id: 'baby_shower', 
-                  icon: <Milk size={16}/>, 
+                  icon: <BabyBottleIcon size={18}/>, // Bébé/Biberon pour Baby Shower
                   l: lang === 'fr' ? 'Baby Shower' : lang === 'vi' ? 'Lễ mừng đầy tháng' : 'Baby Shower'
                 },
                 {
                   id: 'evjf_evg', 
-                  icon: <Beer size={16}/>, 
-                  l: lang === 'fr' ? 'Enterrement' : lang === 'vi' ? 'Tiệc độc thân' : 'Bachelor Party'
+                  icon: <CrossIcon size={18}/>, // Croix pour Enterrements
+                  l: lang === 'fr' ? 'Enterrements' : lang === 'vi' ? 'Đám tang' : 'Funeral'
                 }
               ].map(t_item => (
                 <button 
@@ -213,7 +218,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
         </div>
       )}
 
-      {/* SECTION 3 : MEDIAS */}
       {activeTab === 'media' && (
         <div className="space-y-8">
           <div>
@@ -257,23 +261,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 </label>
                 {invitation.music_url && <p className="text-[9px] text-green-600 font-bold text-center mt-3 uppercase">✓ {t.music_saved}</p>}
              </div>
-          </div>
-
-          <div>
-            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">
-              {lang === 'vi' ? 'Ảnh bổ sung' : lang === 'en' ? 'Additional Photos' : 'Photos additionnelles'}
-            </label>
-            <div className="p-6 bg-gray-50/50 rounded-[2.5rem] border-2 border-dashed border-gray-100 flex flex-col items-center justify-center gap-2 opacity-60 min-h-[120px]">
-              <Lock size={20} className="text-gray-400" />
-              <div className="text-center">
-                <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                  {lang === 'vi' ? 'Album Cao cấp' : lang === 'en' ? 'Premium Album' : 'Album Premium'}
-                </span>
-                <p className="text-[9px] font-bold text-gray-400 mt-1 uppercase">
-                  {lang === 'vi' ? 'Sắp ra mắt' : lang === 'en' ? 'Coming Soon' : 'Bientôt disponible'}
-                </p>
-              </div>
-            </div>
           </div>
         </div>
       )}
