@@ -39,7 +39,7 @@ input[type="text"] {
 .paper-parchment {
   background-color: #f4e4bc;
   background-image: url("https://www.transparenttextures.com/patterns/parchment.png");
-  color: #5d4037 !important;
+  color: #5d4037 !important; /* Texte marron foncé pour le parchemin */
 }
 
 .paper-grainy {
