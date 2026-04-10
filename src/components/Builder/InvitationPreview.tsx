@@ -1,55 +1,158 @@
+import { useState, useMemo, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, Calendar, Volume2, VolumeX, MapPin, Clock } from 'lucide-react';
+
+const THEME_EMOJIS: Record<string, string[]> = {
+  wedding: ['🤍', '💍', '🕊️', '✨', '🌸'],
+  birthday: ['🎂', '🎈', '✨', '🎉', '🍰'],
+  party: ['✨', '🎸', '🥂', '🕺', '🌟'],
+  baptism: ['👼', '☁️', '🤍', '✨', '🕊️'],
+  default: ['✨', '🌟', '🤍']
+};
+
 export function InvitationPreview({ invitation }: any) {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [audio] = useState(new Audio());
+  const [isOpened, setIsOpened] = useState(false);
+  const [view, setView] = useState<'envelope' | 'content'>('envelope');
+  const [isMuted, setIsMuted] = useState(false);
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  const emojis = THEME_EMOJIS[invitation?.event_type] || THEME_EMOJIS.default;
+  
+  const getPaperClass = () => {
+    switch(invitation.paper_type) {
+      case 'parchment': return 'paper-parchment';
+      case 'grainy': return 'paper-grainy';
+      case 'cotton': return 'paper-cotton';
+      default: return 'paper-smooth';
+    }
+  };
 
   useEffect(() => {
-    if (invitation.music_url) { audio.src = invitation.music_url; audio.loop = true; }
-    return () => audio.pause();
-  }, [invitation.music_url]);
+    if (isOpened && invitation?.music_url && audioRef.current) {
+      audioRef.current.play().catch(() => {});
+    }
+  }, [isOpened, invitation?.music_url]);
 
-  const toggleMusic = () => { if (isPlaying) audio.pause(); else audio.play(); setIsPlaying(!isPlaying); };
+  const toggleMute = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (audioRef.current) {
+      audioRef.current.muted = !isMuted;
+      setIsMuted(!isMuted);
+    }
+  };
 
-  return (
-    <div className="relative w-full max-w-md mx-auto bg-white rounded-[3rem] overflow-hidden min-h-[800px] border-[8px] border-white shadow-2xl">
-      
-      {/* PLUIE D'EMOJIS */}
-      <div className="absolute inset-0 pointer-events-none z-[60] overflow-hidden">
-        {[...Array(15)].map((_, i) => (
-          <div key={i} className="animate-fall" style={{ left: `${(i * 7) % 100}%`, animationDuration: `${3 + (i % 4)}s`, animationDelay: `${i * 0.5}s`, fontSize: '24px' }}>
-            {invitation.event_type === 'wedding' ? '❤️' : '✨'}
-          </div>
+  const EmojiRain = () => {
+    const particles = useMemo(() => Array.from({ length: 25 }).map((_, i) => ({
+      id: i,
+      emoji: emojis[i % emojis.length],
+      left: `${(i * 4) + (Math.random() * 3)}%`,
+      delay: Math.random() * 2,
+      duration: 4 + Math.random() * 2
+    })), [emojis]);
+
+    return (
+      <div className="absolute inset-0 z-[60] pointer-events-none overflow-hidden">
+        {particles.map((p) => (
+          <motion.span key={p.id} initial={{ y: -50, opacity: 0 }} animate={{ y: 800, opacity: [0, 1, 1, 0] }}
+            transition={{ duration: p.duration, repeat: Infinity, delay: p.delay, ease: "linear" }}
+            className="absolute text-3xl" style={{ left: p.left }}>{p.emoji}
+          </motion.span>
         ))}
       </div>
+    );
+  };
 
-      {/* DISQUE VINYLE ANIMÉ */}
-      {invitation.music_url && (
-        <div className="absolute top-6 right-6 z-50">
-          <button onClick={toggleMusic} className={`w-16 h-16 bg-[#1D1D1F] rounded-full border-2 border-white/20 shadow-2xl flex items-center justify-center ${isPlaying ? 'animate-disk-spin' : ''}`}>
-            <div className="w-6 h-6 bg-[#3A3A3C] rounded-full flex items-center justify-center">
-              <Music size={12} className="text-amber-400" />
+  return (
+    <div className="relative w-full h-full max-h-[650px] flex items-center justify-center overflow-hidden bg-white rounded-[3.5rem] shadow-2xl border-[12px] border-gray-50/50" style={{ fontFamily: invitation.font_style || 'inherit' }}>
+      {invitation?.music_url && <audio ref={audioRef} src={invitation.music_url} loop />}
+      {isOpened && <EmojiRain />}
+      
+      <AnimatePresence mode="wait">
+        {view === 'envelope' ? (
+          <motion.div key="env" className="relative w-full h-full flex items-center justify-center">
+            {isOpened && invitation?.music_url && (
+              <button onClick={toggleMute} className="absolute top-6 right-6 z-[70] w-10 h-10 bg-white/80 rounded-full flex items-center justify-center shadow-lg">
+                {isMuted ? <VolumeX size={18}/> : <Volume2 size={18} className="animate-pulse"/>}
+              </button>
+            )}
+
+            {/* LE DISQUE VINYLE */}
+            <motion.div initial={{ y: -450 }} animate={isOpened ? { y: 25 } : { y: -450 }} transition={{ type: "spring", damping: 25 }} className="absolute top-0 w-[270px] h-[270px] z-20">
+              <div className={`w-full h-full relative ${isOpened ? 'animate-disk-spin' : ''}`}>
+                <div className="absolute inset-0 rounded-full bg-[#111] overflow-hidden">
+                   <div className="absolute inset-0 opacity-30" style={{ background: 'repeating-radial-gradient(circle, #444 0, #000 2px, #111 4px)' }} />
+                </div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="w-24 h-24 bg-white rounded-full border-[5px] border-[#111] overflow-hidden">
+                    {invitation.main_photo_url && <img src={invitation.main_photo_url} className="w-full h-full object-cover" style={{ objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%` }} />}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            {/* LA CARTE (AVEC TEXTURE) */}
+            <motion.div 
+              initial={{ scale: 0.8, y: 200 }} 
+              animate={isOpened ? { scale: 1, y: 135 } : {}} 
+              transition={{ type: "spring", damping: 20, delay: 0.4 }} 
+              onClick={() => isOpened && setView('content')} 
+              className={`z-30 w-[310px] h-[370px] rounded-[3rem] shadow-xl p-10 flex flex-col items-center justify-between border border-gray-100 cursor-pointer ${getPaperClass()}`}
+            >
+              <div className="text-center pt-14 w-full">
+                <h2 className="text-2xl font-black uppercase tracking-tighter mb-4 break-words">
+                  {invitation?.title || "Votre Titre"}
+                </h2>
+                <div className="w-8 h-1 bg-amber-400 mx-auto mb-4" />
+                <p className="opacity-60 text-[9px] font-bold uppercase tracking-[0.3em]">Découvrir le programme</p>
+              </div>
+              <div className="w-full py-4 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase text-center tracking-widest">Voir les détails</div>
+            </motion.div>
+
+            {/* L'ENVELOPPE */}
+            <AnimatePresence>
+              {!isOpened && (
+                <motion.div exit={{ y: "-100%" }} transition={{ duration: 0.9 }} className="absolute inset-0 z-50 flex flex-col items-center justify-center" style={{ backgroundColor: invitation?.envelope_color || '#FEE2E2' }}>
+                  <button onClick={() => setIsOpened(true)} className="w-[32rem] h-[32rem] flex items-center justify-center hover:scale-105 transition-transform p-0 overflow-visible active:scale-95">
+                    <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-full h-full object-contain" alt="Sceau" />
+                  </button>
+                  <p className="text-white font-black text-[10px] uppercase tracking-[0.5em] -mt-4">Ouvrir</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
+        ) : (
+          /* VUE CONTENU (AVEC TEXTURE AUSSI) */
+          <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`w-full h-full z-[100] flex flex-col ${getPaperClass()}`}>
+            <div className="h-[30%] relative overflow-hidden shrink-0">
+               <img src={invitation.main_photo_url} className="w-full h-full object-cover" style={{ objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%` }} />
+               <div className="absolute inset-0 bg-gradient-to-t from-white/80 to-transparent" />
+               <button onClick={() => setView('envelope')} className="absolute top-6 left-6 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-md"><X size={20}/></button>
             </div>
-          </button>
-        </div>
-      )}
 
-      {/* PHOTO AVEC POSITION X/Y */}
-      <div className="h-[40vh] relative overflow-hidden">
-        <img src={invitation.main_photo_url} className="w-full h-full object-cover" 
-             style={{ objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%` }} />
-        <div className="absolute inset-0 bg-gradient-to-t from-white to-transparent" />
-      </div>
+            <div className="flex-1 p-8 overflow-y-auto">
+              <div className="text-center mb-10">
+                <h2 className="text-3xl font-black mb-4 leading-tight">{invitation?.host_names || "Noms des Hôtes"}</h2>
+                <div className="flex flex-col items-center gap-2 opacity-60 font-bold text-[10px] uppercase tracking-widest">
+                  <div className="flex items-center gap-2"><Calendar size={14} className="text-amber-500"/> {invitation.event_date ? new Date(invitation.event_date).toLocaleDateString('fr-FR', {day:'numeric', month:'long', year:'numeric'}) : "Date à venir"}</div>
+                  <div className="flex items-center gap-2"><MapPin size={14} className="text-amber-500"/> {invitation.event_address || "Lieu non défini"}</div>
+                </div>
+              </div>
 
-      {/* CARTE TEXTE AVEC TEXTURE PAPIER */}
-      <div className="px-6 pb-12 -mt-16 relative z-10">
-        <div className={`rounded-[2.5rem] p-8 text-center space-y-6 ${
-          invitation.paper_type === 'parchment' ? 'paper-parchment' : 
-          invitation.paper_type === 'grainy' ? 'paper-grainy' : 
-          invitation.paper_type === 'cotton' ? 'paper-cotton' : 'paper-smooth'
-        }`}>
-          <h1 className="text-4xl font-bold" style={{ fontFamily: invitation.font_style }}>{invitation.title || "Titre"}</h1>
-          <p className="opacity-70 italic">{invitation.host_names || "Hôtes"}</p>
-        </div>
-      </div>
+              <div className="space-y-6">
+                <h3 className="text-[10px] font-black text-amber-600 uppercase tracking-[0.3em] text-center mb-6">Le Programme</h3>
+                {(invitation.event_program || []).map((step: any, i: number) => (
+                  <div key={i} className="flex items-center gap-4 py-3 border-b border-black/5 last:border-0">
+                    <div className="w-16 text-[11px] font-black bg-black/5 py-1 px-2 rounded-lg text-center flex items-center gap-1">
+                      <Clock size={10} className="text-amber-500"/> {step.time}
+                    </div>
+                    <div className="text-xs font-bold opacity-70 uppercase tracking-wide">{step.activity}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
