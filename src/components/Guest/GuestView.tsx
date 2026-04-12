@@ -123,10 +123,9 @@ export function GuestView({ invitation }: any) {
         {view === 'envelope' ? (
           <motion.div key="env" className="relative w-full h-full flex items-center justify-center">
             
-            {/* Conteneur de la Phase 2 en Grid pour empilement parfait au centre */}
             <div className="relative w-full max-w-[400px] h-full grid place-items-center">
                 
-                {/* DISQUE (PHASE 2) */}
+                {/* DISQUE (PHASE 2) - Toujours présent dans le DOM */}
                 <motion.div 
                   initial={{ y: 20, opacity: 0, scale: 0.8 }} 
                   animate={isOpened ? { y: -120, opacity: 1, scale: 1 } : { y: 20, opacity: 0 }} 
@@ -143,7 +142,7 @@ export function GuestView({ invitation }: any) {
                   </div>
                 </motion.div>
 
-                {/* CARTE (PHASE 2) */}
+                {/* CARTE (PHASE 2) - Toujours présente dans le DOM */}
                 <motion.div 
                   initial={{ y: 100, opacity: 0, scale: 0.9, rotateX: 20 }} 
                   animate={isOpened ? { y: 120, opacity: 1, scale: 1, rotateX: 0 } : { y: 100, opacity: 0 }} 
@@ -159,32 +158,27 @@ export function GuestView({ invitation }: any) {
                   <div className="w-full py-5 bg-gray-900 text-white rounded-[2rem] text-[10px] font-black uppercase tracking-[0.4em] text-center shadow-xl">Explorer l'événement</div>
                 </motion.div>
 
-                {/* PHASE 1: ENVELOPPE (Couche supérieure) */}
-                <AnimatePresence>
-                {!isOpened && (
-                  <motion.div 
-                    key="cover"
-                    initial={{ opacity: 1 }}
-                    exit={{ y: '-100%', opacity: 0 }}
-                    transition={{ duration: 0.9, ease: [0.65, 0, 0.35, 1] }}
-                    className="absolute inset-0 z-50 flex flex-col items-center justify-center"
-                    style={{ backgroundColor: invitation.envelope_color }}
+                {/* PHASE 1: ENVELOPPE (Utilisation de l'opacité pour éviter le bug de saut) */}
+                <motion.div 
+                  initial={false}
+                  animate={isOpened ? { y: '-100%', opacity: 0, pointerEvents: 'none' } : { y: 0, opacity: 1 }}
+                  transition={{ duration: 0.9, ease: [0.65, 0, 0.35, 1] }}
+                  className="absolute inset-0 z-50 flex flex-col items-center justify-center"
+                  style={{ backgroundColor: invitation.envelope_color }}
+                >
+                  <motion.button 
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => { setIsOpened(true); audioRef.current?.play().catch(()=>{}); }} 
+                    className="w-96 h-96 flex items-center justify-center transition-transform"
                   >
-                    <motion.button 
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => { setIsOpened(true); audioRef.current?.play().catch(()=>{}); }} 
-                      className="w-96 h-96 flex items-center justify-center transition-transform"
-                    >
-                      <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-full h-full object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.4)]" />
-                    </motion.button>
-                    <div className="mt-12 flex flex-col items-center gap-4">
-                       <motion.div animate={{ y: [0, -15, 0] }} transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }} className="w-1.5 h-12 bg-white/20 rounded-full" />
-                       <p className="text-white font-black text-xs uppercase tracking-[0.8em] opacity-80">Ouvrir</p>
-                    </div>
-                  </motion.div>
-                )}
-                </AnimatePresence>
+                    <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-full h-full object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.4)]" />
+                  </motion.button>
+                  <div className="mt-12 flex flex-col items-center gap-4">
+                     <motion.div animate={{ y: [0, -15, 0] }} transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }} className="w-1.5 h-12 bg-white/20 rounded-full" />
+                     <p className="text-white font-black text-xs uppercase tracking-[0.8em] opacity-80">Ouvrir</p>
+                  </div>
+                </motion.div>
             </div>
           </motion.div>
         ) : (
