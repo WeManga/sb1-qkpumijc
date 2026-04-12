@@ -68,7 +68,8 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
   return (
     <div className="w-full space-y-8 pb-10">
-      {/* --- ONGLET CONTENU (MODIFIÉ) --- */}
+      
+      {/* 1. ONGLET INFOS (CONTENT) */}
       {activeTab === 'content' && (
         <div className="space-y-8">
           <div className="space-y-4">
@@ -81,7 +82,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
             <div className="relative">
               <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 w-4 h-4 pointer-events-none z-10" />
-              {/* CASE DATE CORRIGÉE (h-14) */}
+              {/* DATE CORRIGÉE : h-14 pour être identique aux autres */}
               <input type="date" value={invitation.event_date?.split('T')[0] || ''} onChange={e => onInvitationChange({...invitation, event_date: e.target.value})} className="w-full bg-gray-50 border-none h-14 pl-12 pr-4 rounded-2xl text-sm" />
             </div>
           </div>
@@ -104,37 +105,61 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
         </div>
       )}
 
-      {/* --- NOUVEL ONGLET MÉDIAS (AJOUTÉ) --- */}
+      {/* 2. ONGLET MÉDIAS (PHOTO & MUSIQUE) */}
       {activeTab === 'media' && (
         <div className="space-y-8">
           <div className="space-y-4">
             <label className="text-[10px] font-black uppercase text-gray-400 ml-1">VOS MÉDIAS</label>
             <div className="grid grid-cols-2 gap-4">
-              <label className="flex flex-col items-center justify-center aspect-square bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-200 cursor-pointer">
-                <ImageIcon className="text-gray-400 mb-2" />
-                <span className="text-[10px] font-bold text-gray-400 uppercase">Photo</span>
+              <label className="flex flex-col items-center justify-center aspect-square bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-200 cursor-pointer overflow-hidden relative">
+                {invitation.main_photo_url ? (
+                  <img src={invitation.main_photo_url} className="w-full h-full object-cover opacity-30" alt="Preview" />
+                ) : <ImageIcon className="text-gray-400 mb-2" />}
+                <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-gray-600 uppercase bg-white/40">Changer Photo</span>
                 <input type="file" className="hidden" accept="image/*" onChange={(e) => uploadFile(e, 'main_photo_url')} />
               </label>
+              
               <label className="flex flex-col items-center justify-center aspect-square bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-200 cursor-pointer">
                 <Music className="text-gray-400 mb-2" />
-                <span className="text-[10px] font-bold text-gray-400 uppercase">Musique</span>
-                <input type="file" className="hidden" accept="audio/*" onChange={(e) => uploadFile(e, 'music_url')} />
+                <span className="text-[10px] font-bold text-gray-400 uppercase text-center px-2">{invitation.music_url ? "Musique OK" : "Upload MP3"}</span>
+                <input type="file" className="hidden" accept=".mp3,audio/mpeg" onChange={(e) => uploadFile(e, 'music_url')} />
               </label>
             </div>
           </div>
 
           {invitation.main_photo_url && (
-            <div className="bg-amber-50/50 p-6 rounded-[2rem] border border-amber-100 space-y-4">
-              <span className="text-[10px] font-black uppercase text-amber-800 tracking-wider flex items-center gap-2"><Move size={12}/> Ajustement Photo</span>
+            <div className="bg-amber-50/50 p-6 rounded-[2rem] border border-amber-100 space-y-6">
+              <div className="space-y-3">
+                 <span className="text-[10px] font-black uppercase text-amber-800 tracking-wider flex items-center gap-2"><Move size={12}/> Ajustement de l'affichage</span>
+                 
+                 {/* Visualisation de l'ajustement */}
+                 <div className="w-full aspect-video rounded-2xl bg-gray-200 overflow-hidden relative border-2 border-white shadow-sm">
+                    <img 
+                      src={invitation.main_photo_url} 
+                      style={{ 
+                        objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%` 
+                      }} 
+                      className="w-full h-full object-cover transition-all duration-200"
+                    />
+                 </div>
+              </div>
+
               <div className="space-y-4">
-                <input type="range" min="0" max="100" value={invitation.photo_pos_x || 50} onChange={(e) => onInvitationChange({ ...invitation, photo_pos_x: parseInt(e.target.value) })} className="w-full accent-amber-600" />
-                <input type="range" min="0" max="100" value={invitation.photo_pos_y || 50} onChange={(e) => onInvitationChange({ ...invitation, photo_pos_y: parseInt(e.target.value) })} className="w-full accent-amber-600" />
+                <div className="space-y-1">
+                   <span className="text-[9px] uppercase font-bold text-amber-900/40 ml-1">Axe Horizontal</span>
+                   <input type="range" min="0" max="100" value={invitation.photo_pos_x || 50} onChange={(e) => onInvitationChange({ ...invitation, photo_pos_x: parseInt(e.target.value) })} className="w-full accent-amber-600" />
+                </div>
+                <div className="space-y-1">
+                   <span className="text-[9px] uppercase font-bold text-amber-900/40 ml-1">Axe Vertical</span>
+                   <input type="range" min="0" max="100" value={invitation.photo_pos_y || 50} onChange={(e) => onInvitationChange({ ...invitation, photo_pos_y: parseInt(e.target.value) })} className="w-full accent-amber-600" />
+                </div>
               </div>
             </div>
           )}
         </div>
       )}
 
+      {/* 3. ONGLET STYLE (COULEURS, THÈMES ET POLICES) */}
       {activeTab === 'style' && (
         <div className="space-y-8">
           <div>
