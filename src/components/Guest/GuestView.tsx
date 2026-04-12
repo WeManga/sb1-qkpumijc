@@ -148,7 +148,8 @@ export function GuestView({ invitation }: any) {
               className={`row-start-1 col-start-1 z-30 w-[340px] h-[400px] rounded-[3.5rem] shadow-2xl p-10 flex flex-col items-center justify-between cursor-pointer border border-white/40 ${getPaperClass()} hover:scale-105 transition-all duration-700 ease-out`}
             >
               <div className="text-center pt-10">
-                <h2 className="text-3xl font-black uppercase gold-shimmer" style={{ fontFamily: invitation.font_style }}>{invitation.title}</h2>
+                {/* EFFET SUPPRIMÉ ICI POUR STABILISER LA PHASE 2 */}
+                <h2 className="text-3xl font-black uppercase text-gray-900" style={{ fontFamily: invitation.font_style }}>{invitation.title}</h2>
                 <div className="w-16 h-1 bg-amber-400 mx-auto mt-6 rounded-full" />
                 <motion.p animate={{ opacity: [0.4, 1, 0.4] }} transition={{ repeat: Infinity, duration: 2 }} className="text-[10px] font-black uppercase tracking-[0.5em] mt-10">Appuyer pour voir</motion.p>
               </div>
@@ -206,6 +207,7 @@ export function GuestView({ invitation }: any) {
                 </div>
               </div>
 
+              {/* RSVP ET RESTE DU CONTENU INCHANGÉS */}
               <div className="space-y-16">
                 <h3 className="text-center font-black uppercase tracking-[0.6em] text-amber-600 text-[10px] flex items-center justify-center gap-4">
                    <Sparkles size={16}/> Le Programme <Sparkles size={16}/>
