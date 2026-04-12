@@ -121,14 +121,14 @@ export function GuestView({ invitation }: any) {
 
       <AnimatePresence mode="wait">
         {view === 'envelope' ? (
-          <motion.div key="env" className="relative w-full h-full flex flex-col items-center justify-center perspective-[1200px]">
+          <motion.div key="env" className="relative w-full h-full flex flex-col items-center justify-center">
             
             <div className="relative w-[320px] h-[450px] flex items-center justify-center">
-                {/* DISQUE (S'ÉLÈVE FLUIDEMENT) */}
+                {/* DISQUE (S'ÉLÈVE APRÈS LE SLIDE DE L'ENVELOPPE) */}
                 <motion.div 
                   initial={{ y: 0, opacity: 0 }} 
                   animate={isOpened ? { y: -150, opacity: 1 } : { y: 0, opacity: 0 }} 
-                  transition={{ type: "spring", damping: 25, stiffness: 60, delay: 0.5 }}
+                  transition={{ type: "spring", damping: 25, stiffness: 60, delay: 0.6 }}
                   className="absolute w-[280px] h-[280px] z-20"
                 >
                   <div className={`w-full h-full rounded-full shadow-2xl ${isOpened ? 'animate-disk-spin' : ''}`} style={{ background: '#111' }}>
@@ -141,13 +141,13 @@ export function GuestView({ invitation }: any) {
                   </div>
                 </motion.div>
 
-                {/* CARTE D'APPEL (APPARAÎT APRÈS LE DISQUE) */}
+                {/* CARTE D'APPEL */}
                 <motion.div 
                   initial={{ y: 60, opacity: 0, scale: 0.9 }} 
                   animate={isOpened ? { y: 90, opacity: 1, scale: 1 } : { y: 60, opacity: 0 }} 
-                  transition={{ type: "spring", damping: 20, delay: 0.8 }}
+                  transition={{ type: "spring", damping: 20, delay: 0.9 }}
                   onClick={() => setView('content')}
-                  className={`absolute z-30 w-full h-[380px] rounded-[3rem] shadow-2xl p-8 flex flex-col items-center justify-between cursor-pointer border border-white/30 ${getPaperClass()} hover:scale-105 transition-transform duration-500`}
+                  className={`absolute z-30 w-full h-[380px] rounded-[3rem] shadow-2xl p-8 flex flex-col items-center justify-between cursor-pointer border border-white/30 ${getPaperClass()}`}
                 >
                   <div className="text-center pt-10">
                     <h2 className="text-2xl font-black uppercase gold-shimmer" style={{ fontFamily: invitation.font_style }}>{invitation.title}</h2>
@@ -157,34 +157,33 @@ export function GuestView({ invitation }: any) {
                   <div className="w-full py-4 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest text-center shadow-lg">Voir le programme</div>
                 </motion.div>
 
-                {/* RABAT SUPÉRIEUR (VOLET) */}
+                {/* ENVELOPPE - EFFET DÉVERROUILLAGE IPHONE (LEVÉE VERS LE HAUT) */}
+                <AnimatePresence>
                 {!isOpened && (
-                  <div className="absolute inset-0 z-50 flex items-center justify-center">
-                    <div className="absolute inset-0" style={{ backgroundColor: invitation.envelope_color }} />
-                    
-                    <motion.div 
-                      exit={{ rotateX: -160, transition: { duration: 0.8, ease: "easeInOut" } }}
-                      style={{ 
-                        backgroundColor: invitation.envelope_color, 
-                        filter: 'brightness(92%)',
-                        clipPath: 'polygon(0 0, 100% 0, 50% 100%)',
-                        transformOrigin: 'top',
-                        position: 'absolute', top: 0, left: 0, right: 0, height: '55%', zIndex: 55
-                      }}
-                    />
-
-                    <motion.div exit={{ scale: 0, opacity: 0 }} className="relative z-[60] flex flex-col items-center">
-                      <button onClick={() => { setIsOpened(true); audioRef.current?.play().catch(()=>{}); }} className="w-64 h-64 hover:scale-110 transition-transform active:scale-95">
-                        <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-full h-full object-contain drop-shadow-2xl" />
-                      </button>
-                      <p className="text-white font-black text-xs uppercase tracking-[0.6em] mt-4 animate-bounce">Ouvrir</p>
-                    </motion.div>
-                  </div>
+                  <motion.div 
+                    initial={{ y: 0 }}
+                    exit={{ y: '-100%', opacity: 0 }}
+                    transition={{ duration: 0.8, ease: [0.32, 0.72, 0, 1] }}
+                    className="absolute inset-0 z-50 flex flex-col items-center justify-center"
+                    style={{ backgroundColor: invitation.envelope_color }}
+                  >
+                    <button 
+                      onClick={() => { setIsOpened(true); audioRef.current?.play().catch(()=>{}); }} 
+                      className="w-64 h-64 hover:scale-105 transition-transform active:scale-95"
+                    >
+                      <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-full h-full object-contain drop-shadow-2xl" />
+                    </button>
+                    <div className="mt-8 flex flex-col items-center gap-2">
+                       <motion.div animate={{ y: [0, -10, 0] }} transition={{ repeat: Infinity, duration: 1.5 }} className="w-1 h-8 bg-white/30 rounded-full" />
+                       <p className="text-white font-black text-[10px] uppercase tracking-[0.6em]">Glisser pour ouvrir</p>
+                    </div>
+                  </motion.div>
                 )}
+                </AnimatePresence>
             </div>
           </motion.div>
         ) : (
-          /* VUE CONTENU FINAL */
+          /* VUE CONTENU FINAL (DÉTAILS) */
           <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8 }} className={`fixed inset-0 z-[100] flex flex-col overflow-y-auto ${getPaperClass()}`}>
             <div className="relative h-[35vh] shrink-0">
               <img src={invitation.main_photo_url} className="w-full h-full object-cover shadow-lg" />
@@ -193,7 +192,6 @@ export function GuestView({ invitation }: any) {
             </div>
 
             <div className="flex-1 px-6 py-12 max-w-lg mx-auto w-full space-y-20">
-              {/* TITRE ET NOM AVEC EFFET OR */}
               <div className="text-center space-y-6">
                 <h2 className="text-sm font-black uppercase tracking-[0.4em] gold-shimmer">{invitation.title}</h2>
                 <h1 className="text-5xl font-black gold-shimmer leading-tight" style={{ fontFamily: invitation.font_style }}>{invitation.host_names}</h1>
@@ -211,14 +209,12 @@ export function GuestView({ invitation }: any) {
                 </div>
               </div>
 
-              {/* PROGRAMME CHEMIN D'OR */}
               <div className="space-y-12">
                 <h3 className="text-center font-black uppercase tracking-[0.5em] text-amber-600 text-[10px] flex items-center justify-center gap-3">
                    <Sparkles size={14}/> Programme <Sparkles size={14}/>
                 </h3>
                 <div className="relative flex flex-col items-center">
                   <motion.div initial={{ height: 0 }} whileInView={{ height: '100%' }} transition={{ duration: 4, ease: "easeInOut" }} className="absolute top-0 w-[4px] bg-gradient-to-b from-amber-200 via-amber-500 to-amber-200 rounded-full" />
-                  
                   <div className="relative space-y-20 w-full pt-10">
                     {invitation.event_program?.map((step: any, i: number) => (
                       <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 1.5, delay: i * 0.4 }} key={i} className={`flex items-center w-full ${i % 2 === 0 ? 'justify-start pl-8' : 'justify-end pr-8'}`}>
@@ -233,7 +229,6 @@ export function GuestView({ invitation }: any) {
                 </div>
               </div>
 
-              {/* ADRESSE EN DESSOUS DU PROGRAMME */}
               <div className="text-center pt-4">
                  <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(invitation.event_address)}`, '_blank')} className="inline-flex flex-col items-center gap-3 group">
                     <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-xl text-amber-500 group-hover:scale-110 transition-transform border border-amber-100"><MapPin size={28}/></div>
@@ -241,7 +236,6 @@ export function GuestView({ invitation }: any) {
                  </button>
               </div>
 
-              {/* RSVP SUBMISSION */}
               <div className="bg-white/80 backdrop-blur-xl rounded-[4rem] p-10 shadow-2xl border border-white relative overflow-hidden">
                 <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-amber-400 via-yellow-200 to-amber-400" />
                 {!isSubmitted ? (
@@ -269,7 +263,7 @@ export function GuestView({ invitation }: any) {
                       ))}
                     </div>
                     <button disabled={isSubmitting} className="w-full h-16 bg-gray-900 text-white rounded-2xl font-black uppercase tracking-[0.3em] shadow-xl flex items-center justify-center gap-3 active:scale-95 transition-all">
-                      {isSubmitting ? "Envoi en cours..." : <><Send size={18} className="text-amber-400"/> Je confirme</>}
+                      {isSubmitting ? "Envoi..." : <><Send size={18} className="text-amber-400"/> Je confirme</>}
                     </button>
                   </form>
                 ) : (
