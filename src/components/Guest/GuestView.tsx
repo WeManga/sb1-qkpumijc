@@ -12,13 +12,13 @@ export function GuestView({ invitation }: any) {
 
   const getEmojis = () => {
     switch (invitation.event_type) {
-      case 'wedding': return ['❤️', '💍', '🥂'];
-      case 'birthday': return ['🎂', '🎈', '🎉'];
-      case 'party': return ['✨', '🥳', '💃'];
-      case 'baptism': return ['👼', '✨', '🕊️'];
-      case 'baby_shower': return ['🍼', '🧸', '👶'];
-      case 'evjf_evg': return ['✝️', '🕊️'];
-      default: return ['✨'];
+      case 'wedding': return ['🤍', '💍', '🕊️', '✨', '🌸'];
+      case 'birthday': return ['🎂', '🎈', '✨', '🎉', '🍰'];
+      case 'party': return ['✨', '🎸', '🥂', '🕺', '🌟'];
+      case 'baptism': return ['👼', '☁️', '🤍', '✨', '🕊️'];
+      case 'babyshower': return ['🍼', '🤍', '👶', '💖', '💙'];
+      case 'funeral': return ['🙏', '🕊️', '🥀', '⚰️', '🤍'];
+      default: return ['✨', '🌟', '🤍'];
     }
   };
 
@@ -32,7 +32,11 @@ export function GuestView({ invitation }: any) {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4 overflow-hidden">
+    /* MISE À JOUR : Fond dynamique basé sur la couleur choisie dans la Sidebar */
+    <div 
+      className="min-h-screen flex items-center justify-center p-4 overflow-hidden transition-colors duration-500" 
+      style={{ backgroundColor: invitation.envelope_color || '#F3F4F6' }}
+    >
       {/* Pluie d'emojis */}
       <div className="fixed inset-0 pointer-events-none z-50">
         {[...Array(15)].map((_, i) => (
@@ -69,7 +73,7 @@ export function GuestView({ invitation }: any) {
               <div className="flex flex-col items-center gap-2">
                 <Calendar className="opacity-40" />
                 <span className="font-bold text-sm uppercase tracking-[0.2em]">
-                  {new Date(invitation.event_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  {invitation.event_date ? new Date(invitation.event_date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : "Date à venir"}
                 </span>
               </div>
               <div className="flex flex-col items-center gap-2">
