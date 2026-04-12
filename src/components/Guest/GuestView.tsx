@@ -41,13 +41,31 @@ export function GuestView({ invitation }: any) {
     setGuests(newGuests);
   }, [guestCount]);
 
+  // Fonction universelle iOS / Android / Desktop pour le calendrier
   const addToCalendar = () => {
-    const date = new Date(invitation.event_date);
-    const dateStr = date.toISOString().replace(/-|:|\.\d\d\d/g, "");
-    const title = encodeURIComponent(invitation.title);
-    const location = encodeURIComponent(invitation.event_address);
-    const url = `https://www.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${dateStr}/${dateStr}&details=Invitation+Digitale&location=${location}`;
-    window.open(url, '_blank');
+    const title = invitation.title || "Événement";
+    const details = "Invitation Digitale";
+    const location = invitation.event_address || "";
+    const startDate = new Date(invitation.event_date).toISOString().replace(/-|:|\.\d\d\d/g, "");
+    const endDate = new Date(new Date(invitation.event_date).getTime() + 7200000).toISOString().replace(/-|:|\.\d\d\d/g, ""); // +2h
+    
+    const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startDate}/${endDate}&details=${encodeURIComponent(details)}&location=${encodeURIComponent(location)}`;
+    
+    const icsContent = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:${title}\nDTSTART:${startDate}\nDTEND:${endDate}\nLOCATION:${location}\nDESCRIPTION:${details}\nEND:VEVENT\nEND:VCALENDAR`;
+    const icsFile = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+    const icsUrl = URL.createObjectURL(icsFile);
+
+    // Si Android/Chrome -> Google Calendar, sinon (iOS/Safari) -> Fichier ICS
+    if (/Android/i.test(navigator.userAgent)) {
+      window.open(googleUrl, '_blank');
+    } else {
+      const link = document.createElement('a');
+      link.href = icsUrl;
+      link.setAttribute('download', 'event.ics');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
   };
 
   const handleRSVP = async (e: React.FormEvent) => {
@@ -109,12 +127,12 @@ export function GuestView({ invitation }: any) {
                   transition={{ type: "spring", damping: 25, stiffness: 80 }}
                   className="absolute w-[280px] h-[280px] z-20"
                 >
-                <div className={`w-full h-full relative rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.3)] ${isOpened ? 'animate-disk-spin' : ''}`}>
+                <div className={`w-full h-full relative rounded-full shadow-2xl ${isOpened ? 'animate-disk-spin' : ''}`}>
                     <div className="absolute inset-0 rounded-full bg-[#111]">
                       <div className="absolute inset-0 opacity-40 rounded-full" style={{ background: 'repeating-radial-gradient(circle, #444 0, #000 2px, #111 4px)' }} />
                     </div>
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-24 h-24 bg-white rounded-full border-[6px] border-[#111] overflow-hidden">
+                      <div className="w-24 h-24 bg-white rounded-full border-[6px] border-[#111] overflow-hidden shadow-inner">
                           {invitation.main_photo_url && <img src={invitation.main_photo_url} className="w-full h-full object-cover" style={{ objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%` }} />}
                       </div>
                     </div>
@@ -132,86 +150,74 @@ export function GuestView({ invitation }: any) {
                   <div className="text-center pt-10">
                       <h2 className="text-2xl font-black uppercase tracking-tighter mb-4" style={{ fontFamily: invitation.font_style }}>{invitation.title}</h2>
                       <div className="w-10 h-1 bg-amber-400 mx-auto mb-4" />
-                      <p className="text-[10px] font-black uppercase tracking-[0.4em] opacity-40 animate-pulse">Découvrir le programme</p>
+                      <p className="text-[10px] font-black uppercase tracking-[0.4em] opacity-40">Découvrir le programme</p>
                   </div>
                   <div className="w-full py-4 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase text-center tracking-widest">Voir les détails</div>
                 </motion.div>
             </div>
 
-            {/* SYSTÈME D'ENVELOPPE AVEC RÉEL VOLET */}
+            {/* ENVELOPPE QUI GLISSE VERS LE HAUT */}
             {!isOpened && (
-              <motion.div exit={{ opacity: 0 }} transition={{ delay: 0.6 }} className="absolute inset-0 z-50 flex items-center justify-center perspective-[1000px]">
-                <div className="absolute inset-0" style={{ backgroundColor: invitation.envelope_color }} />
-                
-                {/* RABAT SUPÉRIEUR ANIMÉ */}
-                <motion.div 
-                  initial={{ rotateX: 0 }}
-                  animate={{ rotateX: 0 }}
-                  exit={{ rotateX: 180, transition: { duration: 0.7, ease: "easeInOut" } }}
-                  style={{ 
-                    backgroundColor: invitation.envelope_color, 
-                    filter: 'brightness(90%)',
-                    clipPath: 'polygon(0 0, 100% 0, 50% 100%)',
-                    transformOrigin: 'top',
-                    position: 'absolute',
-                    top: 0, left: 0, right: 0, bottom: '50%', zIndex: 60
-                  }}
-                />
-
-                <motion.div exit={{ scale: 0, transition: { duration: 0.4 } }} className="relative z-[70] flex flex-col items-center">
-                  <button 
-                    onClick={() => { setIsOpened(true); audioRef.current?.play().catch(()=>{}); }} 
-                    className="w-72 h-72 hover:scale-110 transition-transform active:scale-95"
-                  >
-                    <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-full h-full object-contain drop-shadow-2xl" />
-                  </button>
-                  <p className="text-white font-black text-xs uppercase tracking-[0.6em] mt-4">Ouvrir</p>
-                </motion.div>
+              <motion.div 
+                initial={{ y: 0 }}
+                exit={{ y: '-120%', opacity: 0 }}
+                transition={{ duration: 0.9, ease: [0.45, 0, 0.55, 1] }}
+                className="absolute inset-0 z-50 flex flex-col items-center justify-center" 
+                style={{ backgroundColor: invitation.envelope_color }}
+              >
+                <button 
+                  onClick={() => { setIsOpened(true); audioRef.current?.play().catch(()=>{}); }} 
+                  className="w-72 h-72 hover:scale-105 transition-transform active:scale-95"
+                >
+                  <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-full h-full object-contain drop-shadow-2xl" />
+                </button>
+                <p className="text-white font-black text-xs uppercase tracking-[0.5em] mt-6 animate-pulse">Ouvrir l'invitation</p>
               </motion.div>
             )}
           </motion.div>
         ) : (
-          /* VUE DÉTAILLÉE */
+          /* VUE DÉTAILLÉE (PARTIE FINALE) */
           <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`fixed inset-0 z-[100] flex flex-col overflow-y-auto ${getPaperClass()}`}>
             <div className="relative h-[35vh] shrink-0">
-              <img src={invitation.main_photo_url} className="w-full h-full object-cover shadow-lg" style={{ objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%` }} />
+              <img src={invitation.main_photo_url} className="w-full h-full object-cover" style={{ objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%` }} />
               <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent" />
               <button onClick={() => setView('envelope')} className="absolute top-6 left-6 w-12 h-12 bg-white/90 backdrop-blur-md rounded-full flex items-center justify-center shadow-xl text-gray-800"><X /></button>
             </div>
 
             <div className="flex-1 px-6 py-12 max-w-lg mx-auto w-full space-y-16">
-              <div className="text-center space-y-6">
-                <div className="space-y-2">
-                    <h2 className="text-sm font-black text-amber-600 uppercase tracking-widest mb-2">{invitation.title}</h2>
-                    <h1 className="text-4xl font-black leading-tight" style={{ fontFamily: invitation.font_style }}>{invitation.host_names}</h1>
-                </div>
+              {/* TITRE ET NOM AVEC EFFET TEXTE GRADIENT ANIMÉ */}
+              <div className="text-center space-y-4">
+                <h2 className="text-sm font-black uppercase tracking-[0.3em] bg-gradient-to-r from-amber-600 via-yellow-400 to-amber-600 bg-clip-text text-transparent animate-shimmer" style={{ backgroundSize: '200% auto' }}>
+                  {invitation.title}
+                </h2>
+                <h1 className="text-5xl font-black leading-none pb-2 bg-gradient-to-b from-gray-900 to-gray-600 bg-clip-text text-transparent" style={{ fontFamily: invitation.font_style }}>
+                  {invitation.host_names}
+                </h1>
                 
-                <div className="flex flex-col items-center gap-4 text-xs font-bold opacity-60 uppercase tracking-widest pt-2">
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2 bg-white/50 px-4 py-2 rounded-full shadow-sm">
-                      <Calendar size={16} className="text-amber-500"/> 
-                      {new Date(invitation.event_date).toLocaleDateString('fr-FR', {day:'numeric', month:'long', year:'numeric'})}
+                <div className="flex flex-col items-center gap-4 pt-4">
+                    <div className="flex items-center gap-4 bg-white/60 p-1 pr-4 rounded-full shadow-sm border border-white">
+                      <div className="bg-amber-500 p-2 rounded-full text-white"><Calendar size={18}/></div>
+                      <span className="text-xs font-black uppercase tracking-widest">
+                        {new Date(invitation.event_date).toLocaleDateString('fr-FR', {day:'numeric', month:'long', year:'numeric'})}
+                      </span>
+                      <button onClick={addToCalendar} className="ml-2 p-1.5 bg-gray-100 rounded-full hover:bg-amber-100 transition-colors">
+                        <Plus size={14} className="text-amber-600" />
+                      </button>
                     </div>
-                    {/* BOUTON AJOUT CALENDRIER */}
-                    <button onClick={addToCalendar} className="w-10 h-10 bg-amber-500 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-amber-600 transition-colors">
-                      <Plus size={20} />
-                    </button>
-                  </div>
-                  <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(invitation.event_address)}`, '_blank')} className="flex items-center gap-2 text-amber-600 underline"><MapPin size={16}/> {invitation.event_address}</button>
                 </div>
               </div>
 
-              {/* TIMELINE CENTRALE */}
+              {/* PROGRAMME TIMELINE */}
               <div className="space-y-12">
-                <h3 className="text-center font-black uppercase tracking-[0.4em] text-amber-600 text-[10px]">Le Programme</h3>
+                <h3 className="text-center font-black uppercase tracking-[0.4em] text-amber-600 text-[10px]">Déroulement</h3>
                 <div className="relative flex flex-col items-center">
                   <motion.div initial={{ height: 0 }} animate={{ height: '100%' }} transition={{ duration: 4 }} className="absolute top-0 w-[4px] bg-gradient-to-b from-amber-200 via-amber-500 to-amber-200 rounded-full" />
                   
-                  <div className="relative space-y-20 w-full pt-10">
+                  <div className="relative space-y-16 w-full pt-8">
                     {invitation.event_program?.map((step: any, i: number) => (
-                      <motion.div initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 1.5, delay: i * 0.3 }} key={i} className={`flex items-center w-full ${i % 2 === 0 ? 'justify-start pl-8' : 'justify-end pr-8'}`}>
-                        <div className="absolute left-1/2 -translate-x-1/2 w-8 h-8 rounded-full bg-white border-4 border-amber-500 z-10" />
-                        <div className={`w-[42%] p-5 bg-white/60 rounded-[2rem] border border-amber-100 backdrop-blur-md shadow-xl ${i % 2 === 0 ? 'text-left' : 'text-right'}`}>
+                      <motion.div initial={{ opacity: 0, scale: 0.9 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }} transition={{ duration: 1.2, delay: i * 0.3 }} key={i} className={`flex items-center w-full ${i % 2 === 0 ? 'justify-start pl-8' : 'justify-end pr-8'}`}>
+                        <div className="absolute left-1/2 -translate-x-1/2 w-6 h-6 rounded-full bg-white border-4 border-amber-500 z-10 shadow-md" />
+                        <div className={`w-[42%] p-5 bg-white/60 rounded-[2rem] border border-amber-100 backdrop-blur-md shadow-lg ${i % 2 === 0 ? 'text-left' : 'text-right'}`}>
                           <span className="text-[10px] font-black text-amber-600 block mb-1">{step.time}</span>
                           <span className="text-lg font-bold uppercase tracking-tighter" style={{ fontFamily: invitation.font_style }}>{step.activity}</span>
                         </div>
@@ -221,25 +227,39 @@ export function GuestView({ invitation }: any) {
                 </div>
               </div>
 
+              {/* ADRESSE PLACÉE ICI */}
+              <div className="text-center pt-4">
+                 <button 
+                  onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(invitation.event_address)}`, '_blank')}
+                  className="inline-flex flex-col items-center gap-2 group"
+                 >
+                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg text-amber-500 group-hover:scale-110 transition-transform">
+                      <MapPin size={24}/>
+                    </div>
+                    <span className="text-xs font-black uppercase tracking-widest opacity-60 underline underline-offset-4">{invitation.event_address}</span>
+                 </button>
+              </div>
+
               {/* RSVP */}
-              <div className="bg-white/80 backdrop-blur-xl rounded-[3.5rem] p-10 shadow-2xl border border-white">
+              <div className="bg-white/80 backdrop-blur-xl rounded-[3.5rem] p-10 shadow-2xl border border-white overflow-hidden relative">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 to-amber-600" />
                 {!isSubmitted ? (
                   <form onSubmit={handleRSVP} className="space-y-8">
-                    <div className="text-center space-y-2"><h3 className="font-black uppercase tracking-[0.2em] text-sm">Votre Présence</h3></div>
-                    <div className="flex items-center gap-6 bg-gray-100/50 p-3 rounded-2xl">
-                      <button type="button" onClick={() => setGuestCount(Math.max(1, guestCount - 1))} className="w-12 h-12 bg-white rounded-xl font-bold">-</button>
+                    <div className="text-center"><h3 className="font-black uppercase tracking-[0.2em] text-sm">Confirmation</h3></div>
+                    <div className="flex items-center gap-6 bg-gray-100/50 p-2 rounded-2xl">
+                      <button type="button" onClick={() => setGuestCount(Math.max(1, guestCount - 1))} className="w-12 h-12 bg-white rounded-xl shadow-sm font-black text-xl">-</button>
                       <div className="flex-1 text-center font-black text-2xl">{guestCount}</div>
-                      <button type="button" onClick={() => setGuestCount(guestCount + 1)} className="w-12 h-12 bg-white rounded-xl font-bold">+</button>
+                      <button type="button" onClick={() => setGuestCount(guestCount + 1)} className="w-12 h-12 bg-white rounded-xl shadow-sm font-black text-xl">+</button>
                     </div>
-                    <div className="space-y-4">
+                    <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
                       {guests.map((guest, i) => (
                         <div key={i} className="grid grid-cols-2 gap-3">
-                          <input required placeholder="Prénom" className="bg-white border-none h-14 px-5 rounded-2xl text-sm shadow-sm" value={guest.firstName} onChange={e => {
+                          <input required placeholder="Prénom" className="bg-white border-none h-14 px-5 rounded-2xl text-sm shadow-sm focus:ring-2 ring-amber-200 transition-all outline-none" value={guest.firstName} onChange={e => {
                             const newGuests = [...guests];
                             newGuests[i].firstName = e.target.value;
                             setGuests(newGuests);
                           }} />
-                          <input required placeholder="Nom" className="bg-white border-none h-14 px-5 rounded-2xl text-sm shadow-sm" value={guest.lastName} onChange={e => {
+                          <input required placeholder="Nom" className="bg-white border-none h-14 px-5 rounded-2xl text-sm shadow-sm focus:ring-2 ring-amber-200 transition-all outline-none" value={guest.lastName} onChange={e => {
                             const newGuests = [...guests];
                             newGuests[i].lastName = e.target.value;
                             setGuests(newGuests);
@@ -247,14 +267,15 @@ export function GuestView({ invitation }: any) {
                         </div>
                       ))}
                     </div>
-                    <button disabled={isSubmitting} className="w-full h-16 bg-gray-900 text-white rounded-2xl font-black uppercase tracking-[0.3em] flex items-center justify-center gap-3">
+                    <button disabled={isSubmitting} className="w-full h-16 bg-gray-900 text-white rounded-2xl font-black uppercase tracking-[0.3em] shadow-xl flex items-center justify-center gap-3 active:scale-95 transition-all">
                       {isSubmitting ? "Envoi..." : <><Send size={18} className="text-amber-400"/> Confirmer</>}
                     </button>
                   </form>
                 ) : (
-                  <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="text-center py-10 space-y-4">
-                    <CheckCircle2 size={40} className="text-green-500 mx-auto" />
-                    <h3 className="font-black text-green-600">C'est validé !</h3>
+                  <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} className="text-center py-12 space-y-4">
+                    <CheckCircle2 size={56} className="text-green-500 mx-auto" />
+                    <h3 className="font-black uppercase tracking-widest text-green-600">C'est validé !</h3>
+                    <p className="text-xs font-bold opacity-40 uppercase">Nous avons hâte de vous voir</p>
                   </motion.div>
                 )}
               </div>
