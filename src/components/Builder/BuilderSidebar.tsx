@@ -3,13 +3,15 @@ import { supabase } from '../../lib/supabase';
 import { translations, Language } from '../../lib/i18n';
 import { 
   Heart, PartyPopper, Sparkles, Baby, MapPin, 
-  Music, Image as ImageIcon, Calendar, Plus, X, Move
+  Music, Image as ImageIcon, Calendar, Plus, X, Move, Skull, Milk
 } from 'lucide-react';
 
 const COLOR_PALETTES = [
   { color: '#FEE2E2' }, { color: '#E0F2FE' }, { color: '#DCFCE7' },
   { color: '#FEF3C7' }, { color: '#EF4444' }, { color: '#1E3A8A' },
-  { color: '#F5F5DC' }, { color: '#7C3AED' }, { color: '#374151' }
+  { color: '#F5F5DC' }, { color: '#7C3AED' }, { color: '#374151' },
+  { color: '#000000' }, { color: '#FFFFFF' }, { color: '#FFD700' },
+  { color: '#FF69B4' }, { color: '#8B4513' }
 ];
 
 const FONTS = [
@@ -24,7 +26,9 @@ const EVENT_TYPES = [
   { id: 'wedding', name: 'Mariage', icon: Heart },
   { id: 'birthday', name: 'Anniversaire', icon: PartyPopper },
   { id: 'party', name: 'Fête', icon: Sparkles },
-  { id: 'baptism', name: 'Baptême', icon: Baby }
+  { id: 'baptism', name: 'Baptême', icon: Baby },
+  { id: 'babyshower', name: 'Babyshower', icon: Milk },
+  { id: 'funeral', name: 'Enterrement', icon: Skull }
 ];
 
 export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: any) {
@@ -64,7 +68,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
   return (
     <div className="w-full space-y-8 pb-10">
-      {/* SECTION 1 : CONTENU - STRICTEMENT TON CODE D'ORIGINE */}
       {activeTab === 'content' && (
         <div className="space-y-8">
           <div className="space-y-4">
@@ -81,9 +84,8 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </div>
 
-          {/* MÉDIAS D'ORIGINE */}
           <div className="space-y-4">
-            <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Médias</label>
+            <label className="text-[10px] font-black uppercase text-gray-400 ml-1">MÉDIAS</label>
             <div className="grid grid-cols-2 gap-4">
               <label className="flex flex-col items-center justify-center aspect-square bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-200 cursor-pointer">
                 <ImageIcon className="text-gray-400 mb-2" />
@@ -98,7 +100,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </div>
 
-          {/* AJUSTEMENT PHOTO D'ORIGINE */}
           {invitation.main_photo_url && (
             <div className="bg-amber-50/50 p-6 rounded-[2rem] border border-amber-100 space-y-4">
               <span className="text-[10px] font-black uppercase text-amber-800 tracking-wider flex items-center gap-2"><Move size={12}/> Ajustement Photo</span>
@@ -109,7 +110,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           )}
 
-          {/* PROGRAMME D'ORIGINE */}
           <div className="space-y-4">
             <div className="flex items-center justify-between ml-1">
               <label className="text-[10px] font-black uppercase text-gray-400">{t.program_title}</label>
@@ -128,7 +128,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
         </div>
       )}
 
-      {/* SECTION 2 : STYLE - AVEC LES NOUVEAUTÉS */}
       {activeTab === 'style' && (
         <div className="space-y-8">
           <div>
