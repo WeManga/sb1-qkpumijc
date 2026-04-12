@@ -124,7 +124,7 @@ export function GuestView({ invitation }: any) {
           <motion.div key="env" className="relative w-full h-full flex flex-col items-center justify-center overflow-hidden">
             
             <div className="relative w-full max-w-[400px] h-[500px] flex items-center justify-center mx-auto">
-                {/* PHASE 2: RÉVÉLATION */}
+                {/* PHASE 2: RÉVÉLATION (Stabilisée) */}
                 <motion.div 
                   initial={{ y: 20, opacity: 0, scale: 0.8 }} 
                   animate={isOpened ? { y: -150, opacity: 1, scale: 1 } : { y: 20, opacity: 0 }} 
@@ -185,7 +185,7 @@ export function GuestView({ invitation }: any) {
             </div>
           </motion.div>
         ) : (
-          /* PHASE 3: CONTENU DÉTAILLÉ - FIXE SUR LES COTES */
+          /* PHASE 3: CONTENU DÉTAILLÉ */
           <motion.div key="content" initial={{ opacity: 0, scale: 1.1 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, ease: "easeOut" }} className={`fixed inset-0 z-[100] flex flex-col overflow-y-auto overflow-x-hidden touch-pan-y w-full ${getPaperClass()}`}>
             <div className="relative h-[40vh] shrink-0 overflow-hidden w-full">
               <motion.img initial={{ scale: 1.2 }} animate={{ scale: 1 }} transition={{ duration: 10 }} src={invitation.main_photo_url} className="w-full h-full object-cover shadow-2xl" />
@@ -265,7 +265,7 @@ export function GuestView({ invitation }: any) {
                       ))}
                     </div>
                     <button disabled={isSubmitting} className="w-full h-20 bg-gray-900 text-white rounded-[2rem] font-black uppercase tracking-[0.4em] shadow-2xl flex items-center justify-center gap-4 active:scale-95 transition-all hover:bg-black">
-                      {isSubmitting ? "Envoi..." : <><Send size={20} className="text-amber-400"/> Valider ma venue</>}
+                      {isSubmitting ? "Envoi..." : <><Send size={20} className="text-amber-400"/> Envoyer</>}
                     </button>
                   </form>
                 ) : (
