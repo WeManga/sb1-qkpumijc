@@ -124,7 +124,7 @@ export function GuestView({ invitation }: any) {
           <motion.div key="env" className="relative w-full h-full flex flex-col items-center justify-center">
             
             <div className="relative w-full max-w-[400px] h-[500px] flex items-center justify-center">
-                {/* PHASE 2: RÉVÉLATION (DISQUE + CARTE) */}
+                {/* PHASE 2: RÉVÉLATION */}
                 <motion.div 
                   initial={{ y: 20, opacity: 0, scale: 0.8 }} 
                   animate={isOpened ? { y: -150, opacity: 1, scale: 1 } : { y: 20, opacity: 0 }} 
@@ -156,7 +156,7 @@ export function GuestView({ invitation }: any) {
                   <div className="w-full py-5 bg-gray-900 text-white rounded-[2rem] text-[10px] font-black uppercase tracking-[0.4em] text-center shadow-xl">Explorer l'événement</div>
                 </motion.div>
 
-                {/* PHASE 1: ENVELOPPE (LE GROS LOGO) */}
+                {/* PHASE 1: ENVELOPPE */}
                 <AnimatePresence>
                 {!isOpened && (
                   <motion.div 
