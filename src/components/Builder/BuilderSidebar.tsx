@@ -68,6 +68,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
   return (
     <div className="w-full space-y-8 pb-10">
+      {/* --- ONGLET CONTENU (MODIFIÉ) --- */}
       {activeTab === 'content' && (
         <div className="space-y-8">
           <div className="space-y-4">
@@ -80,12 +81,34 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
             <div className="relative">
               <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 w-4 h-4 pointer-events-none z-10" />
+              {/* CASE DATE CORRIGÉE (h-14) */}
               <input type="date" value={invitation.event_date?.split('T')[0] || ''} onChange={e => onInvitationChange({...invitation, event_date: e.target.value})} className="w-full bg-gray-50 border-none h-14 pl-12 pr-4 rounded-2xl text-sm" />
             </div>
           </div>
 
           <div className="space-y-4">
-            <label className="text-[10px] font-black uppercase text-gray-400 ml-1">MÉDIAS</label>
+            <div className="flex items-center justify-between ml-1">
+              <label className="text-[10px] font-black uppercase text-gray-400">{t.program_title}</label>
+              <button onClick={addProgramStep} className="p-2 bg-amber-50 text-amber-600 rounded-lg"><Plus size={16} /></button>
+            </div>
+            <div className="space-y-3">
+              {(invitation.event_program || []).map((step: any, index: number) => (
+                <div key={index} className="flex gap-2 items-center bg-white p-3 rounded-2xl border border-gray-100 shadow-sm">
+                  <input type="time" value={step.time} onChange={e => updateProgramStep(index, 'time', e.target.value)} className="w-24 bg-gray-50 border-none h-10 px-2 rounded-xl text-[11px] font-bold" />
+                  <input type="text" value={step.activity} onChange={e => updateProgramStep(index, 'activity', e.target.value)} placeholder={t.activity_placeholder} className="flex-1 bg-gray-50 border-none h-10 px-3 rounded-xl text-[11px]" />
+                  <button onClick={() => removeProgramStep(index)} className="p-1.5 bg-red-50 text-red-500 rounded-full"><X size={14}/></button>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- NOUVEL ONGLET MÉDIAS (AJOUTÉ) --- */}
+      {activeTab === 'media' && (
+        <div className="space-y-8">
+          <div className="space-y-4">
+            <label className="text-[10px] font-black uppercase text-gray-400 ml-1">VOS MÉDIAS</label>
             <div className="grid grid-cols-2 gap-4">
               <label className="flex flex-col items-center justify-center aspect-square bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-200 cursor-pointer">
                 <ImageIcon className="text-gray-400 mb-2" />
@@ -109,22 +132,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
               </div>
             </div>
           )}
-
-          <div className="space-y-4">
-            <div className="flex items-center justify-between ml-1">
-              <label className="text-[10px] font-black uppercase text-gray-400">{t.program_title}</label>
-              <button onClick={addProgramStep} className="p-2 bg-amber-50 text-amber-600 rounded-lg"><Plus size={16} /></button>
-            </div>
-            <div className="space-y-3">
-              {(invitation.event_program || []).map((step: any, index: number) => (
-                <div key={index} className="flex gap-2 items-center bg-white p-3 rounded-2xl border border-gray-100 shadow-sm">
-                  <input type="time" value={step.time} onChange={e => updateProgramStep(index, 'time', e.target.value)} className="w-24 bg-gray-50 border-none h-10 px-2 rounded-xl text-[11px] font-bold" />
-                  <input type="text" value={step.activity} onChange={e => updateProgramStep(index, 'activity', e.target.value)} placeholder={t.activity_placeholder} className="flex-1 bg-gray-50 border-none h-10 px-3 rounded-xl text-[11px]" />
-                  <button onClick={() => removeProgramStep(index)} className="p-1.5 bg-red-50 text-red-500 rounded-full"><X size={14}/></button>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
       )}
 
