@@ -151,7 +151,7 @@ export function GuestView({ invitation }: any) {
                   <div className="text-center pt-10">
                     <h2 className="text-3xl font-black uppercase gold-shimmer" style={{ fontFamily: invitation.font_style }}>{invitation.title}</h2>
                     <div className="w-16 h-1 bg-amber-400 mx-auto mt-6 rounded-full" />
-                    <motion.p animate={{ opacity: [0.4, 1, 0.4] }} transition={{ repeat: Infinity, duration: 2 }} className="text-[10px] font-black uppercase tracking-[0.5em] mt-10">Appuyer pour voir</p>
+                    <motion.p animate={{ opacity: [0.4, 1, 0.4] }} transition={{ repeat: Infinity, duration: 2 }} className="text-[10px] font-black uppercase tracking-[0.5em] mt-10">Appuyer pour voir</motion.p>
                   </div>
                   <div className="w-full py-5 bg-gray-900 text-white rounded-[2rem] text-[10px] font-black uppercase tracking-[0.4em] text-center shadow-xl">Explorer l'événement</div>
                 </motion.div>
