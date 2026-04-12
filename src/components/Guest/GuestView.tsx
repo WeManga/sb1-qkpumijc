@@ -121,15 +121,17 @@ export function GuestView({ invitation }: any) {
 
       <AnimatePresence mode="wait">
         {view === 'envelope' ? (
-          <motion.div key="env" className="relative w-full h-full flex flex-col items-center justify-center overflow-hidden">
+          <motion.div key="env" className="relative w-full h-full flex items-center justify-center">
             
-            <div className="relative w-full max-w-[400px] h-[500px] flex items-center justify-center mx-auto">
-                {/* PHASE 2: RÉVÉLATION (Stabilisation totale) */}
+            {/* Conteneur de la Phase 2 en Grid pour empilement parfait au centre */}
+            <div className="relative w-full max-w-[400px] h-full grid place-items-center">
+                
+                {/* DISQUE (PHASE 2) */}
                 <motion.div 
                   initial={{ y: 20, opacity: 0, scale: 0.8 }} 
-                  animate={isOpened ? { y: -150, opacity: 1, scale: 1 } : { y: 20, opacity: 0 }} 
+                  animate={isOpened ? { y: -120, opacity: 1, scale: 1 } : { y: 20, opacity: 0 }} 
                   transition={{ type: "spring", damping: 25, stiffness: 40, delay: 0.4 }}
-                  className="absolute w-[300px] h-[300px] z-20 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                  className="row-start-1 col-start-1 w-[300px] h-[300px] z-20"
                 >
                   <div className={`w-full h-full rounded-full shadow-[0_30px_60px_rgba(0,0,0,0.5)] ${isOpened ? 'animate-disk-spin' : ''}`} style={{ background: '#111' }}>
                     <div className="absolute inset-0 opacity-40 rounded-full" style={{ background: 'repeating-radial-gradient(circle, #444 0, #000 2px, #111 4px)' }} />
@@ -141,12 +143,13 @@ export function GuestView({ invitation }: any) {
                   </div>
                 </motion.div>
 
+                {/* CARTE (PHASE 2) */}
                 <motion.div 
                   initial={{ y: 100, opacity: 0, scale: 0.9, rotateX: 20 }} 
-                  animate={isOpened ? { y: 100, opacity: 1, scale: 1, rotateX: 0 } : { y: 100, opacity: 0 }} 
+                  animate={isOpened ? { y: 120, opacity: 1, scale: 1, rotateX: 0 } : { y: 100, opacity: 0 }} 
                   transition={{ type: "spring", damping: 18, stiffness: 50, delay: 0.7 }}
                   onClick={() => setView('content')}
-                  className={`absolute z-30 w-[340px] h-[400px] rounded-[3.5rem] shadow-2xl p-10 flex flex-col items-center justify-between cursor-pointer border border-white/40 left-1/2 -translate-x-1/2 -translate-y-1/2 top-1/2 ${getPaperClass()} hover:scale-105 transition-all duration-700 ease-out`}
+                  className={`row-start-1 col-start-1 z-30 w-[340px] h-[400px] rounded-[3.5rem] shadow-2xl p-10 flex flex-col items-center justify-between cursor-pointer border border-white/40 ${getPaperClass()} hover:scale-105 transition-all duration-700 ease-out`}
                 >
                   <div className="text-center pt-10">
                     <h2 className="text-3xl font-black uppercase gold-shimmer" style={{ fontFamily: invitation.font_style }}>{invitation.title}</h2>
@@ -156,12 +159,12 @@ export function GuestView({ invitation }: any) {
                   <div className="w-full py-5 bg-gray-900 text-white rounded-[2rem] text-[10px] font-black uppercase tracking-[0.4em] text-center shadow-xl">Explorer l'événement</div>
                 </motion.div>
 
-                {/* PHASE 1: ENVELOPPE */}
-                <AnimatePresence mode="popLayout">
+                {/* PHASE 1: ENVELOPPE (Couche supérieure) */}
+                <AnimatePresence>
                 {!isOpened && (
                   <motion.div 
                     key="cover"
-                    initial={{ y: 0 }}
+                    initial={{ opacity: 1 }}
                     exit={{ y: '-100%', opacity: 0 }}
                     transition={{ duration: 0.9, ease: [0.65, 0, 0.35, 1] }}
                     className="absolute inset-0 z-50 flex flex-col items-center justify-center"
