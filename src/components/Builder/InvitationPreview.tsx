@@ -7,6 +7,8 @@ const THEME_EMOJIS: Record<string, string[]> = {
   birthday: ['🎂', '🎈', '✨', '🎉', '🍰'],
   party: ['✨', '🎸', '🥂', '🕺', '🌟'],
   baptism: ['👼', '☁️', '🤍', '✨', '🕊️'],
+  babyshower: ['🍼', '🤍', '👶', '💖', '💙'],
+  funeral: ['🙏', '🕊️', '🥀', '⚰️', '🤍'],
   default: ['✨', '🌟', '🤍']
 };
 
