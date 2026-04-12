@@ -124,12 +124,12 @@ export function GuestView({ invitation }: any) {
           <motion.div key="env" className="relative w-full h-full flex flex-col items-center justify-center overflow-hidden">
             
             <div className="relative w-full max-w-[400px] h-[500px] flex items-center justify-center mx-auto">
-                {/* PHASE 2: RÉVÉLATION (Stabilisée) */}
+                {/* PHASE 2: RÉVÉLATION (Stabilisation totale) */}
                 <motion.div 
                   initial={{ y: 20, opacity: 0, scale: 0.8 }} 
                   animate={isOpened ? { y: -150, opacity: 1, scale: 1 } : { y: 20, opacity: 0 }} 
                   transition={{ type: "spring", damping: 25, stiffness: 40, delay: 0.4 }}
-                  className="absolute w-[300px] h-[300px] z-20"
+                  className="absolute w-[300px] h-[300px] z-20 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
                 >
                   <div className={`w-full h-full rounded-full shadow-[0_30px_60px_rgba(0,0,0,0.5)] ${isOpened ? 'animate-disk-spin' : ''}`} style={{ background: '#111' }}>
                     <div className="absolute inset-0 opacity-40 rounded-full" style={{ background: 'repeating-radial-gradient(circle, #444 0, #000 2px, #111 4px)' }} />
@@ -146,7 +146,7 @@ export function GuestView({ invitation }: any) {
                   animate={isOpened ? { y: 100, opacity: 1, scale: 1, rotateX: 0 } : { y: 100, opacity: 0 }} 
                   transition={{ type: "spring", damping: 18, stiffness: 50, delay: 0.7 }}
                   onClick={() => setView('content')}
-                  className={`absolute z-30 w-[340px] h-[400px] rounded-[3.5rem] shadow-2xl p-10 flex flex-col items-center justify-between cursor-pointer border border-white/40 ${getPaperClass()} hover:scale-105 transition-all duration-700 ease-out`}
+                  className={`absolute z-30 w-[340px] h-[400px] rounded-[3.5rem] shadow-2xl p-10 flex flex-col items-center justify-between cursor-pointer border border-white/40 left-1/2 -translate-x-1/2 -translate-y-1/2 top-1/2 ${getPaperClass()} hover:scale-105 transition-all duration-700 ease-out`}
                 >
                   <div className="text-center pt-10">
                     <h2 className="text-3xl font-black uppercase gold-shimmer" style={{ fontFamily: invitation.font_style }}>{invitation.title}</h2>
@@ -157,7 +157,7 @@ export function GuestView({ invitation }: any) {
                 </motion.div>
 
                 {/* PHASE 1: ENVELOPPE */}
-                <AnimatePresence>
+                <AnimatePresence mode="popLayout">
                 {!isOpened && (
                   <motion.div 
                     key="cover"
