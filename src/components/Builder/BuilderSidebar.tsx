@@ -82,8 +82,13 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
             <div className="relative">
               <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 w-4 h-4 pointer-events-none z-10" />
-              {/* DATE CORRIGÉE : h-14 pour être identique aux autres */}
-              <input type="date" value={invitation.event_date?.split('T')[0] || ''} onChange={e => onInvitationChange({...invitation, event_date: e.target.value})} className="w-full bg-gray-50 border-none h-14 pl-12 pr-4 rounded-2xl text-sm" />
+              {/* DATE CORRIGÉE : Utilisation de min-h-[3.5rem] pour forcer la taille h-14 peu importe le navigateur */}
+              <input 
+                type="date" 
+                value={invitation.event_date?.split('T')[0] || ''} 
+                onChange={e => onInvitationChange({...invitation, event_date: e.target.value})} 
+                className="w-full bg-gray-50 border-none h-14 min-h-[3.5rem] flex items-center pl-12 pr-4 rounded-2xl text-sm appearance-none" 
+              />
             </div>
           </div>
 
@@ -115,7 +120,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 {invitation.main_photo_url ? (
                   <img src={invitation.main_photo_url} className="w-full h-full object-cover opacity-30" alt="Preview" />
                 ) : <ImageIcon className="text-gray-400 mb-2" />}
-                <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-gray-600 uppercase bg-white/40">Changer Photo</span>
+                <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-gray-600 uppercase bg-white/40 text-center px-2">Changer Photo</span>
                 <input type="file" className="hidden" accept="image/*" onChange={(e) => uploadFile(e, 'main_photo_url')} />
               </label>
               
@@ -132,7 +137,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
               <div className="space-y-3">
                  <span className="text-[10px] font-black uppercase text-amber-800 tracking-wider flex items-center gap-2"><Move size={12}/> Ajustement de l'affichage</span>
                  
-                 {/* Visualisation de l'ajustement */}
                  <div className="w-full aspect-video rounded-2xl bg-gray-200 overflow-hidden relative border-2 border-white shadow-sm">
                     <img 
                       src={invitation.main_photo_url} 
@@ -159,7 +163,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
         </div>
       )}
 
-      {/* 3. ONGLET STYLE (COULEURS, THÈMES ET POLICES) */}
+      {/* 3. ONGLET STYLE */}
       {activeTab === 'style' && (
         <div className="space-y-8">
           <div>
