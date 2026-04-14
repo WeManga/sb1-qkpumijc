@@ -25,6 +25,7 @@ export function GuestView({ invitation }: any) {
 
   const lang = (invitation.language as Language) || 'fr';
   const t = translations[lang].guest;
+  const tBuilder = translations[lang].builder;
 
   const emojis = THEME_EMOJIS[invitation?.event_type] || THEME_EMOJIS.default;
 
@@ -161,7 +162,7 @@ export function GuestView({ invitation }: any) {
                 </motion.p>
               </div>
               <div className="w-full py-5 bg-gray-900 text-white rounded-[2rem] text-[10px] font-black uppercase tracking-[0.4em] text-center shadow-xl">
-                 {lang === 'vi' ? 'Khám phá sự kiện' : lang === 'en' ? 'Explore event' : "Explorer l'événement"}
+                 {t.tap_open}
               </div>
             </motion.div>
 
@@ -182,7 +183,7 @@ export function GuestView({ invitation }: any) {
               <div className="mt-12 flex flex-col items-center gap-4">
                   <motion.div animate={{ y: [0, -15, 0] }} transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }} className="w-1.5 h-12 bg-white/20 rounded-full" />
                   <p className="text-white font-black text-xs uppercase tracking-[0.8em] opacity-80">
-                    {lang === 'vi' ? 'Mở' : lang === 'en' ? 'Open' : 'Ouvrir'}
+                    {t.tap_open.split(' ')[0]}
                   </p>
               </div>
             </motion.div>
@@ -227,7 +228,7 @@ export function GuestView({ invitation }: any) {
 
               <div className="space-y-16">
                 <h3 className="text-center font-black uppercase tracking-[0.6em] text-amber-600 text-[10px] flex items-center justify-center gap-4">
-                    <Sparkles size={16}/> {lang === 'vi' ? 'Chương trình' : lang === 'en' ? 'Program' : 'Le Programme'} <Sparkles size={16}/>
+                    <Sparkles size={16}/> {tBuilder.program_title} <Sparkles size={16}/>
                 </h3>
                 <div className="relative flex flex-col items-center">
                   <div className="absolute top-0 w-[4px] h-full bg-gradient-to-b from-amber-200 via-amber-500 to-amber-200 rounded-full" />
