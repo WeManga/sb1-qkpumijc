@@ -76,13 +76,20 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             <label className="text-[10px] font-black uppercase text-gray-400 ml-1">{t.general_info}</label>
             <input type="text" value={invitation.title || ''} onChange={e => onInvitationChange({...invitation, title: e.target.value})} className="w-full bg-gray-50 border-none h-14 px-4 rounded-2xl text-sm" placeholder={t.title_placeholder} />
             <input type="text" value={invitation.host_names || ''} onChange={e => onInvitationChange({...invitation, host_names: e.target.value})} className="w-full bg-gray-50 border-none h-14 px-4 rounded-2xl text-sm" placeholder={t.hosts_placeholder} />
+            
+            <textarea 
+              value={invitation.description || ''} 
+              onChange={e => onInvitationChange({...invitation, description: e.target.value})} 
+              className="w-full bg-gray-50 border-none p-4 rounded-2xl text-sm min-h-[100px] resize-none" 
+              placeholder="Texte d'accueil ou description de l'événement..."
+            />
+
             <div className="relative">
               <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 w-4 h-4" />
               <input type="text" value={invitation.event_address || ''} onChange={e => onInvitationChange({...invitation, event_address: e.target.value})} className="w-full bg-gray-50 border-none h-14 pl-12 pr-4 rounded-2xl text-sm" placeholder={t.address_placeholder} />
             </div>
             <div className="relative">
               <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 w-4 h-4 pointer-events-none z-10" />
-              {/* DATE CORRIGÉE : Utilisation de min-h-[3.5rem] pour forcer la taille h-14 peu importe le navigateur */}
               <input 
                 type="date" 
                 value={invitation.event_date?.split('T')[0] || ''} 
@@ -110,7 +117,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
         </div>
       )}
 
-      {/* 2. ONGLET MÉDIAS (PHOTO & MUSIQUE) */}
+      {/* 2. ONGLET MÉDIAS */}
       {activeTab === 'media' && (
         <div className="space-y-8">
           <div className="space-y-4">
@@ -136,18 +143,14 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             <div className="bg-amber-50/50 p-6 rounded-[2rem] border border-amber-100 space-y-6">
               <div className="space-y-3">
                  <span className="text-[10px] font-black uppercase text-amber-800 tracking-wider flex items-center gap-2"><Move size={12}/> Ajustement de l'affichage</span>
-                 
                  <div className="w-full aspect-video rounded-2xl bg-gray-200 overflow-hidden relative border-2 border-white shadow-sm">
                     <img 
                       src={invitation.main_photo_url} 
-                      style={{ 
-                        objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%` 
-                      }} 
+                      style={{ objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%` }} 
                       className="w-full h-full object-cover transition-all duration-200"
                     />
                  </div>
               </div>
-
               <div className="space-y-4">
                 <div className="space-y-1">
                    <span className="text-[9px] uppercase font-bold text-amber-900/40 ml-1">Axe Horizontal</span>
