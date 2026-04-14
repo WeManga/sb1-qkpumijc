@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar, Volume2, VolumeX, MapPin, Clock } from 'lucide-react';
-import { translations, Language } from '../../lib/i18n'; // AJOUT
+import { translations, Language } from '../../lib/i18n';
 
 const THEME_EMOJIS: Record<string, string[]> = {
   wedding: ['🤍', '💍', '🕊️', '✨', '🌸'],
@@ -19,7 +19,6 @@ export function InvitationPreview({ invitation }: any) {
   const [isMuted, setIsMuted] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  // LOGIQUE LANGUE AJOUTÉE
   const lang = (invitation.language as Language) || 'fr';
   const t = translations[lang].guest;
 
@@ -105,7 +104,7 @@ export function InvitationPreview({ invitation }: any) {
             >
               <div className="text-center pt-14 w-full">
                 <h2 className="text-2xl font-black uppercase tracking-tighter mb-4 break-words">
-                  {invitation?.title || "Votre Titre"}
+                  {invitation?.title || (lang === 'vi' ? "Tiêu đề của bạn" : "Votre Titre")}
                 </h2>
                 <div className="w-8 h-1 bg-amber-400 mx-auto mb-4" />
                 <p className="opacity-60 text-[9px] font-bold uppercase tracking-[0.3em]">{t.tap_open}</p>
@@ -138,13 +137,18 @@ export function InvitationPreview({ invitation }: any) {
 
             <div className="flex-1 p-8 overflow-y-auto">
               <div className="text-center mb-10">
-                <h2 className="text-3xl font-black mb-4 leading-tight">{invitation?.host_names || "Noms des Hôtes"}</h2>
+                <h2 className="text-3xl font-black mb-4 leading-tight">
+                    {invitation?.host_names || (lang === 'vi' ? "Tên chủ nhà" : "Noms des Hôtes")}
+                </h2>
                 <div className="flex flex-col items-center gap-2 opacity-60 font-bold text-[10px] uppercase tracking-widest">
                   <div className="flex items-center gap-2">
                     <Calendar size={14} className="text-amber-500"/> 
-                    {invitation.event_date ? new Date(invitation.event_date).toLocaleDateString(lang === 'vi' ? 'vi-VN' : 'fr-FR', {day:'numeric', month:'long', year:'numeric'}) : "Date à venir"}
+                    {invitation.event_date ? new Date(invitation.event_date).toLocaleDateString(lang === 'vi' ? 'vi-VN' : 'fr-FR', {day:'numeric', month:'long', year:'numeric'}) : (lang === 'vi' ? "Ngày sắp tới" : "Date à venir")}
                   </div>
-                  <div className="flex items-center gap-2"><MapPin size={14} className="text-amber-500"/> {invitation.event_address || "Lieu non défini"}</div>
+                  <div className="flex items-center gap-2">
+                    <MapPin size={14} className="text-amber-500"/> 
+                    {invitation.event_address || (lang === 'vi' ? "Địa điểm chưa xác định" : "Lieu non défini")}
+                  </div>
                 </div>
               </div>
 
