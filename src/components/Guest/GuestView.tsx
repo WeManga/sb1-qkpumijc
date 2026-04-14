@@ -61,18 +61,24 @@ export function GuestView({ invitation }: any) {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.from('responses').insert(
-        guests.map(g => ({
+      // Adaptation au schéma SQL : group_leader_name, guest_details, total_guests
+      const { error } = await supabase.from('responses').insert([
+        {
           invitation_id: invitation.id,
-          first_name: g.firstName,
-          last_name: g.lastName,
-          status: 'confirmed'
-        }))
-      );
+          group_leader_name: `${guests[0].firstName} ${guests[0].lastName}`,
+          guest_details: guests.map(g => ({
+            firstName: g.firstName,
+            lastName: g.lastName
+          })),
+          total_guests: guestCount
+        }
+      ]);
+      
       if (error) throw error;
       setIsSubmitted(true);
-    } catch (err) {
-      alert("Erreur lors de l'envoi");
+    } catch (err: any) {
+      console.error("Erreur RSVP:", err);
+      alert("Erreur lors de l'envoi : " + (err.message || "Inconnue"));
     } finally {
       setIsSubmitting(false);
     }
@@ -171,8 +177,8 @@ export function GuestView({ invitation }: any) {
                 <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-full h-full object-contain drop-shadow-[0_20px_40px_rgba(0,0,0,0.4)]" />
               </motion.button>
               <div className="mt-12 flex flex-col items-center gap-4">
-                 <motion.div animate={{ y: [0, -15, 0] }} transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }} className="w-1.5 h-12 bg-white/20 rounded-full" />
-                 <p className="text-white font-black text-xs uppercase tracking-[0.8em] opacity-80">Ouvrir</p>
+                  <motion.div animate={{ y: [0, -15, 0] }} transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }} className="w-1.5 h-12 bg-white/20 rounded-full" />
+                  <p className="text-white font-black text-xs uppercase tracking-[0.8em] opacity-80">Ouvrir</p>
               </div>
             </motion.div>
         </div>
