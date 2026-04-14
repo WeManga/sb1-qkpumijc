@@ -29,6 +29,10 @@ export const translations = {
       share: "Share Link",
       delete: "Delete",
       no_invitations: "No invitations yet. Create your first one!",
+      responses_title: "Guest List",
+      responses_subtitle: "Confirmations received",
+      no_responses: "No responses yet.",
+      person_unit: "person(s)"
     },
     builder: {
       general_info: "General Information",
@@ -66,7 +70,8 @@ export const translations = {
       age: "Age",
       send: "Send Confirmation",
       thank_you: "Thank you!",
-      success_msg: "Your response has been recorded."
+      success_msg: "Your response has been recorded.",
+      optional_msg: "A small message? (Optional)"
     }
   },
   fr: {
@@ -97,6 +102,10 @@ export const translations = {
       share: "Copier le lien",
       delete: "Supprimer",
       no_invitations: "Aucune invitation. Créez la première !",
+      responses_title: "Liste des invités",
+      responses_subtitle: "Confirmations reçues",
+      no_responses: "Aucune réponse pour le moment.",
+      person_unit: "personne(s)"
     },
     builder: {
       general_info: "Informations Générales",
@@ -134,7 +143,8 @@ export const translations = {
       age: "Âge",
       send: "Envoyer la réponse",
       thank_you: "Merci !",
-      success_msg: "Votre présence a bien été enregistrée."
+      success_msg: "Votre présence a bien été enregistrée.",
+      optional_msg: "Un petit message ? (Optionnel)"
     }
   },
   vi: {
@@ -165,6 +175,10 @@ export const translations = {
       share: "Sao chép liên kết",
       delete: "Xóa",
       no_invitations: "Chưa có lời mời nào. Hãy tạo lời mời đầu tiên!",
+      responses_title: "Danh sách khách mời",
+      responses_subtitle: "Xác nhận đã nhận",
+      no_responses: "Chưa có phản hồi nào.",
+      person_unit: "người"
     },
     builder: {
       general_info: "Thông tin chung",
@@ -202,7 +216,8 @@ export const translations = {
       age: "Tuổi",
       send: "Gửi xác nhận",
       thank_you: "Cảm ơn bạn!",
-      success_msg: "Câu trả lời của bạn đã được ghi lại."
+      success_msg: "Câu trả lời của bạn đã được ghi lại.",
+      optional_msg: "Lời nhắn? (Tùy chọn)"
     }
   }
 };
