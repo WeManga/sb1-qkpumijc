@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar, MapPin, Send, CheckCircle2, Plus, Sparkles, Clock } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { translations, Language } from '../../lib/i18n'; // MISE À JOUR : Import des traductions
 
 const THEME_EMOJIS: Record<string, string[]> = {
   wedding: ['🤍', '💍', '🕊️', '✨', '🌸'],
@@ -21,6 +22,10 @@ export function GuestView({ invitation }: any) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
+
+  // MISE À JOUR : Sélection de la langue
+  const lang = (invitation.language as Language) || 'fr';
+  const t = translations[lang].guest;
 
   const emojis = THEME_EMOJIS[invitation?.event_type] || THEME_EMOJIS.default;
 
@@ -61,7 +66,6 @@ export function GuestView({ invitation }: any) {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      // Adaptation au schéma SQL : group_leader_name, guest_details, total_guests
       const { error } = await supabase.from('responses').insert([
         {
           invitation_id: invitation.id,
@@ -78,7 +82,7 @@ export function GuestView({ invitation }: any) {
       setIsSubmitted(true);
     } catch (err: any) {
       console.error("Erreur RSVP:", err);
-      alert("Erreur lors de l'envoi : " + (err.message || "Inconnue"));
+      alert("Erreur : " + (err.message || "Inconnue"));
     } finally {
       setIsSubmitting(false);
     }
@@ -125,10 +129,8 @@ export function GuestView({ invitation }: any) {
         }
       `}</style>
 
-      {/* PHASE 1 & 2 */}
       <div className="relative w-full h-full flex items-center justify-center" style={{ opacity: view === 'envelope' ? 1 : 0, pointerEvents: view === 'envelope' ? 'auto' : 'none' }}>
         <div className="relative w-full max-w-[400px] h-full grid place-items-center">
-            {/* DISQUE */}
             <motion.div 
               initial={false}
               animate={isOpened ? { y: -120, opacity: 1, scale: 1 } : { y: 20, opacity: 0, scale: 0.8 }} 
@@ -145,7 +147,6 @@ export function GuestView({ invitation }: any) {
               </div>
             </motion.div>
 
-            {/* CARTE */}
             <motion.div 
               initial={false}
               animate={isOpened ? { y: 120, opacity: 1, scale: 1, rotateX: 0 } : { y: 100, opacity: 0, scale: 0.9, rotateX: 20 }} 
@@ -156,12 +157,15 @@ export function GuestView({ invitation }: any) {
               <div className="text-center pt-10">
                 <h2 className="text-3xl font-black uppercase text-gray-900" style={{ fontFamily: invitation.font_style }}>{invitation.title}</h2>
                 <div className="w-16 h-1 bg-amber-400 mx-auto mt-6 rounded-full" />
-                <motion.p animate={{ opacity: [0.4, 1, 0.4] }} transition={{ repeat: Infinity, duration: 2 }} className="text-[10px] font-black uppercase tracking-[0.5em] mt-10">Appuyer pour voir</motion.p>
+                <motion.p animate={{ opacity: [0.4, 1, 0.4] }} transition={{ repeat: Infinity, duration: 2 }} className="text-[10px] font-black uppercase tracking-[0.5em] mt-10">
+                  {t.tap_open}
+                </motion.p>
               </div>
-              <div className="w-full py-5 bg-gray-900 text-white rounded-[2rem] text-[10px] font-black uppercase tracking-[0.4em] text-center shadow-xl">Explorer l'événement</div>
+              <div className="w-full py-5 bg-gray-900 text-white rounded-[2rem] text-[10px] font-black uppercase tracking-[0.4em] text-center shadow-xl">
+                 {lang === 'vi' ? 'Khám phá sự kiện' : 'Explorer l\'événement'}
+              </div>
             </motion.div>
 
-            {/* ENVELOPPE */}
             <motion.div 
               animate={isOpened ? { y: '-100%', opacity: 0, pointerEvents: 'none' } : { y: 0, opacity: 1 }}
               transition={{ duration: 0.9, ease: [0.65, 0, 0.35, 1] }}
@@ -178,13 +182,14 @@ export function GuestView({ invitation }: any) {
               </motion.button>
               <div className="mt-12 flex flex-col items-center gap-4">
                   <motion.div animate={{ y: [0, -15, 0] }} transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }} className="w-1.5 h-12 bg-white/20 rounded-full" />
-                  <p className="text-white font-black text-xs uppercase tracking-[0.8em] opacity-80">Ouvrir</p>
+                  <p className="text-white font-black text-xs uppercase tracking-[0.8em] opacity-80">
+                    {lang === 'vi' ? 'Mở' : lang === 'en' ? 'Open' : 'Ouvrir'}
+                  </p>
               </div>
             </motion.div>
         </div>
       </div>
 
-      {/* PHASE 3 : CONTENU DÉTAILLÉ */}
       <AnimatePresence>
         {view === 'content' && (
           <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }} className={`fixed inset-0 z-[100] flex flex-col overflow-y-auto overflow-x-hidden touch-pan-y w-full ${getPaperClass()}`}>
@@ -203,7 +208,7 @@ export function GuestView({ invitation }: any) {
                     <div className="flex items-center gap-5 bg-white/80 p-1.5 pr-6 rounded-full shadow-lg border border-amber-100">
                       <div className="bg-amber-500 p-3 rounded-full text-white shadow-md"><Calendar size={22}/></div>
                       <span className="text-sm font-black uppercase tracking-widest">
-                        {new Date(invitation.event_date).toLocaleDateString('fr-FR', {day:'numeric', month:'long', year:'numeric'})}
+                        {new Date(invitation.event_date).toLocaleDateString(lang === 'vi' ? 'vi-VN' : lang === 'en' ? 'en-US' : 'fr-FR', {day:'numeric', month:'long', year:'numeric'})}
                       </span>
                       <button onClick={addToCalendar} className="ml-3 p-2 bg-gray-100 rounded-full hover:bg-amber-100 transition-colors">
                         <Plus size={18} className="text-amber-600" />
@@ -223,7 +228,7 @@ export function GuestView({ invitation }: any) {
 
               <div className="space-y-16">
                 <h3 className="text-center font-black uppercase tracking-[0.6em] text-amber-600 text-[10px] flex items-center justify-center gap-4">
-                   <Sparkles size={16}/> Le Programme <Sparkles size={16}/>
+                   <Sparkles size={16}/> {lang === 'vi' ? 'Chương trình' : lang === 'en' ? 'Program' : 'Le Programme'} <Sparkles size={16}/>
                 </h3>
                 <div className="relative flex flex-col items-center">
                   <div className="absolute top-0 w-[4px] h-full bg-gradient-to-b from-amber-200 via-amber-500 to-amber-200 rounded-full" />
@@ -242,7 +247,7 @@ export function GuestView({ invitation }: any) {
               </div>
 
               <div className="text-center pt-8">
-                 <button onClick={() => window.open(`http://googleusercontent.com/maps.google.com/${encodeURIComponent(invitation.event_address)}`, '_blank')} className="inline-flex flex-col items-center gap-4 group">
+                 <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(invitation.event_address)}`, '_blank')} className="inline-flex flex-col items-center gap-4 group">
                     <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-2xl text-amber-500 border border-amber-100"><MapPin size={32}/></div>
                     <span className="text-xs font-black uppercase tracking-[0.3em] opacity-60 underline underline-offset-[12px] decoration-amber-500/40">{invitation.event_address}</span>
                  </button>
@@ -252,7 +257,7 @@ export function GuestView({ invitation }: any) {
                 <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-amber-500 via-yellow-300 to-amber-500" />
                 {!isSubmitted ? (
                   <form onSubmit={handleRSVP} className="space-y-10">
-                    <div className="text-center space-y-3"><h3 className="font-black uppercase tracking-[0.3em] text-sm">Confirmation</h3></div>
+                    <div className="text-center space-y-3"><h3 className="font-black uppercase tracking-[0.3em] text-sm">{t.confirm_rsvp}</h3></div>
                     <div className="flex items-center gap-8 bg-gray-50/50 p-3 rounded-[2rem] border border-gray-100">
                       <button type="button" onClick={() => setGuestCount(Math.max(1, guestCount - 1))} className="w-14 h-14 bg-white rounded-2xl shadow-md font-black text-xl hover:bg-amber-50 transition-colors">-</button>
                       <div className="flex-1 text-center font-black text-3xl">{guestCount}</div>
@@ -261,12 +266,12 @@ export function GuestView({ invitation }: any) {
                     <div className="space-y-5">
                       {guests.map((guest, i) => (
                         <div key={i} className="grid grid-cols-2 gap-4">
-                          <input required placeholder="Prénom" className="bg-white/50 border-none h-16 px-6 rounded-2xl text-sm shadow-inner focus:ring-2 ring-amber-200 outline-none transition-all" value={guest.firstName} onChange={e => {
+                          <input required placeholder={t.first_name} className="bg-white/50 border-none h-16 px-6 rounded-2xl text-sm shadow-inner focus:ring-2 ring-amber-200 outline-none transition-all" value={guest.firstName} onChange={e => {
                             const newGuests = [...guests];
                             newGuests[i].firstName = e.target.value;
                             setGuests(newGuests);
                           }} />
-                          <input required placeholder="Nom" className="bg-white/50 border-none h-16 px-6 rounded-2xl text-sm shadow-inner focus:ring-2 ring-amber-200 outline-none transition-all" value={guest.lastName} onChange={e => {
+                          <input required placeholder={t.last_name} className="bg-white/50 border-none h-16 px-6 rounded-2xl text-sm shadow-inner focus:ring-2 ring-amber-200 outline-none transition-all" value={guest.lastName} onChange={e => {
                             const newGuests = [...guests];
                             newGuests[i].lastName = e.target.value;
                             setGuests(newGuests);
@@ -275,14 +280,14 @@ export function GuestView({ invitation }: any) {
                       ))}
                     </div>
                     <button disabled={isSubmitting} className="w-full h-20 bg-gray-900 text-white rounded-[2rem] font-black uppercase tracking-[0.4em] shadow-2xl flex items-center justify-center gap-4 active:scale-95 transition-all hover:bg-black">
-                      {isSubmitting ? "Envoi..." : <><Send size={20} className="text-amber-400"/> Envoyer</>}
+                      {isSubmitting ? "..." : <><Send size={20} className="text-amber-400"/> {t.send}</>}
                     </button>
                   </form>
                 ) : (
                   <div className="text-center py-16 space-y-6">
                     <CheckCircle2 size={64} className="text-green-500 mx-auto" />
-                    <h3 className="font-black uppercase tracking-widest text-green-600 text-xl">Confirmé !</h3>
-                    <p className="text-xs font-bold opacity-50 uppercase tracking-widest">Nous préparons votre accueil.</p>
+                    <h3 className="font-black uppercase tracking-widest text-green-600 text-xl">{t.thank_you}</h3>
+                    <p className="text-xs font-bold opacity-50 uppercase tracking-widest">{t.success_msg}</p>
                   </div>
                 )}
               </div>
