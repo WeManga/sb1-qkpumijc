@@ -15,7 +15,6 @@ interface BuilderProps {
 export function Builder({ invitationId, onBack }: BuilderProps) {
   const { user } = useAuth();
   
-  // MISE À JOUR : Ajout des valeurs par défaut pour les nouveaux champs
   const [invitation, setInvitation] = useState<Partial<Invitation>>({
     event_type: 'wedding',
     title: 'Notre Mariage',
@@ -23,11 +22,12 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
     event_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
     event_address: '',
     event_program: [],
-    envelope_color: '#FEE2E2', // Couleur par défaut plus douce
-    font_style: 'Inter, sans-serif', // Nouvelle valeur par défaut
-    photo_pos_x: 50, // Nouveau
-    photo_pos_y: 50, // Nouveau
+    envelope_color: '#FEE2E2',
+    font_style: 'Inter, sans-serif',
+    photo_pos_x: 50,
+    photo_pos_y: 50,
     is_published: false,
+    language: localStorage.getItem('invite_lang') || 'fr', // MISE À JOUR : Langue par défaut
   });
 
   const [loading, setLoading] = useState(true);
@@ -68,13 +68,12 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
     setSaving(true);
 
     try {
-      // On prépare les données proprement
       const payload = {
         ...invitation,
         user_id: user.id,
-        // On s'assure que les positions sont des nombres entiers
         photo_pos_x: parseInt(String(invitation.photo_pos_x || 50)),
         photo_pos_y: parseInt(String(invitation.photo_pos_y || 50)),
+        language: localStorage.getItem('invite_lang') || invitation.language || 'fr', // MISE À JOUR : Sauvegarde la langue du compte
         updated_at: new Date().toISOString(),
       };
 
@@ -94,7 +93,6 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
       alert('Enregistré avec succès !');
     } catch (error: any) {
       console.error('Erreur sauvegarde:', error);
-      // Aide au diagnostic si la colonne manque en BDD
       alert(`Erreur: ${error.message || 'Impossible de sauvegarder'}`);
     } finally {
       setSaving(false);
