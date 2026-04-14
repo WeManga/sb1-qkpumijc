@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar, Volume2, VolumeX, MapPin, Clock } from 'lucide-react';
+import { translations, Language } from '../../lib/i18n'; // AJOUT
 
 const THEME_EMOJIS: Record<string, string[]> = {
   wedding: ['🤍', '💍', '🕊️', '✨', '🌸'],
@@ -17,6 +18,10 @@ export function InvitationPreview({ invitation }: any) {
   const [view, setView] = useState<'envelope' | 'content'>('envelope');
   const [isMuted, setIsMuted] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
+
+  // LOGIQUE LANGUE AJOUTÉE
+  const lang = (invitation.language as Language) || 'fr';
+  const t = translations[lang].guest;
 
   const emojis = THEME_EMOJIS[invitation?.event_type] || THEME_EMOJIS.default;
   
@@ -103,9 +108,11 @@ export function InvitationPreview({ invitation }: any) {
                   {invitation?.title || "Votre Titre"}
                 </h2>
                 <div className="w-8 h-1 bg-amber-400 mx-auto mb-4" />
-                <p className="opacity-60 text-[9px] font-bold uppercase tracking-[0.3em]">Découvrir le programme</p>
+                <p className="opacity-60 text-[9px] font-bold uppercase tracking-[0.3em]">{t.tap_open}</p>
               </div>
-              <div className="w-full py-4 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase text-center tracking-widest">Voir les détails</div>
+              <div className="w-full py-4 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase text-center tracking-widest">
+                {lang === 'vi' ? 'Xem chi tiết' : lang === 'en' ? 'See details' : 'Voir les détails'}
+              </div>
             </motion.div>
 
             <AnimatePresence>
@@ -114,7 +121,9 @@ export function InvitationPreview({ invitation }: any) {
                   <button onClick={() => setIsOpened(true)} className="w-[32rem] h-[32rem] flex items-center justify-center hover:scale-105 transition-transform p-0 overflow-visible active:scale-95">
                     <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-full h-full object-contain" alt="Sceau" />
                   </button>
-                  <p className="text-white font-black text-[10px] uppercase tracking-[0.5em] -mt-4">Ouvrir</p>
+                  <p className="text-white font-black text-[10px] uppercase tracking-[0.5em] -mt-4">
+                    {lang === 'vi' ? 'Mở' : lang === 'en' ? 'Open' : 'Ouvrir'}
+                  </p>
                 </motion.div>
               )}
             </AnimatePresence>
@@ -131,7 +140,10 @@ export function InvitationPreview({ invitation }: any) {
               <div className="text-center mb-10">
                 <h2 className="text-3xl font-black mb-4 leading-tight">{invitation?.host_names || "Noms des Hôtes"}</h2>
                 <div className="flex flex-col items-center gap-2 opacity-60 font-bold text-[10px] uppercase tracking-widest">
-                  <div className="flex items-center gap-2"><Calendar size={14} className="text-amber-500"/> {invitation.event_date ? new Date(invitation.event_date).toLocaleDateString('fr-FR', {day:'numeric', month:'long', year:'numeric'}) : "Date à venir"}</div>
+                  <div className="flex items-center gap-2">
+                    <Calendar size={14} className="text-amber-500"/> 
+                    {invitation.event_date ? new Date(invitation.event_date).toLocaleDateString(lang === 'vi' ? 'vi-VN' : 'fr-FR', {day:'numeric', month:'long', year:'numeric'}) : "Date à venir"}
+                  </div>
                   <div className="flex items-center gap-2"><MapPin size={14} className="text-amber-500"/> {invitation.event_address || "Lieu non défini"}</div>
                 </div>
               </div>
@@ -146,7 +158,9 @@ export function InvitationPreview({ invitation }: any) {
               )}
 
               <div className="space-y-6">
-                <h3 className="text-[10px] font-black text-amber-600 uppercase tracking-[0.3em] text-center mb-6">Le Programme</h3>
+                <h3 className="text-[10px] font-black text-amber-600 uppercase tracking-[0.3em] text-center mb-6">
+                  {lang === 'vi' ? 'Chương trình' : 'Le Programme'}
+                </h3>
                 {(invitation.event_program || []).map((step: any, i: number) => (
                   <div key={i} className="flex items-center gap-4 py-3 border-b border-black/5 last:border-0">
                     <div className="w-16 text-[11px] font-black bg-black/5 py-1 px-2 rounded-lg text-center flex items-center gap-1">
