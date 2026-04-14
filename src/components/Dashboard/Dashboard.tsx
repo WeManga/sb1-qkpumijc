@@ -3,11 +3,18 @@ import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { Database } from '../../lib/database.types';
 import { translations, Language } from '../../lib/i18n';
-import { Plus, Calendar, Eye, CreditCard as Edit, LogOut, Trash2, Copy, Loader2, Users } from 'lucide-react';
+import { Plus, Calendar, Eye, CreditCard as Edit, LogOut, Trash2, Copy, Loader2, Users, X } from 'lucide-react';
 
 type Invitation = Database['public']['Tables']['invitations']['Row'] & {
   response_count?: number; 
 };
+
+// Interface pour les réponses
+interface GuestResponse {
+  group_leader_name: string;
+  total_guests: number;
+  guest_details: any;
+}
 
 interface DashboardProps {
   onCreateNew: () => void;
@@ -18,6 +25,9 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   const { user, signOut } = useAuth();
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedResponses, setSelectedResponses] = useState<GuestResponse[] | null>(null);
+  const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  
   const [lang, setLang] = useState<Language>(
     (localStorage.getItem('invite_lang') as Language) || 'en'
   );
@@ -63,6 +73,18 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     }
   };
 
+  const fetchResponses = async (invitationId: string) => {
+    const { data, error } = await supabase
+      .from('responses')
+      .select('group_leader_name, total_guests, guest_details')
+      .eq('invitation_id', invitationId);
+    
+    if (!error && data) {
+      setSelectedResponses(data);
+      setIsViewModalOpen(true);
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (!confirm('Supprimer cette invitation ?')) return;
     try {
@@ -86,8 +108,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
         
         {/* --- TOP BAR --- */}
         <div className="relative flex items-center justify-center border-b border-gray-100 mb-8 pt-8 pb-4">
-          
-          {/* LOGO : Poussé encore plus vers la gauche via -ml-20 */}
           <div className="absolute left-0 -ml-14">
             <img 
               src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" 
@@ -96,12 +116,10 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
             />
           </div>
 
-          {/* TITRE : Centré */}
           <h1 className="text-2xl font-serif tracking-tight text-gray-900 whitespace-nowrap">
             Invit Studio
           </h1>
 
-          {/* DÉCONNEXION : Aligné à droite SANS sortir de l'écran */}
           <div className="absolute right-0">
             <button
               onClick={() => signOut()}
@@ -112,9 +130,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
             </button>
           </div>
         </div>
-
-        {/* --- RESTE DU CONTENU DASHBOARD --- */}
-
 
         {!loading && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 relative z-10">
@@ -143,7 +158,16 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                       {t.preview}
                     </div>
                   )}
+                  {/* Badge de réponses cliquable */}
+                  <button 
+                    onClick={() => fetchResponses(invitation.id)}
+                    className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-4 py-2 rounded-full shadow-lg flex items-center gap-2 hover:bg-amber-400 hover:text-white transition-all group"
+                  >
+                    <Users className="w-4 h-4 text-amber-500 group-hover:text-white" />
+                    <span className="text-[10px] font-black">{invitation.response_count || 0}</span>
+                  </button>
                 </div>
+
                 <div className="p-6 sm:p-8 flex flex-col flex-1">
                   <h3 className="text-base sm:text-lg font-semibold text-gray-800 truncate mb-2">{invitation.title}</h3>
                   <div className="mt-auto space-y-3">
@@ -161,6 +185,39 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
             ))}
           </div>
         )}
+
+        {/* MODAL DE RÉPONSES */}
+        {isViewModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
+              <div className="p-8 border-b border-gray-100 flex items-center justify-between bg-amber-50/50">
+                <div>
+                  <h3 className="text-xl font-black text-gray-900 uppercase tracking-tighter">Liste des invités</h3>
+                  <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest">Confirmations reçues</p>
+                </div>
+                <button onClick={() => setIsViewModalOpen(false)} className="p-2 hover:bg-white rounded-full transition-colors"><X /></button>
+              </div>
+              <div className="p-6 max-h-[60vh] overflow-y-auto space-y-4">
+                {selectedResponses?.length === 0 ? (
+                  <p className="text-center py-10 text-gray-400 font-medium">Aucune réponse pour le moment.</p>
+                ) : (
+                  selectedResponses?.map((resp, i) => (
+                    <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                      <div>
+                        <p className="font-bold text-gray-900">{resp.group_leader_name}</p>
+                        <p className="text-[10px] text-gray-400 uppercase font-black tracking-widest">{resp.total_guests} personne(s)</p>
+                      </div>
+                      <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
+                        <Users className="w-4 h-4 text-amber-500" />
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {loading && (
           <div className="flex flex-col items-center justify-center py-20 relative z-10">
             <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
