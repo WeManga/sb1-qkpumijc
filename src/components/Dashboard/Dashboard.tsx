@@ -9,7 +9,6 @@ type Invitation = Database['public']['Tables']['invitations']['Row'] & {
   response_count?: number; 
 };
 
-// Interface pour les réponses
 interface GuestResponse {
   group_leader_name: string;
   total_guests: number;
@@ -86,7 +85,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Supprimer cette invitation ?')) return;
+    if (!confirm(lang === 'fr' ? 'Supprimer cette invitation ?' : 'Delete this invitation?')) return;
     try {
       const { error } = await supabase.from('invitations').delete().eq('id', id);
       if (error) throw error;
@@ -99,7 +98,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   const handleCopyLink = (id: string) => {
     const url = `${window.location.origin}/invite/${id}`;
     navigator.clipboard.writeText(url);
-    alert('Lien copié avec succès !');
+    alert(lang === 'fr' ? 'Lien copié !' : 'Link copied!');
   };
 
   return (
@@ -158,7 +157,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                       {t.preview}
                     </div>
                   )}
-                  {/* Badge de réponses cliquable */}
                   <button 
                     onClick={() => fetchResponses(invitation.id)}
                     className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-4 py-2 rounded-full shadow-lg flex items-center gap-2 hover:bg-amber-400 hover:text-white transition-all group"
@@ -192,20 +190,28 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
             <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
               <div className="p-8 border-b border-gray-100 flex items-center justify-between bg-amber-50/50">
                 <div>
-                  <h3 className="text-xl font-black text-gray-900 uppercase tracking-tighter">Liste des invités</h3>
-                  <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest">Confirmations reçues</p>
+                  <h3 className="text-xl font-black text-gray-900 uppercase tracking-tighter">
+                    {lang === 'fr' ? 'Liste des invités' : lang === 'vi' ? 'Danh sách khách' : 'Guest List'}
+                  </h3>
+                  <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest">
+                    {lang === 'fr' ? 'Confirmations reçues' : lang === 'vi' ? 'Xác nhận đã nhận' : 'Confirmations received'}
+                  </p>
                 </div>
                 <button onClick={() => setIsViewModalOpen(false)} className="p-2 hover:bg-white rounded-full transition-colors"><X /></button>
               </div>
               <div className="p-6 max-h-[60vh] overflow-y-auto space-y-4">
                 {selectedResponses?.length === 0 ? (
-                  <p className="text-center py-10 text-gray-400 font-medium">Aucune réponse pour le moment.</p>
+                  <p className="text-center py-10 text-gray-400 font-medium">
+                    {lang === 'fr' ? 'Aucune réponse pour le moment.' : 'No responses yet.'}
+                  </p>
                 ) : (
                   selectedResponses?.map((resp, i) => (
                     <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
                       <div>
                         <p className="font-bold text-gray-900">{resp.group_leader_name}</p>
-                        <p className="text-[10px] text-gray-400 uppercase font-black tracking-widest">{resp.total_guests} personne(s)</p>
+                        <p className="text-[10px] text-gray-400 uppercase font-black tracking-widest">
+                          {resp.total_guests} {lang === 'fr' ? 'personne(s)' : lang === 'vi' ? 'người' : 'guest(s)'}
+                        </p>
                       </div>
                       <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
                         <Users className="w-4 h-4 text-amber-500" />
