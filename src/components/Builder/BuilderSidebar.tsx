@@ -34,7 +34,6 @@ const EVENT_TYPES = [
 export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: any) {
   const [uploading, setUploading] = useState(false);
   
-  // LOGIQUE LANGUE MISE À JOUR : On suit la langue de l'invitation en priorité
   const lang = (invitation.language as Language) || (localStorage.getItem('invite_lang') as Language) || 'fr';
   const t = translations[lang].builder;
 
@@ -48,7 +47,10 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       if (error) throw error;
       const { data } = supabase.storage.from('invitations').getPublicUrl(fileName);
       onInvitationChange({ ...invitation, [field]: data.publicUrl });
-    } catch (err) { alert("Erreur d'upload"); } 
+    } catch (err) { 
+      // Alerte traduite
+      alert(lang === 'vi' ? "Lỗi khi tải tập tin lên" : "Erreur d'upload"); 
+    } 
     finally { setUploading(false); }
   };
 
@@ -71,7 +73,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
   return (
     <div className="w-full space-y-8 pb-10">
       
-      {/* 1. ONGLET INFOS (CONTENT) */}
       {activeTab === 'content' && (
         <div className="space-y-8">
           <div className="space-y-4">
@@ -119,7 +120,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
         </div>
       )}
 
-      {/* 2. ONGLET MÉDIAS */}
       {activeTab === 'media' && (
         <div className="space-y-8">
           <div className="space-y-4">
@@ -170,7 +170,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
         </div>
       )}
 
-      {/* 3. ONGLET STYLE */}
       {activeTab === 'style' && (
         <div className="space-y-8">
           <div>
