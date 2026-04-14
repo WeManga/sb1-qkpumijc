@@ -2,7 +2,7 @@ import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar, MapPin, Send, CheckCircle2, Plus, Sparkles, Clock } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
-import { translations, Language } from '../../lib/i18n'; // MISE À JOUR : Import des traductions
+import { translations, Language } from '../../lib/i18n';
 
 const THEME_EMOJIS: Record<string, string[]> = {
   wedding: ['🤍', '💍', '🕊️', '✨', '🌸'],
@@ -23,7 +23,6 @@ export function GuestView({ invitation }: any) {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  // MISE À JOUR : Sélection de la langue
   const lang = (invitation.language as Language) || 'fr';
   const t = translations[lang].guest;
 
@@ -162,7 +161,7 @@ export function GuestView({ invitation }: any) {
                 </motion.p>
               </div>
               <div className="w-full py-5 bg-gray-900 text-white rounded-[2rem] text-[10px] font-black uppercase tracking-[0.4em] text-center shadow-xl">
-                 {lang === 'vi' ? 'Khám phá sự kiện' : 'Explorer l\'événement'}
+                 {lang === 'vi' ? 'Khám phá sự kiện' : lang === 'en' ? 'Explore event' : "Explorer l'événement"}
               </div>
             </motion.div>
 
@@ -228,7 +227,7 @@ export function GuestView({ invitation }: any) {
 
               <div className="space-y-16">
                 <h3 className="text-center font-black uppercase tracking-[0.6em] text-amber-600 text-[10px] flex items-center justify-center gap-4">
-                   <Sparkles size={16}/> {lang === 'vi' ? 'Chương trình' : lang === 'en' ? 'Program' : 'Le Programme'} <Sparkles size={16}/>
+                    <Sparkles size={16}/> {lang === 'vi' ? 'Chương trình' : lang === 'en' ? 'Program' : 'Le Programme'} <Sparkles size={16}/>
                 </h3>
                 <div className="relative flex flex-col items-center">
                   <div className="absolute top-0 w-[4px] h-full bg-gradient-to-b from-amber-200 via-amber-500 to-amber-200 rounded-full" />
