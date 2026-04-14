@@ -85,7 +85,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm(lang === 'fr' ? 'Supprimer cette invitation ?' : 'Delete this invitation?')) return;
+    if (!confirm(t.delete + ' ?')) return;
     try {
       const { error } = await supabase.from('invitations').delete().eq('id', id);
       if (error) throw error;
@@ -98,14 +98,13 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   const handleCopyLink = (id: string) => {
     const url = `${window.location.origin}/invite/${id}`;
     navigator.clipboard.writeText(url);
-    alert(lang === 'fr' ? 'Lien copié !' : 'Link copied!');
+    alert(t.share);
   };
 
   return (
     <div className="absolute inset-0 overflow-y-auto bg-gradient-to-b from-gray-50 to-white scrollbar-hide">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-0 pb-32">
         
-        {/* --- TOP BAR --- */}
         <div className="relative flex items-center justify-center border-b border-gray-100 mb-8 pt-8 pb-4">
           <div className="absolute left-0 -ml-14">
             <img 
@@ -184,34 +183,25 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
           </div>
         )}
 
-        {/* MODAL DE RÉPONSES */}
         {isViewModalOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
             <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
               <div className="p-8 border-b border-gray-100 flex items-center justify-between bg-amber-50/50">
                 <div>
-                  <h3 className="text-xl font-black text-gray-900 uppercase tracking-tighter">
-                    {lang === 'fr' ? 'Liste des invités' : lang === 'vi' ? 'Danh sách khách' : 'Guest List'}
-                  </h3>
-                  <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest">
-                    {lang === 'fr' ? 'Confirmations reçues' : lang === 'vi' ? 'Xác nhận đã nhận' : 'Confirmations received'}
-                  </p>
+                  <h3 className="text-xl font-black text-gray-900 uppercase tracking-tighter">{t.responses_title}</h3>
+                  <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest">{t.responses_subtitle}</p>
                 </div>
                 <button onClick={() => setIsViewModalOpen(false)} className="p-2 hover:bg-white rounded-full transition-colors"><X /></button>
               </div>
               <div className="p-6 max-h-[60vh] overflow-y-auto space-y-4">
                 {selectedResponses?.length === 0 ? (
-                  <p className="text-center py-10 text-gray-400 font-medium">
-                    {lang === 'fr' ? 'Aucune réponse pour le moment.' : 'No responses yet.'}
-                  </p>
+                  <p className="text-center py-10 text-gray-400 font-medium">{t.no_responses}</p>
                 ) : (
                   selectedResponses?.map((resp, i) => (
                     <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
                       <div>
                         <p className="font-bold text-gray-900">{resp.group_leader_name}</p>
-                        <p className="text-[10px] text-gray-400 uppercase font-black tracking-widest">
-                          {resp.total_guests} {lang === 'fr' ? 'personne(s)' : lang === 'vi' ? 'người' : 'guest(s)'}
-                        </p>
+                        <p className="text-[10px] text-gray-400 uppercase font-black tracking-widest">{resp.total_guests} {t.person_unit}</p>
                       </div>
                       <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
                         <Users className="w-4 h-4 text-amber-500" />
