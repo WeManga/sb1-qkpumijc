@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { supabase } from '../../lib/supabase';
 import { Send, Check } from 'lucide-react';
 
@@ -9,11 +9,8 @@ interface RSVPFormProps {
 export function RSVPForm({ invitationId }: RSVPFormProps) {
   const [formData, setFormData] = useState({
     guestName: '',
-    email: '',
-    phone: '',
-    attending: true,
     numberOfGuests: 1,
-    message: '',
+    message: '', // Note : ta table actuelle n'a pas de colonne message, on le stockera dans guest_details si besoin
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -24,16 +21,17 @@ export function RSVPForm({ invitationId }: RSVPFormProps) {
     setIsSubmitting(true);
 
     try {
+      // On adapte les données au schéma : group_leader_name, guest_details, total_guests
       const { error } = await supabase
-        .from('rsvp_responses')
+        .from('responses') // Changé de 'rsvp_responses' à 'responses'
         .insert([{
           invitation_id: invitationId,
-          guest_name: formData.guestName,
-          email: formData.email,
-          phone: formData.phone,
-          attending: formData.attending,
-          number_of_guests: formData.numberOfGuests,
-          message: formData.message,
+          group_leader_name: formData.guestName,
+          total_guests: formData.numberOfGuests,
+          guest_details: [{ 
+            name: formData.guestName, 
+            note: formData.message 
+          }] // On stocke les infos ici car ta table est en JSONB
         }]);
 
       if (!error) {
@@ -69,25 +67,18 @@ export function RSVPForm({ invitationId }: RSVPFormProps) {
           value={formData.guestName}
           onChange={e => setFormData({...formData, guestName: e.target.value})}
           required
-          className="w-full px-5 py-3 rounded-xl border-none ring-1 ring-gray-200 focus:ring-2 focus:ring-rose-400 outline-none transition-all"
+          className="w-full px-5 py-3 rounded-xl border-none ring-1 ring-gray-200 focus:ring-2 focus:ring-amber-400 outline-none transition-all"
         />
 
-        <div className="grid grid-cols-2 gap-4">
-          <select
-            value={formData.attending ? 'yes' : 'no'}
-            onChange={e => setFormData({...formData, attending: e.target.value === 'yes'})}
-            className="px-4 py-3 rounded-xl border-none ring-1 ring-gray-200 focus:ring-2 focus:ring-rose-400 outline-none bg-white"
-          >
-            <option value="yes">Je viens !</option>
-            <option value="no">Absent(e)</option>
-          </select>
-
+        <div className="grid grid-cols-1 gap-4">
           <select
             value={formData.numberOfGuests}
             onChange={e => setFormData({...formData, numberOfGuests: parseInt(e.target.value)})}
-            className="px-4 py-3 rounded-xl border-none ring-1 ring-gray-200 focus:ring-2 focus:ring-rose-400 outline-none bg-white"
+            className="px-4 py-3 rounded-xl border-none ring-1 ring-gray-200 focus:ring-2 focus:ring-amber-400 outline-none bg-white"
           >
-            {[1, 2, 3, 4, 5].map(n => <option key={n} value={n}>{n} Personne{n > 1 ? 's' : ''}</option>)}
+            {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
+              <option key={n} value={n}>{n} Personne{n > 1 ? 's' : ''}</option>
+            ))}
           </select>
         </div>
 
@@ -96,13 +87,13 @@ export function RSVPForm({ invitationId }: RSVPFormProps) {
           value={formData.message}
           onChange={e => setFormData({...formData, message: e.target.value})}
           rows={3}
-          className="w-full px-5 py-3 rounded-xl border-none ring-1 ring-gray-200 focus:ring-2 focus:ring-rose-400 outline-none resize-none"
+          className="w-full px-5 py-3 rounded-xl border-none ring-1 ring-gray-200 focus:ring-2 focus:ring-amber-400 outline-none resize-none"
         />
 
         <button
           type="submit"
           disabled={isSubmitting || !formData.guestName}
-          className="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold uppercase tracking-widest hover:bg-rose-500 transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-50"
+          className="w-full py-4 bg-gray-900 text-white rounded-2xl font-bold uppercase tracking-widest hover:bg-amber-500 transition-all shadow-lg flex items-center justify-center gap-2 disabled:opacity-50"
         >
           {isSubmitting ? 'Envoi...' : <><Send size={16} /> Envoyer</>}
         </button>
