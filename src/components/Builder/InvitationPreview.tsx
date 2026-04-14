@@ -78,7 +78,6 @@ export function InvitationPreview({ invitation }: any) {
               </button>
             )}
 
-            {/* LE DISQUE VINYLE */}
             <motion.div initial={{ y: -450 }} animate={isOpened ? { y: 25 } : { y: -450 }} transition={{ type: "spring", damping: 25 }} className="absolute top-0 w-[270px] h-[270px] z-20">
               <div className={`w-full h-full relative ${isOpened ? 'animate-disk-spin' : ''}`}>
                 <div className="absolute inset-0 rounded-full bg-[#111] overflow-hidden">
@@ -92,7 +91,6 @@ export function InvitationPreview({ invitation }: any) {
               </div>
             </motion.div>
 
-            {/* LA CARTE (AVEC TEXTURE) */}
             <motion.div 
               initial={{ scale: 0.8, y: 200 }} 
               animate={isOpened ? { scale: 1, y: 135 } : {}} 
@@ -110,7 +108,6 @@ export function InvitationPreview({ invitation }: any) {
               <div className="w-full py-4 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase text-center tracking-widest">Voir les détails</div>
             </motion.div>
 
-            {/* L'ENVELOPPE */}
             <AnimatePresence>
               {!isOpened && (
                 <motion.div exit={{ y: "-100%" }} transition={{ duration: 0.9 }} className="absolute inset-0 z-50 flex flex-col items-center justify-center" style={{ backgroundColor: invitation?.envelope_color || '#FEE2E2' }}>
@@ -123,7 +120,6 @@ export function InvitationPreview({ invitation }: any) {
             </AnimatePresence>
           </motion.div>
         ) : (
-          /* VUE CONTENU (AVEC TEXTURE AUSSI) */
           <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`w-full h-full z-[100] flex flex-col ${getPaperClass()}`}>
             <div className="h-[30%] relative overflow-hidden shrink-0">
                <img src={invitation.main_photo_url} className="w-full h-full object-cover" style={{ objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%` }} />
@@ -139,6 +135,15 @@ export function InvitationPreview({ invitation }: any) {
                   <div className="flex items-center gap-2"><MapPin size={14} className="text-amber-500"/> {invitation.event_address || "Lieu non défini"}</div>
                 </div>
               </div>
+
+              {invitation.description && (
+                <div className="mb-10 text-center">
+                  <p className="text-[13px] leading-relaxed opacity-80 whitespace-pre-wrap italic" style={{ fontFamily: invitation.font_style }}>
+                    {invitation.description}
+                  </p>
+                  <div className="w-12 h-[1px] bg-amber-200 mx-auto mt-6" />
+                </div>
+              )}
 
               <div className="space-y-6">
                 <h3 className="text-[10px] font-black text-amber-600 uppercase tracking-[0.3em] text-center mb-6">Le Programme</h3>
