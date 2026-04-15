@@ -19,8 +19,10 @@ export function InvitationPreview({ invitation }: any) {
   const [isMuted, setIsMuted] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  const lang = (invitation.language as Language) || 'fr';
+  // RÉCUPÉRATION DE LA LANGUE ET DES TRADUCTIONS
+  const lang = (invitation.language as Language) || (localStorage.getItem('invite_lang') as Language) || 'fr';
   const t = translations[lang].guest;
+  const tBuilder = translations[lang].builder;
 
   const emojis = THEME_EMOJIS[invitation?.event_type] || THEME_EMOJIS.default;
   
@@ -85,7 +87,7 @@ export function InvitationPreview({ invitation }: any) {
             <motion.div initial={{ y: -450 }} animate={isOpened ? { y: 25 } : { y: -450 }} transition={{ type: "spring", damping: 25 }} className="absolute top-0 w-[270px] h-[270px] z-20">
               <div className={`w-full h-full relative ${isOpened ? 'animate-disk-spin' : ''}`}>
                 <div className="absolute inset-0 rounded-full bg-[#111] overflow-hidden">
-                   <div className="absolute inset-0 opacity-30" style={{ background: 'repeating-radial-gradient(circle, #444 0, #000 2px, #111 4px)' }} />
+                    <div className="absolute inset-0 opacity-30" style={{ background: 'repeating-radial-gradient(circle, #444 0, #000 2px, #111 4px)' }} />
                 </div>
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-24 h-24 bg-white rounded-full border-[5px] border-[#111] overflow-hidden">
@@ -104,7 +106,7 @@ export function InvitationPreview({ invitation }: any) {
             >
               <div className="text-center pt-14 w-full">
                 <h2 className="text-2xl font-black uppercase tracking-tighter mb-4 break-words">
-                  {invitation?.title || (lang === 'vi' ? "Tiêu đề của bạn" : "Votre Titre")}
+                  {invitation?.title || tBuilder.title_placeholder}
                 </h2>
                 <div className="w-8 h-1 bg-amber-400 mx-auto mb-4" />
                 <p className="opacity-60 text-[9px] font-bold uppercase tracking-[0.3em]">{t.tap_open}</p>
@@ -138,16 +140,16 @@ export function InvitationPreview({ invitation }: any) {
             <div className="flex-1 p-8 overflow-y-auto">
               <div className="text-center mb-10">
                 <h2 className="text-3xl font-black mb-4 leading-tight">
-                    {invitation?.host_names || (lang === 'vi' ? "Tên chủ nhà" : "Noms des Hôtes")}
+                    {invitation?.host_names || tBuilder.hosts_placeholder}
                 </h2>
                 <div className="flex flex-col items-center gap-2 opacity-60 font-bold text-[10px] uppercase tracking-widest">
                   <div className="flex items-center gap-2">
                     <Calendar size={14} className="text-amber-500"/> 
-                    {invitation.event_date ? new Date(invitation.event_date).toLocaleDateString(lang === 'vi' ? 'vi-VN' : 'fr-FR', {day:'numeric', month:'long', year:'numeric'}) : (lang === 'vi' ? "Ngày sắp tới" : "Date à venir")}
+                    {invitation.event_date ? new Date(invitation.event_date).toLocaleDateString(lang === 'vi' ? 'vi-VN' : lang === 'en' ? 'en-US' : 'fr-FR', {day:'numeric', month:'long', year:'numeric'}) : t.save_date}
                   </div>
                   <div className="flex items-center gap-2">
                     <MapPin size={14} className="text-amber-500"/> 
-                    {invitation.event_address || (lang === 'vi' ? "Địa điểm chưa xác định" : "Lieu non défini")}
+                    {invitation.event_address || tBuilder.address_placeholder}
                   </div>
                 </div>
               </div>
@@ -163,7 +165,7 @@ export function InvitationPreview({ invitation }: any) {
 
               <div className="space-y-6">
                 <h3 className="text-[10px] font-black text-amber-600 uppercase tracking-[0.3em] text-center mb-6">
-                  {lang === 'vi' ? 'Chương trình' : 'Le Programme'}
+                  {tBuilder.program_title}
                 </h3>
                 {(invitation.event_program || []).map((step: any, i: number) => (
                   <div key={i} className="flex items-center gap-4 py-3 border-b border-black/5 last:border-0">
