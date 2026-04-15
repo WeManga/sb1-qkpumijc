@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { motion, AnimatePresence, useScroll, useTransform, useSpring } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar, MapPin, CheckCircle2, Plus, Sparkles, Clock } from 'lucide-react'; 
 import { supabase } from '../../lib/supabase';
 import { translations, Language } from '../../lib/i18n';
@@ -22,9 +22,6 @@ export function GuestView({ invitation }: any) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
-  
-  // Ref pour calculer le chemin SVG du fil d'or
-  const programRef = useRef(null);
 
   const lang = (invitation.language as Language) || (localStorage.getItem('invite_lang') as Language) || 'fr';
   const t = translations[lang].guest;
@@ -233,87 +230,46 @@ export function GuestView({ invitation }: any) {
                 </h3>
                 
                 <div className="relative flex flex-col items-center">
-                  {/* GENERATION SVG DU FIL D'OR COURBÉ SANS FOND GRIS */}
-                  <svg className="absolute top-14 left-1/2 -translate-x-1/2 w-full h-[calc(100%+80px)] pointer-events-none z-10" preserveAspectRatio="none">
-                    <defs>
-                      <linearGradient id="goldGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stopColor="#fcd34d" />
-                        <stop offset="50%" stopColor="#fbbf24" />
-                        <stop offset="100%" stopColor="#fcd34d" />
-                      </linearGradient>
-                    </defs>
-                    
-                    {(invitation.event_program || []).map((_, i) => {
-                      if (i === 0) return null;
-                      
-                      // Calcul des points de contrôle pour une belle courbe serpentante
-                      const isEvenStep = i % 2 === 0;
-                      const yStart = 110 * (i - 1) + 12; // Aligné sur le point précédent
-                      const yEnd = 110 * i + 12; // Aligné sur le point actuel
-                      const xStart = 50; // Centre
-                      const xEnd = 50; // Centre
-                      
-                      // Point de contrôle décalé à gauche ou à droite pour la courbure
-                      const controlX = isEvenStep ? 65 : 35; // Serpentage
-                      const controlY = yStart + (yEnd - yStart) / 2;
-
-                      const pathData = `M ${xStart} ${yStart} C ${controlX} ${controlY}, ${controlX} ${controlY}, ${xEnd} ${yEnd}`;
-
-                      return (
-                        <motion.path 
-                          key={`path-${i}`}
-                          d={pathData}
-                          fill="none"
-                          stroke="url(#goldGradient)"
-                          strokeWidth="2.5" // Épuré et graphique
-                          initial={{ pathLength: 0, opacity: 0 }}
-                          whileInView={{ pathLength: 1, opacity: 1 }}
-                          viewport={{ once: true, margin: "-120px" }}
-                          transition={{ duration: 1.8, ease: "easeInOut", delay: 0.1 }} // Très fluide
-                        />
-                      );
-                    })}
-
-                    {/* Chemin final vers l'adresse */}
-                    <motion.path 
-                      d={`M 50 ${110 * ((invitation.event_program || []).length - 1) + 12} C 35 ${110 * ((invitation.event_program || []).length) - 15}, 35 ${110 * ((invitation.event_program || []).length) - 15}, 50 ${110 * ((invitation.event_program || []).length) + 40}`}
-                      fill="none"
-                      stroke="url(#goldGradient)"
-                      strokeWidth="2.5"
-                      initial={{ pathLength: 0, opacity: 0 }}
-                      whileInView={{ pathLength: 1, opacity: 1 }}
-                      viewport={{ once: true, margin: "-60px" }}
-                      transition={{ duration: 1.8, ease: "easeInOut", delay: 0.4 }}
-                    />
-                  </svg>
-                  
                   <div className="relative space-y-24 w-full pt-12">
                     {(invitation.event_program || []).map((step: any, i: number) => {
                       const isEven = i % 2 === 0;
                       return (
                         <div key={i} className={`flex items-start w-full relative ${isEven ? 'justify-start pl-10' : 'justify-end pr-10'}`}>
                           
-                          {/* POINT DORÉ LUMINEUX (CERCLE) */}
+                          {/* FIL D'OR COURBÉ ENTRE LES ÉTAPES */}
+                          {i > 0 && (
+                            <div className="absolute top-[-96px] left-1/2 -translate-x-1/2 w-20 h-[100px] pointer-events-none">
+                              <svg width="100%" height="100%" viewBox="0 0 40 100" preserveAspectRatio="none">
+                                <motion.path
+                                  d={i % 2 === 0 ? "M 20 0 C 40 50, 40 50, 20 100" : "M 20 0 C 0 50, 0 50, 20 100"}
+                                  fill="none"
+                                  stroke="#fbbf24"
+                                  strokeWidth="3"
+                                  initial={{ pathLength: 0 }}
+                                  whileInView={{ pathLength: 1 }}
+                                  viewport={{ once: true }}
+                                  transition={{ duration: 1.5, ease: "easeInOut" }}
+                                />
+                              </svg>
+                            </div>
+                          )}
+
+                          {/* POINT CIRCULAIRE DORÉ */}
                           <motion.div 
-                            initial={{ scale: 0, opacity: 0 }}
-                            whileInView={{ scale: 1, opacity: 1 }}
-                            viewport={{ once: true, margin: "-120px" }}
-                            transition={{ duration: 0.7, delay: 0.7 }}
-                            className="absolute top-12 left-1/2 -translate-x-1/2 z-20 w-4.5 h-4.5 bg-amber-500 border-2.5 border-white shadow-xl rounded-full" // Cercle épuré
+                            initial={{ scale: 0 }}
+                            whileInView={{ scale: 1 }}
+                            viewport={{ once: true }}
+                            transition={{ delay: 0.5 }}
+                            className="absolute top-12 left-1/2 -translate-x-1/2 z-20 w-4 h-4 bg-amber-500 border-2 border-white shadow-lg rounded-full"
                           >
-                            {/* Animation douce de scintillement */}
-                            <motion.div
-                              animate={{ opacity: [1, 0.5, 1], scale: [1, 1.1, 1] }}
-                              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-                              className="absolute inset-0 bg-amber-300 rounded-full"
-                            />
+                            <motion.div animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 2, repeat: Infinity }} className="absolute inset-0 bg-amber-300 rounded-full" />
                           </motion.div>
 
                           <motion.div 
                             initial={{ opacity: 0, x: isEven ? -40 : 40 }}
                             whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: true, margin: "-120px" }}
-                            transition={{ duration: 0.9 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.8 }}
                             className={`w-[44%] p-8 bg-white/70 rounded-[3rem] border border-amber-100 backdrop-blur-md shadow-2xl ${isEven ? 'text-left' : 'text-right'}`}
                           >
                             <span className="text-[11px] font-black text-amber-600 block mb-2 tracking-widest"><Clock size={12} className="inline mr-1 mb-1"/> {step.time}</span>
@@ -323,15 +279,31 @@ export function GuestView({ invitation }: any) {
                       );
                     })}
                   </div>
+
+                  {/* FIL D'OR FINAL VERS L'ADRESSE */}
+                  <div className="absolute bottom-[-80px] left-1/2 -translate-x-1/2 w-20 h-[80px] pointer-events-none">
+                     <svg width="100%" height="100%" viewBox="0 0 40 80" preserveAspectRatio="none">
+                        <motion.path
+                          d="M 20 0 C 10 40, 10 40, 20 80"
+                          fill="none"
+                          stroke="#fbbf24"
+                          strokeWidth="3"
+                          initial={{ pathLength: 0 }}
+                          whileInView={{ pathLength: 1 }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 1.5, ease: "easeInOut" }}
+                        />
+                      </svg>
+                  </div>
                 </div>
 
-                <div className="text-center pt-20 relative">
+                <div className="text-center pt-24 relative">
                    <button onClick={openMaps} className="inline-flex flex-col items-center gap-4 group relative z-20">
                       <motion.div 
-                        initial={{ scale: 0, opacity: 0, y: 15 }}
-                        whileInView={{ scale: 1, opacity: 1, y: 0 }}
+                        initial={{ scale: 0 }}
+                        whileInView={{ scale: 1 }}
                         viewport={{ once: true }}
-                        transition={{ duration: 0.9, type: "spring", damping: 14, delay: 1.1 }}
+                        transition={{ type: "spring", damping: 12, delay: 1 }}
                         className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-2xl text-amber-500 border border-amber-100 group-hover:scale-110 transition-transform"
                       >
                         <MapPin size={32}/>
