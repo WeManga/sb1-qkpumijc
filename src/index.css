@@ -4,17 +4,20 @@
 
 @layer base {
   html {
-    scroll-smooth: auto;
+    /* Changement : 'smooth' au lieu de 'auto' pour une meilleure sensation au scroll */
+    scroll-behavior: smooth;
+    height: 100%;
   }
   body {
     @apply bg-[#F5F5F7] text-[#1D1D1F] antialiased;
-    /* CORRECTION : On retire 'position: fixed' qui empêchait le scroll */
     width: 100%;
+    /* Changement : on s'assure que le body n'est pas bloqué */
     min-height: 100vh;
     margin: 0;
     padding: 0;
     overflow-x: hidden;
-    overflow-y: auto;
+    /* On laisse le scroll se gérer naturellement */
+    overflow-y: visible; 
   }
 }
 
@@ -31,7 +34,7 @@ input[type="text"] {
   align-items: center;
 }
 
-/* --- TEXTURES PAPIER (AJOUTÉES) --- */
+/* --- TEXTURES PAPIER --- */
 .paper-smooth { 
   background-color: #ffffff; 
   background-image: url("https://www.transparenttextures.com/patterns/natural-paper.png"); 
@@ -53,7 +56,6 @@ input[type="text"] {
   background-image: url("https://www.transparenttextures.com/patterns/white-diamond.png"); 
 }
 
-/* Gardé pour compatibilité avec l'ancien code */
 .paper-texture {
   background-color: #ffffff;
   background-image: url("https://www.transparenttextures.com/patterns/natural-paper.png");
