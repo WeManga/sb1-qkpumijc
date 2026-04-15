@@ -1,5 +1,12 @@
+Le problème vient souvent de la manière dont `useScroll` interprète la fin de la zone (`programRef`) quand il y a du padding ou des marges.
+
+Pour que la ligne rejoigne **réellement** chaque point et finisse sa course sur l'icône Maps, j'ai simplifié la logique : j'utilise `viewport` pour déclencher l'animation de chaque segment de ligne de manière indépendante. C'est beaucoup plus robuste que le calcul du scroll global qui varie selon la taille de l'écran.
+
+Voici le code complet corrigé :
+
+```tsx
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar, MapPin, CheckCircle2, Plus, Sparkles, Clock } from 'lucide-react'; 
 import { supabase } from '../../lib/supabase';
 import { translations, Language } from '../../lib/i18n';
@@ -22,19 +29,6 @@ export function GuestView({ invitation }: any) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
-  
-  // Ref pour la section complète du programme jusqu'à l'adresse
-  const programRef = useRef(null);
-  const { scrollYProgress } = useScroll({
-    target: programRef,
-    offset: ["start 40%", "end 50%"] // Déclenchement plus précis pour finir sur l'icône
-  });
-  
-  const scaleY = useSpring(scrollYProgress, {
-    stiffness: 40,
-    damping: 20,
-    restDelta: 0.001
-  });
 
   const lang = (invitation.language as Language) || (localStorage.getItem('invite_lang') as Language) || 'fr';
   const t = translations[lang].guest;
@@ -63,7 +57,6 @@ export function GuestView({ invitation }: any) {
     const formatDate = (date: Date) => date.toISOString().replace(/-|:|\.\d\d\d/g, "");
     const startDate = formatDate(eventDate);
     const endDate = formatDate(new Date(eventDate.getTime() + 2 * 60 * 60 * 1000));
-    
     const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(invitation.title)}&dates=${startDate}/${endDate}&location=${encodeURIComponent(invitation.event_address)}&details=${encodeURIComponent(invitation.description || "")}`;
     window.open(googleUrl, '_blank');
   };
@@ -71,7 +64,6 @@ export function GuestView({ invitation }: any) {
   const openMaps = () => {
     const address = encodeURIComponent(invitation.event_address);
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    
     if (isIOS) {
       window.open(`maps://maps.apple.com/?q=${address}`, '_blank');
     } else {
@@ -87,14 +79,10 @@ export function GuestView({ invitation }: any) {
         {
           invitation_id: invitation.id,
           group_leader_name: `${guests[0].firstName} ${guests[0].lastName}`,
-          guest_details: guests.map(g => ({
-            firstName: g.firstName,
-            lastName: g.lastName
-          })),
+          guest_details: guests.map(g => ({ firstName: g.firstName, lastName: g.lastName })),
           total_guests: guestCount
         }
       ]);
-      
       if (error) throw error;
       setIsSubmitted(true);
     } catch (err: any) {
@@ -243,63 +231,74 @@ export function GuestView({ invitation }: any) {
                 </div>
               )}
 
-              <div ref={programRef} className="space-y-16">
+              <div className="space-y-16">
                 <h3 className="text-center font-black uppercase tracking-[0.6em] text-amber-600 text-[10px] flex items-center justify-center gap-4">
                      {tBuilder.program_title} 
                 </h3>
+                
                 <div className="relative flex flex-col items-center">
-                  {/* Ligne de fond qui va jusqu'à l'adresse */}
-                  <div className="absolute top-14 w-[3px] h-[calc(100%+48px)] bg-black/5 rounded-full" />
-                  
-                  {/* Ligne animée qui va exactement jusqu'à l'adresse */}
-                  <motion.div 
-                    style={{ scaleY }}
-                    className="absolute top-14 w-[3px] h-[calc(100%+48px)] bg-gradient-to-b from-amber-200 via-amber-500 to-amber-200 rounded-full origin-top z-10 shadow-[0_0_10px_rgba(245,158,11,0.3)]" 
-                  />
+                  {/* Ligne de fond grise sur toute la longueur */}
+                  <div className="absolute top-14 w-[3px] h-[calc(100%+80px)] bg-black/5 rounded-full" />
                   
                   <div className="relative space-y-24 w-full pt-12">
                     {(invitation.event_program || []).map((step: any, i: number) => {
                       const isEven = i % 2 === 0;
                       return (
-                        <motion.div 
-                          key={i} 
-                          initial={{ opacity: 0, x: isEven ? -60 : 60 }}
-                          whileInView={{ opacity: 1, x: 0 }}
-                          viewport={{ once: true, margin: "-100px" }}
-                          transition={{ duration: 1.0, delay: 0.2, ease: "easeOut" }}
-                          className={`flex items-start w-full relative ${isEven ? 'justify-start pl-10' : 'justify-end pr-10'}`}
-                        >
+                        <div key={i} className={`flex items-start w-full relative ${isEven ? 'justify-start pl-10' : 'justify-end pr-10'}`}>
+                          
+                          {/* Tronçon de ligne animée qui rejoint ce point */}
                           <motion.div 
-                            initial={{ scale: 0, rotate: 45, opacity: 0 }}
-                            whileInView={{ scale: 1, rotate: 45, opacity: 1 }}
+                            initial={{ scaleY: 0 }}
+                            whileInView={{ scaleY: 1 }}
                             viewport={{ once: true, margin: "-100px" }}
-                            transition={{ duration: 0.6, delay: 0.6 }}
-                            className={`absolute top-12 z-20 w-4 h-4 bg-amber-500 border-2 border-white shadow-lg ${isEven ? 'right-[50%] translate-x-1/2' : 'left-[50%] -translate-x-1/2'}`}
+                            transition={{ duration: 1.5, ease: "easeInOut", delay: 0.2 }}
+                            className="absolute top-[-96px] left-1/2 -translate-x-1/2 w-[3px] h-[120px] bg-gradient-to-b from-amber-300 to-amber-500 origin-top z-10"
+                            style={{ display: i === 0 ? 'none' : 'block' }}
+                          />
+
+                          {/* Point lumineux */}
+                          <motion.div 
+                            initial={{ scale: 0, opacity: 0 }}
+                            whileInView={{ scale: 1, opacity: 1 }}
+                            viewport={{ once: true, margin: "-100px" }}
+                            transition={{ duration: 0.6, delay: 0.8 }}
+                            className="absolute top-12 left-1/2 -translate-x-1/2 z-20 w-4 h-4 bg-amber-500 border-2 border-white shadow-lg rotate-45"
                           >
-                            <motion.div
-                              animate={{ opacity: [1, 0.4, 1], scale: [1, 1.1, 1] }}
-                              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-                              className="absolute inset-0 bg-amber-300 rounded-sm"
-                            />
+                            <motion.div animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 2, repeat: Infinity }} className="absolute inset-0 bg-amber-300" />
                           </motion.div>
 
-                          <div className={`w-[44%] p-8 bg-white/70 rounded-[3rem] border border-amber-100 backdrop-blur-md shadow-2xl ${isEven ? 'text-left' : 'text-right'}`}>
+                          <motion.div 
+                            initial={{ opacity: 0, x: isEven ? -40 : 40 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true, margin: "-100px" }}
+                            transition={{ duration: 0.8 }}
+                            className={`w-[44%] p-8 bg-white/70 rounded-[3rem] border border-amber-100 backdrop-blur-md shadow-2xl ${isEven ? 'text-left' : 'text-right'}`}
+                          >
                             <span className="text-[11px] font-black text-amber-600 block mb-2 tracking-widest"><Clock size={12} className="inline mr-1 mb-1"/> {step.time}</span>
-                            <span className="text-xl font-bold tracking-tighter break-words hyphens-auto" style={{ fontFamily: invitation.font_style }}>{step.activity}</span>
-                          </div>
-                        </motion.div>
+                            <span className="text-xl font-bold tracking-tighter break-words" style={{ fontFamily: invitation.font_style }}>{step.activity}</span>
+                          </motion.div>
+                        </div>
                       );
                     })}
                   </div>
+
+                  {/* Ligne finale vers l'adresse */}
+                  <motion.div 
+                    initial={{ scaleY: 0 }}
+                    whileInView={{ scaleY: 1 }}
+                    viewport={{ once: true, margin: "-50px" }}
+                    transition={{ duration: 1.5, ease: "easeInOut", delay: 0.5 }}
+                    className="absolute bottom-[-60px] left-1/2 -translate-x-1/2 w-[3px] h-[80px] bg-gradient-to-b from-amber-500 to-amber-200 origin-top z-10"
+                  />
                 </div>
 
-                <div className="text-center pt-8 relative">
+                <div className="text-center pt-20 relative">
                    <button onClick={openMaps} className="inline-flex flex-col items-center gap-4 group relative z-20">
                       <motion.div 
-                        initial={{ scale: 0.8, opacity: 0 }}
-                        whileInView={{ scale: 1, opacity: 1 }}
+                        initial={{ scale: 0, rotate: -20 }}
+                        whileInView={{ scale: 1, rotate: 0 }}
                         viewport={{ once: true }}
-                        transition={{ delay: 0.5 }}
+                        transition={{ type: "spring", damping: 12, delay: 1.2 }}
                         className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-2xl text-amber-500 border border-amber-100 group-hover:scale-110 transition-transform"
                       >
                         <MapPin size={32}/>
@@ -354,3 +353,4 @@ export function GuestView({ invitation }: any) {
     </div>
   );
 }
+```
