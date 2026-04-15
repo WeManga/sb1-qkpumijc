@@ -239,7 +239,7 @@ export function GuestView({ invitation }: any) {
                     initial={{ scaleY: 0 }}
                     whileInView={{ scaleY: 1 }}
                     viewport={{ once: true }}
-                    transition={{ duration: 3.0, ease: "easeInOut" }}
+                    transition={{ duration: 6.0, ease: "easeInOut" }}
                     className="absolute top-14 w-[3px] h-[calc(100%-56px)] bg-gradient-to-b from-amber-200 via-amber-500 to-amber-200 rounded-full origin-top" 
                   />
                   
