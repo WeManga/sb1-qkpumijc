@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, MapPin, Send, CheckCircle2, Plus, Sparkles, Clock } from 'lucide-react';
+import { X, Calendar, MapPin, CheckCircle2, Plus, Sparkles, Clock } from 'lucide-react'; // 'Send' retiré
 import { supabase } from '../../lib/supabase';
 import { translations, Language } from '../../lib/i18n';
 
@@ -182,7 +182,7 @@ export function GuestView({ invitation }: any) {
               </motion.button>
               <div className="mt-12 flex flex-col items-center gap-4">
                   <motion.div animate={{ y: [0, -15, 0] }} transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }} className="w-1.5 h-12 bg-white/20 rounded-full" />
-                  <p className="text-white font-black text-xs uppercase tracking-[0.8em] opacity-80">
+                  <p className="text-white font-black text-xs uppercase tracking-[0.5em] opacity-80">
                     {lang === 'vi' ? 'MỞ' : lang === 'en' ? 'OPEN' : 'OUVRIR'}
                   </p>
               </div>
@@ -226,13 +226,13 @@ export function GuestView({ invitation }: any) {
                 </div>
               )}
 
-              {/* PROGRAMME AVEC ANIMATION PROGRESSIVE LENTE */}
+              {/* PROGRAMME AVEC ANIMATION PROGRESSIVE LENTE ET ALIGNEMENT CORRECT */}
               <div className="space-y-16">
                 <h3 className="text-center font-black uppercase tracking-[0.6em] text-amber-600 text-[10px] flex items-center justify-center gap-4">
                     <Sparkles size={16}/> {tBuilder.program_title} <Sparkles size={16}/>
                 </h3>
                 <div className="relative flex flex-col items-center">
-                  {/* CHEMIN RALENTI */}
+                  {/* CHEMIN RALENTI ET PLUS FIN */}
                   <motion.div 
                     initial={{ scaleY: 0 }}
                     whileInView={{ scaleY: 1 }}
@@ -242,30 +242,40 @@ export function GuestView({ invitation }: any) {
                   />
                   
                   <div className="relative space-y-24 w-full pt-12">
-                    {(invitation.event_program || []).map((step: any, i: number) => (
-                      <motion.div 
-                        key={i} 
-                        initial={{ opacity: 0, x: i % 2 === 0 ? -60 : 60 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true, margin: "-120px" }}
-                        transition={{ duration: 1.2, delay: 0.1, ease: "easeOut" }}
-                        className={`flex items-center w-full ${i % 2 === 0 ? 'justify-start pl-10' : 'justify-end pr-10'}`}
-                      >
-                        {/* LOSANGES ÉLÉGANTS */}
+                    {(invitation.event_program || []).map((step: any, i: number) => {
+                      const isEven = i % 2 === 0;
+                      return (
                         <motion.div 
-                          initial={{ scale: 0, rotate: 0 }}
-                          whileInView={{ scale: 1, rotate: 45 }}
-                          viewport={{ once: true }}
-                          transition={{ duration: 0.8, delay: 0.5 }}
-                          className="absolute left-1/2 -translate-x-1/2 z-20 w-4 h-4 bg-amber-500 border-2 border-white shadow-lg"
-                        />
+                          key={i} 
+                          initial={{ opacity: 0, x: isEven ? -60 : 60 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: true, margin: "-120px" }}
+                          transition={{ duration: 1.2, delay: 0.1, ease: "easeOut" }}
+                          className={`flex items-center w-full relative ${isEven ? 'justify-start pl-10' : 'justify-end pr-10'}`}
+                        >
+                          {/* LOSANGES ÉLÉGANTS ALIGNÉS SUR LA POINTE DE LA BULLE ET CLIGNOTANTS */}
+                          <motion.div 
+                            initial={{ scale: 0, rotate: 45, opacity: 0 }}
+                            whileInView={{ scale: 1, rotate: 45, opacity: 1 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.8, delay: 0.5 }}
+                            className={`absolute top-1/2 -translate-y-1/2 z-20 w-4 h-4 bg-amber-500 border-2 border-white shadow-lg ${isEven ? 'right-[50%] translate-x-1/2' : 'left-[50%] -translate-x-1/2'}`}
+                          >
+                            {/* ANIMATION DE CLIGNOTEMENT LENT (PULSATION) */}
+                            <motion.div
+                              animate={{ opacity: [1, 0.4, 1], scale: [1, 1.1, 1] }}
+                              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                              className="absolute inset-0 bg-amber-300 rounded-sm"
+                            />
+                          </motion.div>
 
-                        <div className={`w-[44%] p-8 bg-white/70 rounded-[3rem] border border-amber-100 backdrop-blur-md shadow-2xl ${i % 2 === 0 ? 'text-left' : 'text-right'}`}>
-                          <span className="text-[11px] font-black text-amber-600 block mb-2 tracking-widest"><Clock size={12} className="inline mr-1 mb-1"/> {step.time}</span>
-                          <span className="text-xl font-bold uppercase tracking-tighter" style={{ fontFamily: invitation.font_style }}>{step.activity}</span>
-                        </div>
-                      </motion.div>
-                    ))}
+                          <div className={`w-[44%] p-8 bg-white/70 rounded-[3rem] border border-amber-100 backdrop-blur-md shadow-2xl ${isEven ? 'text-left' : 'text-right'}`}>
+                            <span className="text-[11px] font-black text-amber-600 block mb-2 tracking-widest"><Clock size={12} className="inline mr-1 mb-1"/> {step.time}</span>
+                            <span className="text-xl font-bold uppercase tracking-tighter" style={{ fontFamily: invitation.font_style }}>{step.activity}</span>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -304,7 +314,7 @@ export function GuestView({ invitation }: any) {
                       ))}
                     </div>
                     <button disabled={isSubmitting} className="w-full h-20 bg-gray-900 text-white rounded-[2rem] font-black uppercase tracking-[0.4em] shadow-2xl flex items-center justify-center gap-4 active:scale-95 transition-all hover:bg-black">
-                      {isSubmitting ? "..." : <>{t.send}</>}
+                      {isSubmitting ? "..." : <>{t.send}</>} {/* Icône 'Send' retirée */}
                     </button>
                   </form>
                 ) : (
