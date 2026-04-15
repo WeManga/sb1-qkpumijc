@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, MapPin, CheckCircle2, Plus, Sparkles, Clock } from 'lucide-react'; // 'Send' retiré
+import { X, Calendar, MapPin, CheckCircle2, Plus, Sparkles, Clock } from 'lucide-react'; 
 import { supabase } from '../../lib/supabase';
 import { translations, Language } from '../../lib/i18n';
 
@@ -226,19 +226,17 @@ export function GuestView({ invitation }: any) {
                 </div>
               )}
 
-              {/* PROGRAMME AVEC ANIMATION PROGRESSIVE LENTE ET ALIGNEMENT CORRECT */}
               <div className="space-y-16">
                 <h3 className="text-center font-black uppercase tracking-[0.6em] text-amber-600 text-[10px] flex items-center justify-center gap-4">
                     <Sparkles size={16}/> {tBuilder.program_title} <Sparkles size={16}/>
                 </h3>
                 <div className="relative flex flex-col items-center">
-                  {/* CHEMIN RALENTI ET PLUS FIN */}
                   <motion.div 
                     initial={{ scaleY: 0 }}
                     whileInView={{ scaleY: 1 }}
                     viewport={{ once: true }}
                     transition={{ duration: 3.0, ease: "easeInOut" }}
-                    className="absolute top-0 w-[3px] h-full bg-gradient-to-b from-amber-200 via-amber-500 to-amber-200 rounded-full origin-top" 
+                    className="absolute top-14 w-[3px] h-[calc(100%-56px)] bg-gradient-to-b from-amber-200 via-amber-500 to-amber-200 rounded-full origin-top" 
                   />
                   
                   <div className="relative space-y-24 w-full pt-12">
@@ -251,17 +249,16 @@ export function GuestView({ invitation }: any) {
                           whileInView={{ opacity: 1, x: 0 }}
                           viewport={{ once: true, margin: "-120px" }}
                           transition={{ duration: 1.2, delay: 0.1, ease: "easeOut" }}
-                          className={`flex items-center w-full relative ${isEven ? 'justify-start pl-10' : 'justify-end pr-10'}`}
+                          className={`flex items-start w-full relative ${isEven ? 'justify-start pl-10' : 'justify-end pr-10'}`}
                         >
-                          {/* LOSANGES ÉLÉGANTS ALIGNÉS SUR LA POINTE DE LA BULLE ET CLIGNOTANTS */}
+                          {/* CORRECTION DU CENTRAGE : top-12 au lieu de top-1/2 */}
                           <motion.div 
                             initial={{ scale: 0, rotate: 45, opacity: 0 }}
                             whileInView={{ scale: 1, rotate: 45, opacity: 1 }}
                             viewport={{ once: true }}
                             transition={{ duration: 0.8, delay: 0.5 }}
-                            className={`absolute top-1/2 -translate-y-1/2 z-20 w-4 h-4 bg-amber-500 border-2 border-white shadow-lg ${isEven ? 'right-[50%] translate-x-1/2' : 'left-[50%] -translate-x-1/2'}`}
+                            className={`absolute top-12 z-20 w-4 h-4 bg-amber-500 border-2 border-white shadow-lg ${isEven ? 'right-[50%] translate-x-1/2' : 'left-[50%] -translate-x-1/2'}`}
                           >
-                            {/* ANIMATION DE CLIGNOTEMENT LENT (PULSATION) */}
                             <motion.div
                               animate={{ opacity: [1, 0.4, 1], scale: [1, 1.1, 1] }}
                               transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
@@ -314,7 +311,7 @@ export function GuestView({ invitation }: any) {
                       ))}
                     </div>
                     <button disabled={isSubmitting} className="w-full h-20 bg-gray-900 text-white rounded-[2rem] font-black uppercase tracking-[0.4em] shadow-2xl flex items-center justify-center gap-4 active:scale-95 transition-all hover:bg-black">
-                      {isSubmitting ? "..." : <>{t.send}</>} {/* Icône 'Send' retirée */}
+                      {isSubmitting ? "..." : <>{t.send}</>}
                     </button>
                   </form>
                 ) : (
