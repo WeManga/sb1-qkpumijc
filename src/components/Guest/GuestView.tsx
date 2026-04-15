@@ -226,24 +226,42 @@ export function GuestView({ invitation }: any) {
                 </div>
               )}
 
-              {/* PROGRAMME AVEC ANIMATION AU SCROLL */}
+              {/* PROGRAMME AVEC ANIMATION PROGRESSIVE */}
               <div className="space-y-16">
                 <h3 className="text-center font-black uppercase tracking-[0.6em] text-amber-600 text-[10px] flex items-center justify-center gap-4">
                     <Sparkles size={16}/> {tBuilder.program_title} <Sparkles size={16}/>
                 </h3>
                 <div className="relative flex flex-col items-center">
-                  <div className="absolute top-0 w-[4px] h-full bg-gradient-to-b from-amber-200 via-amber-500 to-amber-200 rounded-full" />
+                  {/* CHEMIN QUI SE CHARGE AU SCROLL */}
+                  <motion.div 
+                    initial={{ scaleY: 0 }}
+                    whileInView={{ scaleY: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 1.5, ease: "easeInOut" }}
+                    className="absolute top-0 w-[4px] h-full bg-gradient-to-b from-amber-200 via-amber-500 to-amber-200 rounded-full origin-top" 
+                  />
+                  
                   <div className="relative space-y-24 w-full pt-12">
                     {(invitation.event_program || []).map((step: any, i: number) => (
                       <motion.div 
                         key={i} 
-                        initial={{ opacity: 0, x: i % 2 === 0 ? -40 : 40 }}
+                        initial={{ opacity: 0, x: i % 2 === 0 ? -60 : 60 }}
                         whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true, margin: "-100px" }}
-                        transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
+                        viewport={{ once: true, margin: "-120px" }}
+                        transition={{ duration: 1.2, delay: 0.1, ease: "easeOut" }}
                         className={`flex items-center w-full ${i % 2 === 0 ? 'justify-start pl-10' : 'justify-end pr-10'}`}
                       >
-                        <div className="absolute left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-white border-[6px] border-amber-500 z-10 shadow-2xl" />
+                        {/* ICÔNE SPARKLE À LA PLACE DES CERCLES */}
+                        <motion.div 
+                          initial={{ scale: 0, rotate: -180 }}
+                          whileInView={{ scale: 1, rotate: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 0.8, delay: 0.4 }}
+                          className="absolute left-1/2 -translate-x-1/2 z-20 text-amber-500 bg-white rounded-full p-1 shadow-xl border border-amber-100"
+                        >
+                          <Sparkles size={20} fill="currentColor"/>
+                        </motion.div>
+
                         <div className={`w-[44%] p-8 bg-white/70 rounded-[3rem] border border-amber-100 backdrop-blur-md shadow-2xl ${i % 2 === 0 ? 'text-left' : 'text-right'}`}>
                           <span className="text-[11px] font-black text-amber-600 block mb-2 tracking-widest"><Clock size={12} className="inline mr-1 mb-1"/> {step.time}</span>
                           <span className="text-xl font-bold uppercase tracking-tighter" style={{ fontFamily: invitation.font_style }}>{step.activity}</span>
