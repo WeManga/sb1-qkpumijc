@@ -281,10 +281,25 @@ export function GuestView({ invitation }: any) {
               </div>
 
               <div className="text-center pt-8">
-                 <button onClick={openMaps} className="inline-flex flex-col items-center gap-4 group">
+                 <motion.button 
+                    initial={{ scale: 1, y: 0 }}
+                    whileInView={{ 
+                      scale: [1, 1.15, 1], 
+                      y: [0, -10, 0] 
+                    }}
+                    viewport={{ once: true }}
+                    transition={{ 
+                      duration: 0.8, 
+                      delay: 5.5, 
+                      type: "spring", 
+                      stiffness: 300 
+                    }}
+                    onClick={openMaps} 
+                    className="inline-flex flex-col items-center gap-4 group"
+                 >
                     <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-2xl text-amber-500 border border-amber-100"><MapPin size={32}/></div>
                     <span className="text-xs font-black uppercase tracking-[0.3em] opacity-60 underline underline-offset-[12px] decoration-amber-500/40">{invitation.event_address || tBuilder.address_placeholder}</span>
-                 </button>
+                 </motion.button>
               </div>
 
               <div className="bg-white/90 backdrop-blur-2xl rounded-[5rem] p-12 shadow-[0_40px_100px_rgba(0,0,0,0.1)] border border-white relative overflow-hidden">
