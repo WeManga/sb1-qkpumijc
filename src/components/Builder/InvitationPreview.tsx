@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Volume2, VolumeX, MapPin, Clock } from 'lucide-react';
+import { X, Calendar, Volume2, VolumeX, MapPin, Clock, Sparkles } from 'lucide-react';
 import { translations, Language } from '../../lib/i18n';
 
 const THEME_EMOJIS: Record<string, string[]> = {
@@ -19,7 +19,6 @@ export function InvitationPreview({ invitation }: any) {
   const [isMuted, setIsMuted] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  // RÉCUPÉRATION DE LA LANGUE ET DES TRADUCTIONS
   const lang = (invitation.language as Language) || (localStorage.getItem('invite_lang') as Language) || 'fr';
   const t = translations[lang].guest;
   const tBuilder = translations[lang].builder;
@@ -130,14 +129,14 @@ export function InvitationPreview({ invitation }: any) {
             </AnimatePresence>
           </motion.div>
         ) : (
-          <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`w-full h-full z-[100] flex flex-col ${getPaperClass()}`}>
+          <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`w-full h-full z-[100] flex flex-col overflow-y-auto ${getPaperClass()}`}>
             <div className="h-[30%] relative overflow-hidden shrink-0">
                <img src={invitation.main_photo_url} className="w-full h-full object-cover" style={{ objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%` }} />
                <div className="absolute inset-0 bg-gradient-to-t from-white/80 to-transparent" />
                <button onClick={() => setView('envelope')} className="absolute top-6 left-6 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-md"><X size={20}/></button>
             </div>
 
-            <div className="flex-1 p-8 overflow-y-auto">
+            <div className="flex-1 p-8">
               <div className="text-center mb-10">
                 <h2 className="text-3xl font-black mb-4 leading-tight">
                     {invitation?.host_names || tBuilder.hosts_placeholder}
@@ -155,7 +154,7 @@ export function InvitationPreview({ invitation }: any) {
               </div>
 
               {invitation.description && (
-                <div className="mb-10 text-center">
+                <div className="mb-14 text-center">
                   <p className="text-[13px] leading-relaxed opacity-80 whitespace-pre-wrap italic" style={{ fontFamily: invitation.font_style }}>
                     {invitation.description}
                   </p>
@@ -163,18 +162,57 @@ export function InvitationPreview({ invitation }: any) {
                 </div>
               )}
 
-              <div className="space-y-6">
-                <h3 className="text-[10px] font-black text-amber-600 uppercase tracking-[0.3em] text-center mb-6">
-                  {tBuilder.program_title}
+              {/* PROGRAMME ANIMÉ POUR PREVIEW */}
+              <div className="space-y-12 pb-10">
+                <h3 className="text-[10px] font-black text-amber-600 uppercase tracking-[0.3em] text-center mb-8 flex items-center justify-center gap-2">
+                  <Sparkles size={12}/> {tBuilder.program_title} <Sparkles size={12}/>
                 </h3>
-                {(invitation.event_program || []).map((step: any, i: number) => (
-                  <div key={i} className="flex items-center gap-4 py-3 border-b border-black/5 last:border-0">
-                    <div className="w-16 text-[11px] font-black bg-black/5 py-1 px-2 rounded-lg text-center flex items-center gap-1">
-                      <Clock size={10} className="text-amber-500"/> {step.time}
-                    </div>
-                    <div className="text-xs font-bold opacity-70 uppercase tracking-wide">{step.activity}</div>
+
+                <div className="relative flex flex-col items-center">
+                  <motion.div 
+                    initial={{ scaleY: 0 }}
+                    whileInView={{ scaleY: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 3.0, ease: "easeInOut" }}
+                    className="absolute top-0 w-[2px] h-full bg-gradient-to-b from-amber-200 via-amber-500 to-amber-200 rounded-full origin-top" 
+                  />
+
+                  <div className="relative space-y-12 w-full pt-4">
+                    {(invitation.event_program || []).map((step: any, i: number) => {
+                      const isEven = i % 2 === 0;
+                      return (
+                        <motion.div 
+                          key={i} 
+                          initial={{ opacity: 0, x: isEven ? -30 : 30 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: true, margin: "-50px" }}
+                          transition={{ duration: 1.2, delay: 0.1 }}
+                          className={`flex items-center w-full relative ${isEven ? 'justify-start pl-6' : 'justify-end pr-6'}`}
+                        >
+                          <motion.div 
+                            initial={{ scale: 0, rotate: 45 }}
+                            whileInView={{ scale: 1, rotate: 45 }}
+                            viewport={{ once: true }}
+                            className={`absolute top-1/2 -translate-y-1/2 z-20 w-3 h-3 bg-amber-500 border border-white shadow-md ${isEven ? 'right-[50%] translate-x-1/2' : 'left-[50%] -translate-x-1/2'}`}
+                          >
+                            <motion.div
+                              animate={{ opacity: [1, 0.4, 1], scale: [1, 1.2, 1] }}
+                              transition={{ duration: 2.5, repeat: Infinity }}
+                              className="absolute inset-0 bg-amber-300 rounded-sm"
+                            />
+                          </motion.div>
+
+                          <div className={`w-[45%] p-4 bg-white/60 rounded-2xl border border-amber-50 backdrop-blur-sm shadow-lg ${isEven ? 'text-left' : 'text-right'}`}>
+                            <div className="text-[9px] font-black text-amber-600 mb-1 flex items-center gap-1 justify-inherit">
+                               <Clock size={8}/> {step.time}
+                            </div>
+                            <div className="text-[11px] font-bold uppercase tracking-tight leading-tight">{step.activity}</div>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
                   </div>
-                ))}
+                </div>
               </div>
             </div>
           </motion.div>
