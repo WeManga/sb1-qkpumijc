@@ -4,6 +4,7 @@ import { supabase } from '../../lib/supabase';
 import { Database } from '../../lib/database.types';
 import MobileApp from './MobileApp';
 import { Loader2 } from 'lucide-react';
+import { translations, Language } from '../../lib/i18n'; // AJOUTÉ
 
 type Invitation = Database['public']['Tables']['invitations']['Row'];
 
@@ -15,10 +16,15 @@ interface BuilderProps {
 export function Builder({ invitationId, onBack }: BuilderProps) {
   const { user } = useAuth();
   
+  // Récupération de la langue pour les messages d'interface
+  const lang = (localStorage.getItem('invite_lang') as Language) || 'fr';
+  const t = translations[lang].builder; // Pour les textes spécifiques au builder
+  const tAuth = translations[lang].auth; // Pour l'erreur par défaut si besoin
+
   const [invitation, setInvitation] = useState<Partial<Invitation>>({
     event_type: 'wedding',
-    title: 'Notre Mariage',
-    host_names: 'John & Jane',
+    title: lang === 'vi' ? 'Đám cưới của chúng tôi' : lang === 'en' ? 'Our Wedding' : 'Notre Mariage',
+    host_names: lang === 'vi' ? 'John & Jane' : 'John & Jane',
     event_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
     event_address: '',
     event_program: [],
@@ -27,7 +33,7 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
     photo_pos_x: 50,
     photo_pos_y: 50,
     is_published: false,
-    language: localStorage.getItem('invite_lang') || 'fr', // MISE À JOUR : Langue par défaut
+    language: lang,
   });
 
   const [loading, setLoading] = useState(true);
@@ -73,7 +79,7 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
         user_id: user.id,
         photo_pos_x: parseInt(String(invitation.photo_pos_x || 50)),
         photo_pos_y: parseInt(String(invitation.photo_pos_y || 50)),
-        language: localStorage.getItem('invite_lang') || invitation.language || 'fr', // MISE À JOUR : Sauvegarde la langue du compte
+        language: localStorage.getItem('invite_lang') || invitation.language || 'fr',
         updated_at: new Date().toISOString(),
       };
 
@@ -90,10 +96,12 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
         if (error) throw error;
       }
       
-      alert('Enregistré avec succès !');
+      // MISE À JOUR : Traduction du message de succès
+      alert(lang === 'vi' ? 'Đã lưu thành công!' : lang === 'en' ? 'Saved successfully!' : 'Enregistré avec succès !');
     } catch (error: any) {
       console.error('Erreur sauvegarde:', error);
-      alert(`Erreur: ${error.message || 'Impossible de sauvegarder'}`);
+      // MISE À JOUR : Utilisation de la clé d'erreur de i18n
+      alert(`${tAuth.error_default}: ${error.message || ''}`);
     } finally {
       setSaving(false);
     }
