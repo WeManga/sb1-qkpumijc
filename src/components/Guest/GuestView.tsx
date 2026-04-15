@@ -282,17 +282,18 @@ export function GuestView({ invitation }: any) {
 
               <div className="text-center pt-8">
                  <motion.button 
-                    initial={{ scale: 1, y: 0 }}
+                    initial={{ scale: 0.8, opacity: 0 }}
                     whileInView={{ 
-                      scale: [1, 1.15, 1], 
+                      scale: [0.8, 1.15, 1], 
+                      opacity: 1,
                       y: [0, -10, 0] 
                     }}
-                    viewport={{ once: true }}
+                    viewport={{ once: true, margin: "-50px" }}
                     transition={{ 
                       duration: 0.8, 
-                      delay: 5.5, 
+                      delay: 5.8, 
                       type: "spring", 
-                      stiffness: 300 
+                      stiffness: 250 
                     }}
                     onClick={openMaps} 
                     className="inline-flex flex-col items-center gap-4 group"
