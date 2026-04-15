@@ -193,8 +193,8 @@ export function GuestView({ invitation }: any) {
           <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }} className={`fixed inset-0 z-[100] flex flex-col overflow-y-auto overflow-x-hidden touch-pan-y w-full ${getPaperClass()}`}>
             <div className="relative h-[40vh] shrink-0 overflow-hidden w-full">
               <motion.img initial={{ scale: 1.2 }} animate={{ scale: 1 }} transition={{ duration: 10 }} src={invitation.main_photo_url} className="w-full h-full object-cover shadow-2xl" style={{ objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%` }} />
-              <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent" />
-              <button onClick={() => setView('envelope')} className="absolute top-8 left-8 w-14 h-14 bg-white/90 backdrop-blur-xl rounded-full flex items-center justify-center shadow-2xl text-gray-800 hover:scale-110 transition-transform"><X size={24}/></button>
+              <div className="absolute inset-0 bg-gradient-to-t from-white/80 to-transparent" />
+              <button onClick={() => setView('envelope')} className="absolute top-8 left-8 w-14 h-14 bg-white/90 rounded-full flex items-center justify-center shadow-md"><X size={20}/></button>
             </div>
 
             <div className="flex-1 px-8 py-16 max-w-2xl mx-auto w-full space-y-24">
@@ -220,7 +220,7 @@ export function GuestView({ invitation }: any) {
                   <p className="text-lg leading-relaxed opacity-80 whitespace-pre-wrap italic" style={{ fontFamily: invitation.font_style }}>
                     {invitation.description}
                   </p>
-                  <div className="w-16 h-[1px] bg-gradient-to-r from-transparent via-amber-400 to-transparent mx-auto mt-10" />
+                  <div className="w-12 h-[1px] bg-amber-200 mx-auto mt-6" />
                 </div>
               )}
 
@@ -230,7 +230,8 @@ export function GuestView({ invitation }: any) {
                 </h3>
                 
                 <div className="relative flex flex-col items-center">
-                  <div className="absolute top-14 w-[3px] h-[calc(100%+80px)] bg-black/5 rounded-full" />
+                  {/* Ligne de fond grise sur toute la longueur - Grossie à 6px */}
+                  <div className="absolute top-14 w-[6px] h-[calc(100%+80px)] bg-black/5 rounded-full" />
                   
                   <div className="relative space-y-24 w-full pt-12">
                     {(invitation.event_program || []).map((step: any, i: number) => {
@@ -238,15 +239,17 @@ export function GuestView({ invitation }: any) {
                       return (
                         <div key={i} className={`flex items-start w-full relative ${isEven ? 'justify-start pl-10' : 'justify-end pr-10'}`}>
                           
+                          {/* Tronçon de ligne animée qui rejoint ce point - Grossi à 6px */}
                           <motion.div 
                             initial={{ scaleY: 0 }}
                             whileInView={{ scaleY: 1 }}
                             viewport={{ once: true, margin: "-100px" }}
                             transition={{ duration: 1.5, ease: "easeInOut", delay: 0.2 }}
-                            className="absolute top-[-96px] left-1/2 -translate-x-1/2 w-[3px] h-[120px] bg-gradient-to-b from-amber-300 to-amber-500 origin-top z-10"
+                            className="absolute top-[-96px] left-1/2 -translate-x-1/2 w-[6px] h-[120px] bg-gradient-to-b from-amber-300 to-amber-500 origin-top z-10"
                             style={{ display: i === 0 ? 'none' : 'block' }}
                           />
 
+                          {/* Point lumineux - Losange maintenu (rotate-45) */}
                           <motion.div 
                             initial={{ scale: 0, opacity: 0 }}
                             whileInView={{ scale: 1, opacity: 1 }}
@@ -272,12 +275,13 @@ export function GuestView({ invitation }: any) {
                     })}
                   </div>
 
+                  {/* Ligne finale vers l'adresse - Grossie à 6px */}
                   <motion.div 
                     initial={{ scaleY: 0 }}
                     whileInView={{ scaleY: 1 }}
                     viewport={{ once: true, margin: "-50px" }}
                     transition={{ duration: 1.5, ease: "easeInOut", delay: 0.5 }}
-                    className="absolute bottom-[-60px] left-1/2 -translate-x-1/2 w-[3px] h-[80px] bg-gradient-to-b from-amber-500 to-amber-200 origin-top z-10"
+                    className="absolute bottom-[-60px] left-1/2 -translate-x-1/2 w-[6px] h-[80px] bg-gradient-to-b from-amber-500 to-amber-200 origin-top z-10"
                   />
                 </div>
 
