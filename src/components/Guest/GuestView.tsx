@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { X, Calendar, MapPin, CheckCircle2, Plus, Sparkles, Clock } from 'lucide-react'; 
 import { supabase } from '../../lib/supabase';
 import { translations, Language } from '../../lib/i18n';
@@ -22,6 +22,15 @@ export function GuestView({ invitation }: any) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
+  
+  // Ref pour le suivi du scroll de la ligne
+  const scrollRef = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: scrollRef,
+    offset: ["start end", "end center"]
+  });
+  
+  const scaleY = useTransform(scrollYProgress, [0, 1], [0, 1]);
 
   const lang = (invitation.language as Language) || (localStorage.getItem('invite_lang') as Language) || 'fr';
   const t = translations[lang].guest;
@@ -51,7 +60,6 @@ export function GuestView({ invitation }: any) {
     const startDate = formatDate(eventDate);
     const endDate = formatDate(new Date(eventDate.getTime() + 2 * 60 * 60 * 1000));
     
-    // Retour à la stratégie Google Calendar (Universelle et fiable)
     const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(invitation.title)}&dates=${startDate}/${endDate}&location=${encodeURIComponent(invitation.event_address)}&details=${encodeURIComponent(invitation.description || "")}`;
     window.open(googleUrl, '_blank');
   };
@@ -235,15 +243,16 @@ export function GuestView({ invitation }: any) {
                 <h3 className="text-center font-black uppercase tracking-[0.6em] text-amber-600 text-[10px] flex items-center justify-center gap-4">
                      {tBuilder.program_title} 
                 </h3>
-                <div className="relative flex flex-col items-center">
+                <div ref={scrollRef} className="relative flex flex-col items-center">
+                  {/* Ligne qui suit le scroll rejoignant point par point */}
                   <motion.div 
-                    initial={{ scaleY: 0 }}
-                    whileInView={{ scaleY: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 3.0, ease: "easeInOut" }}
-                    className="absolute top-14 w-[3px] h-[calc(100%-56px)] bg-gradient-to-b from-amber-200 via-amber-500 to-amber-200 rounded-full origin-top" 
+                    style={{ scaleY }}
+                    className="absolute top-14 w-[3px] h-[calc(100%-56px)] bg-gradient-to-b from-amber-200 via-amber-500 to-amber-200 rounded-full origin-top z-10" 
                   />
                   
+                  {/* Ligne de fond (en gris clair/transparent) */}
+                  <div className="absolute top-14 w-[3px] h-[calc(100%-56px)] bg-black/5 rounded-full" />
+
                   <div className="relative space-y-24 w-full pt-12">
                     {(invitation.event_program || []).map((step: any, i: number) => {
                       const isEven = i % 2 === 0;
@@ -270,7 +279,6 @@ export function GuestView({ invitation }: any) {
                             />
                           </motion.div>
 
-                          {/* Correction : break-words et plus de majuscules obligatoires sur l'activité */}
                           <div className={`w-[44%] p-8 bg-white/70 rounded-[3rem] border border-amber-100 backdrop-blur-md shadow-2xl ${isEven ? 'text-left' : 'text-right'}`}>
                             <span className="text-[11px] font-black text-amber-600 block mb-2 tracking-widest"><Clock size={12} className="inline mr-1 mb-1"/> {step.time}</span>
                             <span className="text-xl font-bold tracking-tighter break-words hyphens-auto" style={{ fontFamily: invitation.font_style }}>{step.activity}</span>
