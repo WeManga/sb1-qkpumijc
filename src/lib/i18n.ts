@@ -35,6 +35,14 @@ export const translations = {
       person_unit: "person(s)"
     },
     builder: {
+      back_btn: "Back",
+      save_btn: "Save",
+      nav_info: "INFO",
+      nav_style: "STYLE",
+      nav_media: "MEDIAS",
+      edit_info: "Edit info",
+      edit_style: "Edit style",
+      edit_media: "Edit medias",
       general_info: "General Information",
       title_placeholder: "Invitation Title",
       hosts_placeholder: "Hosts (e.g. Julie & Marc)",
@@ -108,6 +116,14 @@ export const translations = {
       person_unit: "personne(s)"
     },
     builder: {
+      back_btn: "Retour",
+      save_btn: "Enregistrer",
+      nav_info: "INFOS",
+      nav_style: "STYLE",
+      nav_media: "MÉDIAS",
+      edit_info: "Modifier infos",
+      edit_style: "Modifier style",
+      edit_media: "Modifier médias",
       general_info: "Informations Générales",
       title_placeholder: "Titre de l'invitation",
       hosts_placeholder: "Hôtes (ex: Julie & Marc)",
@@ -181,6 +197,14 @@ export const translations = {
       person_unit: "người"
     },
     builder: {
+      back_btn: "Quay lại",
+      save_btn: "Lưu",
+      nav_info: "THÔNG TIN",
+      nav_style: "PHONG CÁCH",
+      nav_media: "MEDIA",
+      edit_info: "Sửa thông tin",
+      edit_style: "Sửa phong cách",
+      edit_media: "Sửa media",
       general_info: "Thông tin chung",
       title_placeholder: "Tiêu đề lời mời",
       hosts_placeholder: "Chủ nhà (Ví dụ: Julie & Marc)",
