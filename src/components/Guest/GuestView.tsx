@@ -45,19 +45,36 @@ export function GuestView({ invitation }: any) {
     setGuests(newGuests);
   }, [guestCount]);
 
-  // STRATÉGIE CALENDRIER UNIVERSELLE (WebView Friendly)
   const addToCalendar = () => {
     const eventDate = new Date(invitation.event_date);
     const formatDate = (date: Date) => date.toISOString().replace(/-|:|\.\d\d\d/g, "");
     const startDate = formatDate(eventDate);
     const endDate = formatDate(new Date(eventDate.getTime() + 2 * 60 * 60 * 1000));
     
-    const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(invitation.title)}&dates=${startDate}/${endDate}&location=${encodeURIComponent(invitation.event_address)}&details=${encodeURIComponent(invitation.description || "")}`;
-    
-    window.open(googleUrl, '_blank');
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
+    if (isIOS) {
+      // Stratégie pour forcer l'ouverture du calendrier natif iOS
+      const icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+BEGIN:VEVENT
+URL:${window.location.href}
+DTSTART:${startDate}
+DTEND:${endDate}
+SUMMARY:${invitation.title}
+DESCRIPTION:${invitation.description || ""}
+LOCATION:${invitation.event_address}
+END:VEVENT
+END:VCALENDAR`;
+      
+      window.location.href = `data:text/calendar;charset=utf8,${encodeURIComponent(icsContent)}`;
+    } else {
+      // Pour Android/Desktop : Google Calendar reste le plus fiable
+      const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(invitation.title)}&dates=${startDate}/${endDate}&location=${encodeURIComponent(invitation.event_address)}&details=${encodeURIComponent(invitation.description || "")}`;
+      window.open(googleUrl, '_blank');
+    }
   };
 
-  // STRATÉGIE MAPS UNIVERSELLE
   const openMaps = () => {
     const address = encodeURIComponent(invitation.event_address);
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
@@ -235,7 +252,7 @@ export function GuestView({ invitation }: any) {
 
               <div className="space-y-16">
                 <h3 className="text-center font-black uppercase tracking-[0.6em] text-amber-600 text-[10px] flex items-center justify-center gap-4">
-                    <Sparkles size={16}/> {tBuilder.program_title} <Sparkles size={16}/>
+                     {tBuilder.program_title} 
                 </h3>
                 <div className="relative flex flex-col items-center">
                   <motion.div 
@@ -283,7 +300,6 @@ export function GuestView({ invitation }: any) {
                 </div>
               </div>
 
-              {/* BOUTON MAPS UNIVERSEL */}
               <div className="text-center pt-8">
                  <button onClick={openMaps} className="inline-flex flex-col items-center gap-4 group">
                     <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-2xl text-amber-500 border border-amber-100"><MapPin size={32}/></div>
