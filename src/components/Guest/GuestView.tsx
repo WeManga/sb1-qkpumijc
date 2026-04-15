@@ -1,10 +1,3 @@
-Le problème vient souvent de la manière dont `useScroll` interprète la fin de la zone (`programRef`) quand il y a du padding ou des marges.
-
-Pour que la ligne rejoigne **réellement** chaque point et finisse sa course sur l'icône Maps, j'ai simplifié la logique : j'utilise `viewport` pour déclencher l'animation de chaque segment de ligne de manière indépendante. C'est beaucoup plus robuste que le calcul du scroll global qui varie selon la taille de l'écran.
-
-Voici le code complet corrigé :
-
-```tsx
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar, MapPin, CheckCircle2, Plus, Sparkles, Clock } from 'lucide-react'; 
@@ -237,7 +230,6 @@ export function GuestView({ invitation }: any) {
                 </h3>
                 
                 <div className="relative flex flex-col items-center">
-                  {/* Ligne de fond grise sur toute la longueur */}
                   <div className="absolute top-14 w-[3px] h-[calc(100%+80px)] bg-black/5 rounded-full" />
                   
                   <div className="relative space-y-24 w-full pt-12">
@@ -246,7 +238,6 @@ export function GuestView({ invitation }: any) {
                       return (
                         <div key={i} className={`flex items-start w-full relative ${isEven ? 'justify-start pl-10' : 'justify-end pr-10'}`}>
                           
-                          {/* Tronçon de ligne animée qui rejoint ce point */}
                           <motion.div 
                             initial={{ scaleY: 0 }}
                             whileInView={{ scaleY: 1 }}
@@ -256,7 +247,6 @@ export function GuestView({ invitation }: any) {
                             style={{ display: i === 0 ? 'none' : 'block' }}
                           />
 
-                          {/* Point lumineux */}
                           <motion.div 
                             initial={{ scale: 0, opacity: 0 }}
                             whileInView={{ scale: 1, opacity: 1 }}
@@ -282,7 +272,6 @@ export function GuestView({ invitation }: any) {
                     })}
                   </div>
 
-                  {/* Ligne finale vers l'adresse */}
                   <motion.div 
                     initial={{ scaleY: 0 }}
                     whileInView={{ scaleY: 1 }}
@@ -353,4 +342,3 @@ export function GuestView({ invitation }: any) {
     </div>
   );
 }
-```
