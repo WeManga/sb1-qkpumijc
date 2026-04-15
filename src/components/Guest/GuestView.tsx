@@ -205,7 +205,7 @@ export function GuestView({ invitation }: any) {
 
             <div className="flex-1 px-8 py-16 max-w-2xl mx-auto w-full space-y-24">
               <div className="text-center space-y-8">
-                <h2 className="text-sm font-black uppercase tracking-[0.5em] gold-shimmer">{invitation.title || tBuilder.title_placeholder}</h2>
+                <h2 className="text-sm font-black uppercase tracking-[0.5em] text-gray-900" style={{ webkitTextFillColor: 'initial', background: 'none' }}>{invitation.title || tBuilder.title_placeholder}</h2>
                 <h1 className="text-6xl font-black gold-shimmer leading-tight" style={{ fontFamily: invitation.font_style }}>{invitation.host_names || tBuilder.hosts_placeholder}</h1>
                 
                 <div className="flex flex-col items-center gap-6 pt-6">
@@ -344,4 +344,4 @@ export function GuestView({ invitation }: any) {
       </AnimatePresence>
     </div>
   );
-} 
+}
