@@ -45,20 +45,27 @@ export function GuestView({ invitation }: any) {
     setGuests(newGuests);
   }, [guestCount]);
 
+  // STRATÉGIE CALENDRIER UNIVERSELLE (WebView Friendly)
   const addToCalendar = () => {
-    const startDate = new Date(invitation.event_date).toISOString().replace(/-|:|\.\d\d\d/g, "");
-    const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(invitation.title)}&dates=${startDate}/${startDate}&location=${encodeURIComponent(invitation.event_address)}`;
+    const eventDate = new Date(invitation.event_date);
+    const formatDate = (date: Date) => date.toISOString().replace(/-|:|\.\d\d\d/g, "");
+    const startDate = formatDate(eventDate);
+    const endDate = formatDate(new Date(eventDate.getTime() + 2 * 60 * 60 * 1000));
     
-    if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-      const icsContent = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:${invitation.title}\nDTSTART:${startDate}\nLOCATION:${invitation.event_address}\nEND:VEVENT\nEND:VCALENDAR`;
-      const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', 'event.ics');
-      link.click();
+    const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(invitation.title)}&dates=${startDate}/${endDate}&location=${encodeURIComponent(invitation.event_address)}&details=${encodeURIComponent(invitation.description || "")}`;
+    
+    window.open(googleUrl, '_blank');
+  };
+
+  // STRATÉGIE MAPS UNIVERSELLE
+  const openMaps = () => {
+    const address = encodeURIComponent(invitation.event_address);
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    
+    if (isIOS) {
+      window.open(`maps://maps.apple.com/?q=${address}`, '_blank');
     } else {
-      window.open(googleUrl, '_blank');
+      window.open(`geo:0,0?q=${address}`, '_blank');
     }
   };
 
@@ -228,7 +235,7 @@ export function GuestView({ invitation }: any) {
 
               <div className="space-y-16">
                 <h3 className="text-center font-black uppercase tracking-[0.6em] text-amber-600 text-[10px] flex items-center justify-center gap-4">
-                     {tBuilder.program_title} 
+                    <Sparkles size={16}/> {tBuilder.program_title} <Sparkles size={16}/>
                 </h3>
                 <div className="relative flex flex-col items-center">
                   <motion.div 
@@ -251,7 +258,6 @@ export function GuestView({ invitation }: any) {
                           transition={{ duration: 1.2, delay: 0.1, ease: "easeOut" }}
                           className={`flex items-start w-full relative ${isEven ? 'justify-start pl-10' : 'justify-end pr-10'}`}
                         >
-                          {/* CORRECTION DU CENTRAGE : top-12 au lieu de top-1/2 */}
                           <motion.div 
                             initial={{ scale: 0, rotate: 45, opacity: 0 }}
                             whileInView={{ scale: 1, rotate: 45, opacity: 1 }}
@@ -277,8 +283,9 @@ export function GuestView({ invitation }: any) {
                 </div>
               </div>
 
+              {/* BOUTON MAPS UNIVERSEL */}
               <div className="text-center pt-8">
-                 <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(invitation.event_address)}`, '_blank')} className="inline-flex flex-col items-center gap-4 group">
+                 <button onClick={openMaps} className="inline-flex flex-col items-center gap-4 group">
                     <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-2xl text-amber-500 border border-amber-100"><MapPin size={32}/></div>
                     <span className="text-xs font-black uppercase tracking-[0.3em] opacity-60 underline underline-offset-[12px] decoration-amber-500/40">{invitation.event_address || tBuilder.address_placeholder}</span>
                  </button>
