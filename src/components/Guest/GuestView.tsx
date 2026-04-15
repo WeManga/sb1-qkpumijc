@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useTransform, useSpring } from 'framer-motion';
 import { X, Calendar, MapPin, CheckCircle2, Plus, Sparkles, Clock } from 'lucide-react'; 
 import { supabase } from '../../lib/supabase';
 import { translations, Language } from '../../lib/i18n';
@@ -23,14 +23,19 @@ export function GuestView({ invitation }: any) {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   
-  // Ref pour le suivi du scroll de la ligne
-  const scrollRef = useRef(null);
+  // Ref pour la section complète du programme jusqu'à l'adresse
+  const programRef = useRef(null);
   const { scrollYProgress } = useScroll({
-    target: scrollRef,
-    offset: ["start end", "end center"]
+    target: programRef,
+    offset: ["start center", "end center"]
   });
   
-  const scaleY = useTransform(scrollYProgress, [0, 1], [0, 1]);
+  // Utilisation d'un ressort (spring) pour un mouvement fluide et visible
+  const scaleY = useSpring(scrollYProgress, {
+    stiffness: 40,
+    damping: 20,
+    restDelta: 0.001
+  });
 
   const lang = (invitation.language as Language) || (localStorage.getItem('invite_lang') as Language) || 'fr';
   const t = translations[lang].guest;
@@ -239,20 +244,20 @@ export function GuestView({ invitation }: any) {
                 </div>
               )}
 
-              <div className="space-y-16">
+              <div ref={programRef} className="space-y-16">
                 <h3 className="text-center font-black uppercase tracking-[0.6em] text-amber-600 text-[10px] flex items-center justify-center gap-4">
                      {tBuilder.program_title} 
                 </h3>
-                <div ref={scrollRef} className="relative flex flex-col items-center">
-                  {/* Ligne qui suit le scroll rejoignant point par point */}
+                <div className="relative flex flex-col items-center">
+                  {/* Ligne de fond stable */}
+                  <div className="absolute top-14 w-[3px] h-[calc(100%+120px)] bg-black/5 rounded-full" />
+                  
+                  {/* Ligne animée fluide vers Maps */}
                   <motion.div 
                     style={{ scaleY }}
-                    className="absolute top-14 w-[3px] h-[calc(100%-56px)] bg-gradient-to-b from-amber-200 via-amber-500 to-amber-200 rounded-full origin-top z-10" 
+                    className="absolute top-14 w-[3px] h-[calc(100%+120px)] bg-gradient-to-b from-amber-200 via-amber-500 to-amber-200 rounded-full origin-top z-10 shadow-[0_0_10px_rgba(245,158,11,0.3)]" 
                   />
                   
-                  {/* Ligne de fond (en gris clair/transparent) */}
-                  <div className="absolute top-14 w-[3px] h-[calc(100%-56px)] bg-black/5 rounded-full" />
-
                   <div className="relative space-y-24 w-full pt-12">
                     {(invitation.event_program || []).map((step: any, i: number) => {
                       const isEven = i % 2 === 0;
@@ -261,15 +266,16 @@ export function GuestView({ invitation }: any) {
                           key={i} 
                           initial={{ opacity: 0, x: isEven ? -60 : 60 }}
                           whileInView={{ opacity: 1, x: 0 }}
-                          viewport={{ once: true, margin: "-120px" }}
-                          transition={{ duration: 1.2, delay: 0.1, ease: "easeOut" }}
+                          viewport={{ once: true, margin: "-100px" }}
+                          transition={{ duration: 1.0, delay: 0.2, ease: "easeOut" }}
                           className={`flex items-start w-full relative ${isEven ? 'justify-start pl-10' : 'justify-end pr-10'}`}
                         >
+                          {/* Le point sur la ligne */}
                           <motion.div 
                             initial={{ scale: 0, rotate: 45, opacity: 0 }}
                             whileInView={{ scale: 1, rotate: 45, opacity: 1 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.8, delay: 0.5 }}
+                            viewport={{ once: true, margin: "-100px" }}
+                            transition={{ duration: 0.6, delay: 0.6 }}
                             className={`absolute top-12 z-20 w-4 h-4 bg-amber-500 border-2 border-white shadow-lg ${isEven ? 'right-[50%] translate-x-1/2' : 'left-[50%] -translate-x-1/2'}`}
                           >
                             <motion.div
@@ -288,13 +294,22 @@ export function GuestView({ invitation }: any) {
                     })}
                   </div>
                 </div>
-              </div>
 
-              <div className="text-center pt-8">
-                 <button onClick={openMaps} className="inline-flex flex-col items-center gap-4 group">
-                    <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-2xl text-amber-500 border border-amber-100"><MapPin size={32}/></div>
-                    <span className="text-xs font-black uppercase tracking-[0.3em] opacity-60 underline underline-offset-[12px] decoration-amber-500/40">{invitation.event_address || tBuilder.address_placeholder}</span>
-                 </button>
+                {/* Section Adresse reliée */}
+                <div className="text-center pt-8 relative">
+                   <button onClick={openMaps} className="inline-flex flex-col items-center gap-4 group relative z-20">
+                      <motion.div 
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        whileInView={{ scale: 1, opacity: 1 }}
+                        viewport={{ once: true }}
+                        transition={{ delay: 0.5 }}
+                        className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-2xl text-amber-500 border border-amber-100 group-hover:scale-110 transition-transform"
+                      >
+                        <MapPin size={32}/>
+                      </motion.div>
+                      <span className="text-xs font-black uppercase tracking-[0.3em] opacity-60 underline underline-offset-[12px] decoration-amber-500/40">{invitation.event_address || tBuilder.address_placeholder}</span>
+                   </button>
+                </div>
               </div>
 
               <div className="bg-white/90 backdrop-blur-2xl rounded-[5rem] p-12 shadow-[0_40px_100px_rgba(0,0,0,0.1)] border border-white relative overflow-hidden">
