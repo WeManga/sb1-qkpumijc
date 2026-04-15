@@ -22,20 +22,21 @@ const FONTS = [
   { id: 'font-mono', name: 'Minimalist', family: 'monospace' }
 ];
 
-const EVENT_TYPES = [
-  { id: 'wedding', name: 'Mariage', vi: 'Đám cưới', icon: Heart },
-  { id: 'birthday', name: 'Anniversaire', vi: 'Sinh nhật', icon: PartyPopper },
-  { id: 'party', name: 'Fête', vi: 'Bữa tiệc', icon: Sparkles },
-  { id: 'baptism', name: 'Baptême', vi: 'Lễ rửa tội', icon: Baby },
-  { id: 'babyshower', name: 'Babyshower', vi: 'Babyshower', icon: Milk },
-  { id: 'funeral', name: 'Enterrement', vi: 'Tang lễ', icon: Skull }
-];
-
 export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: any) {
   const [uploading, setUploading] = useState(false);
   
   const lang = (invitation.language as Language) || (localStorage.getItem('invite_lang') as Language) || 'fr';
   const t = translations[lang].builder;
+
+  // Mapping dynamique des types d'événements pour utiliser les traductions de i18n
+  const EVENT_TYPES = [
+    { id: 'wedding', name: t.theme_wedding, icon: Heart },
+    { id: 'birthday', name: t.theme_birthday, icon: PartyPopper },
+    { id: 'party', name: t.theme_party, icon: Sparkles },
+    { id: 'baptism', name: t.theme_baptism, icon: Baby },
+    { id: 'babyshower', name: 'Babyshower', icon: Milk },
+    { id: 'funeral', name: 'Funeral', icon: Skull }
+  ];
 
   const uploadFile = async (e: any, field: string) => {
     const file = e.target.files?.[0];
@@ -48,8 +49,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       const { data } = supabase.storage.from('invitations').getPublicUrl(fileName);
       onInvitationChange({ ...invitation, [field]: data.publicUrl });
     } catch (err) { 
-      // Alerte traduite
-      alert(lang === 'vi' ? "Lỗi khi tải tập tin lên" : "Erreur d'upload"); 
+      alert(lang === 'vi' ? "Lỗi khi tải tập tin lên" : lang === 'en' ? "Upload error" : "Erreur d'upload"); 
     } 
     finally { setUploading(false); }
   };
@@ -84,7 +84,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
               value={invitation.description || ''} 
               onChange={e => onInvitationChange({...invitation, description: e.target.value})} 
               className="w-full bg-gray-50 border-none p-4 rounded-2xl text-sm min-h-[100px] resize-none" 
-              placeholder={lang === 'vi' ? 'Nhập mô tả sự kiện...' : "Texte d'accueil ou description de l'événement..."}
+              placeholder={lang === 'vi' ? 'Nhập mô tả sự kiện...' : lang === 'en' ? 'Event description...' : "Texte d'accueil ou description de l'événement..."}
             />
 
             <div className="relative">
@@ -123,21 +123,21 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       {activeTab === 'media' && (
         <div className="space-y-8">
           <div className="space-y-4">
-            <label className="text-[10px] font-black uppercase text-gray-400 ml-1">{lang === 'vi' ? 'PHƯƠNG TIỆN' : 'VOS MÉDIAS'}</label>
+            <label className="text-[10px] font-black uppercase text-gray-400 ml-1">{t.photo_label}</label>
             <div className="grid grid-cols-2 gap-4">
               <label className="flex flex-col items-center justify-center aspect-square bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-200 cursor-pointer overflow-hidden relative">
                 {invitation.main_photo_url ? (
                   <img src={invitation.main_photo_url} className="w-full h-full object-cover opacity-30" alt="Preview" />
                 ) : <ImageIcon className="text-gray-400 mb-2" />}
                 <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-gray-600 uppercase bg-white/40 text-center px-2">
-                  {lang === 'vi' ? 'Đổi ảnh' : 'Changer Photo'}
+                  {t.upload_photo}
                 </span>
                 <input type="file" className="hidden" accept="image/*" onChange={(e) => uploadFile(e, 'main_photo_url')} />
               </label>
               
               <label className="flex flex-col items-center justify-center aspect-square bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-200 cursor-pointer">
                 <Music className="text-gray-400 mb-2" />
-                <span className="text-[10px] font-bold text-gray-400 uppercase text-center px-2">{invitation.music_url ? "OK" : "Upload MP3"}</span>
+                <span className="text-[10px] font-bold text-gray-400 uppercase text-center px-2">{invitation.music_url ? "OK" : t.upload_music}</span>
                 <input type="file" className="hidden" accept=".mp3,audio/mpeg" onChange={(e) => uploadFile(e, 'music_url')} />
               </label>
             </div>
@@ -146,7 +146,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
           {invitation.main_photo_url && (
             <div className="bg-amber-50/50 p-6 rounded-[2rem] border border-amber-100 space-y-6">
               <div className="space-y-3">
-                 <span className="text-[10px] font-black uppercase text-amber-800 tracking-wider flex items-center gap-2"><Move size={12}/> {lang === 'vi' ? 'Điều chỉnh hiển thị' : "Ajustement de l'affichage"}</span>
+                 <span className="text-[10px] font-black uppercase text-amber-800 tracking-wider flex items-center gap-2"><Move size={12}/> {t.adjust_photo}</span>
                  <div className="w-full aspect-video rounded-2xl bg-gray-200 overflow-hidden relative border-2 border-white shadow-sm">
                     <img 
                       src={invitation.main_photo_url} 
@@ -157,11 +157,11 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
               </div>
               <div className="space-y-4">
                 <div className="space-y-1">
-                   <span className="text-[9px] uppercase font-bold text-amber-900/40 ml-1">{lang === 'vi' ? 'Trục ngang' : 'Axe Horizontal'}</span>
+                   <span className="text-[9px] uppercase font-bold text-amber-900/40 ml-1">Horizontal</span>
                    <input type="range" min="0" max="100" value={invitation.photo_pos_x || 50} onChange={(e) => onInvitationChange({ ...invitation, photo_pos_x: parseInt(e.target.value) })} className="w-full accent-amber-600" />
                 </div>
                 <div className="space-y-1">
-                   <span className="text-[9px] uppercase font-bold text-amber-900/40 ml-1">{lang === 'vi' ? 'Trục dọc' : 'Axe Vertical'}</span>
+                   <span className="text-[9px] uppercase font-bold text-amber-900/40 ml-1">Vertical</span>
                    <input type="range" min="0" max="100" value={invitation.photo_pos_y || 50} onChange={(e) => onInvitationChange({ ...invitation, photo_pos_y: parseInt(e.target.value) })} className="w-full accent-amber-600" />
                 </div>
               </div>
@@ -173,20 +173,20 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       {activeTab === 'style' && (
         <div className="space-y-8">
           <div>
-            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">{lang === 'vi' ? 'Loại sự kiện' : "Type d'événement"}</label>
+            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">{t.theme_label}</label>
             <div className="grid grid-cols-2 gap-3">
               {EVENT_TYPES.map(type => (
                 <button key={type.id} onClick={() => onInvitationChange({...invitation, event_type: type.id})} 
                   className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all ${invitation.event_type === type.id ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}>
                   <type.icon size={18} className={invitation.event_type === type.id ? 'text-amber-500' : 'text-gray-400'} />
-                  <span className="text-[10px] font-bold uppercase">{lang === 'vi' ? (type as any).vi : type.name}</span>
+                  <span className="text-[10px] font-bold uppercase">{type.name}</span>
                 </button>
               ))}
             </div>
           </div>
 
           <div>
-            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">{lang === 'vi' ? 'Chất liệu giấy' : "Texture du papier"}</label>
+            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">Texture</label>
             <div className="grid grid-cols-2 gap-2">
               {['smooth', 'parchment', 'grainy', 'cotton'].map(p => (
                 <button key={p} onClick={() => onInvitationChange({...invitation, paper_type: p})} 
@@ -198,7 +198,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
           </div>
 
           <div>
-            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">{lang === 'vi' ? 'Màu phong bì' : "Couleur de l'enveloppe"}</label>
+            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">{t.envelope_color}</label>
             <div className="flex gap-3 overflow-x-auto pt-2 pb-6 px-4 -mx-4 scrollbar-hide">
               {COLOR_PALETTES.map(p => (
                 <button key={p.color} onClick={() => onInvitationChange({...invitation, envelope_color: p.color})} style={{backgroundColor: p.color}} 
@@ -208,7 +208,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
           </div>
           
           <div>
-            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">{lang === 'vi' ? 'Kiểu chữ' : "Style d'écriture"}</label>
+            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">{t.font_style_label}</label>
             <div className="space-y-2">
               {FONTS.map(f => (
                 <button key={f.id} onClick={() => onInvitationChange({...invitation, font_style: f.family})} 
