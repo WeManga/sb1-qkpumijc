@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useTransform, useSpring } from 'framer-motion';
 import { X, Calendar, MapPin, CheckCircle2, Plus, Sparkles, Clock } from 'lucide-react'; 
 import { supabase } from '../../lib/supabase';
 import { translations, Language } from '../../lib/i18n';
@@ -22,6 +22,16 @@ export function GuestView({ invitation }: any) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
+  
+  // Ref pour le suivi du scroll sur TOUTE la zone du programme jusqu'à l'adresse
+  const programAreaRef = useRef(null);
+  const { scrollYProgress } = useScroll({
+    target: programAreaRef,
+    offset: ["start center", "end 80%"]
+  });
+
+  // Printemps pour lisser l'animation du fil d'or
+  const pathLength = useSpring(scrollYProgress, { stiffness: 40, damping: 20 });
 
   const lang = (invitation.language as Language) || (localStorage.getItem('invite_lang') as Language) || 'fr';
   const t = translations[lang].guest;
@@ -106,6 +116,77 @@ export function GuestView({ invitation }: any) {
       </div>
     );
   };
+
+  // Composant pour l'animation d'explosion de paillettes
+  const GlitterExplosion = () => {
+    const glitterParticles = useMemo(() => Array.from({ length: 15 }).map((_, i) => ({
+      id: i,
+      angle: Math.random() * 360,
+      distance: 30 + Math.random() * 40,
+      delay: Math.random() * 0.2,
+      duration: 0.8 + Math.random() * 0.4,
+      scale: 0.5 + Math.random() * 1,
+    })), []);
+
+    return (
+      <div className="absolute inset-0 z-30 pointer-events-none flex items-center justify-center">
+        {glitterParticles.map((p) => {
+          const x = p.distance * Math.cos(p.angle * (Math.PI / 180));
+          const y = p.distance * Math.sin(p.angle * (Math.PI / 180));
+          return (
+            <motion.div
+              key={p.id}
+              initial={{ x: 0, y: 0, opacity: 1, scale: p.scale }}
+              animate={{ x: x, y: y, opacity: 0, scale: 0 }}
+              transition={{
+                duration: p.duration,
+                delay: p.delay,
+                ease: "easeOut"
+              }}
+              className="absolute w-2.5 h-2.5 bg-amber-400 rounded-full shadow-[0_0_8px_rgba(251,191,36,0.8)]"
+            />
+          );
+        })}
+      </div>
+    );
+  };
+
+  // Calcul dynamique du chemin SVG serpentant
+  const getDynamicGoldPath = (programSteps: any[]) => {
+    const totalSteps = programSteps.length;
+    if (totalSteps === 0) return "M 50 14 Q 50 14, 50 14"; // Pas de programme
+
+    let path = `M 50 14`; // Point de départ (milieu haut)
+    
+    programSteps.forEach((_, i) => {
+      if (i === 0) return; // Départ déjà géré
+
+      // Aligné sur le point précédent (centre de la bulle précédente)
+      const yStart = 110 * (i - 1) + 12; // y du centre du cercle i-1
+      const yEnd = 110 * i + 12; // y du centre du cercle i
+
+      // Points de contrôle pour le serpentage organique
+      const controlX1 = (i % 2 === 0) ? 65 : 35; // Serpentage
+      const controlY1 = yStart + (yEnd - yStart) / 4;
+      
+      const controlX2 = (i % 2 === 0) ? 35 : 65; // Serpentage inversé
+      const controlY2 = yEnd - (yEnd - yStart) / 4;
+
+      path += ` C ${controlX1} ${controlY1}, ${controlX2} ${controlY2}, 50 ${yEnd}`;
+    });
+
+    // Chemin final serpentant vers l'adresse
+    const finalYStart = 110 * (totalSteps - 1) + 12;
+    const finalYEnd = totalSteps * 110 + 40;
+    const finalControlX = (totalSteps % 2 === 0) ? 60 : 40;
+    const finalControlY = finalYStart + (finalYEnd - finalYStart) / 2;
+
+    path += ` C ${finalControlX} ${finalControlY}, ${finalControlX} ${finalControlY}, 50 ${finalYEnd}`;
+
+    return path;
+  };
+
+  const dynamicGoldPath = useMemo(() => getDynamicGoldPath(invitation.event_program || []), [invitation.event_program]);
 
   return (
     <div className="fixed inset-0 flex items-center justify-center overflow-hidden touch-none" style={{ backgroundColor: invitation.envelope_color || '#F3F4F6' }}>
@@ -224,52 +305,64 @@ export function GuestView({ invitation }: any) {
                 </div>
               )}
 
-              <div className="space-y-16">
+              {/* SECTION DU PROGRAMME AVEC FIL D'OR UNIQUE ET ANIMATION D'EXPLOSION */}
+              <div ref={programAreaRef} className="space-y-16 relative">
                 <h3 className="text-center font-black uppercase tracking-[0.6em] text-amber-600 text-[10px] flex items-center justify-center gap-4">
                      {tBuilder.program_title} 
                 </h3>
                 
                 <div className="relative flex flex-col items-center">
+                  
+                  {/* UN SEUL SVG POUR TOUTE LA ZONE DU PROGRAMME JUSQU'À L'ADRESSE */}
+                  <svg className="absolute top-14 left-1/2 -translate-x-1/2 w-full h-[calc(100%+90px)] pointer-events-none z-10" viewBox="0 0 100 100" preserveAspectRatio="none">
+                    <defs>
+                      <linearGradient id="goldGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" stopColor="#fcd34d" />
+                        <stop offset="50%" stopColor="#fbbf24" />
+                        <stop offset="100%" stopColor="#fcd34d" />
+                      </linearGradient>
+                    </defs>
+                    
+                    {/* FIL D'OR UNIQUE ET FLUIDE (COURBE DE BÉZIER) QUI SERPENTE */}
+                    <motion.path 
+                      d={dynamicGoldPath}
+                      fill="none"
+                      stroke="url(#goldGradient)"
+                      strokeWidth="2.5" // Épuré et graphique
+                      style={{ pathLength }}
+                      strokeLinecap="round"
+                      className="drop-shadow-[0_0_8px_rgba(251,191,36,0.5)]"
+                    />
+                  </svg>
+                  
                   <div className="relative space-y-24 w-full pt-12">
                     {(invitation.event_program || []).map((step: any, i: number) => {
                       const isEven = i % 2 === 0;
                       return (
                         <div key={i} className={`flex items-start w-full relative ${isEven ? 'justify-start pl-10' : 'justify-end pr-10'}`}>
                           
-                          {/* FIL D'OR COURBÉ ENTRE LES ÉTAPES */}
-                          {i > 0 && (
-                            <div className="absolute top-[-96px] left-1/2 -translate-x-1/2 w-20 h-[100px] pointer-events-none">
-                              <svg width="100%" height="100%" viewBox="0 0 40 100" preserveAspectRatio="none">
-                                <motion.path
-                                  d={i % 2 === 0 ? "M 20 0 C 40 50, 40 50, 20 100" : "M 20 0 C 0 50, 0 50, 20 100"}
-                                  fill="none"
-                                  stroke="#fbbf24"
-                                  strokeWidth="3"
-                                  initial={{ pathLength: 0 }}
-                                  whileInView={{ pathLength: 1 }}
-                                  viewport={{ once: true }}
-                                  transition={{ duration: 1.5, ease: "easeInOut" }}
-                                />
-                              </svg>
-                            </div>
-                          )}
-
-                          {/* POINT CIRCULAIRE DORÉ */}
+                          {/* POINT CIRCULAIRE DORÉ ÉPURÉ ET LUMINEUX (CERCLE) */}
                           <motion.div 
-                            initial={{ scale: 0 }}
-                            whileInView={{ scale: 1 }}
-                            viewport={{ once: true }}
-                            transition={{ delay: 0.5 }}
-                            className="absolute top-12 left-1/2 -translate-x-1/2 z-20 w-4 h-4 bg-amber-500 border-2 border-white shadow-lg rounded-full"
+                            initial={{ scale: 0, opacity: 0 }}
+                            whileInView={{ scale: 1, opacity: 1 }}
+                            viewport={{ once: true, margin: "-120px" }}
+                            transition={{ duration: 0.7, delay: 0.6 }}
+                            className="absolute top-12 left-1/2 -translate-x-1/2 z-20 w-4.5 h-4.5 bg-amber-500 border-2.5 border-white shadow-xl rounded-full" // Cercle épuré
                           >
-                            <motion.div animate={{ opacity: [1, 0.4, 1] }} transition={{ duration: 2, repeat: Infinity }} className="absolute inset-0 bg-amber-300 rounded-full" />
+                            {/* Animation douce de scintillement */}
+                            <motion.div
+                              animate={{ opacity: [1, 0.5, 1], scale: [1, 1.1, 1] }}
+                              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+                              className="absolute inset-0 bg-amber-300 rounded-full"
+                            />
                           </motion.div>
 
+                          {/* Bulle de texte (conservée, juste suppression uppercase si présent) */}
                           <motion.div 
                             initial={{ opacity: 0, x: isEven ? -40 : 40 }}
                             whileInView={{ opacity: 1, x: 0 }}
-                            viewport={{ once: true }}
-                            transition={{ duration: 0.8 }}
+                            viewport={{ once: true, margin: "-120px" }}
+                            transition={{ duration: 0.9 }}
                             className={`w-[44%] p-8 bg-white/70 rounded-[3rem] border border-amber-100 backdrop-blur-md shadow-2xl ${isEven ? 'text-left' : 'text-right'}`}
                           >
                             <span className="text-[11px] font-black text-amber-600 block mb-2 tracking-widest"><Clock size={12} className="inline mr-1 mb-1"/> {step.time}</span>
@@ -279,34 +372,24 @@ export function GuestView({ invitation }: any) {
                       );
                     })}
                   </div>
-
-                  {/* FIL D'OR FINAL VERS L'ADRESSE */}
-                  <div className="absolute bottom-[-80px] left-1/2 -translate-x-1/2 w-20 h-[80px] pointer-events-none">
-                     <svg width="100%" height="100%" viewBox="0 0 40 80" preserveAspectRatio="none">
-                        <motion.path
-                          d="M 20 0 C 10 40, 10 40, 20 80"
-                          fill="none"
-                          stroke="#fbbf24"
-                          strokeWidth="3"
-                          initial={{ pathLength: 0 }}
-                          whileInView={{ pathLength: 1 }}
-                          viewport={{ once: true }}
-                          transition={{ duration: 1.5, ease: "easeInOut" }}
-                        />
-                      </svg>
-                  </div>
                 </div>
 
-                <div className="text-center pt-24 relative">
+                {/* SECTION ADRESSE AVEC L'ANIMATION DE PAILLETTES FINALE */}
+                <div className="text-center pt-20 relative">
                    <button onClick={openMaps} className="inline-flex flex-col items-center gap-4 group relative z-20">
                       <motion.div 
-                        initial={{ scale: 0 }}
-                        whileInView={{ scale: 1 }}
+                        initial={{ scale: 0, opacity: 0, y: 15 }}
+                        whileInView={{ scale: 1, opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        transition={{ type: "spring", damping: 12, delay: 1 }}
-                        className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-2xl text-amber-500 border border-amber-100 group-hover:scale-110 transition-transform"
+                        transition={{ duration: 0.9, type: "spring", damping: 14, delay: 1 }}
+                        className="relative w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-2xl text-amber-500 border border-amber-100 group-hover:scale-110 transition-transform"
                       >
                         <MapPin size={32}/>
+                        
+                        {/* ANIMATION D'EXPLOSION DE PAILLETTES LORSQUE LE FIL ARRIVE JUSQU'À L'ADRESSE */}
+                        <AnimatePresence>
+                          {isOpened && pathLength.get() >= 0.99 && <GlitterExplosion />}
+                        </AnimatePresence>
                       </motion.div>
                       <span className="text-xs font-black uppercase tracking-[0.3em] opacity-60 underline underline-offset-[12px] decoration-amber-500/40">{invitation.event_address || tBuilder.address_placeholder}</span>
                    </button>
