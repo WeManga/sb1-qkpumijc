@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { motion, AnimatePresence, useScroll, useTransform, useSpring } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
 import { X, Calendar, MapPin, CheckCircle2, Plus, Sparkles, Clock } from 'lucide-react'; 
 import { supabase } from '../../lib/supabase';
 import { translations, Language } from '../../lib/i18n';
@@ -27,7 +27,7 @@ export function GuestView({ invitation }: any) {
   const programAreaRef = useRef(null);
   const { scrollYProgress } = useScroll({
     target: programAreaRef,
-    offset: ["start center", "end 80%"]
+    offset: ["start center", "end center"]
   });
 
   // Printemps pour lisser l'animation du fil d'or
@@ -119,13 +119,12 @@ export function GuestView({ invitation }: any) {
 
   // Composant pour l'animation d'explosion de paillettes
   const GlitterExplosion = () => {
-    const glitterParticles = useMemo(() => Array.from({ length: 15 }).map((_, i) => ({
+    const glitterParticles = useMemo(() => Array.from({ length: 12 }).map((_, i) => ({
       id: i,
       angle: Math.random() * 360,
-      distance: 30 + Math.random() * 40,
-      delay: Math.random() * 0.2,
-      duration: 0.8 + Math.random() * 0.4,
-      scale: 0.5 + Math.random() * 1,
+      distance: 25 + Math.random() * 35,
+      delay: Math.random() * 0.1,
+      duration: 0.7 + Math.random() * 0.3,
     })), []);
 
     return (
@@ -136,14 +135,14 @@ export function GuestView({ invitation }: any) {
           return (
             <motion.div
               key={p.id}
-              initial={{ x: 0, y: 0, opacity: 1, scale: p.scale }}
+              initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
               animate={{ x: x, y: y, opacity: 0, scale: 0 }}
               transition={{
                 duration: p.duration,
                 delay: p.delay,
                 ease: "easeOut"
               }}
-              className="absolute w-2.5 h-2.5 bg-amber-400 rounded-full shadow-[0_0_8px_rgba(251,191,36,0.8)]"
+              className="absolute w-2.5 h-2.5 bg-amber-400 rounded-full shadow-[0_0_6px_rgba(251,191,36,0.8)]"
             />
           );
         })}
@@ -151,42 +150,43 @@ export function GuestView({ invitation }: any) {
     );
   };
 
-  // Calcul dynamique du chemin SVG serpentant
-  const getDynamicGoldPath = (programSteps: any[]) => {
+  // Calcul complexe du chemin SVG "Fil d'Or" noué et serpentant
+  const getKnottedGoldPath = (programSteps: any[]) => {
     const totalSteps = programSteps.length;
     if (totalSteps === 0) return "M 50 14 Q 50 14, 50 14"; // Pas de programme
 
-    let path = `M 50 14`; // Point de départ (milieu haut)
+    let path = `M 50 14`; // Départ
     
     programSteps.forEach((_, i) => {
-      if (i === 0) return; // Départ déjà géré
+      // Aligné sur le point actuel (centre de la bulle)
+      const yCenter = 110 * i + 12;
 
-      // Aligné sur le point précédent (centre de la bulle précédente)
-      const yStart = 110 * (i - 1) + 12; // y du centre du cercle i-1
-      const yEnd = 110 * i + 12; // y du centre du cercle i
+      // 1. Serpentage jusqu'au point
+      if (i > 0) {
+        const yStart = 110 * (i - 1) + 12;
+        const controlX = (i % 2 === 0) ? 60 : 40; // Torsion
+        path += ` C ${controlX} ${yStart + 20}, ${controlX} ${yCenter - 20}, 50 ${yCenter}`;
+      } else {
+        path += ` L 50 ${yCenter}`; // Premier point droit
+      }
 
-      // Points de contrôle pour le serpentage organique
-      const controlX1 = (i % 2 === 0) ? 65 : 35; // Serpentage
-      const controlY1 = yStart + (yEnd - yStart) / 4;
-      
-      const controlX2 = (i % 2 === 0) ? 35 : 65; // Serpentage inversé
-      const controlY2 = yEnd - (yEnd - yStart) / 4;
-
-      path += ` C ${controlX1} ${controlY1}, ${controlX2} ${controlY2}, 50 ${yEnd}`;
+      // 2. Création du NŒUD (boucle SVG) autour du point
+      const knotRadius = 6;
+      path += ` A ${knotRadius} ${knotRadius} 0 1 1 50 ${yCenter - knotRadius}`; // Demi-boucle haut
+      path += ` A ${knotRadius} ${knotRadius} 0 1 1 50 ${yCenter + knotRadius}`; // Demi-boucle bas
+      path += ` L 50 ${yCenter}`; // Retour au centre
     });
 
     // Chemin final serpentant vers l'adresse
     const finalYStart = 110 * (totalSteps - 1) + 12;
     const finalYEnd = totalSteps * 110 + 40;
-    const finalControlX = (totalSteps % 2 === 0) ? 60 : 40;
-    const finalControlY = finalYStart + (finalYEnd - finalYStart) / 2;
-
-    path += ` C ${finalControlX} ${finalControlY}, ${finalControlX} ${finalControlY}, 50 ${finalYEnd}`;
+    const finalControlX = (totalSteps % 2 === 0) ? 45 : 55; // Légère torsion finale
+    path += ` C ${finalControlX} ${finalYStart + 20}, ${finalControlX} ${finalYEnd - 20}, 50 ${finalYEnd}`;
 
     return path;
   };
 
-  const dynamicGoldPath = useMemo(() => getDynamicGoldPath(invitation.event_program || []), [invitation.event_program]);
+  const knottedGoldPath = useMemo(() => getKnottedGoldPath(invitation.event_program || []), [invitation.event_program]);
 
   return (
     <div className="fixed inset-0 flex items-center justify-center overflow-hidden touch-none" style={{ backgroundColor: invitation.envelope_color || '#F3F4F6' }}>
@@ -305,7 +305,7 @@ export function GuestView({ invitation }: any) {
                 </div>
               )}
 
-              {/* SECTION DU PROGRAMME AVEC FIL D'OR UNIQUE ET ANIMATION D'EXPLOSION */}
+              {/* SECTION DU PROGRAMME AVEC LE FIL D'OR NOUÉ ET L'EXPLOSION */}
               <div ref={programAreaRef} className="space-y-16 relative">
                 <h3 className="text-center font-black uppercase tracking-[0.6em] text-amber-600 text-[10px] flex items-center justify-center gap-4">
                      {tBuilder.program_title} 
@@ -313,7 +313,7 @@ export function GuestView({ invitation }: any) {
                 
                 <div className="relative flex flex-col items-center">
                   
-                  {/* UN SEUL SVG POUR TOUTE LA ZONE DU PROGRAMME JUSQU'À L'ADRESSE */}
+                  {/* SVG UNIQUE POUR TOUTE LA ZONE DU PROGRAMME JUSQU'À L'ADRESSE */}
                   <svg className="absolute top-14 left-1/2 -translate-x-1/2 w-full h-[calc(100%+90px)] pointer-events-none z-10" viewBox="0 0 100 100" preserveAspectRatio="none">
                     <defs>
                       <linearGradient id="goldGradient" x1="0%" y1="0%" x2="0%" y2="100%">
@@ -323,9 +323,9 @@ export function GuestView({ invitation }: any) {
                       </linearGradient>
                     </defs>
                     
-                    {/* FIL D'OR UNIQUE ET FLUIDE (COURBE DE BÉZIER) QUI SERPENTE */}
+                    {/* FIL D'OR UNIQUE, NOUÉ ET SERPENTANT (COURBE SVG) */}
                     <motion.path 
-                      d={dynamicGoldPath}
+                      d={knottedGoldPath}
                       fill="none"
                       stroke="url(#goldGradient)"
                       strokeWidth="2.5" // Épuré et graphique
@@ -341,23 +341,17 @@ export function GuestView({ invitation }: any) {
                       return (
                         <div key={i} className={`flex items-start w-full relative ${isEven ? 'justify-start pl-10' : 'justify-end pr-10'}`}>
                           
-                          {/* POINT CIRCULAIRE DORÉ ÉPURÉ ET LUMINEUX (CERCLE) */}
+                          {/* POINT CIRCULAIRE DORÉ ÉPURÉ ET LUMINEUX */}
                           <motion.div 
                             initial={{ scale: 0, opacity: 0 }}
                             whileInView={{ scale: 1, opacity: 1 }}
                             viewport={{ once: true, margin: "-120px" }}
                             transition={{ duration: 0.7, delay: 0.6 }}
-                            className="absolute top-12 left-1/2 -translate-x-1/2 z-20 w-4.5 h-4.5 bg-amber-500 border-2.5 border-white shadow-xl rounded-full" // Cercle épuré
+                            className="absolute top-12 left-1/2 -translate-x-1/2 z-20 w-4.5 h-4.5 bg-amber-500 border-2.5 border-white shadow-xl rounded-full"
                           >
-                            {/* Animation douce de scintillement */}
-                            <motion.div
-                              animate={{ opacity: [1, 0.5, 1], scale: [1, 1.1, 1] }}
-                              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-                              className="absolute inset-0 bg-amber-300 rounded-full"
-                            />
+                            <motion.div animate={{ opacity: [1, 0.4, 1], scale: [1, 1.1, 1] }} transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }} className="absolute inset-0 bg-amber-300 rounded-full" />
                           </motion.div>
 
-                          {/* Bulle de texte (conservée, juste suppression uppercase si présent) */}
                           <motion.div 
                             initial={{ opacity: 0, x: isEven ? -40 : 40 }}
                             whileInView={{ opacity: 1, x: 0 }}
@@ -374,7 +368,7 @@ export function GuestView({ invitation }: any) {
                   </div>
                 </div>
 
-                {/* SECTION ADRESSE AVEC L'ANIMATION DE PAILLETTES FINALE */}
+                {/* SECTION ADRESSE AVEC L'ANIMATION D'EXPLOSION */}
                 <div className="text-center pt-20 relative">
                    <button onClick={openMaps} className="inline-flex flex-col items-center gap-4 group relative z-20">
                       <motion.div 
