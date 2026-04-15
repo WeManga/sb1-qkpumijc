@@ -240,7 +240,7 @@ export function GuestView({ invitation }: any) {
                     whileInView={{ scaleY: 1 }}
                     viewport={{ once: true }}
                     transition={{ duration: 6.0, ease: "easeInOut" }}
-                    className="absolute top-14 w-[3px] h-[calc(100%+80px)] bg-gradient-to-b from-amber-200 via-amber-500 to-amber-200 rounded-full origin-top" 
+                    className="absolute top-14 w-[3px] h-[calc(100%+60px)] bg-gradient-to-b from-amber-200 via-amber-500 to-amber-200 rounded-full origin-top" 
                   />
                   
                   <div className="relative space-y-24 w-full pt-12">
@@ -331,4 +331,4 @@ export function GuestView({ invitation }: any) {
       </AnimatePresence>
     </div>
   );
-} 
+}
