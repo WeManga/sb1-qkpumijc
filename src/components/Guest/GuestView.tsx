@@ -23,7 +23,7 @@ export function GuestView({ invitation }: any) {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  const lang = (invitation.language as Language) || 'fr';
+  const lang = (invitation.language as Language) || (localStorage.getItem('invite_lang') as Language) || 'fr';
   const t = translations[lang].guest;
   const tBuilder = translations[lang].builder;
 
@@ -141,7 +141,7 @@ export function GuestView({ invitation }: any) {
                 <div className="absolute inset-0 opacity-40 rounded-full" style={{ background: 'repeating-radial-gradient(circle, #444 0, #000 2px, #111 4px)' }} />
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="w-28 h-28 bg-white rounded-full border-[8px] border-[#111] overflow-hidden shadow-inner">
-                    {invitation.main_photo_url && <img src={invitation.main_photo_url} className="w-full h-full object-cover" />}
+                    {invitation.main_photo_url && <img src={invitation.main_photo_url} className="w-full h-full object-cover" style={{ objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%` }} />}
                   </div>
                 </div>
               </div>
@@ -155,14 +155,14 @@ export function GuestView({ invitation }: any) {
               className={`row-start-1 col-start-1 z-30 w-[340px] h-[400px] rounded-[3.5rem] shadow-2xl p-10 flex flex-col items-center justify-between cursor-pointer border border-white/40 ${getPaperClass()} hover:scale-105 transition-all duration-700 ease-out`}
             >
               <div className="text-center pt-10">
-                <h2 className="text-3xl font-black uppercase text-gray-900" style={{ fontFamily: invitation.font_style }}>{invitation.title}</h2>
+                <h2 className="text-3xl font-black uppercase text-gray-900" style={{ fontFamily: invitation.font_style }}>{invitation.title || tBuilder.title_placeholder}</h2>
                 <div className="w-16 h-1 bg-amber-400 mx-auto mt-6 rounded-full" />
                 <motion.p animate={{ opacity: [0.4, 1, 0.4] }} transition={{ repeat: Infinity, duration: 2 }} className="text-[10px] font-black uppercase tracking-[0.5em] mt-10">
                   {t.tap_open}
                 </motion.p>
               </div>
               <div className="w-full py-5 bg-gray-900 text-white rounded-[2rem] text-[10px] font-black uppercase tracking-[0.4em] text-center shadow-xl">
-                 {t.tap_open}
+                 {lang === 'vi' ? 'Xem chi tiết' : lang === 'en' ? 'See details' : 'Voir les détails'}
               </div>
             </motion.div>
 
@@ -183,7 +183,7 @@ export function GuestView({ invitation }: any) {
               <div className="mt-12 flex flex-col items-center gap-4">
                   <motion.div animate={{ y: [0, -15, 0] }} transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }} className="w-1.5 h-12 bg-white/20 rounded-full" />
                   <p className="text-white font-black text-xs uppercase tracking-[0.8em] opacity-80">
-                    {t.tap_open.split(' ')[0]}
+                    {lang === 'vi' ? 'MỞ' : lang === 'en' ? 'OPEN' : 'OUVRIR'}
                   </p>
               </div>
             </motion.div>
@@ -194,21 +194,21 @@ export function GuestView({ invitation }: any) {
         {view === 'content' && (
           <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }} className={`fixed inset-0 z-[100] flex flex-col overflow-y-auto overflow-x-hidden touch-pan-y w-full ${getPaperClass()}`}>
             <div className="relative h-[40vh] shrink-0 overflow-hidden w-full">
-              <motion.img initial={{ scale: 1.2 }} animate={{ scale: 1 }} transition={{ duration: 10 }} src={invitation.main_photo_url} className="w-full h-full object-cover shadow-2xl" />
+              <motion.img initial={{ scale: 1.2 }} animate={{ scale: 1 }} transition={{ duration: 10 }} src={invitation.main_photo_url} className="w-full h-full object-cover shadow-2xl" style={{ objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%` }} />
               <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent" />
               <button onClick={() => setView('envelope')} className="absolute top-8 left-8 w-14 h-14 bg-white/90 backdrop-blur-xl rounded-full flex items-center justify-center shadow-2xl text-gray-800 hover:scale-110 transition-transform"><X size={24}/></button>
             </div>
 
             <div className="flex-1 px-8 py-16 max-w-2xl mx-auto w-full space-y-24">
               <div className="text-center space-y-8">
-                <h2 className="text-sm font-black uppercase tracking-[0.5em] gold-shimmer">{invitation.title}</h2>
-                <h1 className="text-6xl font-black gold-shimmer leading-tight" style={{ fontFamily: invitation.font_style }}>{invitation.host_names}</h1>
+                <h2 className="text-sm font-black uppercase tracking-[0.5em] gold-shimmer">{invitation.title || tBuilder.title_placeholder}</h2>
+                <h1 className="text-6xl font-black gold-shimmer leading-tight" style={{ fontFamily: invitation.font_style }}>{invitation.host_names || tBuilder.hosts_placeholder}</h1>
                 
                 <div className="flex flex-col items-center gap-6 pt-6">
                     <div className="flex items-center gap-5 bg-white/80 p-1.5 pr-6 rounded-full shadow-lg border border-amber-100">
                       <div className="bg-amber-500 p-3 rounded-full text-white shadow-md"><Calendar size={22}/></div>
                       <span className="text-sm font-black uppercase tracking-widest">
-                        {new Date(invitation.event_date).toLocaleDateString(lang === 'vi' ? 'vi-VN' : lang === 'en' ? 'en-US' : 'fr-FR', {day:'numeric', month:'long', year:'numeric'})}
+                        {invitation.event_date ? new Date(invitation.event_date).toLocaleDateString(lang === 'vi' ? 'vi-VN' : lang === 'en' ? 'en-US' : 'fr-FR', {day:'numeric', month:'long', year:'numeric'}) : t.save_date}
                       </span>
                       <button onClick={addToCalendar} className="ml-3 p-2 bg-gray-100 rounded-full hover:bg-amber-100 transition-colors">
                         <Plus size={18} className="text-amber-600" />
@@ -226,6 +226,7 @@ export function GuestView({ invitation }: any) {
                 </div>
               )}
 
+              {/* PROGRAMME AVEC ANIMATION D'OR ET ALIGNEMENT ALTERNÉ */}
               <div className="space-y-16">
                 <h3 className="text-center font-black uppercase tracking-[0.6em] text-amber-600 text-[10px] flex items-center justify-center gap-4">
                     <Sparkles size={16}/> {tBuilder.program_title} <Sparkles size={16}/>
@@ -233,7 +234,7 @@ export function GuestView({ invitation }: any) {
                 <div className="relative flex flex-col items-center">
                   <div className="absolute top-0 w-[4px] h-full bg-gradient-to-b from-amber-200 via-amber-500 to-amber-200 rounded-full" />
                   <div className="relative space-y-24 w-full pt-12">
-                    {invitation.event_program?.map((step: any, i: number) => (
+                    {(invitation.event_program || []).map((step: any, i: number) => (
                       <div key={i} className={`flex items-center w-full ${i % 2 === 0 ? 'justify-start pl-10' : 'justify-end pr-10'}`}>
                         <div className="absolute left-1/2 -translate-x-1/2 w-10 h-10 rounded-full bg-white border-[6px] border-amber-500 z-10 shadow-2xl" />
                         <div className={`w-[44%] p-8 bg-white/70 rounded-[3rem] border border-amber-100 backdrop-blur-md shadow-2xl ${i % 2 === 0 ? 'text-left' : 'text-right'}`}>
@@ -249,7 +250,7 @@ export function GuestView({ invitation }: any) {
               <div className="text-center pt-8">
                  <button onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(invitation.event_address)}`, '_blank')} className="inline-flex flex-col items-center gap-4 group">
                     <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-2xl text-amber-500 border border-amber-100"><MapPin size={32}/></div>
-                    <span className="text-xs font-black uppercase tracking-[0.3em] opacity-60 underline underline-offset-[12px] decoration-amber-500/40">{invitation.event_address}</span>
+                    <span className="text-xs font-black uppercase tracking-[0.3em] opacity-60 underline underline-offset-[12px] decoration-amber-500/40">{invitation.event_address || tBuilder.address_placeholder}</span>
                  </button>
               </div>
 
