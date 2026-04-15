@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { motion, AnimatePresence, useScroll, useTransform, useSpring } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
 import { X, Calendar, MapPin, CheckCircle2, Plus, Sparkles, Clock } from 'lucide-react'; 
 import { supabase } from '../../lib/supabase';
 import { translations, Language } from '../../lib/i18n';
@@ -27,10 +27,9 @@ export function GuestView({ invitation }: any) {
   const programRef = useRef(null);
   const { scrollYProgress } = useScroll({
     target: programRef,
-    offset: ["start center", "end center"]
+    offset: ["start 40%", "end 50%"] // Déclenchement plus précis pour finir sur l'icône
   });
   
-  // Utilisation d'un ressort (spring) pour un mouvement fluide et visible
   const scaleY = useSpring(scrollYProgress, {
     stiffness: 40,
     damping: 20,
@@ -249,13 +248,13 @@ export function GuestView({ invitation }: any) {
                      {tBuilder.program_title} 
                 </h3>
                 <div className="relative flex flex-col items-center">
-                  {/* Ligne de fond stable */}
-                  <div className="absolute top-14 w-[3px] h-[calc(100%+120px)] bg-black/5 rounded-full" />
+                  {/* Ligne de fond qui va jusqu'à l'adresse */}
+                  <div className="absolute top-14 w-[3px] h-[calc(100%+48px)] bg-black/5 rounded-full" />
                   
-                  {/* Ligne animée fluide vers Maps */}
+                  {/* Ligne animée qui va exactement jusqu'à l'adresse */}
                   <motion.div 
                     style={{ scaleY }}
-                    className="absolute top-14 w-[3px] h-[calc(100%+120px)] bg-gradient-to-b from-amber-200 via-amber-500 to-amber-200 rounded-full origin-top z-10 shadow-[0_0_10px_rgba(245,158,11,0.3)]" 
+                    className="absolute top-14 w-[3px] h-[calc(100%+48px)] bg-gradient-to-b from-amber-200 via-amber-500 to-amber-200 rounded-full origin-top z-10 shadow-[0_0_10px_rgba(245,158,11,0.3)]" 
                   />
                   
                   <div className="relative space-y-24 w-full pt-12">
@@ -270,7 +269,6 @@ export function GuestView({ invitation }: any) {
                           transition={{ duration: 1.0, delay: 0.2, ease: "easeOut" }}
                           className={`flex items-start w-full relative ${isEven ? 'justify-start pl-10' : 'justify-end pr-10'}`}
                         >
-                          {/* Le point sur la ligne */}
                           <motion.div 
                             initial={{ scale: 0, rotate: 45, opacity: 0 }}
                             whileInView={{ scale: 1, rotate: 45, opacity: 1 }}
@@ -295,7 +293,6 @@ export function GuestView({ invitation }: any) {
                   </div>
                 </div>
 
-                {/* Section Adresse reliée */}
                 <div className="text-center pt-8 relative">
                    <button onClick={openMaps} className="inline-flex flex-col items-center gap-4 group relative z-20">
                       <motion.div 
