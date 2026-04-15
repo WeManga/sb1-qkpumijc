@@ -51,28 +51,9 @@ export function GuestView({ invitation }: any) {
     const startDate = formatDate(eventDate);
     const endDate = formatDate(new Date(eventDate.getTime() + 2 * 60 * 60 * 1000));
     
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-
-    if (isIOS) {
-      // Stratégie pour forcer l'ouverture du calendrier natif iOS
-      const icsContent = `BEGIN:VCALENDAR
-VERSION:2.0
-BEGIN:VEVENT
-URL:${window.location.href}
-DTSTART:${startDate}
-DTEND:${endDate}
-SUMMARY:${invitation.title}
-DESCRIPTION:${invitation.description || ""}
-LOCATION:${invitation.event_address}
-END:VEVENT
-END:VCALENDAR`;
-      
-      window.location.href = `data:text/calendar;charset=utf8,${encodeURIComponent(icsContent)}`;
-    } else {
-      // Pour Android/Desktop : Google Calendar reste le plus fiable
-      const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(invitation.title)}&dates=${startDate}/${endDate}&location=${encodeURIComponent(invitation.event_address)}&details=${encodeURIComponent(invitation.description || "")}`;
-      window.open(googleUrl, '_blank');
-    }
+    // Retour à la stratégie Google Calendar (Universelle et fiable)
+    const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(invitation.title)}&dates=${startDate}/${endDate}&location=${encodeURIComponent(invitation.event_address)}&details=${encodeURIComponent(invitation.description || "")}`;
+    window.open(googleUrl, '_blank');
   };
 
   const openMaps = () => {
@@ -289,9 +270,10 @@ END:VCALENDAR`;
                             />
                           </motion.div>
 
+                          {/* Correction : break-words et plus de majuscules obligatoires sur l'activité */}
                           <div className={`w-[44%] p-8 bg-white/70 rounded-[3rem] border border-amber-100 backdrop-blur-md shadow-2xl ${isEven ? 'text-left' : 'text-right'}`}>
                             <span className="text-[11px] font-black text-amber-600 block mb-2 tracking-widest"><Clock size={12} className="inline mr-1 mb-1"/> {step.time}</span>
-                            <span className="text-xl font-bold uppercase tracking-tighter" style={{ fontFamily: invitation.font_style }}>{step.activity}</span>
+                            <span className="text-xl font-bold tracking-tighter break-words hyphens-auto" style={{ fontFamily: invitation.font_style }}>{step.activity}</span>
                           </div>
                         </motion.div>
                       );
