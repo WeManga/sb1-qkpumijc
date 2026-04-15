@@ -226,19 +226,19 @@ export function GuestView({ invitation }: any) {
                 </div>
               )}
 
-              {/* PROGRAMME AVEC ANIMATION PROGRESSIVE */}
+              {/* PROGRAMME AVEC ANIMATION PROGRESSIVE LENTE */}
               <div className="space-y-16">
                 <h3 className="text-center font-black uppercase tracking-[0.6em] text-amber-600 text-[10px] flex items-center justify-center gap-4">
                     <Sparkles size={16}/> {tBuilder.program_title} <Sparkles size={16}/>
                 </h3>
                 <div className="relative flex flex-col items-center">
-                  {/* CHEMIN QUI SE CHARGE AU SCROLL */}
+                  {/* CHEMIN RALENTI */}
                   <motion.div 
                     initial={{ scaleY: 0 }}
                     whileInView={{ scaleY: 1 }}
                     viewport={{ once: true }}
-                    transition={{ duration: 1.5, ease: "easeInOut" }}
-                    className="absolute top-0 w-[4px] h-full bg-gradient-to-b from-amber-200 via-amber-500 to-amber-200 rounded-full origin-top" 
+                    transition={{ duration: 3.0, ease: "easeInOut" }}
+                    className="absolute top-0 w-[3px] h-full bg-gradient-to-b from-amber-200 via-amber-500 to-amber-200 rounded-full origin-top" 
                   />
                   
                   <div className="relative space-y-24 w-full pt-12">
@@ -251,16 +251,14 @@ export function GuestView({ invitation }: any) {
                         transition={{ duration: 1.2, delay: 0.1, ease: "easeOut" }}
                         className={`flex items-center w-full ${i % 2 === 0 ? 'justify-start pl-10' : 'justify-end pr-10'}`}
                       >
-                        {/* ICÔNE SPARKLE À LA PLACE DES CERCLES */}
+                        {/* LOSANGES ÉLÉGANTS */}
                         <motion.div 
-                          initial={{ scale: 0, rotate: -180 }}
-                          whileInView={{ scale: 1, rotate: 0 }}
+                          initial={{ scale: 0, rotate: 0 }}
+                          whileInView={{ scale: 1, rotate: 45 }}
                           viewport={{ once: true }}
-                          transition={{ duration: 0.8, delay: 0.4 }}
-                          className="absolute left-1/2 -translate-x-1/2 z-20 text-amber-500 bg-white rounded-full p-1 shadow-xl border border-amber-100"
-                        >
-                          <Sparkles size={20} fill="currentColor"/>
-                        </motion.div>
+                          transition={{ duration: 0.8, delay: 0.5 }}
+                          className="absolute left-1/2 -translate-x-1/2 z-20 w-4 h-4 bg-amber-500 border-2 border-white shadow-lg"
+                        />
 
                         <div className={`w-[44%] p-8 bg-white/70 rounded-[3rem] border border-amber-100 backdrop-blur-md shadow-2xl ${i % 2 === 0 ? 'text-left' : 'text-right'}`}>
                           <span className="text-[11px] font-black text-amber-600 block mb-2 tracking-widest"><Clock size={12} className="inline mr-1 mb-1"/> {step.time}</span>
@@ -306,7 +304,7 @@ export function GuestView({ invitation }: any) {
                       ))}
                     </div>
                     <button disabled={isSubmitting} className="w-full h-20 bg-gray-900 text-white rounded-[2rem] font-black uppercase tracking-[0.4em] shadow-2xl flex items-center justify-center gap-4 active:scale-95 transition-all hover:bg-black">
-                      {isSubmitting ? "..." : <><Send size={20} className="text-amber-400"/> {t.send}</>}
+                      {isSubmitting ? "..." : <>{t.send}</>}
                     </button>
                   </form>
                 ) : (
