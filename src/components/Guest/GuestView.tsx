@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
-import { X, Calendar, MapPin, CheckCircle2, Plus, Sparkles, Clock } from 'lucide-react'; 
+import { X, Calendar, MapPin, CheckCircle2, Plus, Clock } from 'lucide-react'; 
+import confetti from 'canvas-confetti';
 import { supabase } from '../../lib/supabase';
 import { translations, Language } from '../../lib/i18n';
 
@@ -21,13 +22,13 @@ export function GuestView({ invitation }: any) {
   const [guests, setGuests] = useState([{ firstName: '', lastName: '' }]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [hasExploded, setHasExploded] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   
-  // Suivi du scroll pour le fil d'or
   const programAreaRef = useRef(null);
   const { scrollYProgress } = useScroll({
     target: programAreaRef,
-    offset: ["start 0.7", "end 0.3"]
+    offset: ["start 0.7", "end 0.2"]
   });
 
   const pathLength = useSpring(scrollYProgress, { stiffness: 40, damping: 25 });
@@ -53,6 +54,38 @@ export function GuestView({ invitation }: any) {
     setGuests(newGuests);
   }, [guestCount]);
 
+  // EFFET PAILLETTES : Se déclenche quand le fil atteint l'adresse
+  useEffect(() => {
+    return pathLength.onChange((latest) => {
+      if (latest > 0.99 && !hasExploded) {
+        setHasExploded(true);
+        const end = Date.now() + 2500;
+        const colors = ['#D4AF37', '#FCD34D', '#FFD700', '#E6C65D'];
+
+        (function frame() {
+          confetti({
+            particleCount: 3,
+            angle: 60,
+            spread: 55,
+            origin: { x: 0.1, y: 0.85 },
+            colors: colors
+          });
+          confetti({
+            particleCount: 3,
+            angle: 120,
+            spread: 55,
+            origin: { x: 0.9, y: 0.85 },
+            colors: colors
+          });
+
+          if (Date.now() < end) {
+            requestAnimationFrame(frame);
+          }
+        }());
+      }
+    });
+  }, [pathLength, hasExploded]);
+
   const addToCalendar = () => {
     const eventDate = new Date(invitation.event_date);
     const formatDate = (date: Date) => date.toISOString().replace(/-|:|\.\d\d\d/g, "");
@@ -68,7 +101,7 @@ export function GuestView({ invitation }: any) {
     if (isIOS) {
       window.open(`maps://maps.apple.com/?q=${address}`, '_blank');
     } else {
-      window.open(`https://www.google.com/maps/search/?api=1&query=${address}`, '_blank');
+      window.open(`http://maps.google.com/?q=${address}`, '_blank');
     }
   };
 
@@ -94,52 +127,22 @@ export function GuestView({ invitation }: any) {
     }
   };
 
-  // Animation finale explosion de paillettes
-  const GlitterExplosion = () => {
-    return (
-      <div className="absolute inset-0 pointer-events-none z-50">
-        {Array.from({ length: 20 }).map((_, i) => (
-          <motion.div
-            key={i}
-            initial={{ scale: 0, x: 0, y: 0, opacity: 1 }}
-            animate={{ 
-              scale: [0, 1, 0.5, 0], 
-              x: (Math.random() - 0.5) * 180, 
-              y: (Math.random() - 0.5) * 180,
-              rotate: Math.random() * 360,
-              opacity: [1, 1, 0]
-            }}
-            transition={{ duration: 1.2, ease: "easeOut", delay: 0.1 }}
-            className="absolute left-1/2 top-1/2 w-2 h-2 bg-amber-400 rounded-sm shadow-[0_0_10px_#fbbf24]"
-            style={{ backgroundColor: i % 2 === 0 ? '#FCD34D' : '#D4AF37' }}
-          />
-        ))}
-      </div>
-    );
-  };
-
-  // Génération du tracé du fil d'or avec boucles (noeuds)
+  // CALCUL DU FIL D'OR AVEC NOEUDS SERRÉS
   const goldPath = useMemo(() => {
     const steps = invitation.event_program || [];
     if (steps.length === 0) return "";
-    
-    let d = "M 50,0"; // Départ haut
+    let d = "M 50,0";
     steps.forEach((_, i) => {
-      const y = i * 200 + 100; // Espacement vertical
+      const y = i * 200 + 100;
       const prevY = i === 0 ? 0 : (i - 1) * 200 + 100;
-      
-      // Chemin serpentant
-      const cp1x = i % 2 === 0 ? 70 : 30;
-      const cp2x = i % 2 === 0 ? 30 : 70;
-      d += ` C ${cp1x},${prevY + 60} ${cp2x},${y - 60} 50,${y}`;
-      
-      // Le Nœud au centre du point
-      d += ` m 0,0 c 15,-15 15,15 0,0 c -15,-15 -15,15 0,0`;
+      const cp1x = i % 2 === 0 ? 85 : 15;
+      const cp2x = i % 2 === 0 ? 15 : 85;
+      d += ` C ${cp1x},${prevY + 70} ${cp2x},${y - 70} 50,${y}`;
+      // Noeud stylisé au centre du point
+      d += ` m 0,0 c 8,-8 8,8 0,0 c -8,-8 -8,8 0,0`;
     });
-    
-    // Final vers l'adresse
     const lastY = (steps.length - 1) * 200 + 100;
-    d += ` C ${steps.length % 2 === 0 ? 80 : 20},${lastY + 80} 50,${lastY + 150} 50,${lastY + 200}`;
+    d += ` C 50,${lastY + 100} 50,${lastY + 150} 50,${lastY + 250}`;
     return d;
   }, [invitation.event_program]);
 
@@ -156,10 +159,10 @@ export function GuestView({ invitation }: any) {
         }
       `}</style>
 
-      {/* ENVELOPPE / DISQUE */}
+      {/* ENVELOPPE */}
       <div className="relative w-full h-full flex items-center justify-center" style={{ opacity: view === 'envelope' ? 1 : 0, pointerEvents: view === 'envelope' ? 'auto' : 'none' }}>
         <div className="relative w-full max-w-[400px] h-full grid place-items-center">
-            <motion.div animate={isOpened ? { y: -120, opacity: 1, scale: 1 } : { y: 20, opacity: 0, scale: 0.8 }} className="row-start-1 col-start-1 w-[300px] h-[300px] z-20">
+            <motion.div animate={isOpened ? { y: -120, opacity: 1, scale: 1 } : { y: 20, opacity: 0, scale: 0.8 }} transition={{ type: "spring", damping: 25, stiffness: 40, delay: 0.4 }} className="row-start-1 col-start-1 w-[300px] h-[300px] z-20">
               <div className="w-full h-full rounded-full shadow-2xl bg-[#111] relative border-4 border-[#222]">
                 <div className="absolute inset-0 opacity-40 rounded-full" style={{ background: 'repeating-radial-gradient(circle, #444 0, #000 2px, #111 4px)' }} />
                 <div className="absolute inset-0 flex items-center justify-center">
@@ -170,25 +173,25 @@ export function GuestView({ invitation }: any) {
               </div>
             </motion.div>
 
-            <motion.div animate={isOpened ? { y: 120, opacity: 1, scale: 1 } : { y: 100, opacity: 0 }} onClick={() => setView('content')} className={`row-start-1 col-start-1 z-30 w-[340px] h-[400px] rounded-[3.5rem] shadow-2xl p-10 flex flex-col items-center justify-between cursor-pointer border border-white/40 ${getPaperClass()}`}>
+            <motion.div animate={isOpened ? { y: 120, opacity: 1, scale: 1 } : { y: 100, opacity: 0 }} transition={{ type: "spring", damping: 18, stiffness: 50, delay: 0.7 }} onClick={() => setView('content')} className={`row-start-1 col-start-1 z-30 w-[340px] h-[400px] rounded-[3.5rem] shadow-2xl p-10 flex flex-col items-center justify-between cursor-pointer border border-white/40 ${getPaperClass()}`}>
               <div className="text-center pt-10">
                 <h2 className="text-3xl font-black uppercase text-gray-900" style={{ fontFamily: invitation.font_style }}>{invitation.title}</h2>
                 <div className="w-16 h-1 bg-amber-400 mx-auto mt-6 rounded-full" />
                 <p className="text-[10px] font-black uppercase tracking-[0.5em] mt-10 opacity-40">{t.tap_open}</p>
               </div>
-              <div className="w-full py-5 bg-gray-900 text-white rounded-[2rem] text-[10px] font-black uppercase tracking-[0.4em] text-center shadow-xl">VOIR LES DÉTAILS</div>
+              <div className="w-full py-5 bg-gray-900 text-white rounded-[2rem] text-[10px] font-black uppercase tracking-[0.4em] text-center">VOIR LES DÉTAILS</div>
             </motion.div>
 
-            <motion.div animate={isOpened ? { y: '-100%', opacity: 0, pointerEvents: 'none' } : { y: 0, opacity: 1 }} className="absolute inset-0 z-50 flex flex-col items-center justify-center" style={{ backgroundColor: invitation.envelope_color }}>
-              <button onClick={() => { setIsOpened(true); audioRef.current?.play().catch(()=>{}); }} className="w-80 h-80"><img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" /></button>
+            <motion.div animate={isOpened ? { y: '-100%', opacity: 0, pointerEvents: 'none' } : { y: 0, opacity: 1 }} transition={{ duration: 0.9, ease: [0.65, 0, 0.35, 1] }} className="absolute inset-0 z-50 flex flex-col items-center justify-center" style={{ backgroundColor: invitation.envelope_color }}>
+              <button onClick={() => { setIsOpened(true); audioRef.current?.play().catch(()=>{}); }} className="w-80 h-80"><img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-full h-full object-contain" /></button>
             </motion.div>
         </div>
       </div>
 
-      {/* CONTENU PRINCIPAL */}
+      {/* CONTENU PROGRAMME */}
       <AnimatePresence>
         {view === 'content' && (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`fixed inset-0 z-[100] flex flex-col overflow-y-auto ${getPaperClass()}`}>
+          <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }} className={`fixed inset-0 z-[100] flex flex-col overflow-y-auto ${getPaperClass()}`}>
             <div className="relative h-[45vh] shrink-0 overflow-hidden">
               <img src={invitation.main_photo_url} className="w-full h-full object-cover" style={{ objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%` }} />
               <button onClick={() => setView('envelope')} className="absolute top-8 left-8 w-12 h-12 bg-white/90 rounded-full flex items-center justify-center shadow-md"><X size={24}/></button>
@@ -196,22 +199,22 @@ export function GuestView({ invitation }: any) {
 
             <div className="flex-1 px-8 py-20 max-w-2xl mx-auto w-full space-y-32">
               <div className="text-center space-y-10">
-                <h1 className="text-6xl font-black gold-shimmer" style={{ fontFamily: invitation.font_style }}>{invitation.host_names}</h1>
+                <h1 className="text-6xl font-black gold-shimmer leading-tight" style={{ fontFamily: invitation.font_style }}>{invitation.host_names}</h1>
                 <div className="inline-flex items-center gap-4 bg-white/80 p-3 pr-8 rounded-full shadow-lg border border-amber-100">
                   <div className="bg-amber-500 p-3 rounded-full text-white shadow-md"><Calendar size={24}/></div>
-                  <span className="text-sm font-black uppercase tracking-widest">{invitation.event_date}</span>
+                  <span className="text-sm font-black uppercase tracking-widest text-gray-800">{invitation.event_date}</span>
                   <button onClick={addToCalendar} className="ml-4 p-2 bg-gray-100 rounded-full hover:bg-amber-100"><Plus size={20}/></button>
                 </div>
               </div>
 
-              {/* PROGRAMME AVEC FIL D'OR NOUÉ */}
-              <div ref={programAreaRef} className="relative pt-10">
+              {/* SECTION FIL D'OR MODIFIÉE UNIQUEMENT ICI */}
+              <div ref={programAreaRef} className="relative py-10">
                 <svg className="absolute inset-0 w-full h-full pointer-events-none z-10" viewBox="0 0 100 100" preserveAspectRatio="none">
                   <motion.path
                     d={goldPath}
                     fill="none"
                     stroke="#D4AF37"
-                    strokeWidth="1.5"
+                    strokeWidth="1.2"
                     style={{ pathLength }}
                     strokeLinecap="round"
                     className="drop-shadow-[0_0_5px_rgba(212,175,55,0.4)]"
@@ -221,12 +224,11 @@ export function GuestView({ invitation }: any) {
                 <div className="relative space-y-[200px] w-full">
                   {(invitation.event_program || []).map((step: any, i: number) => (
                     <div key={i} className={`flex items-center w-full ${i % 2 === 0 ? 'justify-start' : 'justify-end'}`}>
-                      {/* Point central doré */}
                       <div className="absolute left-1/2 -translate-x-1/2 w-5 h-5 bg-amber-500 rounded-full border-[3px] border-white shadow-xl z-20">
-                        <motion.div animate={{ opacity: [1, 0.4, 1] }} transition={{ repeat: Infinity, duration: 2 }} className="absolute inset-0 bg-amber-200 rounded-full" />
+                        <motion.div animate={{ opacity: [1, 0.4, 1] }} transition={{ repeat: Infinity, duration: 2.5 }} className="absolute inset-0 bg-amber-200 rounded-full" />
                       </div>
                       
-                      <motion.div initial={{ opacity: 0, x: i % 2 === 0 ? -40 : 40 }} whileInView={{ opacity: 1, x: 0 }} className="w-[44%] p-8 bg-white/70 rounded-[2.5rem] border border-amber-100 backdrop-blur-md shadow-xl">
+                      <motion.div initial={{ opacity: 0, x: i % 2 === 0 ? -40 : 40 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} className="w-[44%] p-8 bg-white/70 rounded-[2.5rem] border border-amber-100 backdrop-blur-md shadow-xl">
                         <span className="text-[10px] font-black text-amber-600 tracking-tighter uppercase mb-2 block"><Clock size={12} className="inline mr-1 mb-0.5"/> {step.time}</span>
                         <h4 className="text-xl font-bold leading-tight" style={{ fontFamily: invitation.font_style }}>{step.activity}</h4>
                       </motion.div>
@@ -234,16 +236,12 @@ export function GuestView({ invitation }: any) {
                   ))}
                 </div>
 
-                {/* ADRESSE ET EXPLOSION */}
                 <div className="text-center pt-32 relative">
                   <motion.button onClick={openMaps} className="relative inline-flex flex-col items-center gap-6 group">
                     <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-2xl border border-amber-100 text-amber-500 relative z-20 transition-transform group-hover:scale-110">
                       <MapPin size={36} />
-                      <AnimatePresence>
-                        {scrollYProgress.get() > 0.98 && <GlitterExplosion />}
-                      </AnimatePresence>
                     </div>
-                    <span className="text-xs font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-amber-600 transition-colors underline underline-offset-8 decoration-amber-200">{invitation.event_address}</span>
+                    <span className="text-xs font-black uppercase tracking-[0.4em] text-gray-400 group-hover:text-amber-600 transition-colors">{invitation.event_address}</span>
                   </motion.button>
                 </div>
               </div>
@@ -270,7 +268,7 @@ export function GuestView({ invitation }: any) {
                         </div>
                       ))}
                     </div>
-                    <button disabled={isSubmitting} className="w-full h-20 bg-gray-900 text-white rounded-[2rem] font-black uppercase tracking-[0.4em] shadow-2xl hover:bg-black transition-all">
+                    <button disabled={isSubmitting} className="w-full h-20 bg-gray-900 text-white rounded-[2rem] font-black uppercase tracking-[0.4em] shadow-2xl hover:bg-black">
                       {isSubmitting ? "..." : t.send}
                     </button>
                   </form>
