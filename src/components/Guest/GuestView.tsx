@@ -228,7 +228,7 @@ export function GuestView({ invitation }: any) {
 
               <div className="space-y-16">
                 <h3 className="text-center font-black uppercase tracking-[0.6em] text-amber-600 text-[10px] flex items-center justify-center gap-4">
-                    <Sparkles size={16}/> {tBuilder.program_title} <Sparkles size={16}/>
+                     {tBuilder.program_title} 
                 </h3>
                 <div className="relative flex flex-col items-center">
                   <motion.div 
