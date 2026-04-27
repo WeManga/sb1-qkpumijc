@@ -3,13 +3,10 @@ import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { Database } from '../../lib/database.types';
 import MobileApp from './MobileApp';
-import { Loader2, Lock } from 'lucide-react'; // Lock ajouté pour l'UI future
+import { Loader2 } from 'lucide-react'; 
 import { translations, Language } from '../../lib/i18n';
-import { PREMIUM_COLORS } from '../../constants/colors';
 
 type Invitation = Database['public']['Tables']['invitations']['Row'];
-
-
 
 interface BuilderProps {
   invitationId?: string;
@@ -22,10 +19,12 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
   const lang = (localStorage.getItem('invite_lang') as Language) || 'fr';
   const t = translations[lang].builder;
   const tAuth = translations[lang].auth;
+  const tGuest = translations[lang].guest; // Pour les messages de succès/erreur
 
   const [invitation, setInvitation] = useState<Partial<Invitation>>({
     event_type: 'wedding',
-    title: lang === 'vi' ? 'Đám cưới của chúng tôi' : lang === 'en' ? 'Our Wedding' : 'Notre Mariage',
+    // Correction : Utilisation des clés de traduction pour le titre par défaut
+    title: t.theme_wedding,
     host_names: 'John & Jane',
     event_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
     event_address: '',
@@ -36,7 +35,7 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
     photo_pos_y: 50,
     is_published: false,
     language: lang,
-    // @ts-ignore - On prévoit la colonne plan_type ajoutée en SQL
+    // @ts-ignore
     plan_type: 'FREE' 
   });
 
@@ -61,7 +60,7 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
         .maybeSingle();
 
       if (error) throw error;
-if (invData) setInvitation(invData);
+      if (invData) setInvitation(invData);
     } catch (error) {
       console.error('Erreur chargement:', error);
     } finally {
@@ -100,7 +99,8 @@ if (invData) setInvitation(invData);
         if (error) throw error;
       }
       
-      alert(lang === 'vi' ? 'Đã lưu thành công!' : lang === 'en' ? 'Saved successfully!' : 'Enregistré avec succès !');
+      // Correction : Alerte traduite via i18n
+      alert(tGuest.success_msg);
     } catch (error: any) {
       console.error('Erreur sauvegarde:', error);
       alert(`${tAuth.error_default}: ${error.message || ''}`);
