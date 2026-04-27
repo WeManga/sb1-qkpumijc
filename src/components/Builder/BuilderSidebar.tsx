@@ -259,14 +259,14 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
           {invitation.main_photo_url && (
             <div className="bg-amber-50/50 p-6 rounded-[2rem] border border-amber-100 space-y-6">
               <div className="space-y-3">
-                 <span className="text-[10px] font-black uppercase text-amber-800 tracking-wider flex items-center gap-2"><Move size={12}/> {t.adjust_photo}</span>
-                 <div className="w-full aspect-video rounded-2xl bg-gray-200 overflow-hidden relative border-2 border-white shadow-sm">
+                  <span className="text-[10px] font-black uppercase text-amber-800 tracking-wider flex items-center gap-2"><Move size={12}/> {t.adjust_photo}</span>
+                  <div className="w-full aspect-video rounded-2xl bg-gray-200 overflow-hidden relative border-2 border-white shadow-sm">
                     <img 
                       src={invitation.main_photo_url} 
                       style={{ objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%` }} 
                       className="w-full h-full object-cover transition-all duration-200"
                     />
-                 </div>
+                  </div>
               </div>
               <div className="space-y-4">
                 <div className="space-y-1">
