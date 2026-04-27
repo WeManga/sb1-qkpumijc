@@ -147,7 +147,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
   const handleDragMove = (e: any) => {
     if (!dragRef.current.isDragging) return;
     
-    // Pinch-to-Zoom
     if (e.touches && e.touches.length === 2) {
       const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
       if (dragRef.current.lastDist > 0) {
@@ -162,7 +161,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
     
-    // Correction de la sensibilité pour permettre le mouvement horizontal et vertical fluide
     const deltaX = (clientX - dragRef.current.x) * 0.2;
     const deltaY = (clientY - dragRef.current.y) * 0.2;
 
@@ -294,9 +292,11 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 </>
               )}
               
-              <label className="flex flex-col items-center justify-center aspect-square bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-200 cursor-pointer col-span-2 py-4">
-                <Music className="text-gray-400 mb-2" />
-                <span className="text-[10px] font-bold text-gray-400 uppercase text-center px-2">{invitation.music_url ? "Musique OK" : t.upload_music}</span>
+              <label className="col-span-2 flex items-center gap-3 p-4 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 cursor-pointer transition-colors hover:bg-gray-100">
+                <Music className="text-gray-400 shrink-0" size={20} />
+                <span className="text-[10px] font-bold text-gray-500 uppercase truncate">
+                  {invitation.music_url ? "Musique chargée ✓" : t.upload_music}
+                </span>
                 <input type="file" className="hidden" accept=".mp3,audio/mpeg" onChange={(e) => uploadFile(e, 'music_url')} />
               </label>
             </div>
