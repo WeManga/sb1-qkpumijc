@@ -25,14 +25,14 @@ const PREMIUM_PALETTES = [
 ];
 
 const FONTS = [
-  { id: 'font-sans', name: 'Moderne Pur', family: "'Montserrat', sans-serif", premium: false },
-  { id: 'font-serif', name: 'Classique Chic', family: "'Libre Baskerville', serif", premium: false },
-  { id: 'font-elegant', name: 'Élégance Riviera', family: "'Playfair Display', serif", premium: false },
-  { id: 'font-script', name: 'Plume Douce', family: "'Dancing Script', cursive", premium: false },
-  { id: 'font-royal', name: 'Royal Majesty', family: "'Alex Brush', cursive", premium: true },
-  { id: 'font-vintage', name: 'Héritage Ancien', family: "'Cinzel Decorative', serif", premium: true },
-  { id: 'font-boho', name: 'Bohème Spirit', family: "'La Belle Aurore', cursive", premium: true },
-  { id: 'font-luxury', name: 'Luxe Minimal', family: "'Cormorant Garamond', serif", premium: true }
+  { id: 'font-sans', name: 'Moderne Pur', family: "ui-sans-serif, system-ui, sans-serif", premium: false },
+  { id: 'font-serif', name: 'Classique Chic', family: "ui-serif, Georgia, serif", premium: false },
+  { id: 'font-elegant', name: 'Élégance Riviera', family: "'Times New Roman', serif", premium: false },
+  { id: 'font-script', name: 'Plume Douce', family: "cursive", premium: false },
+  { id: 'font-royal', name: 'Royal Majesty', family: "'Apple Chancery', 'Zapfino', cursive", premium: true },
+  { id: 'font-vintage', name: 'Héritage Ancien', family: "'Copperplate', 'Papyrus', serif", premium: true },
+  { id: 'font-boho', name: 'Bohème Spirit', family: "'Bradley Hand', cursive", premium: true },
+  { id: 'font-luxury', name: 'Luxe Minimal', family: "'Didot', 'Bodoni MT', serif", premium: true }
 ];
 
 const TEXTURES = [
@@ -188,7 +188,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                     <input type="text" value={step.activity} onChange={e => updateProgramStep(index, 'activity', e.target.value)} placeholder={t.activity_placeholder} className="flex-1 bg-gray-50 border-none h-10 px-3 rounded-xl text-[11px]" />
                     <button onClick={() => removeProgramStep(index)} className="p-1.5 bg-red-50 text-red-500 rounded-full"><X size={14}/></button>
                   </div>
-                  {/* AJOUT DES PHOTOS DU PROGRAMME ICI */}
                   <label className="flex items-center gap-3 p-2 bg-gray-50 rounded-xl cursor-pointer">
                     <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center overflow-hidden border border-gray-100">
                       {step.image_url ? <img src={step.image_url} className="w-full h-full object-cover" /> : <ImageIcon size={14} className="text-gray-300" />}
