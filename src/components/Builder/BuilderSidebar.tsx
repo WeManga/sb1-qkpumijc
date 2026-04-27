@@ -151,7 +151,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
       if (dragRef.current.lastDist > 0) {
         const delta = (dist - dragRef.current.lastDist) / 100;
-        const newScale = Math.max(1, Math.min(3, (invitation.photo_scale || 1) + delta));
+        const newScale = Math.max(1, Math.min(5, (invitation.photo_scale || 1) + delta));
         onInvitationChange({ ...invitation, photo_scale: newScale });
       }
       dragRef.current.lastDist = dist;
@@ -161,13 +161,14 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
     
-    const deltaX = (clientX - dragRef.current.x) * 0.2;
-    const deltaY = (clientY - dragRef.current.y) * 0.2;
+    // Calcul du mouvement basé sur les pixels réels pour plus de précision lors du zoom
+    const deltaX = (clientX - dragRef.current.x);
+    const deltaY = (clientY - dragRef.current.y);
 
     onInvitationChange({ 
       ...invitation, 
-      photo_pos_x: Math.max(0, Math.min(100, (invitation.photo_pos_x || 50) - deltaX)), 
-      photo_pos_y: Math.max(0, Math.min(100, (invitation.photo_pos_y || 50) - deltaY)) 
+      photo_pos_x: (invitation.photo_pos_x || 0) + deltaX, 
+      photo_pos_y: (invitation.photo_pos_y || 0) + deltaY 
     });
     
     dragRef.current.x = clientX;
@@ -176,7 +177,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
   const handleWheel = (e: any) => {
     const delta = e.deltaY > 0 ? -0.1 : 0.1;
-    const newScale = Math.max(1, Math.min(3, (invitation.photo_scale || 1) + delta));
+    const newScale = Math.max(1, Math.min(5, (invitation.photo_scale || 1) + delta));
     onInvitationChange({ ...invitation, photo_scale: newScale });
   };
 
@@ -321,11 +322,10 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 <img 
                   src={invitation.main_photo_url} 
                   style={{ 
-                    objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%`,
-                    transform: `scale(${invitation.photo_scale || 1})`,
+                    transform: `translate(${invitation.photo_pos_x || 0}px, ${invitation.photo_pos_y || 0}px) scale(${invitation.photo_scale || 1})`,
                     pointerEvents: 'none'
                   }} 
-                  className="w-full h-full object-cover transition-transform duration-75"
+                  className="w-full h-full object-cover transition-transform duration-75 origin-center"
                 />
               </div>
             </div>
