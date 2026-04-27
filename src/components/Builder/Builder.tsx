@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { Database } from '../../lib/database.types';
-import { MobileApp } from './MobileApp';
+import MobileApp from './MobileApp';
 import { Loader2, Lock } from 'lucide-react'; // Lock ajouté pour l'UI future
 import { translations, Language } from '../../lib/i18n';
 import { PREMIUM_COLORS } from '../../constants/colors';
