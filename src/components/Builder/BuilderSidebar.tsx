@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { supabase } from '../../lib/supabase';
 import { translations, Language } from '../../lib/i18n';
 import { 
@@ -46,6 +46,7 @@ const TEXTURES = [
 
 export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: any) {
   const [uploading, setUploading] = useState(false);
+  const dragRef = useRef<{ x: number, y: number, isDragging: boolean }>({ x: 0, y: 0, isDragging: false });
   
   const lang = (invitation.language as Language) || (localStorage.getItem('invite_lang') as Language) || 'fr';
   const t = translations[lang].builder;
@@ -141,6 +142,23 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
   const removeProgramStep = (index: number) => {
     const newProgram = invitation.event_program.filter((_: any, i: number) => i !== index);
     onInvitationChange({ ...invitation, event_program: newProgram });
+  };
+
+  // Logique de déplacement tactile/souris pour la photo
+  const handleDragMove = (e: any) => {
+    if (!dragRef.current.isDragging) return;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    
+    const deltaX = (clientX - dragRef.current.x) / 5;
+    const deltaY = (clientY - dragRef.current.y) / 5;
+
+    const newX = Math.max(0, Math.min(100, (invitation.photo_pos_x || 50) - deltaX));
+    const newY = Math.max(0, Math.min(100, (invitation.photo_pos_y || 50) - deltaY));
+
+    onInvitationChange({ ...invitation, photo_pos_x: newX, photo_pos_y: newY });
+    dragRef.current.x = clientX;
+    dragRef.current.y = clientY;
   };
 
   return (
@@ -264,26 +282,28 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
           </div>
 
           {invitation.main_photo_url && (
-            <div className="bg-amber-50/50 p-6 rounded-[2rem] border border-amber-100 space-y-6">
-              <div className="space-y-3">
-                  <span className="text-[10px] font-black uppercase text-amber-800 tracking-wider flex items-center gap-2"><Move size={12}/> {t.adjust_photo}</span>
-                  <div className="w-full aspect-video rounded-2xl bg-gray-200 overflow-hidden relative border-2 border-white shadow-sm">
-                    <img 
-                      src={invitation.main_photo_url} 
-                      style={{ objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%` }} 
-                      className="w-full h-full object-cover transition-all duration-200"
-                    />
-                  </div>
-              </div>
-              <div className="space-y-4">
-                <div className="space-y-1">
-                   <span className="text-[9px] uppercase font-bold text-amber-900/40 ml-1">Horizontal</span>
-                   <input type="range" min="0" max="100" value={invitation.photo_pos_x || 50} onChange={(e) => onInvitationChange({ ...invitation, photo_pos_x: parseInt(e.target.value) })} className="w-full accent-amber-600" />
-                </div>
-                <div className="space-y-1">
-                   <span className="text-[9px] uppercase font-bold text-amber-900/40 ml-1">Vertical</span>
-                   <input type="range" min="0" max="100" value={invitation.photo_pos_y || 50} onChange={(e) => onInvitationChange({ ...invitation, photo_pos_y: parseInt(e.target.value) })} className="w-full accent-amber-600" />
-                </div>
+            <div className="bg-amber-50/50 p-6 rounded-[2rem] border border-amber-100 space-y-4">
+              <span className="text-[10px] font-black uppercase text-amber-800 tracking-wider flex items-center gap-2">
+                <Move size={12}/> Glisser pour ajuster
+              </span>
+              <div 
+                className="w-full aspect-video rounded-2xl bg-gray-200 overflow-hidden relative border-2 border-white shadow-sm cursor-move touch-none"
+                onMouseDown={(e) => { dragRef.current = { x: e.clientX, y: e.clientY, isDragging: true }; }}
+                onTouchStart={(e) => { dragRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY, isDragging: true }; }}
+                onMouseMove={handleDragMove}
+                onTouchMove={handleDragMove}
+                onMouseUp={() => dragRef.current.isDragging = false}
+                onMouseLeave={() => dragRef.current.isDragging = false}
+                onTouchEnd={() => dragRef.current.isDragging = false}
+              >
+                <img 
+                  src={invitation.main_photo_url} 
+                  style={{ 
+                    objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%`,
+                    pointerEvents: 'none'
+                  }} 
+                  className="w-full h-full object-cover transition-all duration-75"
+                />
               </div>
             </div>
           )}
