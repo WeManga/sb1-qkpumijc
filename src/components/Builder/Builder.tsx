@@ -37,7 +37,7 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
     is_published: false,
     language: lang,
     // @ts-ignore - On prévoit la colonne plan_type ajoutée en SQL
-    plan_type: 'FREE' 
+    plan_type: 'PREMIUM' 
   });
 
   const [loading, setLoading] = useState(true);
