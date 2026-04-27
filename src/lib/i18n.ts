@@ -75,6 +75,8 @@ export const translations = {
     },
     guest: {
       tap_open: "Tap to open the invitation",
+      open_btn: "OPEN",
+      see_details: "See details",
       save_date: "Save the Date",
       confirm_rsvp: "Confirm Presence",
       how_many: "How many will you be?",
@@ -162,6 +164,8 @@ export const translations = {
     },
     guest: {
       tap_open: "Appuyez pour ouvrir l'invitation",
+      open_btn: "OUVRIR",
+      see_details: "Voir les détails",
       save_date: "Enregistrez la date",
       confirm_rsvp: "Confirmer ma présence",
       how_many: "Combien serez-vous ?",
@@ -249,6 +253,8 @@ export const translations = {
     },
     guest: {
       tap_open: "Nhấn để mở lời mời",
+      open_btn: "MỞ",
+      see_details: "Xem chi tiết",
       save_date: "Lưu ngày kỷ niệm",
       confirm_rsvp: "Xác nhận tham dự",
       how_many: "Có bao nhiêu người tham dự?",
