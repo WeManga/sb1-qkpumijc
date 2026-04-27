@@ -34,6 +34,12 @@ export const translations = {
       no_responses: "No responses yet.",
       person_unit: "person(s)"
     },
+    pwa: {
+      title: "Install Studio App",
+      desc: "Manage invitations easily. Tap",
+      then: "then",
+      action: "Add to Home Screen"
+    },
     builder: {
       back_btn: "Back",
       save_btn: "Save",
@@ -115,6 +121,12 @@ export const translations = {
       no_responses: "Aucune réponse pour le moment.",
       person_unit: "personne(s)"
     },
+    pwa: {
+      title: "Installez l'App Studio",
+      desc: "Gérez vos invitations facilement. Appuyez sur",
+      then: "puis sur",
+      action: "Sur l'écran d'accueil"
+    },
     builder: {
       back_btn: "Retour",
       save_btn: "Enregistrer",
@@ -195,6 +207,12 @@ export const translations = {
       responses_subtitle: "Xác nhận đã nhận",
       no_responses: "Chưa có phản hồi nào.",
       person_unit: "người"
+    },
+    pwa: {
+      title: "Cài đặt App Studio",
+      desc: "Quản lý lời mời dễ dàng hơn. Nhấn vào",
+      then: "sau đó chọn",
+      action: "Thêm vào MH chính"
     },
     builder: {
       back_btn: "Quay lại",
