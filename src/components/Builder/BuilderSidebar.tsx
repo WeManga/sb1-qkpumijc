@@ -205,14 +205,14 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       {activeTab === 'media' && (
         <div className="space-y-8">
           <div className="space-y-4">
-            <label className="text-[10px] font-black uppercase text-gray-400 ml-1">{t.photo_label}</label>
+            <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Photos & Musique</label>
             <div className="grid grid-cols-2 gap-4">
               <label className="flex flex-col items-center justify-center aspect-square bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-200 cursor-pointer overflow-hidden relative">
                 {invitation.main_photo_url ? (
                   <img src={invitation.main_photo_url} className="w-full h-full object-cover opacity-30" alt="Preview" />
                 ) : <ImageIcon className="text-gray-400 mb-2" />}
                 <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-gray-600 uppercase bg-white/40 text-center px-2">
-                  {t.upload_photo}
+                  Photo de début
                 </span>
                 <input type="file" className="hidden" accept="image/*" onChange={(e) => uploadFile(e, 'main_photo_url')} />
               </label>
@@ -222,8 +222,8 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                   <img src={invitation.end_photo_url} className="w-full h-full object-cover opacity-30" alt="Preview" />
                 ) : <Sparkles className="text-gray-400 mb-2" />}
                 <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-gray-600 uppercase bg-white/40 text-center px-2 flex flex-col items-center gap-1">
-                  Photo de fin (Premium)
-                  {invitation.plan_type !== 'PREMIUM' && <Lock size={12} />}
+                  Photo de fin
+                  {invitation.plan_type !== 'PREMIUM' && <Lock size={16} className="text-gray-400" />}
                 </span>
                 <input type="file" className="hidden" accept="image/*" onChange={(e) => {
                   if(invitation.plan_type !== 'PREMIUM') return alert("Passez au Premium !");
@@ -335,7 +335,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
           <div>
             <label className="text-[10px] font-black uppercase text-amber-600 mb-4 flex items-center gap-2 ml-1">
-              <Sparkles size={12}/> COULEUR SATINS
+              <span className="flex items-center gap-2"><Sparkles size={12}/> COULEUR SATINS</span>
             </label>
             <div className="flex gap-3 overflow-x-auto pt-2 pb-4 px-4 -mx-4 scrollbar-hide">
               {PREMIUM_PALETTES.map(p => (
