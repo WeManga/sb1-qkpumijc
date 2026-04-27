@@ -3,7 +3,8 @@ import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { Database } from '../../lib/database.types';
 import { translations, Language } from '../../lib/i18n';
-import { Plus, Calendar, Eye, CreditCard as Edit, LogOut, Trash2, Copy, Loader2, Users, X } from 'lucide-react';
+import { Plus, Calendar, Eye, CreditCard as Edit, LogOut, Trash2, Copy, Loader2, Users, X, Share } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 type Invitation = Database['public']['Tables']['invitations']['Row'] & {
   response_count?: number; 
@@ -26,6 +27,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   const [loading, setLoading] = useState(true);
   const [selectedResponses, setSelectedResponses] = useState<GuestResponse[] | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
+  const [showIOSPrompt, setShowIOSPrompt] = useState(false);
   
   const [lang, setLang] = useState<Language>(
     (localStorage.getItem('invite_lang') as Language) || 'en'
@@ -33,6 +35,16 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
 
   useEffect(() => {
     loadInvitations();
+    
+    // Détection iOS pour installation PWA
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+    const hasDismissed = localStorage.getItem('pwa_prompt_dismissed');
+
+    if (isIOS && !isStandalone && !hasDismissed) {
+      setShowIOSPrompt(true);
+    }
+
     const handleStorageChange = () => {
       const savedLang = localStorage.getItem('invite_lang') as Language;
       if (savedLang) setLang(savedLang);
@@ -43,6 +55,11 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
 
   const t = translations[lang].dashboard;
   const tAuth = translations[lang].sidebar;
+
+  const dismissPrompt = () => {
+    localStorage.setItem('pwa_prompt_dismissed', 'true');
+    setShowIOSPrompt(false);
+  };
 
   const loadInvitations = async () => {
     if (!user) return;
@@ -213,6 +230,33 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
             </div>
           </div>
         )}
+
+        <AnimatePresence>
+          {showIOSPrompt && (
+            <motion.div 
+              initial={{ y: 100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 100, opacity: 0 }}
+              className="fixed bottom-10 left-4 right-4 z-[500] bg-white/95 backdrop-blur-xl shadow-2xl rounded-[2.5rem] p-6 border border-amber-100"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0">
+                  <Plus size={28} />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight">Installez l'App Studio</h3>
+                  <p className="text-[11px] text-gray-500 leading-snug mt-1">
+                    Gérez vos invitations plus facilement. 
+                    Appuyez sur <Share size={14} className="inline mx-1 text-blue-500" /> puis sur <span className="font-bold text-gray-800">"Sur l'écran d'accueil"</span>.
+                  </p>
+                </div>
+                <button onClick={dismissPrompt} className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full text-gray-400">
+                  <X size={18} />
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {loading && (
           <div className="flex flex-col items-center justify-center py-20 relative z-10">
