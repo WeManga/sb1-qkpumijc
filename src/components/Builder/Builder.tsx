@@ -61,7 +61,7 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
         .maybeSingle();
 
       if (error) throw error;
-      if (invData) setInvitation(invData);
+if (invData) setInvitation({ ...invData, plan_type: 'PREMIUM' });
     } catch (error) {
       console.error('Erreur chargement:', error);
     } finally {
