@@ -37,7 +37,7 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
     is_published: false,
     language: lang,
     // @ts-ignore - On prévoit la colonne plan_type ajoutée en SQL
-    plan_type: 'PREMIUM' 
+    plan_type: 'FREE' 
   });
 
   const [loading, setLoading] = useState(true);
@@ -61,7 +61,7 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
         .maybeSingle();
 
       if (error) throw error;
-if (invData) setInvitation({ ...invData, plan_type: 'PREMIUM' });
+if (invData) setInvitation(invData);
     } catch (error) {
       console.error('Erreur chargement:', error);
     } finally {
