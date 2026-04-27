@@ -104,12 +104,23 @@ export function InvitationPreview({ invitation }: any) {
                     className="flex flex-col gap-2"
                   >
                     {[
-                      invitation.main_photo_url, invitation.photo_url_2, invitation.photo_url_3,
-                      invitation.main_photo_url, invitation.photo_url_2, invitation.photo_url_3
-                    ].map((img, idx) => (
+                      { url: invitation.main_photo_url, key: 'main_photo_url' },
+                      { url: invitation.photo_url_2, key: 'photo_url_2' },
+                      { url: invitation.photo_url_3, key: 'photo_url_3' },
+                      { url: invitation.main_photo_url, key: 'main_photo_url' },
+                      { url: invitation.photo_url_2, key: 'photo_url_2' },
+                      { url: invitation.photo_url_3, key: 'photo_url_3' }
+                    ].map((imgObj, idx) => (
                       <div key={idx} className="w-full h-28 bg-[#222] rounded-sm overflow-hidden relative shrink-0">
-                        {img ? (
-                          <img src={img} className="w-full h-full object-cover grayscale-[0.2] contrast-125" alt="" />
+                        {imgObj.url ? (
+                          <img 
+                            src={imgObj.url} 
+                            className="w-full h-full object-cover grayscale-[0.2] contrast-125" 
+                            style={{ 
+                              transform: `translate(${invitation[`${imgObj.key}_pos_x`] || 0}px, ${invitation[`${imgObj.key}_pos_y`] || 0}px) scale(${invitation[`${imgObj.key}_scale`] || 1})`
+                            }}
+                            alt="" 
+                          />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-gray-800"><Film className="text-gray-600" size={20}/></div>
                         )}
@@ -126,7 +137,15 @@ export function InvitationPreview({ invitation }: any) {
                   </div>
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="w-24 h-24 bg-white rounded-full border-[5px] border-[#111] overflow-hidden">
-                      {invitation.main_photo_url && <img src={invitation.main_photo_url} className="w-full h-full object-cover" style={{ objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%` }} />}
+                      {invitation.main_photo_url && (
+                        <img 
+                          src={invitation.main_photo_url} 
+                          className="w-full h-full object-cover" 
+                          style={{ 
+                            transform: `translate(${invitation.main_photo_url_pos_x || 0}px, ${invitation.main_photo_url_pos_y || 0}px) scale(${invitation.main_photo_url_scale || 1})`
+                          }} 
+                        />
+                      )}
                     </div>
                   </div>
                 </div>
@@ -170,8 +189,14 @@ export function InvitationPreview({ invitation }: any) {
         ) : (
           <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`w-full h-full z-[100] flex flex-col overflow-y-auto ${getPaperClass()}`}>
             <div className="h-[30%] relative overflow-hidden shrink-0">
-               <img src={invitation.main_photo_url} className="w-full h-full object-cover" style={{ objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%` }} />
-               <div className="absolute inset-0 bg-gradient-to-t from-white/80 to-transparent" />
+               <img 
+                 src={invitation.main_photo_url} 
+                 className="w-full h-full object-cover" 
+                 style={{ 
+                   transform: `translate(${invitation.main_photo_url_pos_x || 0}px, ${invitation.main_photo_url_pos_y || 0}px) scale(${invitation.main_photo_url_scale || 1})`
+                 }} 
+               />
+               <div className="absolute inset-0 bg-gradient-to-t from-white/80 to-transparent pointer-events-none" />
                <button onClick={() => setView('envelope')} className="absolute top-6 left-6 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-md"><X size={20}/></button>
             </div>
 
@@ -268,7 +293,14 @@ export function InvitationPreview({ invitation }: any) {
                   className="mt-20 px-2 pb-10"
                 >
                   <div className="rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white rotate-2">
-                    <img src={invitation.end_photo_url} className="w-full h-auto" alt="Final" />
+                    <img 
+                      src={invitation.end_photo_url} 
+                      className="w-full h-auto" 
+                      style={{ 
+                        transform: `translate(${invitation.end_photo_url_pos_x || 0}px, ${invitation.end_photo_url_pos_y || 0}px) scale(${invitation.end_photo_url_scale || 1})`
+                      }} 
+                      alt="Final" 
+                    />
                   </div>
                 </motion.div>
               )}
