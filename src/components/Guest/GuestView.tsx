@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, MapPin, CheckCircle2, Plus, Clock, Sparkles } from 'lucide-react'; 
+import { X, Calendar, MapPin, CheckCircle2, Plus, Clock, Sparkles, Film } from 'lucide-react'; 
 import { supabase } from '../../lib/supabase';
 import { translations, Language } from '../../lib/i18n';
 
@@ -131,20 +131,37 @@ export function GuestView({ invitation }: any) {
 
       <div className="relative w-full h-full flex items-center justify-center" style={{ opacity: view === 'envelope' ? 1 : 0, pointerEvents: view === 'envelope' ? 'auto' : 'none' }}>
         <div className="relative w-full max-w-[400px] h-full grid place-items-center">
+            {/* --- ÉLÉMENT SORTANT (VINYLE OU PELLICULE) --- */}
             <motion.div 
               initial={false}
-              animate={isOpened ? { y: -120, opacity: 1, scale: 1 } : { y: 20, opacity: 0, scale: 0.8 }} 
+              animate={isOpened ? { y: invitation.opening_type === 'filmstrip' ? -180 : -120, opacity: 1, scale: 1 } : { y: 20, opacity: 0, scale: 0.8 }} 
               transition={{ type: "spring", damping: 25, stiffness: 40, delay: 0.4 }}
-              className="row-start-1 col-start-1 w-[300px] h-[300px] z-20"
+              className="row-start-1 col-start-1 z-20"
             >
-              <div className={`w-full h-full rounded-full shadow-[0_30px_60px_rgba(0,0,0,0.5)] ${isOpened ? 'animate-disk-spin' : ''}`} style={{ background: '#111' }}>
-                <div className="absolute inset-0 opacity-40 rounded-full" style={{ background: 'repeating-radial-gradient(circle, #444 0, #000 2px, #111 4px)' }} />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-28 h-28 bg-white rounded-full border-[8px] border-[#111] overflow-hidden shadow-inner">
-                    {invitation.main_photo_url && <img src={invitation.main_photo_url} className="w-full h-full object-cover" style={{ objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%` }} />}
+              {invitation.opening_type === 'filmstrip' ? (
+                /* VERSION PELLICULE GUEST */
+                <div className="flex flex-col gap-2 p-4 bg-[#1a1a1a] rounded-xl shadow-[0_30px_60px_rgba(0,0,0,0.5)] rotate-[-3deg] w-48">
+                  {[invitation.main_photo_url, invitation.photo_url_2, invitation.photo_url_3].map((img, idx) => (
+                    <div key={idx} className="w-full h-24 bg-[#222] rounded-sm overflow-hidden border-x-[8px] border-dashed border-[#1a1a1a] relative">
+                      {img ? (
+                        <img src={img} className="w-full h-full object-cover grayscale-[0.1]" alt="" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gray-800"><Film className="text-gray-600" size={16}/></div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                /* VERSION VINYLE GUEST */
+                <div className={`w-[300px] h-[300px] rounded-full shadow-[0_30px_60px_rgba(0,0,0,0.5)] ${isOpened ? 'animate-disk-spin' : ''}`} style={{ background: '#111' }}>
+                  <div className="absolute inset-0 opacity-40 rounded-full" style={{ background: 'repeating-radial-gradient(circle, #444 0, #000 2px, #111 4px)' }} />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-28 h-28 bg-white rounded-full border-[8px] border-[#111] overflow-hidden shadow-inner">
+                      {invitation.main_photo_url && <img src={invitation.main_photo_url} className="w-full h-full object-cover" style={{ objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%` }} />}
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </motion.div>
 
             <motion.div 
