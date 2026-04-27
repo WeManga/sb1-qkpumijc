@@ -245,10 +245,12 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                 </div>
                 <div className="flex-1">
                   <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight">Installez l'App Studio</h3>
-                  <p className="text-[11px] text-gray-500 leading-snug mt-1">
+                  <p className="text-[11px] text-gray-500 leading-snug mt-1 flex items-center flex-wrap">
                     Gérez vos invitations plus facilement. 
-                    Appuyez sur <Share size={14} className="inline mx-1 text-blue-500" /> puis sur <span className="font-bold text-gray-800">"Sur l'écran d'accueil"</span> 
-                    <span className="inline-block ml-1 bg-gray-100 px-1.5 py-0.5 rounded text-[9px] font-bold">+</span>.
+                    Appuyez sur <Share size={14} className="inline mx-1 text-blue-500" /> puis sur 
+                    <span className="flex items-center gap-1 ml-1 font-bold text-gray-800">
+                      <Plus size={14} className="text-blue-500" /> "Sur l'écran d'accueil"
+                    </span>.
                   </p>
                 </div>
                 <button onClick={dismissPrompt} className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full text-gray-400">
