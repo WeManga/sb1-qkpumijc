@@ -15,6 +15,9 @@ export interface Database {
           envelope_color: string;
           date_icon: string;
           main_photo_url: string | null;
+          photo_url_2: string | null; // AJOUTÉ
+          photo_url_3: string | null; // AJOUTÉ
+          opening_type: string | null; // AJOUTÉ
           music_url: string | null;
           slug: string;
           is_published: boolean;
@@ -34,6 +37,9 @@ export interface Database {
           envelope_color?: string;
           date_icon?: string;
           main_photo_url?: string | null;
+          photo_url_2?: string | null; // AJOUTÉ
+          photo_url_3?: string | null; // AJOUTÉ
+          opening_type?: string | null; // AJOUTÉ
           music_url?: string | null;
           slug: string;
           is_published?: boolean;
@@ -53,6 +59,9 @@ export interface Database {
           envelope_color?: string;
           date_icon?: string;
           main_photo_url?: string | null;
+          photo_url_2?: string | null; // AJOUTÉ
+          photo_url_3?: string | null; // AJOUTÉ
+          opening_type?: string | null; // AJOUTÉ
           music_url?: string | null;
           slug?: string;
           is_published?: boolean;
