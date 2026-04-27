@@ -102,7 +102,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       const { data } = supabase.storage.from('invitations').getPublicUrl(fileName);
       onInvitationChange({ ...invitation, [field]: data.publicUrl });
     } catch (err) { 
-      alert(lang === 'vi' ? "Lỗi khi tải tập tin lên" : lang === 'en' ? "Upload error" : "Erreur d'upload"); 
+      alert("Erreur d'upload"); 
     } 
     finally { setUploading(false); }
   };
@@ -157,7 +157,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
               value={invitation.description || ''} 
               onChange={e => onInvitationChange({...invitation, description: e.target.value})} 
               className="w-full bg-gray-50 border-none p-4 rounded-2xl text-sm min-h-[100px] resize-none" 
-              placeholder={lang === 'vi' ? 'Nhập mô tả sự kiện...' : lang === 'en' ? 'Event description...' : "Texte d'accueil ou description de l'événement..."}
+              placeholder="Texte d'accueil..."
             />
 
             <div className="relative">
@@ -187,21 +187,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                     <input type="time" value={step.time} onChange={e => updateProgramStep(index, 'time', e.target.value)} className="w-24 bg-gray-50 border-none h-10 px-2 rounded-xl text-[11px] font-bold" />
                     <input type="text" value={step.activity} onChange={e => updateProgramStep(index, 'activity', e.target.value)} placeholder={t.activity_placeholder} className="flex-1 bg-gray-50 border-none h-10 px-3 rounded-xl text-[11px]" />
                     <button onClick={() => removeProgramStep(index)} className="p-1.5 bg-red-50 text-red-500 rounded-full"><X size={14}/></button>
-                  </div>
-                  <div className="flex items-center gap-3 px-1">
-                    <label className="cursor-pointer group flex items-center gap-2">
-                      <div className={`p-2 rounded-lg transition-colors ${step.image_url ? 'bg-amber-100 text-amber-600' : 'bg-gray-50 text-gray-400 group-hover:bg-gray-100'}`}>
-                        <ImageIcon size={14} />
-                      </div>
-                      <span className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1">
-                        {step.image_url ? "Changer la photo" : "Photo de l'étape"}
-                        {invitation.plan_type !== 'PREMIUM' && <Lock size={10} />}
-                      </span>
-                      <input type="file" className="hidden" accept="image/*" onChange={(e) => uploadProgramImage(e, index)} />
-                    </label>
-                    {step.image_url && (
-                      <button onClick={() => updateProgramStep(index, 'image_url', '')} className="text-[10px] text-red-400 font-bold uppercase">Supprimer</button>
-                    )}
                   </div>
                 </div>
               ))}
@@ -234,7 +219,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                   {invitation.plan_type !== 'PREMIUM' && <Lock size={12} />}
                 </span>
                 <input type="file" className="hidden" accept="image/*" onChange={(e) => {
-                  if(invitation.plan_type !== 'PREMIUM') return alert("Passez au Premium pour la photo de fin !");
+                  if(invitation.plan_type !== 'PREMIUM') return alert("Passez au Premium !");
                   uploadFile(e, 'end_photo_url');
                 }} />
               </label>
@@ -316,7 +301,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                   if(invitation.plan_type === 'PREMIUM') {
                     onInvitationChange({ ...invitation, opening_type: 'filmstrip' });
                   } else {
-                    alert("Passez au Premium pour débloquer le style Pellicule !");
+                    alert("Passez au Premium pour le style Pellicule !");
                   }
                 }}
                 className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all relative ${invitation.opening_type === 'filmstrip' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}
@@ -409,4 +394,4 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       )}
     </div>
   );
-} 
+}
