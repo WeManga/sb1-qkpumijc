@@ -30,6 +30,8 @@ export function InvitationPreview({ invitation }: any) {
       case 'parchment': return 'paper-parchment';
       case 'grainy': return 'paper-grainy';
       case 'cotton': return 'paper-cotton';
+      case 'silk': return 'paper-silk';
+      case 'velvet': return 'paper-velvet';
       default: return 'paper-smooth';
     }
   };
