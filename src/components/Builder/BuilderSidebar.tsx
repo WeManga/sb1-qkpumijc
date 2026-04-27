@@ -82,15 +82,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     onInvitationChange({...invitation, paper_type: textureId});
   };
 
-  const EVENT_TYPES = [
-    { id: 'wedding', name: t.theme_wedding, icon: Heart, premium: false },
-    { id: 'birthday', name: t.theme_birthday, icon: PartyPopper, premium: false },
-    { id: 'party', name: t.theme_party, icon: Sparkles, premium: true },
-    { id: 'baptism', name: t.theme_baptism, icon: Baby, premium: true },
-    { id: 'babyshower', name: 'Babyshower', icon: Milk, premium: true },
-    { id: 'funeral', name: 'Funeral', icon: Skull, premium: true }
-  ];
-
   const uploadFile = async (e: any, field: string) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -140,6 +131,15 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     const newProgram = invitation.event_program.filter((_: any, i: number) => i !== index);
     onInvitationChange({ ...invitation, event_program: newProgram });
   };
+
+  const EVENT_TYPES = [
+    { id: 'wedding', name: t.theme_wedding, icon: Heart, premium: false },
+    { id: 'birthday', name: t.theme_birthday, icon: PartyPopper, premium: false },
+    { id: 'party', name: t.theme_party, icon: Sparkles, premium: true },
+    { id: 'baptism', name: t.theme_baptism, icon: Baby, premium: true },
+    { id: 'babyshower', name: 'Babyshower', icon: Milk, premium: true },
+    { id: 'funeral', name: 'Funeral', icon: Skull, premium: true }
+  ];
 
   return (
     <div className="w-full space-y-8 pb-10">
