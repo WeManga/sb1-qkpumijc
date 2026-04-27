@@ -239,7 +239,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 }} />
               </label>
 
-              {/* NOUVEAUX SLOTS POUR PELLICULE */}
               {invitation.opening_type === 'filmstrip' && (
                 <>
                   <label className="flex flex-col items-center justify-center aspect-square bg-gray-50 rounded-[2rem] border-2 border-dashed border-amber-200 cursor-pointer overflow-hidden relative">
@@ -301,7 +300,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
       {activeTab === 'style' && (
         <div className="space-y-8">
-          {/* NOUVELLE SECTION STYLE D'OUVERTURE */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">Style d'ouverture</label>
             <div className="grid grid-cols-2 gap-3">
@@ -362,8 +360,18 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
           </div>
 
           <div>
+            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">{t.envelope_color}</label>
+            <div className="flex gap-3 overflow-x-auto pt-2 pb-6 px-4 -mx-4 scrollbar-hide">
+              {COLOR_PALETTES.map(p => (
+                <button key={p.color} onClick={() => onInvitationChange({...invitation, envelope_color: p.color})} style={{backgroundColor: p.color}} 
+                  className={`h-12 w-12 shrink-0 rounded-full border-4 transition-all ${invitation.envelope_color === p.color ? 'border-amber-400 scale-110 shadow-lg' : 'border-white shadow-sm'}`} />
+              ))}
+            </div>
+          </div>
+
+          <div>
             <label className="text-[10px] font-black uppercase text-amber-600 mb-4 flex items-center gap-2 ml-1">
-              <Sparkles size={12}/> Satin & Chrome (Premium)
+              <Sparkles size={12}/> COULEUR SATINS
             </label>
             <div className="flex gap-3 overflow-x-auto pt-2 pb-4 px-4 -mx-4 scrollbar-hide">
               {PREMIUM_PALETTES.map(p => (
@@ -379,16 +387,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                     </div>
                   )}
                 </button>
-              ))}
-            </div>
-          </div>
-
-          <div>
-            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">{t.envelope_color}</label>
-            <div className="flex gap-3 overflow-x-auto pt-2 pb-6 px-4 -mx-4 scrollbar-hide">
-              {COLOR_PALETTES.map(p => (
-                <button key={p.color} onClick={() => onInvitationChange({...invitation, envelope_color: p.color})} style={{backgroundColor: p.color}} 
-                  className={`h-12 w-12 shrink-0 rounded-full border-4 transition-all ${invitation.envelope_color === p.color ? 'border-amber-400 scale-110 shadow-lg' : 'border-white shadow-sm'}`} />
               ))}
             </div>
           </div>
