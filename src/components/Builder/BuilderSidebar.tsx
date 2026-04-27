@@ -25,14 +25,14 @@ const PREMIUM_PALETTES = [
 ];
 
 const FONTS = [
-  { id: 'font-sans', name: 'Moderne', family: 'Inter, sans-serif', premium: false },
-  { id: 'font-serif', name: 'Classique', family: 'Georgia, serif', premium: false },
-  { id: 'font-elegant', name: 'Élégant', family: "'Playfair Display', serif", premium: false },
-  { id: 'font-script', name: 'Manuscrit', family: "'Dancing Script', cursive", premium: false },
-  { id: 'font-royal', name: 'Royal Script', family: "'Great Vibes', cursive", premium: true },
-  { id: 'font-vintage', name: 'Vintage', family: "'Cinzel', serif", premium: true },
-  { id: 'font-boho', name: 'Boho Style', family: "'Sacramento', cursive", premium: true },
-  { id: 'font-mono', name: 'Minimalist', family: 'monospace', premium: false }
+  { id: 'font-sans', name: 'Moderne Pur', family: "'Montserrat', sans-serif", premium: false },
+  { id: 'font-serif', name: 'Classique Chic', family: "'Libre Baskerville', serif", premium: false },
+  { id: 'font-elegant', name: 'Élégance Riviera', family: "'Playfair Display', serif", premium: false },
+  { id: 'font-script', name: 'Plume Douce', family: "'Dancing Script', cursive", premium: false },
+  { id: 'font-royal', name: 'Royal Majesty', family: "'Alex Brush', cursive", premium: true },
+  { id: 'font-vintage', name: 'Héritage Ancien', family: "'Cinzel Decorative', serif", premium: true },
+  { id: 'font-boho', name: 'Bohème Spirit', family: "'La Belle Aurore', cursive", premium: true },
+  { id: 'font-luxury', name: 'Luxe Minimal', family: "'Cormorant Garamond', serif", premium: true }
 ];
 
 const TEXTURES = [
