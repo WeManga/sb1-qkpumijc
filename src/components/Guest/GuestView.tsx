@@ -131,7 +131,6 @@ export function GuestView({ invitation }: any) {
 
       <div className="relative w-full h-full flex items-center justify-center" style={{ opacity: view === 'envelope' ? 1 : 0, pointerEvents: view === 'envelope' ? 'auto' : 'none' }}>
         <div className="relative w-full max-w-[400px] h-full grid place-items-center">
-            {/* --- ÉLÉMENT SORTANT (VINYLE OU PELLICULE AVEC DÉFILEMENT) --- */}
             <motion.div 
               initial={false}
               animate={isOpened ? { y: invitation.opening_type === 'filmstrip' ? -180 : -120, opacity: 1, scale: 1 } : { y: 20, opacity: 0, scale: 0.8 }} 
@@ -139,9 +138,7 @@ export function GuestView({ invitation }: any) {
               className="row-start-1 col-start-1 z-20"
             >
               {invitation.opening_type === 'filmstrip' ? (
-                /* VERSION PELLICULE GUEST AVEC DÉFILEMENT INFINI */
                 <div className="relative w-48 h-80 bg-[#1a1a1a] rounded-xl shadow-[0_30px_60px_rgba(0,0,0,0.5)] rotate-[-3deg] overflow-hidden p-3 border-y-4 border-[#1a1a1a]">
-                  {/* Perforations */}
                   <div className="absolute inset-y-0 left-2 w-2 border-l-4 border-dashed border-white/20 z-10" />
                   <div className="absolute inset-y-0 right-2 w-2 border-r-4 border-dashed border-white/20 z-10" />
                   
@@ -151,12 +148,22 @@ export function GuestView({ invitation }: any) {
                     className="flex flex-col gap-4"
                   >
                     {[
-                      invitation.main_photo_url, invitation.photo_url_2, invitation.photo_url_3,
-                      invitation.main_photo_url, invitation.photo_url_2, invitation.photo_url_3
-                    ].map((img, idx) => (
+                      { url: invitation.main_photo_url, key: 'main_photo_url' },
+                      { url: invitation.photo_url_2, key: 'photo_url_2' },
+                      { url: invitation.photo_url_3, key: 'photo_url_3' },
+                      { url: invitation.main_photo_url, key: 'main_photo_url' },
+                      { url: invitation.photo_url_2, key: 'photo_url_2' },
+                      { url: invitation.photo_url_3, key: 'photo_url_3' }
+                    ].map((imgObj, idx) => (
                       <div key={idx} className="w-full h-32 bg-[#222] rounded-sm overflow-hidden relative shrink-0">
-                        {img ? (
-                          <img src={img} className="w-full h-full object-cover grayscale-[0.2] contrast-125" alt="" />
+                        {imgObj.url ? (
+                          <img 
+                            src={imgObj.url} 
+                            className="w-full h-full object-cover grayscale-[0.2] contrast-125" 
+                            style={{ 
+                              transform: `translate(${invitation[`${imgObj.key}_pos_x`] || 0}px, ${invitation[`${imgObj.key}_pos_y`] || 0}px) scale(${invitation[`${imgObj.key}_scale`] || 1})`
+                            }}
+                          />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-gray-800"><Film className="text-gray-600" size={20}/></div>
                         )}
@@ -166,12 +173,19 @@ export function GuestView({ invitation }: any) {
                   </motion.div>
                 </div>
               ) : (
-                /* VERSION VINYLE GUEST */
                 <div className={`w-[300px] h-[300px] rounded-full shadow-[0_30px_60px_rgba(0,0,0,0.5)] ${isOpened ? 'animate-disk-spin' : ''}`} style={{ background: '#111' }}>
                   <div className="absolute inset-0 opacity-40 rounded-full" style={{ background: 'repeating-radial-gradient(circle, #444 0, #000 2px, #111 4px)' }} />
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="w-28 h-28 bg-white rounded-full border-[8px] border-[#111] overflow-hidden shadow-inner">
-                      {invitation.main_photo_url && <img src={invitation.main_photo_url} className="w-full h-full object-cover" style={{ objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%` }} />}
+                      {invitation.main_photo_url && (
+                        <img 
+                          src={invitation.main_photo_url} 
+                          className="w-full h-full object-cover" 
+                          style={{ 
+                            transform: `translate(${invitation.main_photo_url_pos_x || 0}px, ${invitation.main_photo_url_pos_y || 0}px) scale(${invitation.main_photo_url_scale || 1})`
+                          }}
+                        />
+                      )}
                     </div>
                   </div>
                 </div>
@@ -226,7 +240,16 @@ export function GuestView({ invitation }: any) {
         {view === 'content' && (
           <motion.div key="content" initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 100 }} transition={{ duration: 0.6, ease: "easeOut" }} className={`fixed inset-0 z-[100] flex flex-col overflow-y-auto overflow-x-hidden touch-pan-y w-full ${getPaperClass()}`}>
             <div className="relative h-[50vh] shrink-0 overflow-hidden w-full">
-              <motion.img initial={{ scale: 1.4 }} animate={{ scale: 1 }} transition={{ duration: 1.5, ease: "easeOut" }} src={invitation.main_photo_url} className="w-full h-full object-cover shadow-2xl" style={{ objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%` }} />
+              <motion.img 
+                initial={{ scale: 1.4 }} 
+                animate={{ scale: 1 }} 
+                transition={{ duration: 1.5, ease: "easeOut" }} 
+                src={invitation.main_photo_url} 
+                className="w-full h-full object-cover shadow-2xl" 
+                style={{ 
+                  transform: `translate(${invitation.main_photo_url_pos_x || 0}px, ${invitation.main_photo_url_pos_y || 0}px) scale(${invitation.main_photo_url_scale || 1})`
+                }} 
+              />
               <div className="absolute inset-0 bg-gradient-to-t from-white via-white/20 to-transparent" />
               <button onClick={() => setView('envelope')} className="absolute top-8 left-8 w-12 h-12 bg-white/90 backdrop-blur-xl rounded-full flex items-center justify-center shadow-xl text-gray-800 border border-gray-100"><X size={20}/></button>
             </div>
@@ -297,7 +320,13 @@ export function GuestView({ invitation }: any) {
               {invitation.plan_type === 'PREMIUM' && invitation.end_photo_url && (
                 <div className="px-2">
                   <div className="rounded-[3rem] overflow-hidden shadow-2xl border-4 border-white rotate-1">
-                    <img src={invitation.end_photo_url} className="w-full h-auto" alt="End" />
+                    <img 
+                      src={invitation.end_photo_url} 
+                      className="w-full h-auto" 
+                      style={{ 
+                        transform: `translate(${invitation.end_photo_url_pos_x || 0}px, ${invitation.end_photo_url_pos_y || 0}px) scale(${invitation.end_photo_url_scale || 1})`
+                      }}
+                    />
                   </div>
                 </div>
               )}
