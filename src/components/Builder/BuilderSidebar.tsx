@@ -3,7 +3,8 @@ import { supabase } from '../../lib/supabase';
 import { translations, Language } from '../../lib/i18n';
 import { 
   Heart, PartyPopper, Sparkles, Baby, MapPin, 
-  Music, Image as ImageIcon, Calendar, Plus, X, Move, Skull, Milk, Lock
+  Music, Image as ImageIcon, Calendar, Plus, X, Move, Skull, Milk, Lock,
+  Disc, Film
 } from 'lucide-react';
 import { PREMIUM_COLORS } from '../../constants/colors';
 
@@ -237,6 +238,31 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                   uploadFile(e, 'end_photo_url');
                 }} />
               </label>
+
+              {/* NOUVEAUX SLOTS POUR PELLICULE */}
+              {invitation.opening_type === 'filmstrip' && (
+                <>
+                  <label className="flex flex-col items-center justify-center aspect-square bg-gray-50 rounded-[2rem] border-2 border-dashed border-amber-200 cursor-pointer overflow-hidden relative">
+                    {invitation.photo_url_2 ? (
+                      <img src={invitation.photo_url_2} className="w-full h-full object-cover opacity-30" />
+                    ) : <Film size={20} className="text-amber-200 mb-2" />}
+                    <span className="absolute inset-0 flex items-center justify-center text-[9px] font-black text-amber-900 uppercase bg-white/40 text-center px-2">
+                      Vue 02
+                    </span>
+                    <input type="file" className="hidden" accept="image/*" onChange={(e) => uploadFile(e, 'photo_url_2')} />
+                  </label>
+
+                  <label className="flex flex-col items-center justify-center aspect-square bg-gray-50 rounded-[2rem] border-2 border-dashed border-amber-200 cursor-pointer overflow-hidden relative">
+                    {invitation.photo_url_3 ? (
+                      <img src={invitation.photo_url_3} className="w-full h-full object-cover opacity-30" />
+                    ) : <Film size={20} className="text-amber-200 mb-2" />}
+                    <span className="absolute inset-0 flex items-center justify-center text-[9px] font-black text-amber-900 uppercase bg-white/40 text-center px-2">
+                      Vue 03
+                    </span>
+                    <input type="file" className="hidden" accept="image/*" onChange={(e) => uploadFile(e, 'photo_url_3')} />
+                  </label>
+                </>
+              )}
               
               <label className="flex flex-col items-center justify-center aspect-square bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-200 cursor-pointer col-span-2 py-4">
                 <Music className="text-gray-400 mb-2" />
@@ -275,6 +301,35 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
       {activeTab === 'style' && (
         <div className="space-y-8">
+          {/* NOUVELLE SECTION STYLE D'OUVERTURE */}
+          <div>
+            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">Style d'ouverture</label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={() => onInvitationChange({ ...invitation, opening_type: 'vinyl' })}
+                className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all ${invitation.opening_type !== 'filmstrip' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}
+              >
+                <Disc size={20} className={invitation.opening_type !== 'filmstrip' ? 'text-amber-500' : 'text-gray-400'} />
+                <span className="text-[10px] font-bold uppercase">Vinyle</span>
+              </button>
+              
+              <button
+                onClick={() => {
+                  if(invitation.plan_type === 'PREMIUM') {
+                    onInvitationChange({ ...invitation, opening_type: 'filmstrip' });
+                  } else {
+                    alert("Passez au Premium pour débloquer le style Pellicule !");
+                  }
+                }}
+                className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all relative ${invitation.opening_type === 'filmstrip' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}
+              >
+                <Film size={20} className={invitation.opening_type === 'filmstrip' ? 'text-amber-500' : 'text-gray-400'} />
+                <span className="text-[10px] font-bold uppercase">Pellicule</span>
+                {invitation.plan_type !== 'PREMIUM' && <Lock size={12} className="absolute right-2 top-2 text-gray-400" />}
+              </button>
+            </div>
+          </div>
+
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">{t.theme_label}</label>
             <div className="grid grid-cols-2 gap-3">
