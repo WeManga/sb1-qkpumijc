@@ -19,11 +19,9 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
   const lang = (localStorage.getItem('invite_lang') as Language) || 'fr';
   const t = translations[lang].builder;
   const tAuth = translations[lang].auth;
-  const tGuest = translations[lang].guest; // Pour les messages de succès/erreur
 
   const [invitation, setInvitation] = useState<Partial<Invitation>>({
     event_type: 'wedding',
-    // Correction : Utilisation des clés de traduction pour le titre par défaut
     title: t.theme_wedding,
     host_names: 'John & Jane',
     event_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
@@ -60,7 +58,7 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
         .maybeSingle();
 
       if (error) throw error;
-if (invData) setInvitation({ ...invData, plan_type: 'PREMIUM' });
+      if (invData) setInvitation({ ...invData, plan_type: 'PREMIUM' });
     } catch (error) {
       console.error('Erreur chargement:', error);
     } finally {
@@ -99,8 +97,15 @@ if (invData) setInvitation({ ...invData, plan_type: 'PREMIUM' });
         if (error) throw error;
       }
       
-      // Correction : Alerte traduite via i18n
-      alert(tGuest.success_msg);
+      // MODIFICATION ICI : Message de succès spécifique au Builder
+      const successMsg = lang === 'fr' 
+        ? "Votre invitation est enregistrée" 
+        : lang === 'en' 
+        ? "Your invitation has been saved" 
+        : "Lời mời của bạn đã được lưu";
+      
+      alert(successMsg);
+
     } catch (error: any) {
       console.error('Erreur sauvegarde:', error);
       alert(`${tAuth.error_default}: ${error.message || ''}`);
