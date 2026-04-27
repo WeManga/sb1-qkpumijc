@@ -46,6 +46,7 @@ const TEXTURES = [
 
 export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: any) {
   const [uploading, setUploading] = useState(false);
+  const [selectedPhotoKey, setSelectedPhotoKey] = useState('main_photo_url');
   const dragRef = useRef<{ x: number, y: number, isDragging: boolean, lastDist: number }>({ x: 0, y: 0, isDragging: false, lastDist: 0 });
   
   const lang = (invitation.language as Language) || (localStorage.getItem('invite_lang') as Language) || 'fr';
@@ -147,12 +148,16 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
   const handleDragMove = (e: any) => {
     if (!dragRef.current.isDragging) return;
     
+    const posKeyX = `${selectedPhotoKey}_pos_x`;
+    const posKeyY = `${selectedPhotoKey}_pos_y`;
+    const scaleKey = `${selectedPhotoKey}_scale`;
+
     if (e.touches && e.touches.length === 2) {
       const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
       if (dragRef.current.lastDist > 0) {
         const delta = (dist - dragRef.current.lastDist) / 100;
-        const newScale = Math.max(1, Math.min(5, (invitation.photo_scale || 1) + delta));
-        onInvitationChange({ ...invitation, photo_scale: newScale });
+        const newScale = Math.max(1, Math.min(5, (invitation[scaleKey] || 1) + delta));
+        onInvitationChange({ ...invitation, [scaleKey]: newScale });
       }
       dragRef.current.lastDist = dist;
       return;
@@ -161,14 +166,13 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
     
-    // Calcul du mouvement basé sur les pixels réels pour plus de précision lors du zoom
     const deltaX = (clientX - dragRef.current.x);
     const deltaY = (clientY - dragRef.current.y);
 
     onInvitationChange({ 
       ...invitation, 
-      photo_pos_x: (invitation.photo_pos_x || 0) + deltaX, 
-      photo_pos_y: (invitation.photo_pos_y || 0) + deltaY 
+      [posKeyX]: (invitation[posKeyX] || 0) + deltaX, 
+      [posKeyY]: (invitation[posKeyY] || 0) + deltaY 
     });
     
     dragRef.current.x = clientX;
@@ -176,9 +180,10 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
   };
 
   const handleWheel = (e: any) => {
+    const scaleKey = `${selectedPhotoKey}_scale`;
     const delta = e.deltaY > 0 ? -0.1 : 0.1;
-    const newScale = Math.max(1, Math.min(5, (invitation.photo_scale || 1) + delta));
-    onInvitationChange({ ...invitation, photo_scale: newScale });
+    const newScale = Math.max(1, Math.min(5, (invitation[scaleKey] || 1) + delta));
+    onInvitationChange({ ...invitation, [scaleKey]: newScale });
   };
 
   return (
@@ -303,10 +308,17 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </div>
 
-          {invitation.main_photo_url && (
+          {(invitation.main_photo_url || invitation.end_photo_url) && (
             <div className="bg-amber-50/50 p-6 rounded-[2rem] border border-amber-100 space-y-4">
+              <div className="flex flex-wrap gap-2">
+                <button onClick={() => setSelectedPhotoKey('main_photo_url')} className={`px-3 py-1 rounded-full text-[9px] font-black uppercase transition-all ${selectedPhotoKey === 'main_photo_url' ? 'bg-amber-500 text-white shadow-sm' : 'bg-white text-amber-800 border border-amber-200'}`}>Début</button>
+                {invitation.end_photo_url && <button onClick={() => setSelectedPhotoKey('end_photo_url')} className={`px-3 py-1 rounded-full text-[9px] font-black uppercase transition-all ${selectedPhotoKey === 'end_photo_url' ? 'bg-amber-500 text-white shadow-sm' : 'bg-white text-amber-800 border border-amber-200'}`}>Fin</button>}
+                {invitation.photo_url_2 && <button onClick={() => setSelectedPhotoKey('photo_url_2')} className={`px-3 py-1 rounded-full text-[9px] font-black uppercase transition-all ${selectedPhotoKey === 'photo_url_2' ? 'bg-amber-500 text-white shadow-sm' : 'bg-white text-amber-800 border border-amber-200'}`}>Vue 2</button>}
+                {invitation.photo_url_3 && <button onClick={() => setSelectedPhotoKey('photo_url_3')} className={`px-3 py-1 rounded-full text-[9px] font-black uppercase transition-all ${selectedPhotoKey === 'photo_url_3' ? 'bg-amber-500 text-white shadow-sm' : 'bg-white text-amber-800 border border-amber-200'}`}>Vue 3</button>}
+              </div>
+              
               <span className="text-[10px] font-black uppercase text-amber-800 tracking-wider flex items-center gap-2">
-                <Move size={12}/> Glisser & Pincer pour ajuster
+                <Move size={12}/> Ajuster la photo sélectionnée
               </span>
               <div 
                 className="w-full aspect-video rounded-2xl bg-gray-200 overflow-hidden relative border-2 border-white shadow-sm cursor-move touch-none"
@@ -320,9 +332,9 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 onTouchEnd={() => { dragRef.current.isDragging = false; dragRef.current.lastDist = 0; }}
               >
                 <img 
-                  src={invitation.main_photo_url} 
+                  src={invitation[selectedPhotoKey]} 
                   style={{ 
-                    transform: `translate(${invitation.photo_pos_x || 0}px, ${invitation.photo_pos_y || 0}px) scale(${invitation.photo_scale || 1})`,
+                    transform: `translate(${invitation[`${selectedPhotoKey}_pos_x`] || 0}px, ${invitation[`${selectedPhotoKey}_pos_y`] || 0}px) scale(${invitation[`${selectedPhotoKey}_scale`] || 1})`,
                     pointerEvents: 'none'
                   }} 
                   className="w-full h-full object-cover transition-transform duration-75 origin-center"
