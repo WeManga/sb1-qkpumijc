@@ -117,7 +117,7 @@ export function InvitationPreview({ invitation }: any) {
 
             <AnimatePresence>
               {!isOpened && (
-                <motion.div exit={{ y: "-100%" }} transition={{ duration: 0.9 }} className="absolute inset-0 z-50 flex flex-col items-center justify-center" style={{ backgroundColor: invitation?.envelope_color || '#FEE2E2' }}>
+                <motion.div exit={{ y: "-100%" }} transition={{ duration: 0.9 }} className="absolute inset-0 z-50 flex flex-col items-center justify-center" style={{ background: invitation?.envelope_color || '#FEE2E2' }}>
                   <button onClick={() => setIsOpened(true)} className="w-[32rem] h-[32rem] flex items-center justify-center hover:scale-105 transition-transform p-0 overflow-visible active:scale-95">
                     <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-full h-full object-contain" alt="Sceau" />
                   </button>
@@ -162,7 +162,6 @@ export function InvitationPreview({ invitation }: any) {
                 </div>
               )}
 
-              {/* PROGRAMME ANIMÉ POUR PREVIEW */}
               <div className="space-y-12 pb-10">
                 <h3 className="text-[10px] font-black text-amber-600 uppercase tracking-[0.3em] text-center mb-8 flex items-center justify-center gap-2">
                   <Sparkles size={12}/> {tBuilder.program_title} <Sparkles size={12}/>
