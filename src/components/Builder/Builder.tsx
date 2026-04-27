@@ -33,6 +33,9 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
     photo_pos_y: 50,
     is_published: false,
     language: lang,
+    opening_type: 'vinyl', // NOUVEAU
+    photo_url_2: '',      // NOUVEAU
+    photo_url_3: '',      // NOUVEAU
     // @ts-ignore
     plan_type: 'PREMIUM' 
   });
@@ -81,6 +84,9 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
         photo_pos_x: parseInt(String(invitation.photo_pos_x || 50)),
         photo_pos_y: parseInt(String(invitation.photo_pos_y || 50)),
         language: localStorage.getItem('invite_lang') || invitation.language || 'fr',
+        opening_type: invitation.opening_type || 'vinyl', // SAUVEGARDE NOUVEAU
+        photo_url_2: invitation.photo_url_2 || '',      // SAUVEGARDE NOUVEAU
+        photo_url_3: invitation.photo_url_3 || '',      // SAUVEGARDE NOUVEAU
         updated_at: new Date().toISOString(),
       };
 
@@ -97,7 +103,6 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
         if (error) throw error;
       }
       
-      // MODIFICATION ICI : Message de succès spécifique au Builder
       const successMsg = lang === 'fr' 
         ? "Votre invitation est enregistrée" 
         : lang === 'en' 
