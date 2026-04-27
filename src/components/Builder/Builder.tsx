@@ -36,7 +36,7 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
     is_published: false,
     language: lang,
     // @ts-ignore
-    plan_type: 'FREE' 
+    plan_type: 'PREMIUM' 
   });
 
   const [loading, setLoading] = useState(true);
@@ -60,7 +60,7 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
         .maybeSingle();
 
       if (error) throw error;
-      if (invData) setInvitation(invData);
+if (invData) setInvitation({ ...invData, plan_type: 'PREMIUM' });
     } catch (error) {
       console.error('Erreur chargement:', error);
     } finally {
