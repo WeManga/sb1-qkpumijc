@@ -1,99 +1,25 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+    
+    <title>InviteStudio</title>
+    
+    <link rel="icon" type="image/png" href="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" />
+    
+    <link rel="apple-touch-icon" href="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" />
+    
+    <meta property="og:title" content="InviteStudio" />
+    <meta property="og:description" content="Créez des invitations digitales inoubliables" />
+    <meta property="og:image" content="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" />
+    
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:image" content="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" />
 
-@layer base {
-  html {
-    scroll-behavior: smooth;
-    height: 100%;
-  }
-  body {
-    @apply bg-[#F5F5F7] text-[#1D1D1F] antialiased;
-    width: 100%;
-    min-height: 100vh;
-    margin: 0;
-    padding: 0;
-    overflow-x: hidden;
-    overflow-y: visible; 
-  }
-}
-
-input, select, textarea {
-  font-size: 16px !important;
-}
-
-input[type="date"], 
-input[type="time"], 
-input[type="text"] {
-  height: 48px !important; 
-  display: flex;
-  align-items: center;
-}
-
-/* --- TEXTURES PAPIER --- */
-.paper-smooth { 
-  background-color: #ffffff; 
-  background-image: url("https://www.transparenttextures.com/patterns/natural-paper.png"); 
-}
-
-.paper-parchment { 
-  background-color: #f4e4bc; 
-  background-image: url("https://www.transparenttextures.com/patterns/parchment.png"); 
-  color: #5d4037 !important; 
-}
-
-.paper-grainy { 
-  background-color: #faf9f6; 
-  background-image: url("https://www.transparenttextures.com/patterns/beige-paper.png"); 
-}
-
-.paper-cotton { 
-  background-color: #fffcf5; 
-  background-image: url("https://www.transparenttextures.com/patterns/white-diamond.png"); 
-}
-
-.paper-texture {
-  background-color: #ffffff;
-  background-image: url("https://www.transparenttextures.com/patterns/natural-paper.png");
-}
-
-/* Animation Vinyle */
-@keyframes disk-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-.animate-disk-spin {
-  animation: disk-spin 12s linear infinite;
-}
-
-.vinyl-gloss {
-  background: conic-gradient(
-    from 0deg, 
-    transparent 0deg, 
-    rgba(255, 255, 255, 0.1) 25deg, 
-    transparent 50deg, 
-    transparent 150deg, 
-    rgba(255, 255, 255, 0.1) 175deg, 
-    transparent 200deg
-  );
-}
-
-.timeline-path {
-  background: linear-gradient(to bottom, #f59e0b, #fbbf24, #f59e0b);
-  width: 2px;
-  box-shadow: 0 0 8px rgba(245, 158, 11, 0.5);
-}
-
-.scrollbar-hide::-webkit-scrollbar { display: none; }
-.scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-
-/* Styles pour le prompt iOS */
-.ios-prompt-share-icon {
-  display: inline-block;
-  width: 20px;
-  height: 24px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' stroke='%233b82f6' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' viewBox='0 0 24 24'%3E%3Cpath d='M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8'/%3E%3Cpolyline points='16 6 12 2 8 6'/%3E%3Cline x1='12' y1='2' x2='12' y2='15'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  vertical-align: middle;
-  margin: 0 4px;
-}
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
