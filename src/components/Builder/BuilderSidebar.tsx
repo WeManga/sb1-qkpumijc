@@ -31,7 +31,6 @@ const FONTS = [
   { id: 'font-mono', name: 'Minimalist', family: 'monospace' }
 ];
 
-// Configuration des Textures avec statut Premium
 const TEXTURES = [
   { id: 'smooth', name: 'Smooth', premium: false },
   { id: 'parchment', name: 'Parchment', premium: false },
@@ -88,8 +87,28 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     finally { setUploading(false); }
   };
 
+  const uploadProgramImage = async (e: any, index: number) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (invitation.plan_type !== 'PREMIUM') {
+      alert("Passez au Premium pour ajouter des photos au programme !");
+      return;
+    }
+    setUploading(true);
+    const fileName = `prog-${Date.now()}-${index}.${file.name.split('.').pop()}`;
+    try {
+      const { error } = await supabase.storage.from('invitations').upload(fileName, file);
+      if (error) throw error;
+      const { data } = supabase.storage.from('invitations').getPublicUrl(fileName);
+      const newProgram = [...(invitation.event_program || [])];
+      newProgram[index] = { ...newProgram[index], image_url: data.publicUrl };
+      onInvitationChange({ ...invitation, event_program: newProgram });
+    } catch (err) { alert("Erreur d'upload"); }
+    finally { setUploading(false); }
+  };
+
   const addProgramStep = () => {
-    const newProgram = [...(invitation.event_program || []), { time: '12:00', activity: '' }];
+    const newProgram = [...(invitation.event_program || []), { time: '12:00', activity: '', image_url: '' }];
     onInvitationChange({ ...invitation, event_program: newProgram });
   };
 
@@ -143,10 +162,26 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
             <div className="space-y-3">
               {(invitation.event_program || []).map((step: any, index: number) => (
-                <div key={index} className="flex gap-2 items-center bg-white p-3 rounded-2xl border border-gray-100 shadow-sm">
-                  <input type="time" value={step.time} onChange={e => updateProgramStep(index, 'time', e.target.value)} className="w-24 bg-gray-50 border-none h-10 px-2 rounded-xl text-[11px] font-bold" />
-                  <input type="text" value={step.activity} onChange={e => updateProgramStep(index, 'activity', e.target.value)} placeholder={t.activity_placeholder} className="flex-1 bg-gray-50 border-none h-10 px-3 rounded-xl text-[11px]" />
-                  <button onClick={() => removeProgramStep(index)} className="p-1.5 bg-red-50 text-red-500 rounded-full"><X size={14}/></button>
+                <div key={index} className="space-y-2 bg-white p-3 rounded-2xl border border-gray-100 shadow-sm">
+                  <div className="flex gap-2 items-center">
+                    <input type="time" value={step.time} onChange={e => updateProgramStep(index, 'time', e.target.value)} className="w-24 bg-gray-50 border-none h-10 px-2 rounded-xl text-[11px] font-bold" />
+                    <input type="text" value={step.activity} onChange={e => updateProgramStep(index, 'activity', e.target.value)} placeholder={t.activity_placeholder} className="flex-1 bg-gray-50 border-none h-10 px-3 rounded-xl text-[11px]" />
+                    <button onClick={() => removeProgramStep(index)} className="p-1.5 bg-red-50 text-red-500 rounded-full"><X size={14}/></button>
+                  </div>
+                  <div className="flex items-center gap-3 px-1">
+                    <label className="cursor-pointer group flex items-center gap-2">
+                      <div className={`p-2 rounded-lg transition-colors ${step.image_url ? 'bg-amber-100 text-amber-600' : 'bg-gray-50 text-gray-400 group-hover:bg-gray-100'}`}>
+                        <ImageIcon size={14} />
+                      </div>
+                      <span className="text-[10px] font-bold text-gray-400 uppercase">
+                        {step.image_url ? "Changer la photo" : "Photo de l'étape"}
+                      </span>
+                      <input type="file" className="hidden" accept="image/*" onChange={(e) => uploadProgramImage(e, index)} />
+                    </label>
+                    {step.image_url && (
+                      <button onClick={() => updateProgramStep(index, 'image_url', '')} className="text-[10px] text-red-400 font-bold uppercase">Supprimer</button>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -168,10 +203,23 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 </span>
                 <input type="file" className="hidden" accept="image/*" onChange={(e) => uploadFile(e, 'main_photo_url')} />
               </label>
+
+              <label className="flex flex-col items-center justify-center aspect-square bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-200 cursor-pointer overflow-hidden relative">
+                {invitation.end_photo_url ? (
+                  <img src={invitation.end_photo_url} className="w-full h-full object-cover opacity-30" alt="Preview" />
+                ) : <Sparkles className="text-gray-400 mb-2" />}
+                <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-gray-600 uppercase bg-white/40 text-center px-2">
+                  Photo de fin (Premium)
+                </span>
+                <input type="file" className="hidden" accept="image/*" onChange={(e) => {
+                  if(invitation.plan_type !== 'PREMIUM') return alert("Passez au Premium pour la photo de fin !");
+                  uploadFile(e, 'end_photo_url');
+                }} />
+              </label>
               
-              <label className="flex flex-col items-center justify-center aspect-square bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-200 cursor-pointer">
+              <label className="flex flex-col items-center justify-center aspect-square bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-200 cursor-pointer col-span-2 py-4">
                 <Music className="text-gray-400 mb-2" />
-                <span className="text-[10px] font-bold text-gray-400 uppercase text-center px-2">{invitation.music_url ? "OK" : t.upload_music}</span>
+                <span className="text-[10px] font-bold text-gray-400 uppercase text-center px-2">{invitation.music_url ? "Musique OK" : t.upload_music}</span>
                 <input type="file" className="hidden" accept=".mp3,audio/mpeg" onChange={(e) => uploadFile(e, 'music_url')} />
               </label>
             </div>
@@ -234,7 +282,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </div>
 
-          {/* SECTION COULEURS PREMIUM */}
           <div>
             <label className="text-[10px] font-black uppercase text-amber-600 mb-4 flex items-center gap-2 ml-1">
               <Sparkles size={12}/> Satin & Chrome (Premium)
