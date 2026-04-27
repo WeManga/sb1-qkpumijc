@@ -5,7 +5,7 @@ import {
   Heart, PartyPopper, Sparkles, Baby, MapPin, 
   Music, Image as ImageIcon, Calendar, Plus, X, Move, Skull, Milk, Lock
 } from 'lucide-react';
-import { PREMIUM_COLORS } from './Builder'; // Import des textures définies dans Builder
+import { PREMIUM_COLORS } from '../../lib/colors';
 
 const COLOR_PALETTES = [
   { color: '#FEE2E2' }, { color: '#E0F2FE' }, { color: '#DCFCE7' },
