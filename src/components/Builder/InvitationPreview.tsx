@@ -203,11 +203,18 @@ export function InvitationPreview({ invitation }: any) {
                             />
                           </motion.div>
 
-                          <div className={`w-[45%] p-4 bg-white/60 rounded-2xl border border-amber-50 backdrop-blur-sm shadow-lg ${isEven ? 'text-left' : 'text-right'}`}>
-                            <div className="text-[9px] font-black text-amber-600 mb-1 flex items-center gap-1 justify-inherit">
-                               <Clock size={8}/> {step.time}
+                          <div className={`w-[45%] overflow-hidden bg-white/60 rounded-2xl border border-amber-50 backdrop-blur-sm shadow-lg ${isEven ? 'text-left' : 'text-right'}`}>
+                            {step.image_url && (
+                              <div className="w-full aspect-video overflow-hidden">
+                                <img src={step.image_url} className="w-full h-full object-cover" alt="" />
+                              </div>
+                            )}
+                            <div className="p-4">
+                              <div className={`text-[9px] font-black text-amber-600 mb-1 flex items-center gap-1 ${isEven ? 'justify-start' : 'justify-end'}`}>
+                                 <Clock size={8}/> {step.time}
+                              </div>
+                              <div className="text-[11px] font-bold uppercase tracking-tight leading-tight">{step.activity}</div>
                             </div>
-                            <div className="text-[11px] font-bold uppercase tracking-tight leading-tight">{step.activity}</div>
                           </div>
                         </motion.div>
                       );
@@ -215,6 +222,19 @@ export function InvitationPreview({ invitation }: any) {
                   </div>
                 </div>
               </div>
+
+              {invitation.plan_type === 'PREMIUM' && invitation.end_photo_url && (
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  className="mt-20 px-2 pb-10"
+                >
+                  <div className="rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white rotate-2">
+                    <img src={invitation.end_photo_url} className="w-full h-auto" alt="Final" />
+                  </div>
+                </motion.div>
+              )}
             </div>
           </motion.div>
         )}
