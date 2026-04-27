@@ -84,25 +84,39 @@ export function InvitationPreview({ invitation }: any) {
               </button>
             )}
 
-            {/* --- ANIMATION D'OUVERTURE (DISQUE OU PELLICULE) --- */}
+            {/* --- ANIMATION D'OUVERTURE --- */}
             <motion.div 
               initial={{ y: -450 }} 
-              animate={isOpened ? { y: invitation.opening_type === 'filmstrip' ? -20 : 25 } : { y: -450 }} 
+              animate={isOpened ? { y: invitation.opening_type === 'filmstrip' ? -35 : 25 } : { y: -450 }} 
               transition={{ type: "spring", damping: 25 }} 
               className="absolute top-0 z-20"
             >
               {invitation.opening_type === 'filmstrip' ? (
-                /* VERSION PELLICULE */
-                <div className="flex flex-col gap-2 p-3 bg-[#1a1a1a] rounded-xl shadow-2xl rotate-[-2deg]">
-                  {[invitation.main_photo_url, invitation.photo_url_2, invitation.photo_url_3].map((img, idx) => (
-                    <div key={idx} className="w-40 h-28 bg-[#222] rounded-sm overflow-hidden border-x-[10px] border-dashed border-[#1a1a1a] relative">
-                      {img ? (
-                        <img src={img} className="w-full h-full object-cover grayscale-[0.2]" alt={`Pellicule ${idx}`} />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gray-800"><Film className="text-gray-600" size={20}/></div>
-                      )}
-                    </div>
-                  ))}
+                /* VERSION PELLICULE AVEC DÉFILEMENT INFINI */
+                <div className="relative w-44 h-72 bg-[#1a1a1a] rounded-xl shadow-2xl rotate-[-2deg] overflow-hidden p-2 border-y-4 border-[#1a1a1a]">
+                   {/* Perforations */}
+                  <div className="absolute inset-y-0 left-1.5 w-1.5 border-l-2 border-dashed border-white/20 z-10" />
+                  <div className="absolute inset-y-0 right-1.5 w-1.5 border-r-2 border-dashed border-white/20 z-10" />
+                  
+                  <motion.div 
+                    animate={{ y: [0, -360] }}
+                    transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+                    className="flex flex-col gap-2"
+                  >
+                    {[
+                      invitation.main_photo_url, invitation.photo_url_2, invitation.photo_url_3,
+                      invitation.main_photo_url, invitation.photo_url_2, invitation.photo_url_3
+                    ].map((img, idx) => (
+                      <div key={idx} className="w-full h-28 bg-[#222] rounded-sm overflow-hidden relative shrink-0">
+                        {img ? (
+                          <img src={img} className="w-full h-full object-cover grayscale-[0.2] contrast-125" alt="" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gray-800"><Film className="text-gray-600" size={20}/></div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none" />
+                      </div>
+                    ))}
+                  </motion.div>
                 </div>
               ) : (
                 /* VERSION VINYLE (DÉFAUT) */
