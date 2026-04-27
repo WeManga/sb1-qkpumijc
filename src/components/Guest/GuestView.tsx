@@ -111,7 +111,7 @@ export function GuestView({ invitation }: any) {
   };
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center overflow-hidden touch-none" style={{ backgroundColor: invitation.envelope_color || '#F3F4F6', fontFamily: invitation.font_style }}>
+    <div className="fixed inset-0 flex items-center justify-center overflow-hidden touch-none" style={{ background: invitation.envelope_color || '#F3F4F6', fontFamily: invitation.font_style }}>
       {invitation?.music_url && <audio ref={audioRef} src={invitation.music_url} loop />}
       {isOpened && <EmojiRain />}
       
@@ -170,7 +170,7 @@ export function GuestView({ invitation }: any) {
               animate={isOpened ? { y: '-100%', opacity: 0, pointerEvents: 'none' } : { y: 0, opacity: 1 }}
               transition={{ duration: 0.9, ease: [0.65, 0, 0.35, 1] }}
               className="absolute inset-0 z-50 flex flex-col items-center justify-center"
-              style={{ backgroundColor: invitation.envelope_color }}
+              style={{ background: invitation.envelope_color || '#F3F4F6' }}
             >
               <motion.button 
                 whileHover={{ scale: 1.05 }}
@@ -229,7 +229,7 @@ export function GuestView({ invitation }: any) {
 
               <div className="space-y-12">
                 <h3 className="text-center font-black uppercase tracking-[0.6em] text-amber-600 text-[10px] opacity-80 flex items-center justify-center gap-2">
-                   —— <Sparkles size={12}/> {tBuilder.program_title} <Sparkles size={12}/> ——
+                    —— <Sparkles size={12}/> {tBuilder.program_title} <Sparkles size={12}/> ——
                 </h3>
                 <div className="relative flex flex-col items-center">
                   <div className="absolute top-0 bottom-0 w-[2px] bg-gradient-to-b from-transparent via-amber-200 to-transparent" />
@@ -310,7 +310,7 @@ export function GuestView({ invitation }: any) {
                       ))}
                     </div>
                     <button type="submit" disabled={isSubmitting} className="w-full h-16 bg-white text-gray-900 rounded-[2rem] font-black uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3">
-                      {isSubmitting ? <div className="w-5 h-5 border-2 border-gray-900/20 border-t-gray-900 rounded-full animate-spin" /> : t.confirm_btn}
+                      {isSubmitting ? <div className="w-5 h-5 border-2 border-gray-900/20 border-t-gray-900 rounded-full animate-spin" /> : t.send}
                     </button>
                   </form>
                 ) : (
@@ -320,7 +320,7 @@ export function GuestView({ invitation }: any) {
                     </div>
                     <div className="space-y-2">
                       <h3 className="text-white font-black text-2xl uppercase tracking-tighter">{t.thank_you}</h3>
-                      <p className="text-white/60 text-xs font-bold uppercase tracking-widest">{t.confirmation_sent}</p>
+                      <p className="text-white/60 text-xs font-bold uppercase tracking-widest">{t.success_msg}</p>
                     </div>
                   </motion.div>
                 )}
