@@ -15,7 +15,6 @@ const COLOR_PALETTES = [
   { color: '#FF69B4' }, { color: '#8B4513' }
 ];
 
-// Configuration des couleurs Premium
 const PREMIUM_PALETTES = [
   { id: 'satin_gold', name: 'Satin Gold', gradient: PREMIUM_COLORS.satin_gold },
   { id: 'satin_silver', name: 'Satin Silver', gradient: PREMIUM_COLORS.satin_silver },
@@ -32,6 +31,16 @@ const FONTS = [
   { id: 'font-mono', name: 'Minimalist', family: 'monospace' }
 ];
 
+// Configuration des Textures avec statut Premium
+const TEXTURES = [
+  { id: 'smooth', name: 'Smooth', premium: false },
+  { id: 'parchment', name: 'Parchment', premium: false },
+  { id: 'grainy', name: 'Grainy', premium: true },
+  { id: 'cotton', name: 'Cotton', premium: true },
+  { id: 'silk', name: 'Silk', premium: true },
+  { id: 'velvet', name: 'Velvet', premium: true },
+];
+
 export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: any) {
   const [uploading, setUploading] = useState(false);
   
@@ -44,6 +53,14 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       return;
     }
     onInvitationChange({...invitation, envelope_color: colorValue});
+  };
+
+  const handleTextureClick = (textureId: string, isPremium: boolean) => {
+    if (isPremium && invitation.plan_type !== 'PREMIUM') {
+      alert(lang === 'vi' ? "Vui lòng nâng cấp để sử dụng chất liệu này!" : lang === 'en' ? "Please upgrade to use this texture!" : "Passez au Premium pour débloquer cette texture !");
+      return;
+    }
+    onInvitationChange({...invitation, paper_type: textureId});
   };
 
   const EVENT_TYPES = [
@@ -205,10 +222,13 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">Texture</label>
             <div className="grid grid-cols-2 gap-2">
-              {['smooth', 'parchment', 'grainy', 'cotton'].map(p => (
-                <button key={p} onClick={() => onInvitationChange({...invitation, paper_type: p})} 
-                  className={`p-4 rounded-xl border-2 text-[10px] font-bold transition-all ${invitation.paper_type === p ? 'border-amber-400 bg-amber-50' : 'bg-gray-50 border-transparent'}`}>
-                  {p.toUpperCase()}
+              {TEXTURES.map(texture => (
+                <button key={texture.id} onClick={() => handleTextureClick(texture.id, texture.premium)} 
+                  className={`p-4 rounded-xl border-2 text-[10px] font-bold transition-all relative flex items-center justify-center ${invitation.paper_type === texture.id ? 'border-amber-400 bg-amber-50' : 'bg-gray-50 border-transparent'}`}>
+                  {texture.name.toUpperCase()}
+                  {texture.premium && invitation.plan_type !== 'PREMIUM' && (
+                    <Lock size={10} className="absolute right-2 top-2 text-gray-400" />
+                  )}
                 </button>
               ))}
             </div>
