@@ -266,4 +266,4 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
       </div>
     </div>
   );
-}
+} 
