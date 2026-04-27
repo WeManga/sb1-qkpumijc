@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Volume2, VolumeX, MapPin, Clock, Sparkles } from 'lucide-react';
+import { X, Calendar, Volume2, VolumeX, MapPin, Clock, Sparkles, Film } from 'lucide-react';
 import { translations, Language } from '../../lib/i18n';
 
 const THEME_EMOJIS: Record<string, string[]> = {
@@ -84,19 +84,42 @@ export function InvitationPreview({ invitation }: any) {
               </button>
             )}
 
-            <motion.div initial={{ y: -450 }} animate={isOpened ? { y: 25 } : { y: -450 }} transition={{ type: "spring", damping: 25 }} className="absolute top-0 w-[270px] h-[270px] z-20">
-              <div className={`w-full h-full relative ${isOpened ? 'animate-disk-spin' : ''}`}>
-                <div className="absolute inset-0 rounded-full bg-[#111] overflow-hidden">
-                    <div className="absolute inset-0 opacity-30" style={{ background: 'repeating-radial-gradient(circle, #444 0, #000 2px, #111 4px)' }} />
+            {/* --- ANIMATION D'OUVERTURE (DISQUE OU PELLICULE) --- */}
+            <motion.div 
+              initial={{ y: -450 }} 
+              animate={isOpened ? { y: invitation.opening_type === 'filmstrip' ? -20 : 25 } : { y: -450 }} 
+              transition={{ type: "spring", damping: 25 }} 
+              className="absolute top-0 z-20"
+            >
+              {invitation.opening_type === 'filmstrip' ? (
+                /* VERSION PELLICULE */
+                <div className="flex flex-col gap-2 p-3 bg-[#1a1a1a] rounded-xl shadow-2xl rotate-[-2deg]">
+                  {[invitation.main_photo_url, invitation.photo_url_2, invitation.photo_url_3].map((img, idx) => (
+                    <div key={idx} className="w-40 h-28 bg-[#222] rounded-sm overflow-hidden border-x-[10px] border-dashed border-[#1a1a1a] relative">
+                      {img ? (
+                        <img src={img} className="w-full h-full object-cover grayscale-[0.2]" alt={`Pellicule ${idx}`} />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center bg-gray-800"><Film className="text-gray-600" size={20}/></div>
+                      )}
+                    </div>
+                  ))}
                 </div>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-24 h-24 bg-white rounded-full border-[5px] border-[#111] overflow-hidden">
-                    {invitation.main_photo_url && <img src={invitation.main_photo_url} className="w-full h-full object-cover" style={{ objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%` }} />}
+              ) : (
+                /* VERSION VINYLE (DÉFAUT) */
+                <div className={`w-[270px] h-[270px] relative ${isOpened ? 'animate-disk-spin' : ''}`}>
+                  <div className="absolute inset-0 rounded-full bg-[#111] overflow-hidden">
+                      <div className="absolute inset-0 opacity-30" style={{ background: 'repeating-radial-gradient(circle, #444 0, #000 2px, #111 4px)' }} />
+                  </div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-24 h-24 bg-white rounded-full border-[5px] border-[#111] overflow-hidden">
+                      {invitation.main_photo_url && <img src={invitation.main_photo_url} className="w-full h-full object-cover" style={{ objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%` }} />}
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </motion.div>
 
+            {/* --- CARTE D'INVITATION --- */}
             <motion.div 
               initial={{ scale: 0.8, y: 200 }} 
               animate={isOpened ? { scale: 1, y: 135 } : {}} 
@@ -116,6 +139,7 @@ export function InvitationPreview({ invitation }: any) {
               </div>
             </motion.div>
 
+            {/* --- ENVELOPPE --- */}
             <AnimatePresence>
               {!isOpened && (
                 <motion.div exit={{ y: "-100%" }} transition={{ duration: 0.9 }} className="absolute inset-0 z-50 flex flex-col items-center justify-center" style={{ background: invitation?.envelope_color || '#FEE2E2' }}>
