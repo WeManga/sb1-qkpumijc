@@ -5,6 +5,7 @@ import { Database } from '../../lib/database.types';
 import { MobileApp } from './MobileApp';
 import { Loader2, Lock } from 'lucide-react'; // Lock ajouté pour l'UI future
 import { translations, Language } from '../../lib/i18n';
+import { PREMIUM_COLORS } from '../../constants/colors';
 
 type Invitation = Database['public']['Tables']['invitations']['Row'];
 
