@@ -147,7 +147,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
   const handleDragMove = (e: any) => {
     if (!dragRef.current.isDragging) return;
     
-    // Gestion du Pinch-to-Zoom sur mobile
+    // Pinch-to-Zoom
     if (e.touches && e.touches.length === 2) {
       const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
       if (dragRef.current.lastDist > 0) {
@@ -162,8 +162,9 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
     
-    const deltaX = (clientX - dragRef.current.x) / 3;
-    const deltaY = (clientY - dragRef.current.y) / 3;
+    // Correction de la sensibilité pour permettre le mouvement horizontal et vertical fluide
+    const deltaX = (clientX - dragRef.current.x) * 0.2;
+    const deltaY = (clientY - dragRef.current.y) * 0.2;
 
     onInvitationChange({ 
       ...invitation, 
