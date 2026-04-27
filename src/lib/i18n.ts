@@ -69,6 +69,7 @@ export const translations = {
       music_label: "Background Music",
       upload_music: "Upload MP3",
       music_saved: "Music saved",
+      save_success: "Your invitation has been saved successfully",
       additional_photos: "Additional Photos",
       premium_album: "Premium Album",
       coming_soon: "Coming Soon"
@@ -158,6 +159,7 @@ export const translations = {
       music_label: "Musique de fond",
       upload_music: "Uploader MP3",
       music_saved: "Musique enregistrée",
+      save_success: "Votre invitation a bien été enregistrée",
       additional_photos: "Photos additionnelles",
       premium_album: "Album Premium",
       coming_soon: "Bientôt disponible"
@@ -247,6 +249,7 @@ export const translations = {
       music_label: "Nhạc nền",
       upload_music: "Tải nhạc MP3",
       music_saved: "Đã lưu nhạc",
+      save_success: "Lời mời của bạn đã được lưu thành công",
       additional_photos: "Ảnh bổ sung",
       premium_album: "Album Cao cấp",
       coming_soon: "Sắp ra mắt"
