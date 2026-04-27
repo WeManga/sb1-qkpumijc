@@ -46,7 +46,7 @@ const TEXTURES = [
 
 export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: any) {
   const [uploading, setUploading] = useState(false);
-  const dragRef = useRef<{ x: number, y: number, isDragging: boolean }>({ x: 0, y: 0, isDragging: false });
+  const dragRef = useRef<{ x: number, y: number, isDragging: boolean, lastDist: number }>({ x: 0, y: 0, isDragging: false, lastDist: 0 });
   
   const lang = (invitation.language as Language) || (localStorage.getItem('invite_lang') as Language) || 'fr';
   const t = translations[lang].builder;
@@ -144,21 +144,41 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     onInvitationChange({ ...invitation, event_program: newProgram });
   };
 
-  // Logique de déplacement tactile/souris pour la photo
   const handleDragMove = (e: any) => {
     if (!dragRef.current.isDragging) return;
+    
+    // Gestion du Pinch-to-Zoom sur mobile
+    if (e.touches && e.touches.length === 2) {
+      const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+      if (dragRef.current.lastDist > 0) {
+        const delta = (dist - dragRef.current.lastDist) / 100;
+        const newScale = Math.max(1, Math.min(3, (invitation.photo_scale || 1) + delta));
+        onInvitationChange({ ...invitation, photo_scale: newScale });
+      }
+      dragRef.current.lastDist = dist;
+      return;
+    }
+
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
     
-    const deltaX = (clientX - dragRef.current.x) / 5;
-    const deltaY = (clientY - dragRef.current.y) / 5;
+    const deltaX = (clientX - dragRef.current.x) / 3;
+    const deltaY = (clientY - dragRef.current.y) / 3;
 
-    const newX = Math.max(0, Math.min(100, (invitation.photo_pos_x || 50) - deltaX));
-    const newY = Math.max(0, Math.min(100, (invitation.photo_pos_y || 50) - deltaY));
-
-    onInvitationChange({ ...invitation, photo_pos_x: newX, photo_pos_y: newY });
+    onInvitationChange({ 
+      ...invitation, 
+      photo_pos_x: Math.max(0, Math.min(100, (invitation.photo_pos_x || 50) - deltaX)), 
+      photo_pos_y: Math.max(0, Math.min(100, (invitation.photo_pos_y || 50) - deltaY)) 
+    });
+    
     dragRef.current.x = clientX;
     dragRef.current.y = clientY;
+  };
+
+  const handleWheel = (e: any) => {
+    const delta = e.deltaY > 0 ? -0.1 : 0.1;
+    const newScale = Math.max(1, Math.min(3, (invitation.photo_scale || 1) + delta));
+    onInvitationChange({ ...invitation, photo_scale: newScale });
   };
 
   return (
@@ -284,25 +304,27 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
           {invitation.main_photo_url && (
             <div className="bg-amber-50/50 p-6 rounded-[2rem] border border-amber-100 space-y-4">
               <span className="text-[10px] font-black uppercase text-amber-800 tracking-wider flex items-center gap-2">
-                <Move size={12}/> Glisser pour ajuster
+                <Move size={12}/> Glisser & Pincer pour ajuster
               </span>
               <div 
                 className="w-full aspect-video rounded-2xl bg-gray-200 overflow-hidden relative border-2 border-white shadow-sm cursor-move touch-none"
-                onMouseDown={(e) => { dragRef.current = { x: e.clientX, y: e.clientY, isDragging: true }; }}
-                onTouchStart={(e) => { dragRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY, isDragging: true }; }}
+                onMouseDown={(e) => { dragRef.current = { x: e.clientX, y: e.clientY, isDragging: true, lastDist: 0 }; }}
+                onTouchStart={(e) => { dragRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY, isDragging: true, lastDist: 0 }; }}
                 onMouseMove={handleDragMove}
                 onTouchMove={handleDragMove}
+                onWheel={handleWheel}
                 onMouseUp={() => dragRef.current.isDragging = false}
                 onMouseLeave={() => dragRef.current.isDragging = false}
-                onTouchEnd={() => dragRef.current.isDragging = false}
+                onTouchEnd={() => { dragRef.current.isDragging = false; dragRef.current.lastDist = 0; }}
               >
                 <img 
                   src={invitation.main_photo_url} 
                   style={{ 
                     objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%`,
+                    transform: `scale(${invitation.photo_scale || 1})`,
                     pointerEvents: 'none'
                   }} 
-                  className="w-full h-full object-cover transition-all duration-75"
+                  className="w-full h-full object-cover transition-transform duration-75"
                 />
               </div>
             </div>
