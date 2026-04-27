@@ -2,9 +2,17 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { Database } from '../../lib/database.types';
-import { translations, Language } from '../../lib/i18n';
+import { translations as allTranslations, Language } from '../../lib/i18n';
 import { Plus, Calendar, Eye, CreditCard as Edit, LogOut, Trash2, Copy, Loader2, Users, X, Share } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+
+// Extension locale des traductions pour la PWA
+const translations: any = {
+  ...allTranslations,
+  en: { ...allTranslations.en, pwa: { title: "Install Studio App", desc: "Manage invitations easily. Tap", then: "then", action: "Add to Home Screen" } },
+  fr: { ...allTranslations.fr, pwa: { title: "Installez l'App Studio", desc: "Gérez vos invitations facilement. Appuyez sur", then: "puis sur", action: "Sur l'écran d'accueil" } },
+  vi: { ...allTranslations.vi, pwa: { title: "Cài đặt App Studio", desc: "Quản lý lời mời dễ dàng hơn. Nhấn vào", then: "sau đó chọn", action: "Thêm vào MH chính" } }
+};
 
 type Invitation = Database['public']['Tables']['invitations']['Row'] & {
   response_count?: number; 
@@ -35,7 +43,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
 
   useEffect(() => {
     loadInvitations();
-    
+
     // Détection iOS pour installation PWA
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
@@ -55,6 +63,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
 
   const t = translations[lang].dashboard;
   const tAuth = translations[lang].sidebar;
+  const tPwa = translations[lang].pwa;
 
   const dismissPrompt = () => {
     localStorage.setItem('pwa_prompt_dismissed', 'true');
@@ -231,7 +240,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
           </div>
         )}
 
-<AnimatePresence>
+        <AnimatePresence>
           {showIOSPrompt && (
             <motion.div 
               initial={{ y: 100, opacity: 0 }}
@@ -244,12 +253,15 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                   <Plus size={28} />
                 </div>
                 <div className="flex-1">
-                  <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight">Installez l'App Studio</h3>
+                  <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight">
+                    {tPwa.title}
+                  </h3>
                   <p className="text-[11px] text-gray-500 leading-snug mt-1 flex items-center flex-wrap">
-                    Gérez vos invitations plus facilement. 
-                    Appuyez sur <Share size={14} className="inline mx-1 text-blue-500" /> puis sur 
+                    {tPwa.desc} 
+                    <Share size={14} className="inline mx-1 text-blue-500" /> 
+                    {tPwa.then} 
                     <span className="flex items-center gap-1 ml-1 font-bold text-gray-800">
-                      <Plus size={14} className="text-blue-500" /> "Sur l'écran d'accueil"
+                      <Plus size={14} className="text-blue-500" /> "{tPwa.action}"
                     </span>.
                   </p>
                 </div>
