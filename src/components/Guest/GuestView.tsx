@@ -131,6 +131,7 @@ export function GuestView({ invitation }: any) {
 
       <div className="relative w-full h-full flex items-center justify-center" style={{ opacity: view === 'envelope' ? 1 : 0, pointerEvents: view === 'envelope' ? 'auto' : 'none' }}>
         <div className="relative w-full max-w-[400px] h-full grid place-items-center">
+            {/* --- ÉLÉMENT SORTANT (VINYLE OU PELLICULE AVEC DÉFILEMENT) --- */}
             <motion.div 
               initial={false}
               animate={isOpened ? { y: invitation.opening_type === 'filmstrip' ? -180 : -120, opacity: 1, scale: 1 } : { y: 20, opacity: 0, scale: 0.8 }} 
@@ -138,18 +139,34 @@ export function GuestView({ invitation }: any) {
               className="row-start-1 col-start-1 z-20"
             >
               {invitation.opening_type === 'filmstrip' ? (
+                /* VERSION PELLICULE GUEST AVEC DÉFILEMENT INFINI */
                 <div className="relative w-48 h-80 bg-[#1a1a1a] rounded-xl shadow-[0_30px_60px_rgba(0,0,0,0.5)] rotate-[-3deg] overflow-hidden p-3 border-y-4 border-[#1a1a1a]">
+                  {/* Perforations */}
                   <div className="absolute inset-y-0 left-2 w-2 border-l-4 border-dashed border-white/20 z-10" />
                   <div className="absolute inset-y-0 right-2 w-2 border-r-4 border-dashed border-white/20 z-10" />
-                  <motion.div animate={{ y: [0, -400] }} transition={{ duration: 12, repeat: Infinity, ease: "linear" }} className="flex flex-col gap-4">
-                    {[invitation.main_photo_url, invitation.photo_url_2, invitation.photo_url_3, invitation.main_photo_url, invitation.photo_url_2, invitation.photo_url_3].map((img, idx) => (
+                  
+                  <motion.div 
+                    animate={{ y: [0, -400] }}
+                    transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+                    className="flex flex-col gap-4"
+                  >
+                    {[
+                      invitation.main_photo_url, invitation.photo_url_2, invitation.photo_url_3,
+                      invitation.main_photo_url, invitation.photo_url_2, invitation.photo_url_3
+                    ].map((img, idx) => (
                       <div key={idx} className="w-full h-32 bg-[#222] rounded-sm overflow-hidden relative shrink-0">
-                        {img ? <img src={img} className="w-full h-full object-cover grayscale-[0.2] contrast-125" alt="" /> : <div className="w-full h-full flex items-center justify-center bg-gray-800"><Film className="text-gray-600" size={20}/></div>}
+                        {img ? (
+                          <img src={img} className="w-full h-full object-cover grayscale-[0.2] contrast-125" alt="" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gray-800"><Film className="text-gray-600" size={20}/></div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none" />
                       </div>
                     ))}
                   </motion.div>
                 </div>
               ) : (
+                /* VERSION VINYLE GUEST */
                 <div className={`w-[300px] h-[300px] rounded-full shadow-[0_30px_60px_rgba(0,0,0,0.5)] ${isOpened ? 'animate-disk-spin' : ''}`} style={{ background: '#111' }}>
                   <div className="absolute inset-0 opacity-40 rounded-full" style={{ background: 'repeating-radial-gradient(circle, #444 0, #000 2px, #111 4px)' }} />
                   <div className="absolute inset-0 flex items-center justify-center">
@@ -176,7 +193,7 @@ export function GuestView({ invitation }: any) {
                 </motion.p>
               </div>
               <div className="w-full py-5 bg-gray-900 text-white rounded-[2rem] text-[10px] font-black uppercase tracking-[0.4em] text-center shadow-xl">
-                 {t.see_details}
+                 {lang === 'vi' ? 'Xem chi tiết' : lang === 'en' ? 'See details' : 'Voir les détails'}
               </div>
             </motion.div>
 
@@ -198,7 +215,7 @@ export function GuestView({ invitation }: any) {
               <div className="mt-12 flex flex-col items-center gap-4">
                   <motion.div animate={{ y: [0, -15, 0] }} transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }} className="w-1.5 h-12 bg-white/30 rounded-full" />
                   <p className="text-white font-black text-xs uppercase tracking-[0.6em] opacity-90">
-                    {t.open_btn}
+                    {lang === 'vi' ? 'MỞ' : lang === 'en' ? 'OPEN' : 'OUVRIR'}
                   </p>
               </div>
             </motion.div>
@@ -208,8 +225,138 @@ export function GuestView({ invitation }: any) {
       <AnimatePresence>
         {view === 'content' && (
           <motion.div key="content" initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 100 }} transition={{ duration: 0.6, ease: "easeOut" }} className={`fixed inset-0 z-[100] flex flex-col overflow-y-auto overflow-x-hidden touch-pan-y w-full ${getPaperClass()}`}>
-            {/* Contenu identique au précédent, mais utilisant t.see_details, t.confirm_rsvp etc */}
-            {/* ... Reste du composant identique ... */}
+            <div className="relative h-[50vh] shrink-0 overflow-hidden w-full">
+              <motion.img initial={{ scale: 1.4 }} animate={{ scale: 1 }} transition={{ duration: 1.5, ease: "easeOut" }} src={invitation.main_photo_url} className="w-full h-full object-cover shadow-2xl" style={{ objectPosition: `${invitation.photo_pos_x || 50}% ${invitation.photo_pos_y || 50}%` }} />
+              <div className="absolute inset-0 bg-gradient-to-t from-white via-white/20 to-transparent" />
+              <button onClick={() => setView('envelope')} className="absolute top-8 left-8 w-12 h-12 bg-white/90 backdrop-blur-xl rounded-full flex items-center justify-center shadow-xl text-gray-800 border border-gray-100"><X size={20}/></button>
+            </div>
+
+            <div className="flex-1 px-6 pb-24 -mt-20 relative z-10 max-w-2xl mx-auto w-full space-y-20">
+              <div className="text-center space-y-8 bg-white/40 backdrop-blur-md p-10 rounded-[4rem] border border-white/60 shadow-xl">
+                <h2 className="text-[11px] font-black uppercase tracking-[0.5em] text-gray-500">{invitation.title}</h2>
+                <h1 className="text-5xl md:text-7xl font-black gold-shimmer leading-tight py-2" style={{ fontFamily: invitation.font_style }}>{invitation.host_names}</h1>
+                
+                <div className="flex flex-col items-center gap-6 pt-4">
+                    <div className="flex items-center gap-4 bg-white p-2 pr-6 rounded-full shadow-md border border-amber-50">
+                      <div className="bg-amber-500 p-3 rounded-full text-white shadow-lg shadow-amber-200"><Calendar size={20}/></div>
+                      <span className="text-xs font-black uppercase tracking-widest text-gray-700">
+                        {invitation.event_date ? new Date(invitation.event_date).toLocaleDateString(lang === 'vi' ? 'vi-VN' : lang === 'en' ? 'en-US' : 'fr-FR', {day:'numeric', month:'long', year:'numeric'}) : t.save_date}
+                      </span>
+                      <button onClick={addToCalendar} className="ml-2 p-2 bg-gray-50 rounded-full hover:bg-amber-50 transition-colors">
+                        <Plus size={16} className="text-amber-600" />
+                      </button>
+                    </div>
+                </div>
+              </div>
+
+              {invitation.description && (
+                <div className="text-center max-w-lg mx-auto px-4">
+                  <p className="text-xl leading-relaxed text-gray-700 font-medium italic opacity-90" style={{ fontFamily: invitation.font_style }}>
+                    "{invitation.description}"
+                  </p>
+                  <div className="w-24 h-[2px] bg-gradient-to-r from-transparent via-amber-300 to-transparent mx-auto mt-12" />
+                </div>
+              )}
+
+              <div className="space-y-12">
+                <h3 className="text-center font-black uppercase tracking-[0.6em] text-amber-600 text-[10px] opacity-80 flex items-center justify-center gap-2">
+                    —— <Sparkles size={12}/> {tBuilder.program_title} <Sparkles size={12}/> ——
+                </h3>
+                <div className="relative flex flex-col items-center">
+                  <div className="absolute top-0 bottom-0 w-[2px] bg-gradient-to-b from-transparent via-amber-200 to-transparent" />
+                  
+                  <div className="relative space-y-16 w-full">
+                    {(invitation.event_program || []).map((step: any, i: number) => {
+                      const isEven = i % 2 === 0;
+                      return (
+                        <motion.div key={i} initial={{ opacity: 0, x: isEven ? -30 : 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, margin: "-100px" }} className={`flex items-center w-full relative ${isEven ? 'flex-row' : 'flex-row-reverse'}`}>
+                          <div className="w-[45%]">
+                            <div className={`overflow-hidden bg-white/80 backdrop-blur-sm rounded-[2.5rem] border border-amber-50 shadow-lg ${isEven ? 'text-right' : 'text-left'}`}>
+                              {step.image_url && (
+                                <div className="w-full aspect-video overflow-hidden border-b border-amber-50">
+                                  <img src={step.image_url} className="w-full h-full object-cover" alt="" />
+                                </div>
+                              )}
+                              <div className="p-6">
+                                <span className="text-[10px] font-black text-amber-600 block mb-1 tracking-tighter opacity-80"><Clock size={12} className="inline mr-1 mb-0.5"/> {step.time}</span>
+                                <span className="text-lg font-bold text-gray-800 leading-tight" style={{ fontFamily: invitation.font_style }}>{step.activity}</span>
+                              </div>
+                            </div>
+                          </div>
+                          <div className="w-[10%] flex justify-center relative z-20">
+                            <div className="w-3 h-3 bg-amber-400 rounded-full ring-4 ring-white shadow-sm" />
+                          </div>
+                          <div className="w-[45%]" />
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {invitation.plan_type === 'PREMIUM' && invitation.end_photo_url && (
+                <div className="px-2">
+                  <div className="rounded-[3rem] overflow-hidden shadow-2xl border-4 border-white rotate-1">
+                    <img src={invitation.end_photo_url} className="w-full h-auto" alt="End" />
+                  </div>
+                </div>
+              )}
+
+              <div className="text-center pt-8">
+                 <motion.button whileInView={{ scale: [1, 1.05, 1] }} transition={{ duration: 3, repeat: Infinity }} onClick={openMaps} className="inline-flex flex-col items-center gap-4 group">
+                    <div className="w-20 h-20 bg-white rounded-[2rem] flex items-center justify-center shadow-xl text-amber-500 border border-amber-50 group-hover:bg-amber-50 transition-colors"><MapPin size={32}/></div>
+                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 max-w-[200px] leading-relaxed">
+                      {invitation.event_address}
+                    </span>
+                 </motion.button>
+              </div>
+
+              <div className="bg-gray-900 rounded-[4rem] p-10 shadow-2xl relative overflow-hidden">
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 via-yellow-200 to-amber-500 opacity-50" />
+                {!isSubmitted ? (
+                  <form onSubmit={handleRSVP} className="space-y-8">
+                    <div className="text-center"><h3 className="font-black uppercase tracking-[0.4em] text-xs text-white/90">{t.confirm_rsvp}</h3></div>
+                    <div className="flex items-center justify-between bg-white/5 p-2 rounded-[2rem] border border-white/10">
+                      <button type="button" onClick={() => setGuestCount(Math.max(1, guestCount - 1))} className="w-14 h-14 bg-white/10 text-white rounded-2xl font-black text-xl">-</button>
+                      <div className="flex flex-col items-center">
+                        <span className="text-white font-black text-3xl">{guestCount}</span>
+                        <span className="text-[8px] font-bold text-white/40 uppercase tracking-widest">{guestCount > 1 ? 'Invités' : 'Invité'}</span>
+                      </div>
+                      <button type="button" onClick={() => setGuestCount(guestCount + 1)} className="w-14 h-14 bg-white/10 text-white rounded-2xl font-black text-xl">+</button>
+                    </div>
+                    <div className="space-y-4">
+                      {guests.map((guest, i) => (
+                        <div key={i} className="grid grid-cols-2 gap-3">
+                          <input required placeholder={t.first_name} className="bg-white/10 border-white/10 h-14 px-5 rounded-2xl text-sm text-white placeholder:text-white/30 focus:ring-1 ring-amber-400 outline-none transition-all" value={guest.firstName} onChange={e => {
+                            const newGuests = [...guests];
+                            newGuests[i].firstName = e.target.value;
+                            setGuests(newGuests);
+                          }} />
+                          <input required placeholder={t.last_name} className="bg-white/10 border-white/10 h-14 px-5 rounded-2xl text-sm text-white placeholder:text-white/30 focus:ring-1 ring-amber-400 outline-none transition-all" value={guest.lastName} onChange={e => {
+                            const newGuests = [...guests];
+                            newGuests[i].lastName = e.target.value;
+                            setGuests(newGuests);
+                          }} />
+                        </div>
+                      ))}
+                    </div>
+                    <button type="submit" disabled={isSubmitting} className="w-full h-16 bg-white text-gray-900 rounded-[2rem] font-black uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3">
+                      {isSubmitting ? <div className="w-5 h-5 border-2 border-gray-900/20 border-t-gray-900 rounded-full animate-spin" /> : t.send}
+                    </button>
+                  </form>
+                ) : (
+                  <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="py-10 text-center space-y-6">
+                    <div className="w-20 h-20 bg-amber-400 rounded-full flex items-center justify-center mx-auto shadow-lg shadow-amber-400/20">
+                      <CheckCircle2 size={40} className="text-white" />
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="text-white font-black text-2xl uppercase tracking-tighter">{t.thank_you}</h3>
+                      <p className="text-white/60 text-xs font-bold uppercase tracking-widest">{t.success_msg}</p>
+                    </div>
+                  </motion.div>
+                )}
+              </div>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
