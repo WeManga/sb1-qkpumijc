@@ -22,7 +22,6 @@ export function InvitationPreview({ invitation }: any) {
   const lang = (invitation.language as Language) || (localStorage.getItem('invite_lang') as Language) || 'fr';
   const t = translations[lang].guest;
   const tBuilder = translations[lang].builder;
-
   const emojis = THEME_EMOJIS[invitation?.event_type] || THEME_EMOJIS.default;
   
   const getPaperClass = () => {
@@ -106,7 +105,7 @@ export function InvitationPreview({ invitation }: any) {
               className={`z-30 w-[310px] h-[370px] rounded-[3rem] shadow-xl p-10 flex flex-col items-center justify-between border border-gray-100 cursor-pointer ${getPaperClass()}`}
             >
               <div className="text-center pt-14 w-full">
-                <h2 className="text-2xl font-black uppercase tracking-tighter mb-4 break-words">
+                <h2 className="text-2xl font-black uppercase tracking-tighter mb-4 break-words" style={{ fontFamily: invitation.font_style }}>
                   {invitation?.title || tBuilder.title_placeholder}
                 </h2>
                 <div className="w-8 h-1 bg-amber-400 mx-auto mb-4" />
@@ -140,7 +139,7 @@ export function InvitationPreview({ invitation }: any) {
 
             <div className="flex-1 p-8">
               <div className="text-center mb-10">
-                <h2 className="text-3xl font-black mb-4 leading-tight">
+                <h2 className="text-3xl font-black mb-4 leading-tight" style={{ fontFamily: invitation.font_style }}>
                     {invitation?.host_names || tBuilder.hosts_placeholder}
                 </h2>
                 <div className="flex flex-col items-center gap-2 opacity-60 font-bold text-[10px] uppercase tracking-widest">
@@ -213,7 +212,7 @@ export function InvitationPreview({ invitation }: any) {
                               <div className={`text-[9px] font-black text-amber-600 mb-1 flex items-center gap-1 ${isEven ? 'justify-start' : 'justify-end'}`}>
                                  <Clock size={8}/> {step.time}
                               </div>
-                              <div className="text-[11px] font-bold uppercase tracking-tight leading-tight">{step.activity}</div>
+                              <div className="text-[11px] font-bold uppercase tracking-tight leading-tight" style={{ fontFamily: invitation.font_style }}>{step.activity}</div>
                             </div>
                           </div>
                         </motion.div>
