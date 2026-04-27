@@ -188,6 +188,14 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                     <input type="text" value={step.activity} onChange={e => updateProgramStep(index, 'activity', e.target.value)} placeholder={t.activity_placeholder} className="flex-1 bg-gray-50 border-none h-10 px-3 rounded-xl text-[11px]" />
                     <button onClick={() => removeProgramStep(index)} className="p-1.5 bg-red-50 text-red-500 rounded-full"><X size={14}/></button>
                   </div>
+                  {/* AJOUT DES PHOTOS DU PROGRAMME ICI */}
+                  <label className="flex items-center gap-3 p-2 bg-gray-50 rounded-xl cursor-pointer">
+                    <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center overflow-hidden border border-gray-100">
+                      {step.image_url ? <img src={step.image_url} className="w-full h-full object-cover" /> : <ImageIcon size={14} className="text-gray-300" />}
+                    </div>
+                    <span className="text-[10px] font-bold text-gray-500 uppercase">{step.image_url ? "Modifier photo" : "Ajouter photo"}</span>
+                    <input type="file" className="hidden" accept="image/*" onChange={(e) => uploadProgramImage(e, index)} />
+                  </label>
                 </div>
               ))}
             </div>
