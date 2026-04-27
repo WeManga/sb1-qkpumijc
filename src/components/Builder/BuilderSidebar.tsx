@@ -3,8 +3,9 @@ import { supabase } from '../../lib/supabase';
 import { translations, Language } from '../../lib/i18n';
 import { 
   Heart, PartyPopper, Sparkles, Baby, MapPin, 
-  Music, Image as ImageIcon, Calendar, Plus, X, Move, Skull, Milk
+  Music, Image as ImageIcon, Calendar, Plus, X, Move, Skull, Milk, Lock
 } from 'lucide-react';
+import { PREMIUM_COLORS } from './Builder'; // Import des textures définies dans Builder
 
 const COLOR_PALETTES = [
   { color: '#FEE2E2' }, { color: '#E0F2FE' }, { color: '#DCFCE7' },
@@ -12,6 +13,15 @@ const COLOR_PALETTES = [
   { color: '#F5F5DC' }, { color: '#7C3AED' }, { color: '#374151' },
   { color: '#000000' }, { color: '#FFFFFF' }, { color: '#FFD700' },
   { color: '#FF69B4' }, { color: '#8B4513' }
+];
+
+// Configuration des couleurs Premium
+const PREMIUM_PALETTES = [
+  { id: 'satin_gold', name: 'Satin Gold', gradient: PREMIUM_COLORS.satin_gold },
+  { id: 'satin_silver', name: 'Satin Silver', gradient: PREMIUM_COLORS.satin_silver },
+  { id: 'chrome_rose', name: 'Chrome Rose', gradient: PREMIUM_COLORS.chrome_rose },
+  { id: 'chrome_black', name: 'Chrome Black', gradient: PREMIUM_COLORS.chrome_black },
+  { id: 'chrome_blue', name: 'Chrome Blue', gradient: PREMIUM_COLORS.chrome_blue },
 ];
 
 const FONTS = [
@@ -28,7 +38,14 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
   const lang = (invitation.language as Language) || (localStorage.getItem('invite_lang') as Language) || 'fr';
   const t = translations[lang].builder;
 
-  // Mapping dynamique des types d'événements pour utiliser les traductions de i18n
+  const handlePremiumClick = (colorValue: string) => {
+    if (invitation.plan_type !== 'PREMIUM') {
+      alert(lang === 'vi' ? "Vui lòng nâng cấp lên bản Premium để sử dụng màu này!" : lang === 'en' ? "Please upgrade to Premium to use this color!" : "Passez au Premium pour débloquer ces couleurs !");
+      return;
+    }
+    onInvitationChange({...invitation, envelope_color: colorValue});
+  };
+
   const EVENT_TYPES = [
     { id: 'wedding', name: t.theme_wedding, icon: Heart },
     { id: 'birthday', name: t.theme_birthday, icon: PartyPopper },
@@ -192,6 +209,29 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 <button key={p} onClick={() => onInvitationChange({...invitation, paper_type: p})} 
                   className={`p-4 rounded-xl border-2 text-[10px] font-bold transition-all ${invitation.paper_type === p ? 'border-amber-400 bg-amber-50' : 'bg-gray-50 border-transparent'}`}>
                   {p.toUpperCase()}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* SECTION COULEURS PREMIUM */}
+          <div>
+            <label className="text-[10px] font-black uppercase text-amber-600 mb-4 flex items-center gap-2 ml-1">
+              <Sparkles size={12}/> Satin & Chrome (Premium)
+            </label>
+            <div className="flex gap-3 overflow-x-auto pt-2 pb-4 px-4 -mx-4 scrollbar-hide">
+              {PREMIUM_PALETTES.map(p => (
+                <button 
+                  key={p.id} 
+                  onClick={() => handlePremiumClick(p.gradient)} 
+                  style={{ background: p.gradient }} 
+                  className={`h-14 w-14 shrink-0 rounded-2xl border-4 relative flex items-center justify-center transition-all ${invitation.envelope_color === p.gradient ? 'border-amber-400 scale-110 shadow-lg' : 'border-white shadow-sm'}`}
+                >
+                  {invitation.plan_type !== 'PREMIUM' && (
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-xl">
+                      <Lock size={14} className="text-white drop-shadow-md" />
+                    </div>
+                  )}
                 </button>
               ))}
             </div>
