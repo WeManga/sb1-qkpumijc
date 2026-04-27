@@ -24,11 +24,14 @@ const PREMIUM_PALETTES = [
 ];
 
 const FONTS = [
-  { id: 'font-sans', name: 'Moderne', family: 'Inter, sans-serif' },
-  { id: 'font-serif', name: 'Classique', family: 'Georgia, serif' },
-  { id: 'font-elegant', name: 'Élégant', family: "'Playfair Display', serif" },
-  { id: 'font-script', name: 'Manuscrit', family: "'Dancing Script', cursive" },
-  { id: 'font-mono', name: 'Minimalist', family: 'monospace' }
+  { id: 'font-sans', name: 'Moderne', family: 'Inter, sans-serif', premium: false },
+  { id: 'font-serif', name: 'Classique', family: 'Georgia, serif', premium: false },
+  { id: 'font-elegant', name: 'Élégant', family: "'Playfair Display', serif", premium: false },
+  { id: 'font-script', name: 'Manuscrit', family: "'Dancing Script', cursive", premium: false },
+  { id: 'font-royal', name: 'Royal Script', family: "'Great Vibes', cursive", premium: true },
+  { id: 'font-vintage', name: 'Vintage', family: "'Cinzel', serif", premium: true },
+  { id: 'font-boho', name: 'Boho Style', family: "'Sacramento', cursive", premium: true },
+  { id: 'font-mono', name: 'Minimalist', family: 'monospace', premium: false }
 ];
 
 const TEXTURES = [
@@ -54,6 +57,22 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     onInvitationChange({...invitation, envelope_color: colorValue});
   };
 
+  const handleThemeClick = (themeId: string, isPremium: boolean) => {
+    if (isPremium && invitation.plan_type !== 'PREMIUM') {
+      alert("Passez au Premium pour débloquer ce thème !");
+      return;
+    }
+    onInvitationChange({...invitation, event_type: themeId});
+  };
+
+  const handleFontClick = (fontFamily: string, isPremium: boolean) => {
+    if (isPremium && invitation.plan_type !== 'PREMIUM') {
+      alert("Passez au Premium pour débloquer cette calligraphie !");
+      return;
+    }
+    onInvitationChange({...invitation, font_style: fontFamily});
+  };
+
   const handleTextureClick = (textureId: string, isPremium: boolean) => {
     if (isPremium && invitation.plan_type !== 'PREMIUM') {
       alert(lang === 'vi' ? "Vui lòng nâng cấp để sử dụng chất liệu này!" : lang === 'en' ? "Please upgrade to use this texture!" : "Passez au Premium pour débloquer cette texture !");
@@ -63,12 +82,12 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
   };
 
   const EVENT_TYPES = [
-    { id: 'wedding', name: t.theme_wedding, icon: Heart },
-    { id: 'birthday', name: t.theme_birthday, icon: PartyPopper },
-    { id: 'party', name: t.theme_party, icon: Sparkles },
-    { id: 'baptism', name: t.theme_baptism, icon: Baby },
-    { id: 'babyshower', name: 'Babyshower', icon: Milk },
-    { id: 'funeral', name: 'Funeral', icon: Skull }
+    { id: 'wedding', name: t.theme_wedding, icon: Heart, premium: false },
+    { id: 'birthday', name: t.theme_birthday, icon: PartyPopper, premium: false },
+    { id: 'party', name: t.theme_party, icon: Sparkles, premium: true },
+    { id: 'baptism', name: t.theme_baptism, icon: Baby, premium: true },
+    { id: 'babyshower', name: 'Babyshower', icon: Milk, premium: true },
+    { id: 'funeral', name: 'Funeral', icon: Skull, premium: true }
   ];
 
   const uploadFile = async (e: any, field: string) => {
@@ -173,8 +192,9 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                       <div className={`p-2 rounded-lg transition-colors ${step.image_url ? 'bg-amber-100 text-amber-600' : 'bg-gray-50 text-gray-400 group-hover:bg-gray-100'}`}>
                         <ImageIcon size={14} />
                       </div>
-                      <span className="text-[10px] font-bold text-gray-400 uppercase">
+                      <span className="text-[10px] font-bold text-gray-400 uppercase flex items-center gap-1">
                         {step.image_url ? "Changer la photo" : "Photo de l'étape"}
+                        {invitation.plan_type !== 'PREMIUM' && <Lock size={10} />}
                       </span>
                       <input type="file" className="hidden" accept="image/*" onChange={(e) => uploadProgramImage(e, index)} />
                     </label>
@@ -208,8 +228,9 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 {invitation.end_photo_url ? (
                   <img src={invitation.end_photo_url} className="w-full h-full object-cover opacity-30" alt="Preview" />
                 ) : <Sparkles className="text-gray-400 mb-2" />}
-                <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-gray-600 uppercase bg-white/40 text-center px-2">
+                <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-gray-600 uppercase bg-white/40 text-center px-2 flex flex-col items-center gap-1">
                   Photo de fin (Premium)
+                  {invitation.plan_type !== 'PREMIUM' && <Lock size={12} />}
                 </span>
                 <input type="file" className="hidden" accept="image/*" onChange={(e) => {
                   if(invitation.plan_type !== 'PREMIUM') return alert("Passez au Premium pour la photo de fin !");
@@ -258,10 +279,13 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">{t.theme_label}</label>
             <div className="grid grid-cols-2 gap-3">
               {EVENT_TYPES.map(type => (
-                <button key={type.id} onClick={() => onInvitationChange({...invitation, event_type: type.id})} 
-                  className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all ${invitation.event_type === type.id ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}>
+                <button key={type.id} onClick={() => handleThemeClick(type.id, type.premium)} 
+                  className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all relative ${invitation.event_type === type.id ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}>
                   <type.icon size={18} className={invitation.event_type === type.id ? 'text-amber-500' : 'text-gray-400'} />
                   <span className="text-[10px] font-bold uppercase">{type.name}</span>
+                  {type.premium && invitation.plan_type !== 'PREMIUM' && (
+                    <Lock size={12} className="absolute right-2 top-2 text-gray-400" />
+                  )}
                 </button>
               ))}
             </div>
@@ -318,9 +342,12 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">{t.font_style_label}</label>
             <div className="space-y-2">
               {FONTS.map(f => (
-                <button key={f.id} onClick={() => onInvitationChange({...invitation, font_style: f.family})} 
-                  className={`w-full h-14 px-4 rounded-2xl text-left border-2 transition-all ${invitation.font_style === f.family ? 'border-amber-400 bg-amber-50' : 'bg-gray-50 border-transparent'}`} style={{ fontFamily: f.family }}>
+                <button key={f.id} onClick={() => handleFontClick(f.family, f.premium)} 
+                  className={`w-full h-14 px-4 rounded-2xl text-left border-2 transition-all relative ${invitation.font_style === f.family ? 'border-amber-400 bg-amber-50' : 'bg-gray-50 border-transparent'}`} style={{ fontFamily: f.family }}>
                   {f.name}
+                  {f.premium && invitation.plan_type !== 'PREMIUM' && (
+                    <Lock size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                  )}
                 </button>
               ))}
             </div>
