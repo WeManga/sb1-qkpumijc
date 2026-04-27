@@ -131,7 +131,7 @@ export function GuestView({ invitation }: any) {
 
       <div className="relative w-full h-full flex items-center justify-center" style={{ opacity: view === 'envelope' ? 1 : 0, pointerEvents: view === 'envelope' ? 'auto' : 'none' }}>
         <div className="relative w-full max-w-[400px] h-full grid place-items-center">
-            {/* --- ÉLÉMENT SORTANT (VINYLE OU PELLICULE) --- */}
+            {/* --- ÉLÉMENT SORTANT (VINYLE OU PELLICULE AVEC DÉFILEMENT) --- */}
             <motion.div 
               initial={false}
               animate={isOpened ? { y: invitation.opening_type === 'filmstrip' ? -180 : -120, opacity: 1, scale: 1 } : { y: 20, opacity: 0, scale: 0.8 }} 
@@ -139,17 +139,31 @@ export function GuestView({ invitation }: any) {
               className="row-start-1 col-start-1 z-20"
             >
               {invitation.opening_type === 'filmstrip' ? (
-                /* VERSION PELLICULE GUEST */
-                <div className="flex flex-col gap-2 p-4 bg-[#1a1a1a] rounded-xl shadow-[0_30px_60px_rgba(0,0,0,0.5)] rotate-[-3deg] w-48">
-                  {[invitation.main_photo_url, invitation.photo_url_2, invitation.photo_url_3].map((img, idx) => (
-                    <div key={idx} className="w-full h-24 bg-[#222] rounded-sm overflow-hidden border-x-[8px] border-dashed border-[#1a1a1a] relative">
-                      {img ? (
-                        <img src={img} className="w-full h-full object-cover grayscale-[0.1]" alt="" />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gray-800"><Film className="text-gray-600" size={16}/></div>
-                      )}
-                    </div>
-                  ))}
+                /* VERSION PELLICULE GUEST AVEC DÉFILEMENT INFINI */
+                <div className="relative w-48 h-80 bg-[#1a1a1a] rounded-xl shadow-[0_30px_60px_rgba(0,0,0,0.5)] rotate-[-3deg] overflow-hidden p-3 border-y-4 border-[#1a1a1a]">
+                  {/* Perforations */}
+                  <div className="absolute inset-y-0 left-2 w-2 border-l-4 border-dashed border-white/20 z-10" />
+                  <div className="absolute inset-y-0 right-2 w-2 border-r-4 border-dashed border-white/20 z-10" />
+                  
+                  <motion.div 
+                    animate={{ y: [0, -400] }}
+                    transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+                    className="flex flex-col gap-4"
+                  >
+                    {[
+                      invitation.main_photo_url, invitation.photo_url_2, invitation.photo_url_3,
+                      invitation.main_photo_url, invitation.photo_url_2, invitation.photo_url_3
+                    ].map((img, idx) => (
+                      <div key={idx} className="w-full h-32 bg-[#222] rounded-sm overflow-hidden relative shrink-0">
+                        {img ? (
+                          <img src={img} className="w-full h-full object-cover grayscale-[0.2] contrast-125" alt="" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gray-800"><Film className="text-gray-600" size={20}/></div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none" />
+                      </div>
+                    ))}
+                  </motion.div>
                 </div>
               ) : (
                 /* VERSION VINYLE GUEST */
