@@ -149,19 +149,16 @@ transparent via-white/5 to-transparent pointer-events-none" />
 ) : (
 /* VERSION VINYLE (DÉFAUT) */
 
-<div className={`w-[270px] h-[270px] relative ${isOpened ? 'animate-
-disk-spin' : ''}`}>
+<div className={`w-[270px] h-[270px] relative ${isOpened ? 'animate-disk-spin' : ''}`}>
 
-<div className="absolute inset-0 rounded-full bg-[#111] overflow-
-hidden">
+<div className="absolute inset-0 rounded-full bg-[#111] overflow-hidden">
 
 <div className="absolute inset-0 opacity-30"
 style={{ background: 'repeating-radial-gradient(circle, #444 0, #000 2px, #111
 4px)' }} />
 </div>
 
-<div className="absolute inset-0 flex items-center justify-
-center">
+<div className="absolute inset-0 flex items-center justify-center">
 
 <div className="w-24 h-24 bg-white rounded-full border-[5px]
 border-[#111] overflow-hidden">
