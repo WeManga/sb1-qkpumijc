@@ -185,24 +185,26 @@ export function InvitationPreview({ invitation }: any) {
                 >
                   {invitation.opening_style === 'knock' ? (
                     /* VERSION MAIN QUI TOQUE DROITE (PREMIUM) */
-                    <div className="relative flex flex-col items-center justify-center" style={{ perspective: '1200px' }}>
-                      <motion.div
-                        initial={{ rotateX: 0, rotateZ: 0, z: 0 }}
-                        animate={{ 
-                          rotateX: [0, -40, 0, -40, 0], 
-                          z: [0, 80, 0, 80, 0],
-                          scale: [1, 1.15, 1, 1.15, 1]
-                        }}
-                        transition={{ 
-                          duration: 0.6, 
-                          repeat: Infinity, 
-                          repeatDelay: 1.2,
-                          ease: "easeOut" 
-                        }}
-                        style={{ originY: "100%" }}
-                        className="text-[140px] select-none drop-shadow-[0_20px_50px_rgba(0,0,0,0.3)]"
-                      >✊</motion.div>
-                      {/* TEXTE HARMONISÉ */}
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="relative flex flex-col items-center justify-center" style={{ perspective: '1200px' }}>
+                        <motion.div
+                          initial={{ rotateX: 0, rotateZ: 0, z: 0 }}
+                          animate={{ 
+                            rotateX: [0, -40, 0, -40, 0], 
+                            z: [0, 80, 0, 80, 0],
+                            scale: [1, 1.15, 1, 1.15, 1]
+                          }}
+                          transition={{ 
+                            duration: 0.6, 
+                            repeat: Infinity, 
+                            repeatDelay: 1.2,
+                            ease: "easeOut" 
+                          }}
+                          style={{ originY: "100%" }}
+                          className="text-[140px] select-none drop-shadow-[0_20px_50px_rgba(0,0,0,0.3)]"
+                        >✊</motion.div>
+                      </div>
+                      {/* TEXTE HARMONISÉ : mt-8 pour correspondre au mode FREE */}
                       <p className="mt-8 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">
                         {t.tap_open}
                       </p>
@@ -213,7 +215,7 @@ export function InvitationPreview({ invitation }: any) {
                       <div className="w-[32rem] h-[32rem] flex items-center justify-center p-0 overflow-visible">
                         <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-full h-full object-contain" alt="Sceau" />
                       </div>
-                      {/* TEXTE HARMONISÉ : MÊME PLACE, MÊME STYLE, MÊME HAUTEUR */}
+                      {/* TEXTE HARMONISÉ : mt-8 pour correspondre au mode PREMIUM */}
                       <p className="mt-8 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">
                         {t.tap_open}
                       </p>
@@ -291,3 +293,4 @@ export function InvitationPreview({ invitation }: any) {
     </div>
   );
 }
+```[cite: 1]
