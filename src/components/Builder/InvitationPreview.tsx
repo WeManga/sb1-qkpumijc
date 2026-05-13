@@ -169,7 +169,17 @@ export function InvitationPreview({ invitation }: any) {
                     scale: 1.5,
                     transition: { duration: 0.6 } 
                   } : { y: "-100%" }} 
-                  transition={{ duration: 0.8, ease: "easeInOut" }} 
+                  // EFFET DE TREMBLEMENT SYNCHRONISÉ AVEC L'IMPACT
+                  animate={invitation.opening_style === 'knock' ? {
+                    x: [0, -1, 2, -2, 1, 0, 0, -1, 2, -2, 1, 0, 0], 
+                    y: [0, 1, -1, 1, -1, 0, 0, 1, -1, 1, -1, 0, 0]
+                  } : {}}
+                  transition={invitation.opening_style === 'knock' ? {
+                    duration: 0.6,
+                    repeat: Infinity,
+                    repeatDelay: 1.2,
+                    times: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
+                  } : {}}
                   className="absolute inset-0 z-50 flex flex-col items-center justify-center cursor-pointer" 
                   style={{ background: invitation?.envelope_color || '#FEE2E2' }}
                   onClick={() => setIsOpened(true)}
@@ -213,9 +223,8 @@ export function InvitationPreview({ invitation }: any) {
             </AnimatePresence>
           </motion.div>
         ) : (
-          /* --- CONTENU --- */
           <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`w-full h-full z-[100] flex flex-col overflow-y-auto ${getPaperClass()}`}>
-            <div className="h-[30%] relative overflow-hidden shrink-0">
+             <div className="h-[30%] relative overflow-hidden shrink-0">
                <img src={invitation.main_photo_url} className="w-full h-full object-cover" style={{ transform: `translate(${invitation.main_photo_url_pos_x || 0}px, ${invitation.main_photo_url_pos_y || 0}px) scale(${invitation.main_photo_url_scale || 1})` }} />
                <div className="absolute inset-0 bg-gradient-to-t from-white/80 to-transparent pointer-events-none" />
                <button onClick={() => setView('envelope')} className="absolute top-6 left-6 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-md"><X size={20}/></button>
