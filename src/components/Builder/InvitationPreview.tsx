@@ -1,295 +1,176 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Volume2, VolumeX, MapPin, Clock, Sparkles, Film } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { supabase } from '../../lib/supabase';
 import { translations, Language } from '../../lib/i18n';
+import { 
+  Heart, PartyPopper, Sparkles, Baby, MapPin, 
+  Music, Image as ImageIcon, Calendar, Plus, X, Move, Skull, Milk, Lock,
+  Disc, Film, Hand, Key, Vault
+} from 'lucide-react';
+import { PREMIUM_COLORS } from '../../constants/colors';
 
-const THEME_EMOJIS: Record<string, string[]> = {
-  wedding: ['🤍', '💍', '🕊️', '✨', '🌸'],
-  birthday: ['🎂', '🎈', '✨', '🎉', '🍰'],
-  party: ['✨', '🎸', '🥂', '🕺', '🌟'],
-  baptism: ['👼', '☁️', '🤍', '✨', '🕊️'],
-  babyshower: ['🍼', '🤍', '👶', '💖', '💙'],
-  funeral: ['🙏', '🕊️', '🥀', '⚰️', '🤍'],
-  default: ['✨', '🌟', '🤍']
-};
+const COLOR_PALETTES = [
+  { color: '#FEE2E2' }, { color: '#E0F2FE' }, { color: '#DCFCE7' },
+  { color: '#FEF3C7' }, { color: '#EF4444' }, { color: '#1E3A8A' },
+  { color: '#F5F5DC' }, { color: '#7C3AED' }, { color: '#374151' },
+  { color: '#000000' }, { color: '#FFFFFF' }, { color: '#FFD700' },
+  { color: '#FF69B4' }, { color: '#8B4513' }
+];
 
-export function InvitationPreview({ invitation }: any) {
-  const [isOpened, setIsOpened] = useState(false);
-  const [view, setView] = useState<'envelope' | 'content'>('envelope');
-  const [isMuted, setIsMuted] = useState(false);
-  const audioRef = useRef<HTMLAudioElement>(null);
+const PREMIUM_PALETTES = [
+  { id: 'satin_gold', name: 'Satin Gold', gradient: PREMIUM_COLORS.satin_gold },
+  { id: 'satin_silver', name: 'Satin Silver', gradient: PREMIUM_COLORS.satin_silver },
+  { id: 'chrome_rose', name: 'Chrome Rose', gradient: PREMIUM_COLORS.chrome_rose },
+  { id: 'chrome_black', name: 'Chrome Black', gradient: PREMIUM_COLORS.chrome_black },
+  { id: 'chrome_blue', name: 'Chrome Blue', gradient: PREMIUM_COLORS.chrome_blue },
+];
 
-  const lang = (invitation.language as Language) || (localStorage.getItem('invite_lang') as Language) || 'fr';
-  const t = translations[lang].guest;
-  const tBuilder = translations[lang].builder;
-  const emojis = THEME_EMOJIS[invitation?.event_type] || THEME_EMOJIS.default;
+const FONTS = [
+  { id: 'font-sans', name: 'Moderne Pur', family: "ui-sans-serif, system-ui, sans-serif", premium: false },
+  { id: 'font-serif', name: 'Classique Chic', family: "ui-serif, Georgia, serif", premium: false },
+  { id: 'font-elegant', name: 'Élégance Riviera', family: "'Times New Roman', serif", premium: false },
+  { id: 'font-script', name: 'Plume Douce', family: "cursive", premium: false },
+  { id: 'font-royal', name: 'Royal Majesty', family: "'Apple Chancery', 'Zapfino', cursive", premium: true },
+  { id: 'font-vintage', name: 'Héritage Ancien', family: "'Copperplate', 'Papyrus', serif", premium: true },
+  { id: 'font-boho', name: 'Bohème Spirit', family: "'Bradley Hand', cursive", premium: true },
+  { id: 'font-luxury', name: 'Luxe Minimal', family: "'Didot', 'Bodoni MT', serif", premium: true }
+];
+
+const TEXTURES = [
+  { id: 'smooth', name: 'Smooth', premium: false },
+  { id: 'parchment', name: 'Parchment', premium: false },
+  { id: 'grainy', name: 'Grainy', premium: true },
+  { id: 'cotton', name: 'Cotton', premium: true },
+  { id: 'silk', name: 'Silk', premium: true },
+  { id: 'velvet', name: 'Velvet', premium: true },
+];
+
+export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: any) {
+  const [uploading, setUploading] = useState(false);
+  const [selectedPhotoKey, setSelectedPhotoKey] = useState('main_photo_url');
+  const dragRef = useRef<{ x: number, y: number, isDragging: boolean, lastDist: number }>({ x: 0, y: 0, isDragging: false, lastDist: 0 });
   
-  const getPaperClass = () => {
-    switch(invitation.paper_type) {
-      case 'parchment': return 'paper-parchment';
-      case 'grainy': return 'paper-grainy';
-      case 'cotton': return 'paper-cotton';
-      case 'silk': return 'paper-silk';
-      case 'velvet': return 'paper-velvet';
-      default: return 'paper-smooth';
+  const lang = (invitation.language as Language) || (localStorage.getItem('invite_lang') as Language) || 'fr';
+  const t = translations[lang].builder;
+
+  const handlePremiumClick = (colorValue: string) => {
+    if (invitation.plan_type !== 'PREMIUM') {
+      alert(lang === 'vi' ? "Vui lòng nâng cấp lên bản Premium để sử dụng màu này!" : lang === 'en' ? "Please upgrade to Premium to use this color!" : "Passez au Premium pour débloquer ces couleurs !");
+      return;
     }
+    onInvitationChange({...invitation, envelope_color: colorValue});
   };
 
-  useEffect(() => {
-    if (isOpened && invitation?.music_url && audioRef.current) {
-      audioRef.current.play().catch(() => {});
+  const handleThemeClick = (themeId: string, isPremium: boolean) => {
+    if (isPremium && invitation.plan_type !== 'PREMIUM') {
+      alert("Passez au Premium pour débloquer ce thème !");
+      return;
     }
-  }, [isOpened, invitation?.music_url]);
-
-  const toggleMute = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (audioRef.current) {
-      audioRef.current.muted = !isMuted;
-      setIsMuted(!isMuted);
-    }
+    onInvitationChange({...invitation, event_type: themeId});
   };
 
-  const EmojiRain = () => {
-    const particles = useMemo(() => Array.from({ length: 25 }).map((_, i) => ({
-      id: i,
-      emoji: emojis[i % emojis.length],
-      left: `${(i * 4) + (Math.random() * 3)}%`,
-      delay: Math.random() * 2,
-      duration: 4 + Math.random() * 2
-    })), [emojis]);
+  const handleFontClick = (fontFamily: string, isPremium: boolean) => {
+    if (isPremium && invitation.plan_type !== 'PREMIUM') {
+      alert("Passez au Premium pour débloquer cette calligraphie !");
+      return;
+    }
+    onInvitationChange({...invitation, font_style: fontFamily});
+  };
 
-    return (
-      <div className="absolute inset-0 z-[60] pointer-events-none overflow-hidden">
-        {particles.map((p) => (
-          <motion.span key={p.id} initial={{ y: -50, opacity: 0 }} animate={{ y: 800, opacity: [0, 1, 1, 0] }}
-            transition={{ duration: p.duration, repeat: Infinity, delay: p.delay, ease: "linear" }}
-            className="absolute text-3xl" style={{ left: p.left }}>{p.emoji}
-          </motion.span>
-        ))}
-      </div>
-    );
+  const handleTextureClick = (textureId: string, isPremium: boolean) => {
+    if (isPremium && invitation.plan_type !== 'PREMIUM') {
+      alert(lang === 'vi' ? "Vui lòng nâng cấp để sử dụng chất liệu này!" : lang === 'en' ? "Please upgrade to use this texture!" : "Passez au Premium pour débloquer cette texture !");
+      return;
+    }
+    onInvitationChange({...invitation, paper_type: textureId});
+  };
+
+  const EVENT_TYPES = [
+    { id: 'wedding', name: t.theme_wedding, icon: Heart, premium: false },
+    { id: 'birthday', name: t.theme_birthday, icon: PartyPopper, premium: false },
+    { id: 'party', name: t.theme_party, icon: Sparkles, premium: true },
+    { id: 'baptism', name: t.theme_baptism, icon: Baby, premium: true },
+    { id: 'babyshower', name: 'Babyshower', icon: Milk, premium: true },
+    { id: 'funeral', name: 'Funeral', icon: Skull, premium: true }
+  ];
+
+  const uploadFile = async (e: any, field: string) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${file.name.split('.').pop()}`;
+    try {
+      const { error } = await supabase.storage.from('invitations').upload(fileName, file);
+      if (error) throw error;
+      const { data } = supabase.storage.from('invitations').getPublicUrl(fileName);
+      onInvitationChange({ ...invitation, [field]: data.publicUrl });
+    } catch (err) { alert("Erreur d'upload"); } 
+    finally { setUploading(false); }
+  };
+
+  const addProgramStep = () => {
+    const newProgram = [...(invitation.event_program || []), { time: '12:00', activity: '', image_url: '' }];
+    onInvitationChange({ ...invitation, event_program: newProgram });
+  };
+
+  const updateProgramStep = (index: number, field: string, value: string) => {
+    const newProgram = [...(invitation.event_program || [])];
+    newProgram[index] = { ...newProgram[index], [field]: value };
+    onInvitationChange({ ...invitation, event_program: newProgram });
+  };
+
+  const removeProgramStep = (index: number) => {
+    const newProgram = invitation.event_program.filter((_: any, i: number) => i !== index);
+    onInvitationChange({ ...invitation, event_program: newProgram });
+  };
+
+  const handleDragMove = (e: any) => {
+    if (!dragRef.current.isDragging) return;
+    const posKeyX = `${selectedPhotoKey}_pos_x`;
+    const posKeyY = `${selectedPhotoKey}_pos_y`;
+    const scaleKey = `${selectedPhotoKey}_scale`;
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    const deltaX = (clientX - dragRef.current.x);
+    const deltaY = (clientY - dragRef.current.y);
+    onInvitationChange({ ...invitation, [posKeyX]: (invitation[posKeyX] || 0) + deltaX, [posKeyY]: (invitation[posKeyY] || 0) + deltaY });
+    dragRef.current.x = clientX; dragRef.current.y = clientY;
   };
 
   return (
-    <div className="relative w-full h-full max-h-[650px] flex items-center justify-center overflow-hidden bg-white rounded-[3.5rem] shadow-2xl border-[12px] border-gray-50/50" style={{ fontFamily: invitation.font_style || 'inherit' }}>
-      {invitation?.music_url && <audio ref={audioRef} src={invitation.music_url} loop />}
-      {isOpened && <EmojiRain />}
-      
-      <AnimatePresence mode="wait">
-        {view === 'envelope' ? (
-          <motion.div key="env" className="relative w-full h-full flex items-center justify-center">
-            {isOpened && invitation?.music_url && (
-              <button onClick={toggleMute} className="absolute top-6 right-6 z-[70] w-10 h-10 bg-white/80 rounded-full flex items-center justify-center shadow-lg">
-                {isMuted ? <VolumeX size={18}/> : <Volume2 size={18} className="animate-pulse"/>}
+    <div className="w-full space-y-8 pb-10">
+      {activeTab === 'style' && (
+        <div className="space-y-8">
+          <div>
+            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">Type d'ouverture</label>
+            <div className="grid grid-cols-2 gap-3">
+              <button onClick={() => onInvitationChange({...invitation, opening_style: 'default'})}
+                className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all ${invitation.opening_style !== 'knock' && invitation.opening_style !== 'key' && invitation.opening_style !== 'vault' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}>
+                <ImageIcon size={18} className={invitation.opening_style === 'default' ? 'text-amber-500' : 'text-gray-400'} />
+                <span className="text-[10px] font-bold uppercase">Volet</span>
               </button>
-            )}
-
-            {/* --- ANIMATION D'OUVERTURE (VINYLE OU PELLICULE) --- */}
-            <motion.div 
-              initial={{ y: -450 }} 
-              animate={isOpened ? { y: invitation.opening_type === 'filmstrip' ? -35 : 25 } : { y: -450 }} 
-              transition={{ type: "spring", damping: 25 }} 
-              className="absolute top-0 z-20"
-            >
-              {invitation.opening_type === 'filmstrip' ? (
-                <div className="relative w-44 h-72 bg-[#1a1a1a] rounded-xl shadow-2xl rotate-[-2deg] overflow-hidden p-2 border-y-4 border-[#1a1a1a]">
-                  <div className="absolute inset-y-0 left-1.5 w-1.5 border-l-2 border-dashed border-white/20 z-10" />
-                  <div className="absolute inset-y-0 right-1.5 w-1.5 border-r-2 border-dashed border-white/20 z-10" />
-                  <motion.div animate={{ y: [0, -360] }} transition={{ duration: 12, repeat: Infinity, ease: "linear" }} className="flex flex-col gap-2">
-                    {[
-                      { url: invitation.main_photo_url, key: 'main_photo_url' },
-                      { url: invitation.photo_url_2, key: 'photo_url_2' },
-                      { url: invitation.photo_url_3, key: 'photo_url_3' },
-                      { url: invitation.main_photo_url, key: 'main_photo_url' },
-                      { url: invitation.photo_url_2, key: 'photo_url_2' },
-                      { url: invitation.photo_url_3, key: 'photo_url_3' }
-                    ].map((imgObj, idx) => (
-                      <div key={idx} className="w-full h-28 bg-[#222] rounded-sm overflow-hidden relative shrink-0">
-                        {imgObj.url ? (
-                          <img 
-                            src={imgObj.url} 
-                            className="w-full h-full object-cover grayscale-[0.2] contrast-125" 
-                            style={{ transform: `translate(${invitation[`${imgObj.key}_pos_x`] || 0}px, ${invitation[`${imgObj.key}_pos_y`] || 0}px) scale(${invitation[`${imgObj.key}_scale`] || 1})` }}
-                            alt="" 
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gray-800"><Film className="text-gray-600" size={20}/></div>
-                        )}
-                        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none" />
-                      </div>
-                    ))}
-                  </motion.div>
-                </div>
-              ) : (
-                <div className={`w-[270px] h-[270px] relative ${isOpened ? 'animate-disk-spin' : ''}`}>
-                  <div className="absolute inset-0 rounded-full bg-[#111] overflow-hidden">
-                      <div className="absolute inset-0 opacity-30" style={{ background: 'repeating-radial-gradient(circle, #444 0, #000 2px, #111 4px)' }} />
-                  </div>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-24 h-24 bg-white rounded-full border-[5px] border-[#111] overflow-hidden">
-                      {invitation.main_photo_url && (
-                        <img 
-                          src={invitation.main_photo_url} 
-                          className="w-full h-full object-cover" 
-                          style={{ transform: `translate(${invitation.main_photo_url_pos_x || 0}px, ${invitation.main_photo_url_pos_y || 0}px) scale(${invitation.main_photo_url_scale || 1})` }} 
-                        />
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </motion.div>
-
-            {/* --- CARTE D'INVITATION --- */}
-            <motion.div 
-              initial={{ scale: 0.8, y: 200 }} 
-              animate={isOpened ? { scale: 1, y: 135 } : {}} 
-              transition={{ type: "spring", damping: 20, delay: 0.4 }} 
-              onClick={() => isOpened && setView('content')} 
-              className={`z-30 w-[310px] h-[370px] rounded-[3rem] shadow-xl p-10 flex flex-col items-center justify-between border border-gray-100 cursor-pointer ${getPaperClass()}`}
-            >
-              <div className="text-center pt-14 w-full">
-                <h2 className="text-2xl font-black uppercase tracking-tighter mb-4 break-words" style={{ fontFamily: invitation.font_style }}>
-                  {invitation?.title || tBuilder.title_placeholder}
-                </h2>
-                <div className="w-8 h-1 bg-amber-400 mx-auto mb-4" />
-                <p className="opacity-60 text-[9px] font-bold uppercase tracking-[0.3em]">{t.tap_open}</p>
-              </div>
-              <div className="w-full py-4 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase text-center tracking-widest">
-                {lang === 'vi' ? 'Xem chi tiết' : lang === 'en' ? 'See details' : 'Voir les détails'}
-              </div>
-            </motion.div>
-
-            {/* --- ENVELOPPE OU PORTE (INTERACTION D'OUVERTURE) --- */}
-            <AnimatePresence>
-              {!isOpened && (
-                <motion.div 
-                  exit={invitation.opening_style === 'knock' ? { 
-                    opacity: 0, 
-                    scale: 1.5,
-                    transition: { duration: 0.6 } 
-                  } : { y: "-100%" }} 
-                  animate={invitation.opening_style === 'knock' ? {
-                    x: [0, -1, 2, -2, 1, 0, 0, -1, 2, -2, 1, 0, 0], 
-                    y: [0, 1, -1, 1, -1, 0, 0, 1, -1, 1, -1, 0, 0]
-                  } : {}}
-                  transition={invitation.opening_style === 'knock' ? {
-                    duration: 0.6,
-                    repeat: Infinity,
-                    repeatDelay: 1.2,
-                    times: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
-                  } : {}}
-                  className="absolute inset-0 z-50 flex flex-col items-center justify-center cursor-pointer" 
-                  style={{ background: invitation?.envelope_color || '#FEE2E2' }}
-                  onClick={() => setIsOpened(true)}
-                >
-                  {invitation.opening_style === 'knock' ? (
-                    /* VERSION MAIN QUI TOQUE DROITE (PREMIUM) */
-                    <div className="flex flex-col items-center justify-center">
-                      <div className="relative flex flex-col items-center justify-center" style={{ perspective: '1200px' }}>
-                        <motion.div
-                          initial={{ rotateX: 0, rotateZ: 0, z: 0 }}
-                          animate={{ 
-                            rotateX: [0, -40, 0, -40, 0], 
-                            z: [0, 80, 0, 80, 0],
-                            scale: [1, 1.15, 1, 1.15, 1]
-                          }}
-                          transition={{ 
-                            duration: 0.6, 
-                            repeat: Infinity, 
-                            repeatDelay: 1.2,
-                            ease: "easeOut" 
-                          }}
-                          style={{ originY: "100%" }}
-                          className="text-[140px] select-none drop-shadow-[0_20px_50px_rgba(0,0,0,0.3)]"
-                        >✊</motion.div>
-                      </div>
-                      {/* TEXTE HARMONISÉ : mt-8 pour correspondre au mode FREE */}
-                      <p className="mt-8 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">
-                        {t.tap_open}
-                      </p>
-                    </div>
-                  ) : (
-                    /* VERSION VOLET CLASSIQUE (FREE) */
-                    <div className="flex flex-col items-center">
-                      <div className="w-[32rem] h-[32rem] flex items-center justify-center p-0 overflow-visible">
-                        <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-full h-full object-contain" alt="Sceau" />
-                      </div>
-                      {/* TEXTE HARMONISÉ : mt-8 pour correspondre au mode PREMIUM */}
-                      <p className="mt-8 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">
-                        {t.tap_open}
-                      </p>
-                    </div>
-                  )}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </motion.div>
-        ) : (
-          /* --- CONTENU --- */
-          <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`w-full h-full z-[100] flex flex-col overflow-y-auto ${getPaperClass()}`}>
-             <div className="h-[30%] relative overflow-hidden shrink-0">
-               <img src={invitation.main_photo_url} className="w-full h-full object-cover" style={{ transform: `translate(${invitation.main_photo_url_pos_x || 0}px, ${invitation.main_photo_url_pos_y || 0}px) scale(${invitation.main_photo_url_scale || 1})` }} />
-               <div className="absolute inset-0 bg-gradient-to-t from-white/80 to-transparent pointer-events-none" />
-               <button onClick={() => setView('envelope')} className="absolute top-6 left-6 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-md"><X size={20}/></button>
+              <button onClick={() => { if (invitation.plan_type !== 'PREMIUM') return alert("Passez au Premium !"); onInvitationChange({...invitation, opening_style: 'knock'}); }}
+                className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all relative ${invitation.opening_style === 'knock' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}>
+                <Hand size={18} className={invitation.opening_style === 'knock' ? 'text-amber-500' : 'text-gray-400'} />
+                <span className="text-[10px] font-bold uppercase">Main</span>
+                {invitation.plan_type !== 'PREMIUM' && <Lock size={12} className="absolute right-2 top-2 text-gray-400" />}
+              </button>
+              <button onClick={() => { if (invitation.plan_type !== 'PREMIUM') return alert("Passez au Premium !"); onInvitationChange({...invitation, opening_style: 'key'}); }}
+                className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all relative ${invitation.opening_style === 'key' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}>
+                <Key size={18} className={invitation.opening_style === 'key' ? 'text-amber-500' : 'text-gray-400'} />
+                <span className="text-[10px] font-bold uppercase">Clé</span>
+                {invitation.plan_type !== 'PREMIUM' && <Lock size={12} className="absolute right-2 top-2 text-gray-400" />}
+              </button>
+              <button onClick={() => { if (invitation.plan_type !== 'PREMIUM') return alert("Passez au Premium !"); onInvitationChange({...invitation, opening_style: 'vault'}); }}
+                className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all relative ${invitation.opening_style === 'vault' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}>
+                <Vault size={18} className={invitation.opening_style === 'vault' ? 'text-amber-500' : 'text-gray-400'} />
+                <span className="text-[10px] font-bold uppercase">Coffre</span>
+                {invitation.plan_type !== 'PREMIUM' && <Lock size={12} className="absolute right-2 top-2 text-gray-400" />}
+              </button>
             </div>
-
-            <div className="flex-1 p-8">
-              <div className="text-center mb-10">
-                <h2 className="text-3xl font-black mb-4 leading-tight" style={{ fontFamily: invitation.font_style }}>{invitation?.host_names || tBuilder.hosts_placeholder}</h2>
-                <div className="flex flex-col items-center gap-2 opacity-60 font-bold text-[10px] uppercase tracking-widest">
-                  <div className="flex items-center gap-2"><Calendar size={14} className="text-amber-500"/> {invitation.event_date ? new Date(invitation.event_date).toLocaleDateString(lang === 'vi' ? 'vi-VN' : lang === 'en' ? 'en-US' : 'fr-FR', {day:'numeric', month:'long', year:'numeric'}) : t.save_date}</div>
-                  <div className="flex items-center gap-2"><MapPin size={14} className="text-amber-500"/> {invitation.event_address || tBuilder.address_placeholder}</div>
-                </div>
-              </div>
-
-              {invitation.description && (
-                <div className="mb-14 text-center">
-                  <p className="text-[13px] leading-relaxed opacity-80 whitespace-pre-wrap italic" style={{ fontFamily: invitation.font_style }}>{invitation.description}</p>
-                  <div className="w-12 h-[1px] bg-amber-200 mx-auto mt-6" />
-                </div>
-              )}
-
-              <div className="space-y-12 pb-10">
-                <h3 className="text-[10px] font-black text-amber-600 uppercase tracking-[0.3em] text-center mb-8 flex items-center justify-center gap-2">
-                  <Sparkles size={12}/> {tBuilder.program_title} <Sparkles size={12}/>
-                </h3>
-
-                <div className="relative flex flex-col items-center">
-                  <motion.div initial={{ scaleY: 0 }} whileInView={{ scaleY: 1 }} viewport={{ once: true }} transition={{ duration: 3.0, ease: "easeInOut" }} className="absolute top-0 w-[2px] h-full bg-gradient-to-b from-amber-200 via-amber-500 to-amber-200 rounded-full origin-top" />
-                  <div className="relative space-y-12 w-full pt-4">
-                    {(invitation.event_program || []).map((step: any, i: number) => {
-                      const isEven = i % 2 === 0;
-                      return (
-                        <motion.div key={i} initial={{ opacity: 0, x: isEven ? -30 : 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, margin: "-50px" }} transition={{ duration: 1.2, delay: 0.1 }} className={`flex items-center w-full relative ${isEven ? 'justify-start pl-6' : 'justify-end pr-6'}`}>
-                          <motion.div initial={{ scale: 0, rotate: 45 }} whileInView={{ scale: 1, rotate: 45 }} viewport={{ once: true }} className={`absolute top-1/2 -translate-y-1/2 z-20 w-3 h-3 bg-amber-500 border border-white shadow-md ${isEven ? 'right-[50%] translate-x-1/2' : 'left-[50%] -translate-x-1/2'}`}>
-                            <motion.div animate={{ opacity: [1, 0.4, 1], scale: [1, 1.2, 1] }} transition={{ duration: 2.5, repeat: Infinity }} className="absolute inset-0 bg-amber-300 rounded-sm" />
-                          </motion.div>
-                          <div className={`w-[45%] overflow-hidden bg-white/60 rounded-2xl border border-amber-50 backdrop-blur-sm shadow-lg ${isEven ? 'text-left' : 'text-right'}`}>
-                            {step.image_url && <div className="w-full aspect-video overflow-hidden"><img src={step.image_url} className="w-full h-full object-cover" alt="" /></div>}
-                            <div className="p-4">
-                              <div className={`text-[9px] font-black text-amber-600 mb-1 flex items-center gap-1 ${isEven ? 'justify-start' : 'justify-end'}`}><Clock size={8}/> {step.time}</div>
-                              <div className="text-[11px] font-bold uppercase tracking-tight leading-tight" style={{ fontFamily: invitation.font_style }}>{step.activity}</div>
-                            </div>
-                          </div>
-                        </motion.div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
-
-              {invitation.plan_type === 'PREMIUM' && invitation.end_photo_url && (
-                <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mt-20 px-2 pb-10">
-                  <div className="rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white rotate-2">
-                    <img src={invitation.end_photo_url} className="w-full h-auto" style={{ transform: `translate(${invitation.end_photo_url_pos_x || 0}px, ${invitation.end_photo_url_pos_y || 0}px) scale(${invitation.end_photo_url_scale || 1})` }} alt="Final" />
-                  </div>
-                </motion.div>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+          {/* Autres sections de style... */}
+        </div>
+      )}
     </div>
   );
 }
