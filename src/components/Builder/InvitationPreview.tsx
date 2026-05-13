@@ -288,4 +288,4 @@ export function InvitationPreview({ invitation }: any) {
       </AnimatePresence>
     </div>
   );
-}
+} 
