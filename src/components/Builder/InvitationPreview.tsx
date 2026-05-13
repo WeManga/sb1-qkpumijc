@@ -84,6 +84,7 @@ export function InvitationPreview({ invitation }: any) {
               </button>
             )}
 
+            {/* --- ANIMATION D'OUVERTURE (VINYLE OU PELLICULE) --- */}
             <motion.div 
               initial={{ y: -450 }} 
               animate={isOpened ? { y: invitation.opening_type === 'filmstrip' ? -35 : 25 } : { y: -450 }} 
@@ -139,6 +140,7 @@ export function InvitationPreview({ invitation }: any) {
               )}
             </motion.div>
 
+            {/* --- CARTE D'INVITATION --- */}
             <motion.div 
               initial={{ scale: 0.8, y: 200 }} 
               animate={isOpened ? { scale: 1, y: 135 } : {}} 
@@ -158,19 +160,17 @@ export function InvitationPreview({ invitation }: any) {
               </div>
             </motion.div>
 
+            {/* --- ENVELOPPE OU PORTE (INTERACTION D'OUVERTURE) --- */}
             <AnimatePresence>
               {!isOpened && (
                 <motion.div 
-                  exit={invitation.opening_style === 'vault' ? { scale: 2, opacity: 0 } : { y: "-100%" }} 
+                  exit={invitation.opening_style === 'vault' ? { scale: 3, opacity: 0 } : { y: "-100%" }} 
                   animate={invitation.opening_style === 'knock' ? {
                     x: [0, -1, 2, -2, 1, 0, 0, -1, 2, -2, 1, 0, 0], 
                     y: [0, 1, -1, 1, -1, 0, 0, 1, -1, 1, -1, 0, 0]
                   } : {}}
                   transition={invitation.opening_style === 'knock' ? {
-                    duration: 0.6,
-                    repeat: Infinity,
-                    repeatDelay: 1.2,
-                    times: [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1]
+                    duration: 0.6, repeat: Infinity, repeatDelay: 1.2
                   } : { duration: 0.8, ease: "easeInOut" }}
                   className="absolute inset-0 z-50 flex flex-col items-center justify-center cursor-pointer" 
                   style={{ background: invitation?.envelope_color || '#FEE2E2' }}
@@ -190,25 +190,44 @@ export function InvitationPreview({ invitation }: any) {
                       <p className="mt-8 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">{t.tap_open}</p>
                     </div>
                   ) : invitation.opening_style === 'key' ? (
-                    <div className="relative flex flex-col items-center justify-center">
-                       <div className="text-6xl mb-4 opacity-50">🕳️</div>
+                    <div className="relative flex flex-col items-center justify-center w-full h-full">
+                       {/* Serrure Réelle */}
+                       <div className="relative w-24 h-32 bg-gray-800 rounded-full border-4 border-gray-600 flex items-center justify-center shadow-inner overflow-hidden">
+                          <div className="w-4 h-12 bg-black rounded-t-full" /> {/* Fente */}
+                          <div className="absolute bottom-4 w-8 h-8 bg-black rounded-full" /> {/* Bas de la serrure */}
+                       </div>
+                       
+                       {/* Clé qui s'insère et tourne */}
                        <motion.div
-                         animate={{ x: [-100, 0, 0], rotate: [0, 0, 90] }}
-                         transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1 }}
-                         className="text-8xl"
+                         initial={{ y: 200, opacity: 0, rotate: 0 }}
+                         animate={{ y: [200, 20, 20, 20], opacity: 1, rotate: [0, 0, 90, 90] }}
+                         transition={{ duration: 3, repeat: Infinity, times: [0, 0.4, 0.7, 1] }}
+                         className="absolute text-7xl z-10"
                        >🔑</motion.div>
-                       <p className="mt-8 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">{t.tap_open}</p>
+                       
+                       <p className="absolute bottom-20 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">{t.tap_open}</p>
                     </div>
                   ) : invitation.opening_style === 'vault' ? (
-                    <div className="relative flex flex-col items-center justify-center">
-                       <div className="w-48 h-48 border-8 border-white/30 rounded-3xl flex items-center justify-center">
+                    <div className="relative flex flex-col items-center justify-center w-full h-full">
+                       {/* Porte du Coffre */}
+                       <div className="w-64 h-64 bg-gray-300 rounded-3xl border-8 border-gray-400 shadow-2xl flex items-center justify-center relative">
+                          <div className="absolute inset-4 border-4 border-gray-400 rounded-xl" />
+                          
+                          {/* Cadran à code qui tourne */}
                           <motion.div
-                            animate={{ rotate: [0, 360] }}
-                            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
-                            className="w-32 h-32 border-4 border-dashed border-white/50 rounded-full flex items-center justify-center"
+                            animate={{ rotate: [0, 90, -45, 180, 0] }}
+                            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                            className="w-32 h-32 bg-gray-400 rounded-full border-8 border-gray-500 shadow-lg flex items-center justify-center relative"
                           >
-                             <div className="w-4 h-4 bg-white rounded-full" />
+                             <div className="w-full h-1 bg-gray-600 absolute" />
+                             <div className="w-1 h-full bg-gray-600 absolute" />
+                             <div className="w-16 h-16 bg-gray-500 rounded-full border-4 border-gray-600 flex items-center justify-center z-10">
+                                <div className="w-2 h-6 bg-red-500 rounded-full" /> {/* Indicateur */}
+                             </div>
                           </motion.div>
+                          
+                          {/* Poignée */}
+                          <div className="absolute right-4 w-4 h-24 bg-gray-500 rounded-full shadow-md" />
                        </div>
                        <p className="mt-8 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">{t.tap_open}</p>
                     </div>
