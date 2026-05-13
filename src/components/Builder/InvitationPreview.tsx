@@ -293,4 +293,3 @@ export function InvitationPreview({ invitation }: any) {
     </div>
   );
 }
-```[cite: 1]
