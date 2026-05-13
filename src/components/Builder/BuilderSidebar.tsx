@@ -4,7 +4,7 @@ import { translations, Language } from '../../lib/i18n';
 import { 
   Heart, PartyPopper, Sparkles, Baby, MapPin, 
   Music, Image as ImageIcon, Calendar, Plus, X, Move, Skull, Milk, Lock,
-  Disc, Film
+  Disc, Film, Hand
 } from 'lucide-react';
 import { PREMIUM_COLORS } from '../../constants/colors';
 
@@ -347,6 +347,32 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
       {activeTab === 'style' && (
         <div className="space-y-8">
+          {/* NOUVEAU : TYPE D'OUVERTURE */}
+          <div>
+            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">Type d'ouverture</label>
+            <div className="grid grid-cols-2 gap-3">
+              <button 
+                onClick={() => onInvitationChange({...invitation, opening_style: 'default'})}
+                className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all ${invitation.opening_style !== 'knock' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}
+              >
+                <ImageIcon size={18} className={invitation.opening_style !== 'knock' ? 'text-amber-500' : 'text-gray-400'} />
+                <span className="text-[10px] font-bold uppercase">Ouverture Volet</span>
+              </button>
+              
+              <button 
+                onClick={() => {
+                  if (invitation.plan_type !== 'PREMIUM') return alert("Passez au Premium pour l'ouverture Main !");
+                  onInvitationChange({...invitation, opening_style: 'knock'});
+                }}
+                className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all relative ${invitation.opening_style === 'knock' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}
+              >
+                <Hand size={18} className={invitation.opening_style === 'knock' ? 'text-amber-500' : 'text-gray-400'} />
+                <span className="text-[10px] font-bold uppercase">Ouverture Main</span>
+                {invitation.plan_type !== 'PREMIUM' && <Lock size={12} className="absolute right-2 top-2 text-gray-400" />}
+              </button>
+            </div>
+          </div>
+
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">{t.theme_label}</label>
             <div className="grid grid-cols-2 gap-3">
