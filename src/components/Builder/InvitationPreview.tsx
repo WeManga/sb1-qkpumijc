@@ -84,7 +84,7 @@ export function InvitationPreview({ invitation }: any) {
               </button>
             )}
 
-            {/* --- ANIMATION D'OUVERTURE --- */}
+            {/* --- ANIMATION D'OUVERTURE (VINYLE OU PELLICULE) --- */}
             <motion.div 
               initial={{ y: -450 }} 
               animate={isOpened ? { y: invitation.opening_type === 'filmstrip' ? -35 : 25 } : { y: -450 }} 
@@ -164,26 +164,32 @@ export function InvitationPreview({ invitation }: any) {
             <AnimatePresence>
               {!isOpened && (
                 <motion.div 
-                  exit={invitation.opening_style === 'knock' ? { opacity: 0, scale: 1.1 } : { y: "-100%" }} 
+                  exit={invitation.opening_style === 'knock' ? { 
+                    opacity: 0, 
+                    scale: 1.5,
+                    transition: { duration: 0.6 } 
+                  } : { y: "-100%" }} 
                   transition={{ duration: 0.8, ease: "easeInOut" }} 
                   className="absolute inset-0 z-50 flex flex-col items-center justify-center cursor-pointer" 
                   style={{ background: invitation?.envelope_color || '#FEE2E2' }}
                   onClick={() => setIsOpened(true)}
                 >
                   {invitation.opening_style === 'knock' ? (
-                    /* VERSION MAIN QUI TOQUE (PREMIUM CLEAN) */
-                    <div className="relative flex flex-col items-center justify-center">
+                    /* VERSION MAIN QUI TOQUE L'ÉCRAN (EFFET 3D PREMIUM) */
+                    <div className="relative flex flex-col items-center justify-center" style={{ perspective: '1000px' }}>
                       <motion.div
                         animate={{ 
-                          rotate: [0, -15, 0, -15, 0],
-                          y: [0, -5, 0, -5, 0] 
+                          scale: [1, 1.25, 1, 1.25, 1],
+                          z: [0, 60, 0, 60, 0],
+                          filter: ['blur(0px)', 'blur(1.5px)', 'blur(0px)', 'blur(1.5px)', 'blur(0px)']
                         }}
                         transition={{ 
                           duration: 0.5, 
                           repeat: Infinity, 
-                          repeatDelay: 1.5 
+                          repeatDelay: 1.5,
+                          ease: "easeInOut"
                         }}
-                        className="text-[120px] select-none"
+                        className="text-[140px] select-none drop-shadow-2xl"
                       >✊</motion.div>
                       <p className="mt-8 text-white font-black text-[10px] uppercase tracking-[0.5em] animate-pulse">
                         {lang === 'vi' ? 'Gõ cửa' : lang === 'en' ? 'Knock Knock' : 'Toquez pour entrer'}
@@ -205,9 +211,67 @@ export function InvitationPreview({ invitation }: any) {
             </AnimatePresence>
           </motion.div>
         ) : (
-          /* --- CONTENU --- */
+          /* --- CONTENU DÉTAILLÉ DE L'INVITATION --- */
           <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`w-full h-full z-[100] flex flex-col overflow-y-auto ${getPaperClass()}`}>
-             {/* Contenu identique au précédent */}
+            <div className="h-[30%] relative overflow-hidden shrink-0">
+               <img src={invitation.main_photo_url} className="w-full h-full object-cover" style={{ transform: `translate(${invitation.main_photo_url_pos_x || 0}px, ${invitation.main_photo_url_pos_y || 0}px) scale(${invitation.main_photo_url_scale || 1})` }} />
+               <div className="absolute inset-0 bg-gradient-to-t from-white/80 to-transparent pointer-events-none" />
+               <button onClick={() => setView('envelope')} className="absolute top-6 left-6 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-md"><X size={20}/></button>
+            </div>
+
+            <div className="flex-1 p-8">
+              <div className="text-center mb-10">
+                <h2 className="text-3xl font-black mb-4 leading-tight" style={{ fontFamily: invitation.font_style }}>{invitation?.host_names || tBuilder.hosts_placeholder}</h2>
+                <div className="flex flex-col items-center gap-2 opacity-60 font-bold text-[10px] uppercase tracking-widest">
+                  <div className="flex items-center gap-2"><Calendar size={14} className="text-amber-500"/> {invitation.event_date ? new Date(invitation.event_date).toLocaleDateString(lang === 'vi' ? 'vi-VN' : lang === 'en' ? 'en-US' : 'fr-FR', {day:'numeric', month:'long', year:'numeric'}) : t.save_date}</div>
+                  <div className="flex items-center gap-2"><MapPin size={14} className="text-amber-500"/> {invitation.event_address || tBuilder.address_placeholder}</div>
+                </div>
+              </div>
+
+              {invitation.description && (
+                <div className="mb-14 text-center">
+                  <p className="text-[13px] leading-relaxed opacity-80 whitespace-pre-wrap italic" style={{ fontFamily: invitation.font_style }}>{invitation.description}</p>
+                  <div className="w-12 h-[1px] bg-amber-200 mx-auto mt-6" />
+                </div>
+              )}
+
+              <div className="space-y-12 pb-10">
+                <h3 className="text-[10px] font-black text-amber-600 uppercase tracking-[0.3em] text-center mb-8 flex items-center justify-center gap-2">
+                  <Sparkles size={12}/> {tBuilder.program_title} <Sparkles size={12}/>
+                </h3>
+
+                <div className="relative flex flex-col items-center">
+                  <motion.div initial={{ scaleY: 0 }} whileInView={{ scaleY: 1 }} viewport={{ once: true }} transition={{ duration: 3.0, ease: "easeInOut" }} className="absolute top-0 w-[2px] h-full bg-gradient-to-b from-amber-200 via-amber-500 to-amber-200 rounded-full origin-top" />
+                  <div className="relative space-y-12 w-full pt-4">
+                    {(invitation.event_program || []).map((step: any, i: number) => {
+                      const isEven = i % 2 === 0;
+                      return (
+                        <motion.div key={i} initial={{ opacity: 0, x: isEven ? -30 : 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, margin: "-50px" }} transition={{ duration: 1.2, delay: 0.1 }} className={`flex items-center w-full relative ${isEven ? 'justify-start pl-6' : 'justify-end pr-6'}`}>
+                          <motion.div initial={{ scale: 0, rotate: 45 }} whileInView={{ scale: 1, rotate: 45 }} viewport={{ once: true }} className={`absolute top-1/2 -translate-y-1/2 z-20 w-3 h-3 bg-amber-500 border border-white shadow-md ${isEven ? 'right-[50%] translate-x-1/2' : 'left-[50%] -translate-x-1/2'}`}>
+                            <motion.div animate={{ opacity: [1, 0.4, 1], scale: [1, 1.2, 1] }} transition={{ duration: 2.5, repeat: Infinity }} className="absolute inset-0 bg-amber-300 rounded-sm" />
+                          </motion.div>
+                          <div className={`w-[45%] overflow-hidden bg-white/60 rounded-2xl border border-amber-50 backdrop-blur-sm shadow-lg ${isEven ? 'text-left' : 'text-right'}`}>
+                            {step.image_url && <div className="w-full aspect-video overflow-hidden"><img src={step.image_url} className="w-full h-full object-cover" alt="" /></div>}
+                            <div className="p-4">
+                              <div className={`text-[9px] font-black text-amber-600 mb-1 flex items-center gap-1 ${isEven ? 'justify-start' : 'justify-end'}`}><Clock size={8}/> {step.time}</div>
+                              <div className="text-[11px] font-bold uppercase tracking-tight leading-tight" style={{ fontFamily: invitation.font_style }}>{step.activity}</div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {invitation.plan_type === 'PREMIUM' && invitation.end_photo_url && (
+                <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mt-20 px-2 pb-10">
+                  <div className="rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white rotate-2">
+                    <img src={invitation.end_photo_url} className="w-full h-auto" style={{ transform: `translate(${invitation.end_photo_url_pos_x || 0}px, ${invitation.end_photo_url_pos_y || 0}px) scale(${invitation.end_photo_url_scale || 1})` }} alt="Final" />
+                  </div>
+                </motion.div>
+              )}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
