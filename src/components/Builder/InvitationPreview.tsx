@@ -169,7 +169,6 @@ export function InvitationPreview({ invitation }: any) {
                     scale: 1.5,
                     transition: { duration: 0.6 } 
                   } : { y: "-100%" }} 
-                  // EFFET DE TREMBLEMENT SYNCHRONISÉ AVEC L'IMPACT
                   animate={invitation.opening_style === 'knock' ? {
                     x: [0, -1, 2, -2, 1, 0, 0, -1, 2, -2, 1, 0, 0], 
                     y: [0, 1, -1, 1, -1, 0, 0, 1, -1, 1, -1, 0, 0]
@@ -185,7 +184,7 @@ export function InvitationPreview({ invitation }: any) {
                   onClick={() => setIsOpened(true)}
                 >
                   {invitation.opening_style === 'knock' ? (
-                    /* VERSION MAIN QUI TOQUE DROITE (EFFET 3D FRONTAL) */
+                    /* VERSION MAIN QUI TOQUE DROITE (PREMIUM) */
                     <div className="relative flex flex-col items-center justify-center" style={{ perspective: '1200px' }}>
                       <motion.div
                         initial={{ rotateX: 0, rotateZ: 0, z: 0 }}
@@ -203,18 +202,20 @@ export function InvitationPreview({ invitation }: any) {
                         style={{ originY: "100%" }}
                         className="text-[140px] select-none drop-shadow-[0_20px_50px_rgba(0,0,0,0.3)]"
                       >✊</motion.div>
-                      <p className="mt-8 text-white font-black text-[10px] font-bold uppercase tracking-[0.3em] animate-pulse">
+                      {/* TEXTE HARMONISÉ */}
+                      <p className="mt-8 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">
                         {t.tap_open}
                       </p>
                     </div>
                   ) : (
-                    /* VERSION VOLET CLASSIQUE */
+                    /* VERSION VOLET CLASSIQUE (FREE) */
                     <div className="flex flex-col items-center">
                       <div className="w-[32rem] h-[32rem] flex items-center justify-center p-0 overflow-visible">
                         <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-full h-full object-contain" alt="Sceau" />
                       </div>
-                      <p className="text-white font-black text-[10px] uppercase tracking-[0.5em] -mt-4">
-                        {lang === 'vi' ? 'Mở' : lang === 'en' ? 'Open' : 'Ouvrir'}
+                      {/* TEXTE HARMONISÉ : MÊME PLACE, MÊME STYLE, MÊME HAUTEUR */}
+                      <p className="mt-8 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">
+                        {t.tap_open}
                       </p>
                     </div>
                   )}
@@ -223,6 +224,7 @@ export function InvitationPreview({ invitation }: any) {
             </AnimatePresence>
           </motion.div>
         ) : (
+          /* --- CONTENU --- */
           <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`w-full h-full z-[100] flex flex-col overflow-y-auto ${getPaperClass()}`}>
              <div className="h-[30%] relative overflow-hidden shrink-0">
                <img src={invitation.main_photo_url} className="w-full h-full object-cover" style={{ transform: `translate(${invitation.main_photo_url_pos_x || 0}px, ${invitation.main_photo_url_pos_y || 0}px) scale(${invitation.main_photo_url_scale || 1})` }} />
@@ -288,4 +290,5 @@ export function InvitationPreview({ invitation }: any) {
       </AnimatePresence>
     </div>
   );
-} 
+}
+```[cite: 1]
