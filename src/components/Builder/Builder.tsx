@@ -16,12 +16,13 @@ interface BuilderProps {
 export function Builder({ invitationId, onBack }: BuilderProps) {
   const { user } = useAuth();
   
-  // On récupère la langue initiale
-  const initialLang = (localStorage.getItem('invite_lang') as Language) || 'fr';
+  const lang = (localStorage.getItem('invite_lang') as Language) || 'fr';
+  const t = translations[lang].builder;
+  const tAuth = translations[lang].auth;
 
   const [invitation, setInvitation] = useState<Partial<Invitation>>({
     event_type: 'wedding',
-    title: translations[initialLang].builder.theme_wedding,
+    title: t.theme_wedding,
     host_names: 'John & Jane',
     event_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
     event_address: '',
@@ -31,18 +32,13 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
     photo_pos_x: 50,
     photo_pos_y: 50,
     is_published: false,
-    language: initialLang,
-    opening_type: 'vinyl',
-    photo_url_2: '',
-    photo_url_3: '',
+    language: lang,
+    opening_type: 'vinyl', // NOUVEAU
+    photo_url_2: '',      // NOUVEAU
+    photo_url_3: '',      // NOUVEAU
     // @ts-ignore
     plan_type: 'PREMIUM' 
   });
-
-  // RÉACTIVITÉ : Ces variables se mettent à jour dès que invitation.language change
-  const currentLang = (invitation.language as Language) || 'fr';
-  const t = translations[currentLang].builder;
-  const tAuth = translations[currentLang].auth;
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -87,10 +83,10 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
         user_id: user.id,
         photo_pos_x: parseInt(String(invitation.photo_pos_x || 50)),
         photo_pos_y: parseInt(String(invitation.photo_pos_y || 50)),
-        language: invitation.language || 'fr',
-        opening_type: invitation.opening_type || 'vinyl',
-        photo_url_2: invitation.photo_url_2 || '',
-        photo_url_3: invitation.photo_url_3 || '',
+        language: localStorage.getItem('invite_lang') || invitation.language || 'fr',
+        opening_type: invitation.opening_type || 'vinyl', // SAUVEGARDE NOUVEAU
+        photo_url_2: invitation.photo_url_2 || '',      // SAUVEGARDE NOUVEAU
+        photo_url_3: invitation.photo_url_3 || '',      // SAUVEGARDE NOUVEAU
         updated_at: new Date().toISOString(),
       };
 
@@ -107,9 +103,9 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
         if (error) throw error;
       }
       
-      const successMsg = currentLang === 'fr' 
+      const successMsg = lang === 'fr' 
         ? "Votre invitation est enregistrée" 
-        : currentLang === 'en' 
+        : lang === 'en' 
         ? "Your invitation has been saved" 
         : "Lời mời của bạn đã được lưu";
       
