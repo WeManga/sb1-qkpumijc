@@ -111,7 +111,15 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       const { error } = await supabase.storage.from('invitations').upload(fileName, file);
       if (error) throw error;
       const { data } = supabase.storage.from('invitations').getPublicUrl(fileName);
-      onInvitationChange({ ...invitation, [field]: data.publicUrl });
+      
+      // Mise à jour de l'URL ET réinitialisation des transformations pour éviter que l'image soit coupée
+      onInvitationChange({ 
+        ...invitation, 
+        [field]: data.publicUrl,
+        [`${field}_pos_x`]: 0,
+        [`${field}_pos_y`]: 0,
+        [`${field}_scale`]: 1
+      });
     } catch (err) { alert("Erreur d'upload"); } 
     finally { setUploading(false); }
   };
