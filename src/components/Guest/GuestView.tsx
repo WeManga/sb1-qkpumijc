@@ -358,7 +358,7 @@ export function GuestView({ invitation }: any) {
                             <div className={`overflow-hidden bg-white/80 rounded-2xl border border-amber-50 shadow-lg ${isEven ? 'text-right' : 'text-left'}`}>
                               {step.image_url && <img src={step.image_url} className="w-full aspect-video object-cover" alt="" />}
                               <div className="p-4">
-                                <div className="text-[9px] font-black text-amber-600 mb-1 flex items-center gap-1"><Clock size={8}/> {step.time}</div>
+                                <div className={`text-[9px] font-black text-amber-600 mb-1 flex items-center gap-1 ${isEven ? 'justify-start' : 'justify-end'}`}><Clock size={8}/> {step.time}</div>
                                 <div className="text-[11px] font-bold uppercase leading-tight" style={{ fontFamily: invitation.font_style }}>{step.activity}</div>
                               </div>
                             </div>
