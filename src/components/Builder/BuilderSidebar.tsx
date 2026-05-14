@@ -112,14 +112,20 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       if (error) throw error;
       const { data } = supabase.storage.from('invitations').getPublicUrl(fileName);
       
-      // Mise à jour de l'URL ET réinitialisation des transformations pour éviter que l'image soit coupée
-      onInvitationChange({ 
+      // Objet de mise à jour propre
+      const updates: any = { 
         ...invitation, 
-        [field]: data.publicUrl,
-        [`${field}_pos_x`]: 0,
-        [`${field}_pos_y`]: 0,
-        [`${field}_scale`]: 1
-      });
+        [field]: data.publicUrl 
+      };
+
+      // CORRECTION : On ne réinitialise la position que pour les images, pas pour music_url
+      if (field === 'main_photo_url' || field === 'end_photo_url') {
+        updates[`${field}_pos_x`] = 0;
+        updates[`${field}_pos_y`] = 0;
+        updates[`${field}_scale`] = 1;
+      }
+
+      onInvitationChange(updates);
     } catch (err) { alert("Erreur d'upload"); } 
     finally { setUploading(false); }
   };
@@ -208,7 +214,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
               <input type="date" value={invitation.event_date?.split('T')[0] || ''} onChange={e => onInvitationChange({...invitation, event_date: e.target.value})} className="w-full bg-gray-50 border-none h-14 min-h-[3.5rem] flex items-center pl-12 pr-4 rounded-2xl text-sm appearance-none" />
             </div>
           </div>
-          
           <div className="space-y-4">
             <div className="flex items-center justify-between ml-1">
               <label className="text-[10px] font-black uppercase text-gray-400">{t.program_title}</label>
@@ -259,7 +264,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
               </label>
             </div>
           </div>
-
           {(invitation.main_photo_url || invitation.end_photo_url) && (
             <div className="bg-amber-50/50 p-6 rounded-[2rem] border border-amber-100 space-y-4">
               <div className="flex flex-wrap gap-2">
