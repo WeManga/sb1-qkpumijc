@@ -96,7 +96,6 @@ export function InvitationPreview({ invitation }: any) {
               </button>
             )}
 
-            {/* --- ANIMATION D'OUVERTURE (VINYLE OU PELLICULE) --- */}
             <motion.div 
               initial={{ y: -450 }} 
               animate={isOpened ? { y: invitation.opening_type === 'filmstrip' ? -35 : 25 } : { y: -450 }} 
@@ -222,51 +221,52 @@ export function InvitationPreview({ invitation }: any) {
                       </div>
                     ) : invitation.opening_style === 'key' ? (
                       <div className="flex flex-col items-center relative">
-                        {/* Serrure Antique */}
-                        <div className="w-28 h-40 bg-gradient-to-b from-[#1a1a1a] to-[#333] rounded-full border-4 border-[#444] shadow-2xl flex flex-col items-center justify-center relative">
-                           <div className="w-3 h-12 bg-black rounded-full mb-1 shadow-inner" />
-                           <div className="w-8 h-8 bg-black rounded-full shadow-inner" />
+                        {/* Serrure plus petite sans fond carré */}
+                        <div className="flex flex-col items-center justify-center relative">
+                           <div className="w-1.5 h-7 bg-black/80 rounded-full shadow-sm" />
+                           <div className="w-4 h-4 bg-black/80 rounded-full -mt-1 shadow-sm" />
                            
-                           {/* Clé Ancienne insérée */}
+                           {/* Clé Ancienne Grossie */}
                            <motion.div
-                             animate={{ rotate: [0, 35, 0, 35, 0] }}
-                             transition={{ duration: 2, repeat: Infinity, repeatDelay: 0.5 }}
-                             className="absolute text-7xl z-10"
-                             style={{ top: '15%', transformOrigin: "center 60%" }}
+                             animate={{ rotate: [0, 30, 0, 30, 0] }}
+                             transition={{ duration: 2.2, repeat: Infinity, repeatDelay: 0.5 }}
+                             className="absolute text-[100px] z-10"
+                             style={{ top: '-15%', transformOrigin: "center 65%" }}
                            >🗝️</motion.div>
                         </div>
-                        <p className="mt-12 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">{t.tap_open}</p>
+                        <p className="mt-20 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">{t.tap_open}</p>
                       </div>
                     ) : invitation.opening_style === 'vault' ? (
                       <div className="flex flex-col items-center">
-                        <div className="relative w-64 h-64 flex flex-col items-center justify-center">
-                           {/* Plaque métal du fond */}
-                           <div className="absolute inset-0 bg-[#2c2c2c] rounded-full border-8 border-[#3d3d3d] shadow-[inset_0_2px_10px_rgba(0,0,0,0.8),0_20px_40px_rgba(0,0,0,0.4)]" />
+                        <div className="relative w-72 h-72 flex flex-col items-center justify-center">
+                           {/* Design Enjolivé : Anneau de luxe */}
+                           <div className="absolute inset-0 bg-gradient-to-br from-gray-400 via-gray-100 to-gray-500 rounded-full border-[12px] border-amber-400/80 shadow-[0_30px_60px_rgba(0,0,0,0.5),inset_0_2px_10px_white]" />
                            
-                           {/* Fenêtre de Code */}
-                           <div className="absolute top-12 bg-[#1a1a1a] px-4 py-1 rounded border border-gray-600 shadow-inner z-20">
-                              <span className="text-red-600 font-mono text-xl tracking-[0.3em] drop-shadow-[0_0_5px_red]">
+                           {/* Fenêtre de Code Stylisée */}
+                           <div className="absolute top-10 bg-black/90 px-5 py-1.5 rounded-lg border-2 border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.3)] z-20">
+                              <span className="text-amber-500 font-mono text-2xl tracking-[0.4em] drop-shadow-[0_0_8px_rgba(245,158,11,0.8)]">
                                 {vaultCode < 10 ? `0${vaultCode}` : vaultCode}
                               </span>
                            </div>
 
                            {/* Cadran Central tournant */}
                            <motion.div
-                             animate={{ rotate: [0, 120, -60, 240, 0] }}
-                             transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                             className="w-44 h-44 rounded-full border-[10px] border-[#4a4a4a] bg-gradient-to-br from-[#333] to-[#111] shadow-2xl flex items-center justify-center relative z-10"
+                             animate={{ rotate: [0, 160, -80, 290, 0] }}
+                             transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                             className="w-48 h-48 rounded-full border-[6px] border-gray-600 bg-gradient-to-tr from-[#222] via-[#444] to-[#111] shadow-[inset_0_5px_20px_black,0_10px_20px_rgba(0,0,0,0.4)] flex items-center justify-center relative z-10"
                            >
-                              {/* Graduation */}
+                              {/* Graduation dorée */}
                               {[...Array(12)].map((_, i) => (
-                                <div key={i} className="absolute w-1 h-3 bg-gray-500" style={{ transform: `rotate(${i * 30}deg) translateY(-70px)` }} />
+                                <div key={i} className="absolute w-1 h-3 bg-amber-400/60" style={{ transform: `rotate(${i * 30}deg) translateY(-78px)` }} />
                               ))}
-                              {/* Moyeu central */}
-                              <div className="w-14 h-14 rounded-full bg-[#222] border-4 border-[#333] shadow-inner flex items-center justify-center">
-                                 <div className="w-2 h-10 bg-red-600 rounded-full -translate-y-2 shadow-[0_0_8px_rgba(255,0,0,0.6)]" />
+                              
+                              {/* Volant central de luxe */}
+                              <div className="w-16 h-16 rounded-full bg-gradient-to-b from-gray-200 to-gray-500 border-4 border-amber-500/50 shadow-xl flex items-center justify-center">
+                                 <div className="w-1.5 h-12 bg-red-600 rounded-full -translate-y-2 shadow-[0_0_10px_red]" />
                               </div>
                            </motion.div>
                         </div>
-                        <p className="mt-8 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">{t.tap_open}</p>
+                        <p className="mt-10 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">{t.tap_open}</p>
                       </div>
                     ) : (
                       <div className="flex flex-col items-center">
