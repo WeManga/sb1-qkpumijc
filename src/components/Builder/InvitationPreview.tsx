@@ -42,7 +42,6 @@ export function InvitationPreview({ invitation }: any) {
     }
   }, [isOpened, invitation?.music_url]);
 
-  // Animation des chiffres du coffre
   useEffect(() => {
     if (!isOpened && invitation.opening_style === 'vault') {
       const interval = setInterval(() => {
@@ -153,7 +152,6 @@ export function InvitationPreview({ invitation }: any) {
               )}
             </motion.div>
 
-            {/* --- CARTE D'INVITATION --- */}
             <motion.div 
               initial={{ scale: 0.8, y: 200 }} 
               animate={isOpened ? { scale: 1, y: 135 } : {}} 
@@ -177,7 +175,6 @@ export function InvitationPreview({ invitation }: any) {
             <AnimatePresence>
               {!isOpened && (
                 <div className="absolute inset-0 z-50 overflow-hidden" style={{ perspective: '2000px' }}>
-                  {/* EFFET PORTE (UNIQUEMENT CLÉ ET COFFRE) */}
                   {isDoorType ? (
                     <>
                       <motion.div 
@@ -194,16 +191,20 @@ export function InvitationPreview({ invitation }: any) {
                       />
                     </>
                   ) : (
-                    /* EFFET VOLET CLASSIQUE */
                     <motion.div 
                       exit={{ y: "-100%" }} 
-                      transition={{ duration: 0.8, ease: "easeInOut" }}
+                      animate={invitation.opening_style === 'knock' ? {
+                        x: [0, -1, 2, -2, 1, 0, 0, -1, 2, -2, 1, 0, 0], 
+                        y: [0, 1, -1, 1, -1, 0, 0, 1, -1, 1, -1, 0, 0]
+                      } : {}}
+                      transition={invitation.opening_style === 'knock' ? {
+                        duration: 0.6, repeat: Infinity, repeatDelay: 1.2
+                      } : { duration: 0.8, ease: "easeInOut" }}
                       className="absolute inset-0 z-50 shadow-2xl"
                       style={{ background: invitation?.envelope_color || '#FEE2E2' }}
                     />
                   )}
 
-                  {/* CONTENU INTERACTIF */}
                   <motion.div 
                     exit={{ opacity: 0, scale: 0.8 }} 
                     className="absolute inset-0 z-[60] flex flex-col items-center justify-center cursor-pointer"
@@ -220,35 +221,49 @@ export function InvitationPreview({ invitation }: any) {
                         <p className="mt-8 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">{t.tap_open}</p>
                       </div>
                     ) : invitation.opening_style === 'key' ? (
-                      <div className="flex flex-col items-center">
-                        <div className="w-32 h-48 bg-[#2a2a2a] rounded-t-full border-4 border-[#1a1a1a] shadow-2xl flex flex-col items-center pt-8 relative">
-                           <div className="w-3 h-14 bg-black rounded-full shadow-inner mb-1" />
+                      <div className="flex flex-col items-center relative">
+                        {/* Serrure Antique */}
+                        <div className="w-28 h-40 bg-gradient-to-b from-[#1a1a1a] to-[#333] rounded-full border-4 border-[#444] shadow-2xl flex flex-col items-center justify-center relative">
+                           <div className="w-3 h-12 bg-black rounded-full mb-1 shadow-inner" />
                            <div className="w-8 h-8 bg-black rounded-full shadow-inner" />
+                           
+                           {/* Clé Ancienne insérée */}
+                           <motion.div
+                             animate={{ rotate: [0, 35, 0, 35, 0] }}
+                             transition={{ duration: 2, repeat: Infinity, repeatDelay: 0.5 }}
+                             className="absolute text-7xl z-10"
+                             style={{ top: '15%', transformOrigin: "center 60%" }}
+                           >🗝️</motion.div>
                         </div>
-                        <motion.div
-                          initial={{ x: -160, opacity: 0 }}
-                          animate={{ x: 0, opacity: 1, rotate: [0, 0, 90, 0] }}
-                          transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 1 }}
-                          className="absolute text-8xl top-10"
-                        >🗝️</motion.div> {/* Glyphe Antique */}
                         <p className="mt-12 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">{t.tap_open}</p>
                       </div>
                     ) : invitation.opening_style === 'vault' ? (
                       <div className="flex flex-col items-center">
-                        <div className="relative w-64 h-64 flex flex-col items-center justify-center bg-[#333] rounded-full border-8 border-[#444] shadow-2xl">
-                           {/* Afficheur Digital */}
-                           <div className="absolute top-10 bg-black/80 px-3 py-1 rounded border border-green-500/30">
-                              <span className="text-green-500 font-mono text-xl tracking-widest">
-                                {vaultCode < 10 ? `0${vaultCode}` : vaultCode}:88
+                        <div className="relative w-64 h-64 flex flex-col items-center justify-center">
+                           {/* Plaque métal du fond */}
+                           <div className="absolute inset-0 bg-[#2c2c2c] rounded-full border-8 border-[#3d3d3d] shadow-[inset_0_2px_10px_rgba(0,0,0,0.8),0_20px_40px_rgba(0,0,0,0.4)]" />
+                           
+                           {/* Fenêtre de Code */}
+                           <div className="absolute top-12 bg-[#1a1a1a] px-4 py-1 rounded border border-gray-600 shadow-inner z-20">
+                              <span className="text-red-600 font-mono text-xl tracking-[0.3em] drop-shadow-[0_0_5px_red]">
+                                {vaultCode < 10 ? `0${vaultCode}` : vaultCode}
                               </span>
                            </div>
-                           {/* Roue */}
+
+                           {/* Cadran Central tournant */}
                            <motion.div
-                             animate={{ rotate: [0, 180, -90, 270, 0] }}
-                             transition={{ duration: 4, repeat: Infinity }}
-                             className="w-40 h-44 rounded-full border-4 border-dashed border-white/30 flex items-center justify-center bg-gradient-to-tr from-[#222] to-[#444]"
+                             animate={{ rotate: [0, 120, -60, 240, 0] }}
+                             transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                             className="w-44 h-44 rounded-full border-[10px] border-[#4a4a4a] bg-gradient-to-br from-[#333] to-[#111] shadow-2xl flex items-center justify-center relative z-10"
                            >
-                              <div className="w-10 h-10 bg-red-600 rounded-full border-2 border-white/50" />
+                              {/* Graduation */}
+                              {[...Array(12)].map((_, i) => (
+                                <div key={i} className="absolute w-1 h-3 bg-gray-500" style={{ transform: `rotate(${i * 30}deg) translateY(-70px)` }} />
+                              ))}
+                              {/* Moyeu central */}
+                              <div className="w-14 h-14 rounded-full bg-[#222] border-4 border-[#333] shadow-inner flex items-center justify-center">
+                                 <div className="w-2 h-10 bg-red-600 rounded-full -translate-y-2 shadow-[0_0_8px_rgba(255,0,0,0.6)]" />
+                              </div>
                            </motion.div>
                         </div>
                         <p className="mt-8 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">{t.tap_open}</p>
@@ -267,7 +282,6 @@ export function InvitationPreview({ invitation }: any) {
             </AnimatePresence>
           </motion.div>
         ) : (
-          /* --- CONTENU --- */
           <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`w-full h-full z-[100] flex flex-col overflow-y-auto ${getPaperClass()}`}>
             <div className="h-[30%] relative overflow-hidden shrink-0">
                <img src={invitation.main_photo_url} className="w-full h-full object-cover" style={{ transform: `translate(${invitation.main_photo_url_pos_x || 0}px, ${invitation.main_photo_url_pos_y || 0}px) scale(${invitation.main_photo_url_scale || 1})` }} />
@@ -296,3 +310,4 @@ export function InvitationPreview({ invitation }: any) {
     </div>
   );
 }
+```[cite: 1]
