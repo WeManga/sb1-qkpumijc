@@ -96,7 +96,63 @@ export function InvitationPreview({ invitation }: any) {
               </button>
             )}
 
-            {/* --- CARTE D'INVITATION (INTERIEUR) --- */}
+            {/* --- ANIMATION D'OUVERTURE (VINYLE OU PELLICULE) --- */}
+            <motion.div 
+              initial={{ y: -450 }} 
+              animate={isOpened ? { y: invitation.opening_type === 'filmstrip' ? -35 : 25 } : { y: -450 }} 
+              transition={{ type: "spring", damping: 25 }} 
+              className="absolute top-0 z-20"
+            >
+              {invitation.opening_type === 'filmstrip' ? (
+                <div className="relative w-44 h-72 bg-[#1a1a1a] rounded-xl shadow-2xl rotate-[-2deg] overflow-hidden p-2 border-y-4 border-[#1a1a1a]">
+                  <div className="absolute inset-y-0 left-1.5 w-1.5 border-l-2 border-dashed border-white/20 z-10" />
+                  <div className="absolute inset-y-0 right-1.5 w-1.5 border-r-2 border-dashed border-white/20 z-10" />
+                  <motion.div animate={{ y: [0, -360] }} transition={{ duration: 12, repeat: Infinity, ease: "linear" }} className="flex flex-col gap-2">
+                    {[
+                      { url: invitation.main_photo_url, key: 'main_photo_url' },
+                      { url: invitation.photo_url_2, key: 'photo_url_2' },
+                      { url: invitation.photo_url_3, key: 'photo_url_3' },
+                      { url: invitation.main_photo_url, key: 'main_photo_url' },
+                      { url: invitation.photo_url_2, key: 'photo_url_2' },
+                      { url: invitation.photo_url_3, key: 'photo_url_3' }
+                    ].map((imgObj, idx) => (
+                      <div key={idx} className="w-full h-28 bg-[#222] rounded-sm overflow-hidden relative shrink-0">
+                        {imgObj.url ? (
+                          <img 
+                            src={imgObj.url} 
+                            className="w-full h-full object-cover grayscale-[0.2] contrast-125" 
+                            style={{ transform: `translate(${invitation[`${imgObj.key}_pos_x`] || 0}px, ${invitation[`${imgObj.key}_pos_y`] || 0}px) scale(${invitation[`${imgObj.key}_scale`] || 1})` }}
+                            alt="" 
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gray-800"><Film className="text-gray-600" size={20}/></div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none" />
+                      </div>
+                    ))}
+                  </motion.div>
+                </div>
+              ) : (
+                <div className={`w-[270px] h-[270px] relative ${isOpened ? 'animate-disk-spin' : ''}`}>
+                  <div className="absolute inset-0 rounded-full bg-[#111] overflow-hidden">
+                      <div className="absolute inset-0 opacity-30" style={{ background: 'repeating-radial-gradient(circle, #444 0, #000 2px, #111 4px)' }} />
+                  </div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-24 h-24 bg-white rounded-full border-[5px] border-[#111] overflow-hidden">
+                      {invitation.main_photo_url && (
+                        <img 
+                          src={invitation.main_photo_url} 
+                          className="w-full h-full object-cover" 
+                          style={{ transform: `translate(${invitation.main_photo_url_pos_x || 0}px, ${invitation.main_photo_url_pos_y || 0}px) scale(${invitation.main_photo_url_scale || 1})` }} 
+                        />
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+
+            {/* --- CARTE D'INVITATION (L'INTÉRIEUR) --- */}
             <motion.div 
               initial={{ scale: 0.8, y: 200 }} 
               animate={isOpened ? { scale: 1, y: 135 } : {}} 
@@ -120,7 +176,6 @@ export function InvitationPreview({ invitation }: any) {
             <AnimatePresence>
               {!isOpened && (
                 <motion.div className="absolute inset-0 z-50 overflow-hidden" style={{ perspective: '2000px' }}>
-                  {/* CONTENEUR DE SECOUSSE : Isolé pour éviter les bugs de sortie */}
                   <motion.div 
                     className="w-full h-full relative"
                     animate={invitation.opening_style === 'knock' ? {
