@@ -74,7 +74,9 @@ export function GuestView({ invitation }: any) {
   const addToCalendar = () => {
     const eventDate = new Date(invitation.event_date);
     const formatDate = (date: Date) => date.toISOString().replace(/-|:|\.\d\d\d/g, "");
-    const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(invitation.title)}&dates=${formatDate(eventDate)}/${formatDate(new Date(eventDate.getTime() + 2 * 60 * 60 * 1000))}&location=${encodeURIComponent(invitation.event_address)}&details=${encodeURIComponent(invitation.description || "")}`;
+    const startDate = formatDate(eventDate);
+    const endDate = formatDate(new Date(eventDate.getTime() + 2 * 60 * 60 * 1000));
+    const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(invitation.title)}&dates=${startDate}/${endDate}&location=${encodeURIComponent(invitation.event_address)}&details=${encodeURIComponent(invitation.description || "")}`;
     window.open(googleUrl, '_blank');
   };
 
@@ -127,28 +129,20 @@ export function GuestView({ invitation }: any) {
       {invitation?.music_url && <audio ref={audioRef} src={invitation.music_url} loop />}
       {isOpened && <EmojiRain />}
       
-      <style>{`
-        @keyframes shimmer { 0% { background-position: -200% center; } 100% { background-position: 200% center; } }
-        .gold-shimmer {
-          background: linear-gradient(90deg, #b8860b 0%, #fcd34d 50%, #b8860b 100%);
-          background-size: 200% auto;
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          animation: shimmer 4s infinite linear;
-          font-weight: 900;
-        }
-        .animate-disk-spin { animation: spin 3s linear infinite; }
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-      `}</style>
+      <AnimatePresence mode="wait">
+        {view === 'envelope' ? (
+          <motion.div key="env" className="relative w-full h-full flex items-center justify-center">
+            {isOpened && invitation?.music_url && (
+              <button onClick={toggleMute} className="absolute top-6 right-6 z-[70] w-10 h-10 bg-white/80 rounded-full flex items-center justify-center shadow-lg">
+                {isMuted ? <VolumeX size={18}/> : <Volume2 size={18} className="animate-pulse"/>}
+              </button>
+            )}
 
-      <div className="relative w-full h-full flex items-center justify-center" style={{ opacity: view === 'envelope' ? 1 : 0, pointerEvents: view === 'envelope' ? 'auto' : 'none' }}>
-        <div className="relative w-full max-w-[400px] h-full grid place-items-center">
-            
-            {/* --- ANIMATION D'OUVERTURE (VINYLE OU PELLICULE COLLÉE AU FAIRE-PART) --- */}
+            {/* --- ANIMATION D'OUVERTURE (VINYLE OU PELLICULE) --- */}
             <motion.div 
               initial={{ y: -450 }} 
-              animate={isOpened ? { y: invitation.opening_type === 'filmstrip' ? 10 : -100 } : { y: -450 }} 
-              transition={{ type: "spring", damping: 25, stiffness: 45 }} 
+              animate={isOpened ? { y: invitation.opening_type === 'filmstrip' ? -35 : 25 } : { y: -450 }} 
+              transition={{ type: "spring", damping: 25 }} 
               className="absolute top-0 z-20"
             >
               {invitation.opening_type === 'filmstrip' ? (
@@ -200,10 +194,10 @@ export function GuestView({ invitation }: any) {
               )}
             </motion.div>
 
-            {/* --- CARTE D'INVITATION (POSITIONNÉE POUR COLLER À LA PELLICULE) --- */}
+            {/* --- CARTE D'INVITATION --- */}
             <motion.div 
               initial={{ scale: 0.8, y: 200 }} 
-              animate={isOpened ? { scale: 1, y: 150 } : {}} 
+              animate={isOpened ? { scale: 1, y: 135 } : {}} 
               transition={{ type: "spring", damping: 20, delay: 0.4 }} 
               onClick={() => isOpened && setView('content')} 
               className={`z-30 w-[310px] h-[370px] rounded-[3rem] shadow-xl p-10 flex flex-col items-center justify-between border border-gray-100 cursor-pointer ${getPaperClass()}`}
@@ -220,6 +214,7 @@ export function GuestView({ invitation }: any) {
               </div>
             </motion.div>
 
+            {/* --- SYSTEME D'OUVERTURE --- */}
             <div className="absolute inset-0 z-50 overflow-hidden" style={{ perspective: '2000px', pointerEvents: isOpened ? 'none' : 'auto' }}>
               <AnimatePresence>
                 {!isOpened && (
@@ -284,7 +279,7 @@ export function GuestView({ invitation }: any) {
                         )}
                       </motion.div>
                       <p className="absolute bottom-12 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">
-                        {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? "Tap to open invitation" : "Nhấn de mở lời mời"}
+                        {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? "Tap to open invitation" : "Nhấn để mở lời mời"}
                       </p>
                     </motion.div>
 
@@ -317,6 +312,7 @@ export function GuestView({ invitation }: any) {
             </div>
           </motion.div>
         ) : (
+          /* --- CONTENU --- */
           <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`w-full h-full z-[100] flex flex-col overflow-y-auto ${getPaperClass()}`}>
             <div className="h-[30%] relative overflow-hidden shrink-0">
                <img 
