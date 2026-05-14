@@ -270,7 +270,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
               </div>
               <span className="text-[10px] font-black uppercase text-amber-800 flex items-center gap-2"><Move size={12}/> {t.adjust_label}</span>
               <div 
-                className="w-full h-[300px] bg-gray-200 overflow-hidden relative border-2 border-white shadow-sm cursor-move touch-none"
+                className="w-full h-[300px] bg-gray-200 overflow-hidden relative border-2 border-white shadow-sm cursor-move touch-none flex items-center justify-center"
                 onMouseDown={(e) => { dragRef.current = { x: e.clientX, y: e.clientY, isDragging: true, lastDist: 0 }; }}
                 onTouchStart={(e) => { 
                     if (e.touches.length === 2) {
