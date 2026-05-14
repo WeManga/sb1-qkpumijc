@@ -17,6 +17,7 @@ export function InvitationPreview({ invitation }: any) {
   const [isOpened, setIsOpened] = useState(false);
   const [view, setView] = useState<'envelope' | 'content'>('envelope');
   const [isMuted, setIsMuted] = useState(false);
+  const [vaultCode, setVaultCode] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const lang = (invitation.language as Language) || (localStorage.getItem('invite_lang') as Language) || 'fr';
@@ -40,6 +41,16 @@ export function InvitationPreview({ invitation }: any) {
       audioRef.current.play().catch(() => {});
     }
   }, [isOpened, invitation?.music_url]);
+
+  // Animation des chiffres du coffre
+  useEffect(() => {
+    if (!isOpened && invitation.opening_style === 'vault') {
+      const interval = setInterval(() => {
+        setVaultCode(Math.floor(Math.random() * 99));
+      }, 150);
+      return () => clearInterval(interval);
+    }
+  }, [isOpened, invitation.opening_style]);
 
   const toggleMute = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -69,6 +80,8 @@ export function InvitationPreview({ invitation }: any) {
       </div>
     );
   };
+
+  const isDoorType = invitation.opening_style === 'key' || invitation.opening_style === 'vault';
 
   return (
     <div className="relative w-full h-full max-h-[650px] flex items-center justify-center overflow-hidden bg-white rounded-[3.5rem] shadow-2xl border-[12px] border-gray-50/50" style={{ fontFamily: invitation.font_style || 'inherit' }}>
@@ -160,79 +173,87 @@ export function InvitationPreview({ invitation }: any) {
               </div>
             </motion.div>
 
-            {/* --- ENVELOPPE OU PORTE INTERACTIVE --- */}
+            {/* --- ENVELOPPE OU PORTE --- */}
             <AnimatePresence>
               {!isOpened && (
                 <div className="absolute inset-0 z-50 overflow-hidden" style={{ perspective: '2000px' }}>
-                  {/* Battant Gauche */}
-                  <motion.div 
-                    exit={{ rotateY: -110, originX: 0, x: -20, opacity: 0 }} 
-                    transition={{ duration: 1.2, ease: [0.45, 0.05, 0.55, 0.95] }}
-                    className="absolute inset-y-0 left-0 w-1/2 z-50 border-r border-white/10"
-                    style={{ background: invitation?.envelope_color || '#FEE2E2' }}
-                  />
-                  {/* Battant Droit */}
-                  <motion.div 
-                    exit={{ rotateY: 110, originX: 1, x: 20, opacity: 0 }} 
-                    transition={{ duration: 1.2, ease: [0.45, 0.05, 0.55, 0.95] }}
-                    className="absolute inset-y-0 right-0 w-1/2 z-50 border-l border-white/10"
-                    style={{ background: invitation?.envelope_color || '#FEE2E2' }}
-                  />
+                  {/* EFFET PORTE (UNIQUEMENT CLÉ ET COFFRE) */}
+                  {isDoorType ? (
+                    <>
+                      <motion.div 
+                        exit={{ rotateY: -110, originX: 0, opacity: 0 }} 
+                        transition={{ duration: 1.2, ease: "easeInOut" }}
+                        className="absolute inset-y-0 left-0 w-1/2 z-50 border-r border-white/10 shadow-2xl"
+                        style={{ background: invitation?.envelope_color || '#FEE2E2' }}
+                      />
+                      <motion.div 
+                        exit={{ rotateY: 110, originX: 1, opacity: 0 }} 
+                        transition={{ duration: 1.2, ease: "easeInOut" }}
+                        className="absolute inset-y-0 right-0 w-1/2 z-50 border-l border-white/10 shadow-2xl"
+                        style={{ background: invitation?.envelope_color || '#FEE2E2' }}
+                      />
+                    </>
+                  ) : (
+                    /* EFFET VOLET CLASSIQUE */
+                    <motion.div 
+                      exit={{ y: "-100%" }} 
+                      transition={{ duration: 0.8, ease: "easeInOut" }}
+                      className="absolute inset-0 z-50 shadow-2xl"
+                      style={{ background: invitation?.envelope_color || '#FEE2E2' }}
+                    />
+                  )}
 
-                  {/* Contenu Interactif (Clé, Main, Coffre) */}
+                  {/* CONTENU INTERACTIF */}
                   <motion.div 
                     exit={{ opacity: 0, scale: 0.8 }} 
                     className="absolute inset-0 z-[60] flex flex-col items-center justify-center cursor-pointer"
                     onClick={() => setIsOpened(true)}
                   >
                     {invitation.opening_style === 'knock' ? (
-                      /* MAIN QUI TOQUE */
                       <div className="flex flex-col items-center">
                         <motion.div
                           animate={{ rotateX: [0, -40, 0, -40, 0], z: [0, 80, 0, 80, 0], scale: [1, 1.15, 1, 1.15, 1] }}
                           transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 1.2 }}
                           style={{ originY: "100%" }}
-                          className="text-[140px] drop-shadow-2xl"
+                          className="text-[140px]"
                         >✊</motion.div>
                         <p className="mt-8 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">{t.tap_open}</p>
                       </div>
                     ) : invitation.opening_style === 'key' ? (
-                      /* ANCIENNE SERRURE ET CLÉ */
-                      <div className="flex flex-col items-center relative">
-                        <div className="w-32 h-48 bg-[#2a2a2a] rounded-t-full rounded-b-xl border-4 border-[#1a1a1a] shadow-2xl flex flex-col items-center pt-8 relative overflow-hidden">
-                           <div className="w-4 h-16 bg-black rounded-full shadow-inner" />
-                           <div className="w-10 h-10 bg-black rounded-full -mt-2 shadow-inner" />
-                           <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+                      <div className="flex flex-col items-center">
+                        <div className="w-32 h-48 bg-[#2a2a2a] rounded-t-full border-4 border-[#1a1a1a] shadow-2xl flex flex-col items-center pt-8 relative">
+                           <div className="w-3 h-14 bg-black rounded-full shadow-inner mb-1" />
+                           <div className="w-8 h-8 bg-black rounded-full shadow-inner" />
                         </div>
                         <motion.div
-                          initial={{ x: -150, opacity: 0, rotate: -45 }}
+                          initial={{ x: -160, opacity: 0 }}
                           animate={{ x: 0, opacity: 1, rotate: [0, 0, 90, 0] }}
                           transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 1 }}
-                          className="absolute text-8xl drop-shadow-2xl z-10 top-12"
-                        >🔑</motion.div>
+                          className="absolute text-8xl top-10"
+                        >🗝️</motion.div> {/* Glyphe Antique */}
                         <p className="mt-12 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">{t.tap_open}</p>
                       </div>
                     ) : invitation.opening_style === 'vault' ? (
-                      /* COFFRE FORT RÉALISTE */
                       <div className="flex flex-col items-center">
-                        <div className="relative w-64 h-64 flex items-center justify-center">
-                           <div className="absolute inset-0 bg-[#333] rounded-full border-8 border-[#444] shadow-2xl" />
+                        <div className="relative w-64 h-64 flex flex-col items-center justify-center bg-[#333] rounded-full border-8 border-[#444] shadow-2xl">
+                           {/* Afficheur Digital */}
+                           <div className="absolute top-10 bg-black/80 px-3 py-1 rounded border border-green-500/30">
+                              <span className="text-green-500 font-mono text-xl tracking-widest">
+                                {vaultCode < 10 ? `0${vaultCode}` : vaultCode}:88
+                              </span>
+                           </div>
+                           {/* Roue */}
                            <motion.div
-                             animate={{ rotate: [0, 90, -120, 180, 0] }}
-                             transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                             className="w-48 h-48 rounded-full border-8 border-dashed border-white/20 flex items-center justify-center bg-[#2a2a2a] shadow-inner relative z-10"
+                             animate={{ rotate: [0, 180, -90, 270, 0] }}
+                             transition={{ duration: 4, repeat: Infinity }}
+                             className="w-40 h-44 rounded-full border-4 border-dashed border-white/30 flex items-center justify-center bg-gradient-to-tr from-[#222] to-[#444]"
                            >
-                              <div className="w-12 h-12 bg-red-600 rounded-full border-4 border-white/30 shadow-lg" />
-                              {[...Array(8)].map((_, i) => (
-                                <div key={i} className="absolute w-2 h-8 bg-white/40 rounded-full" style={{ transform: `rotate(${i * 45}deg) translateY(-80px)` }} />
-                              ))}
+                              <div className="w-10 h-10 bg-red-600 rounded-full border-2 border-white/50" />
                            </motion.div>
-                           <div className="absolute -right-8 w-12 h-40 bg-gradient-to-b from-[#444] to-[#222] rounded-full shadow-xl border-4 border-[#555]" />
                         </div>
-                        <p className="mt-12 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">{t.tap_open}</p>
+                        <p className="mt-8 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">{t.tap_open}</p>
                       </div>
                     ) : (
-                      /* VOLET CLASSIQUE */
                       <div className="flex flex-col items-center">
                         <div className="w-[32rem] h-[32rem] flex items-center justify-center p-0 overflow-visible">
                           <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-full h-full object-contain" alt="Sceau" />
@@ -267,7 +288,7 @@ export function InvitationPreview({ invitation }: any) {
                   <div className="w-12 h-[1px] bg-amber-200 mx-auto mt-6" />
                 </div>
               )}
-              {/* Le reste du code (programme, etc.) demeure inchangé */}
+              {/* Le reste du programme et photo finale... */}
             </div>
           </motion.div>
         )}
