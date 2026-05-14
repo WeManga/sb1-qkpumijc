@@ -211,22 +211,23 @@ export function InvitationPreview({ invitation }: any) {
                     onClick={() => setIsOpened(true)}
                   >
                     {invitation.opening_style === 'knock' ? (
+                      /* MAIN RÉDUITE ET BEIGE[cite: 1] */
                       <div className="flex flex-col items-center">
                         <motion.div
                           animate={{ rotateX: [0, -40, 0, -40, 0], z: [0, 80, 0, 80, 0], scale: [1, 1.15, 1, 1.15, 1] }}
                           transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 1.2 }}
-                          style={{ originY: "100%" }}
-                          className="text-[140px]"
+                          style={{ 
+                            originY: "100%",
+                            filter: "sepia(0.3) saturate(1.2) hue-rotate(-10deg) brightness(1.1)" // Teinte beige[cite: 1]
+                          }}
+                          className="text-[100px] select-none"
                         >✊</motion.div>
                       </div>
                     ) : invitation.opening_style === 'key' ? (
                       <div className="flex flex-col items-center relative">
                         <div className="flex flex-col items-center justify-center relative">
-                           {/* Serrure agrandie */}
                            <div className="w-2.5 h-10 bg-black/80 rounded-full shadow-sm" />
                            <div className="w-6 h-6 bg-black/80 rounded-full -mt-1.5 shadow-sm" />
-                           
-                           {/* Clé Ancienne */}
                            <motion.div
                              animate={{ rotate: [0, 30, 0, 30, 0] }}
                              transition={{ duration: 2.2, repeat: Infinity, repeatDelay: 0.5 }}
@@ -236,24 +237,25 @@ export function InvitationPreview({ invitation }: any) {
                         </div>
                       </div>
                     ) : invitation.opening_style === 'vault' ? (
+                      /* COFFRE RÉDUIT[cite: 1] */
                       <div className="flex flex-col items-center">
-                        <div className="relative w-72 h-72 flex flex-col items-center justify-center">
-                           <div className="absolute inset-0 bg-gradient-to-br from-gray-400 via-gray-100 to-gray-500 rounded-full border-[12px] border-amber-400/80 shadow-[0_30px_60px_rgba(0,0,0,0.5),inset_0_2px_10px_white]" />
-                           <div className="absolute top-10 bg-black/90 px-5 py-1.5 rounded-lg border-2 border-amber-500/50 z-20">
-                              <span className="text-amber-500 font-mono text-2xl tracking-[0.4em]">
+                        <div className="relative w-60 h-60 flex flex-col items-center justify-center">
+                           <div className="absolute inset-0 bg-gradient-to-br from-gray-400 via-gray-100 to-gray-500 rounded-full border-[10px] border-amber-400/80 shadow-2xl" />
+                           <div className="absolute top-8 bg-black/90 px-4 py-1 rounded-lg border-2 border-amber-500/50 z-20">
+                              <span className="text-amber-500 font-mono text-xl tracking-[0.4em]">
                                 {vaultCode < 10 ? `0${vaultCode}` : vaultCode}
                               </span>
                            </div>
                            <motion.div
                              animate={{ rotate: [0, 160, -80, 290, 0] }}
                              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                             className="w-48 h-48 rounded-full border-[6px] border-gray-600 bg-gradient-to-tr from-[#222] to-[#111] flex items-center justify-center relative z-10"
+                             className="w-40 h-40 rounded-full border-[6px] border-gray-600 bg-gradient-to-tr from-[#222] via-[#444] to-[#111] flex items-center justify-center relative z-10"
                            >
                               {[...Array(12)].map((_, i) => (
-                                <div key={i} className="absolute w-1 h-3 bg-amber-400/60" style={{ transform: `rotate(${i * 30}deg) translateY(-78px)` }} />
+                                <div key={i} className="absolute w-1 h-2.5 bg-amber-400/60" style={{ transform: `rotate(${i * 30}deg) translateY(-68px)` }} />
                               ))}
-                              <div className="w-16 h-16 rounded-full bg-gradient-to-b from-gray-200 to-gray-500 border-4 border-amber-500/50 flex items-center justify-center">
-                                 <div className="w-1.5 h-12 bg-red-600 rounded-full -translate-y-2" />
+                              <div className="w-14 h-14 rounded-full bg-gradient-to-b from-gray-200 to-gray-500 border-4 border-amber-500/50 flex items-center justify-center">
+                                 <div className="w-1.5 h-10 bg-red-600 rounded-full -translate-y-2" />
                               </div>
                            </motion.div>
                         </div>
@@ -266,7 +268,7 @@ export function InvitationPreview({ invitation }: any) {
                       </div>
                     )}
 
-                    {/* MESSAGE UNIFIÉ EN BAS DE L'ÉCRAN POUR TOUS[cite: 1] */}
+                    {/* MESSAGE UNIFIÉ EN BAS[cite: 1] */}
                     <p className="absolute bottom-12 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse text-center w-full px-4">
                       {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? "Tap to open invitation" : "Nhấn để mở lời mời"}
                     </p>
@@ -296,7 +298,6 @@ export function InvitationPreview({ invitation }: any) {
                   <div className="w-12 h-[1px] bg-amber-200 mx-auto mt-6" />
                 </div>
               )}
-              {/* Le reste du programme et photo finale... */}
             </div>
           </motion.div>
         )}
