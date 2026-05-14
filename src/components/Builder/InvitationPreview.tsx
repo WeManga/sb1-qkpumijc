@@ -96,6 +96,7 @@ export function InvitationPreview({ invitation }: any) {
               </button>
             )}
 
+            {/* --- ANIMATION D'OUVERTURE (VINYLE OU PELLICULE) --- */}
             <motion.div 
               initial={{ y: -450 }} 
               animate={isOpened ? { y: invitation.opening_type === 'filmstrip' ? -35 : 25 } : { y: -450 }} 
@@ -217,65 +218,58 @@ export function InvitationPreview({ invitation }: any) {
                           style={{ originY: "100%" }}
                           className="text-[140px]"
                         >✊</motion.div>
-                        <p className="mt-8 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">{t.tap_open}</p>
                       </div>
                     ) : invitation.opening_style === 'key' ? (
                       <div className="flex flex-col items-center relative">
-                        {/* Serrure plus petite sans fond carré */}
                         <div className="flex flex-col items-center justify-center relative">
-                           <div className="w-1.5 h-7 bg-black/80 rounded-full shadow-sm" />
-                           <div className="w-4 h-4 bg-black/80 rounded-full -mt-1 shadow-sm" />
+                           {/* Serrure agrandie */}
+                           <div className="w-2.5 h-10 bg-black/80 rounded-full shadow-sm" />
+                           <div className="w-6 h-6 bg-black/80 rounded-full -mt-1.5 shadow-sm" />
                            
-                           {/* Clé Ancienne Grossie */}
+                           {/* Clé Ancienne */}
                            <motion.div
                              animate={{ rotate: [0, 30, 0, 30, 0] }}
                              transition={{ duration: 2.2, repeat: Infinity, repeatDelay: 0.5 }}
-                             className="absolute text-[100px] z-10"
-                             style={{ top: '-15%', transformOrigin: "center 65%" }}
+                             className="absolute text-[110px] z-10"
+                             style={{ top: '-25%', transformOrigin: "center 65%" }}
                            >🗝️</motion.div>
                         </div>
-                        <p className="mt-20 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">{t.tap_open}</p>
                       </div>
                     ) : invitation.opening_style === 'vault' ? (
                       <div className="flex flex-col items-center">
                         <div className="relative w-72 h-72 flex flex-col items-center justify-center">
-                           {/* Design Enjolivé : Anneau de luxe */}
                            <div className="absolute inset-0 bg-gradient-to-br from-gray-400 via-gray-100 to-gray-500 rounded-full border-[12px] border-amber-400/80 shadow-[0_30px_60px_rgba(0,0,0,0.5),inset_0_2px_10px_white]" />
-                           
-                           {/* Fenêtre de Code Stylisée */}
-                           <div className="absolute top-10 bg-black/90 px-5 py-1.5 rounded-lg border-2 border-amber-500/50 shadow-[0_0_15px_rgba(245,158,11,0.3)] z-20">
-                              <span className="text-amber-500 font-mono text-2xl tracking-[0.4em] drop-shadow-[0_0_8px_rgba(245,158,11,0.8)]">
+                           <div className="absolute top-10 bg-black/90 px-5 py-1.5 rounded-lg border-2 border-amber-500/50 z-20">
+                              <span className="text-amber-500 font-mono text-2xl tracking-[0.4em]">
                                 {vaultCode < 10 ? `0${vaultCode}` : vaultCode}
                               </span>
                            </div>
-
-                           {/* Cadran Central tournant */}
                            <motion.div
                              animate={{ rotate: [0, 160, -80, 290, 0] }}
                              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                             className="w-48 h-48 rounded-full border-[6px] border-gray-600 bg-gradient-to-tr from-[#222] via-[#444] to-[#111] shadow-[inset_0_5px_20px_black,0_10px_20px_rgba(0,0,0,0.4)] flex items-center justify-center relative z-10"
+                             className="w-48 h-48 rounded-full border-[6px] border-gray-600 bg-gradient-to-tr from-[#222] to-[#111] flex items-center justify-center relative z-10"
                            >
-                              {/* Graduation dorée */}
                               {[...Array(12)].map((_, i) => (
                                 <div key={i} className="absolute w-1 h-3 bg-amber-400/60" style={{ transform: `rotate(${i * 30}deg) translateY(-78px)` }} />
                               ))}
-                              
-                              {/* Volant central de luxe */}
-                              <div className="w-16 h-16 rounded-full bg-gradient-to-b from-gray-200 to-gray-500 border-4 border-amber-500/50 shadow-xl flex items-center justify-center">
-                                 <div className="w-1.5 h-12 bg-red-600 rounded-full -translate-y-2 shadow-[0_0_10px_red]" />
+                              <div className="w-16 h-16 rounded-full bg-gradient-to-b from-gray-200 to-gray-500 border-4 border-amber-500/50 flex items-center justify-center">
+                                 <div className="w-1.5 h-12 bg-red-600 rounded-full -translate-y-2" />
                               </div>
                            </motion.div>
                         </div>
-                        <p className="mt-10 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">{t.tap_open}</p>
                       </div>
                     ) : (
                       <div className="flex flex-col items-center">
                         <div className="w-[32rem] h-[32rem] flex items-center justify-center p-0 overflow-visible">
                           <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-full h-full object-contain" alt="Sceau" />
                         </div>
-                        <p className="mt-8 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">{t.tap_open}</p>
                       </div>
                     )}
+
+                    {/* MESSAGE UNIFIÉ EN BAS DE L'ÉCRAN POUR TOUS[cite: 1] */}
+                    <p className="absolute bottom-12 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse text-center w-full px-4">
+                      {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? "Tap to open invitation" : "Nhấn để mở lời mời"}
+                    </p>
                   </motion.div>
                 </div>
               )}
