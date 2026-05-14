@@ -112,13 +112,11 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       if (error) throw error;
       const { data } = supabase.storage.from('invitations').getPublicUrl(fileName);
       
-      // Objet de mise à jour propre
       const updates: any = { 
         ...invitation, 
         [field]: data.publicUrl 
       };
 
-      // CORRECTION : On ne réinitialise la position que pour les images, pas pour music_url
       if (field === 'main_photo_url' || field === 'end_photo_url') {
         updates[`${field}_pos_x`] = 0;
         updates[`${field}_pos_y`] = 0;
@@ -292,7 +290,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 <img 
                   src={invitation[selectedPhotoKey]} 
                   style={{ transform: `translate(${invitation[`${selectedPhotoKey}_pos_x`] || 0}px, ${invitation[`${selectedPhotoKey}_pos_y`] || 0}px) scale(${invitation[`${selectedPhotoKey}_scale`] || 1})`, pointerEvents: 'none' }} 
-                  className="w-full h-full object-cover origin-center"
+                  className="w-full h-full object-contain origin-center"
                 />
               </div>
             </div>
