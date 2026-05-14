@@ -222,13 +222,9 @@ export function GuestView({ invitation }: any) {
                     exit={{ opacity: 1 }}
                     className="w-full h-full relative"
                   >
-                    {/* VISUEL INTERACTIF - DISPARAIT IMMEDIATEMENT */}
-                    <AnimatePresence>
-                      {!isOpened && (
-                        <motion.div 
-                          key="visual-trigger"
-                          exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.1 } }}
-                          className="absolute inset-0 z-[70] flex flex-col items-center justify-center cursor-pointer"
+                    {/* VISUEL INTERACTIF - SUPPRESSION DU DOM IMMEDIATE AU CLIC */}
+                    {!isOpened && (
+                        <div className="absolute inset-0 z-[70] flex flex-col items-center justify-center cursor-pointer"
                           onClick={() => { setIsOpened(true); audioRef.current?.play().catch(()=>{}); }}
                         >
                           <div className="relative">
@@ -269,11 +265,10 @@ export function GuestView({ invitation }: any) {
                           <p className="absolute bottom-12 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse text-center w-full px-4">
                             {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? "Tap to open invitation" : "Nhấn để mở lời mời"}
                           </p>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                        </div>
+                    )}
 
-                    {/* ENVELOPPE / PORTES */}
+                    {/* ENVELOPPE / PORTES - ANIMATION DE SORTIE CLASSIQUE */}
                     {isDoorType ? (
                       <>
                         <motion.div exit={{ rotateY: -110, originX: 0, opacity: 0 }} transition={{ duration: 1.2, ease: "easeInOut", delay: 0.1 }}
@@ -330,6 +325,7 @@ export function GuestView({ invitation }: any) {
                 </div>
               )}
 
+              {/* --- PROGRAMME --- */}
               <div className="space-y-12">
                 <h3 className="text-center font-black uppercase tracking-[0.6em] text-amber-600 text-[10px] opacity-80 flex items-center justify-center gap-2"> —— <Sparkles size={12}/> {tBuilder.program_title} <Sparkles size={12}/> —— </h3>
                 <div className="relative flex flex-col items-center">
@@ -357,6 +353,7 @@ export function GuestView({ invitation }: any) {
                 </div>
               </div>
 
+              {/* --- PHOTO DE FIN --- */}
               {invitation.plan_type === 'PREMIUM' && invitation.end_photo_url && (
                 <div className="px-2">
                   <div className="rounded-[3rem] overflow-hidden shadow-2xl border-4 border-white rotate-1">
