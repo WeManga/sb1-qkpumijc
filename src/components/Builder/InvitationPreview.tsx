@@ -171,28 +171,25 @@ export function InvitationPreview({ invitation }: any) {
                     exit={{ opacity: 1 }} 
                     className="w-full h-full relative"
                   >
-                    <AnimatePresence>
-                      {!isOpened && (
-                        <motion.div 
-                          key="trigger-wrapper"
-                          initial={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          transition={{ duration: 0.2 }}
-                          className="absolute inset-0 z-[70] flex flex-col items-center justify-center cursor-pointer" 
-                          onClick={() => { setIsOpened(true); audioRef.current?.play().catch(()=>{}); }}
-                        >
-                          <div className="relative">
-                            {invitation.opening_style === 'knock' ? (
-                              <motion.div animate={{ rotateX: [0, -40, 0, -40, 0], z: [0, 80, 0, 80, 0], scale: [1, 1.15, 1, 1.15, 1] }} transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 1.2 }}
-                                style={{ originY : "100%", filter : "sepia(0.5) saturate(0.8) brightness(1.2)" }} className="text-[100px] select-none">✊</motion.div>
-                            ) : invitation.opening_style === 'key' ? (
-                                <div className="flex flex-col items-center relative">
-                                  <div className="w-2.5 h-10 bg-black/80 rounded-full shadow-sm" />
-                                  <div className="w-6 h-6 bg-black/80 rounded-full -mt-1.5 shadow-sm" />
-                                  <motion.div animate={{ rotate: [0, 30, 0, 30, 0] }} transition={{ duration: 2.2, repeat: Infinity, repeatDelay: 0.5 }} className="absolute text-[110px] z-10" style={{ top: '-25%', transformOrigin: "center 65%" }}>🗝️</motion.div>
-                                </div>
-                            ) : invitation.opening_style === 'vault' ? (
-                              <div className="relative w-60 h-60 flex flex-col items-center justify-center">
+                    <motion.div 
+                      key="visual-trigger"
+                      animate={{ opacity: isOpened ? 0 : 1 }}
+                      transition={{ duration: 0 }}
+                      className="absolute inset-0 z-[70] flex flex-col items-center justify-center cursor-pointer" 
+                      onClick={() => { setIsOpened(true); audioRef.current?.play().catch(()=>{}); }}
+                    >
+                      <div className="relative">
+                        {invitation.opening_style === 'knock' ? (
+                          <motion.div animate={{ rotateX: [0, -40, 0, -40, 0], z: [0, 80, 0, 80, 0], scale: [1, 1.15, 1, 1.15, 1] }} transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 1.2 }}
+                            style={{ originY : "100%", filter : "sepia(0.5) saturate(0.8) brightness(1.2)" }} className="text-[100px] select-none">✊</motion.div>
+                        ) : invitation.opening_style === 'key' ? (
+                            <div className="flex flex-col items-center relative">
+                              <div className="w-2.5 h-10 bg-black/80 rounded-full shadow-sm" />
+                              <div className="w-6 h-6 bg-black/80 rounded-full -mt-1.5 shadow-sm" />
+                              <motion.div animate={{ rotate: [0, 30, 0, 30, 0] }} transition={{ duration: 2.2, repeat: Infinity, repeatDelay: 0.5 }} className="absolute text-[110px] z-10" style={{ top: '-25%', transformOrigin: "center 65%" }}>🗝️</motion.div>
+                            </div>
+                        ) : invitation.opening_style === 'vault' ? (
+                          <div className="relative w-60 h-60 flex flex-col items-center justify-center">
                                  <div className="absolute inset-0 bg-gradient-to-br from-gray-400 via-gray-100 to-gray-500 rounded-full border-[10px] border-amber-400/80 shadow-2xl" />
                                  <div className="absolute top-8 bg-black/90 px-4 py-1 rounded-lg border-2 border-amber-500/50 z-20">
                                     <span className="text-amber-500 font-mono text-xl tracking-[0.4em]">{vaultCode < 10 ? `0${vaultCode}` : vaultCode}</span>
@@ -203,17 +200,15 @@ export function InvitationPreview({ invitation }: any) {
                                        <div className="w-1.5 h-10 bg-red-600 rounded-full -translate-y-2" />
                                     </div>
                                  </motion.div>
-                              </div>
-                            ) : (
-                              <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-[32rem] h-[32rem] object-contain" alt="Sceau" />
-                            )}
                           </div>
-                          <p className="absolute bottom-12 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse text-center w-full px-4">
-                            {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? "Tap to open invitation" : "Nhấn để mở lời mời"}
-                          </p>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                        ) : (
+                          <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-[32rem] h-[32rem] object-contain" alt="Sceau" />
+                        )}
+                      </div>
+                      <p className="absolute bottom-12 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse text-center w-full px-4">
+                        {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? "Tap to open invitation" : "Nhấn để mở lời mời"}
+                      </p>
+                    </motion.div>
                     {isDoorType ? (
                       <>
                         <motion.div exit={{ rotateY: -110, originX: 0, opacity: 0 }} transition={{ duration: 1.2, ease: "easeInOut", delay: 0.1 }} className="absolute inset-y-0 left-0 w-1/2 z-50 border-r border-white/10 shadow-2xl" style={{ background: invitation?.envelope_color || '#FEE2E2' }} />
