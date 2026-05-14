@@ -192,11 +192,13 @@ export function InvitationPreview({ invitation }: any) {
                     </>
                   ) : (
                     <motion.div 
+                      key="main-volet"
                       exit={{ y: "-100%" }} 
-                      animate={invitation.opening_style === 'knock' ? {
+                      /* Correction du bug : on n'anime le tremblement que si isOpened est faux[cite: 1] */
+                      animate={(!isOpened && invitation.opening_style === 'knock') ? {
                         x: [0, -1, 2, -2, 1, 0, 0, -1, 2, -2, 1, 0, 0], 
                         y: [0, 1, -1, 1, -1, 0, 0, 1, -1, 1, -1, 0, 0]
-                      } : {}}
+                      } : { x: 0, y: 0 }}
                       transition={invitation.opening_style === 'knock' ? {
                         duration: 0.6, repeat: Infinity, repeatDelay: 1.2
                       } : { duration: 0.8, ease: "easeInOut" }}
@@ -211,14 +213,13 @@ export function InvitationPreview({ invitation }: any) {
                     onClick={() => setIsOpened(true)}
                   >
                     {invitation.opening_style === 'knock' ? (
-                      /* MAIN RÉDUITE ET BEIGE[cite: 1] */
                       <div className="flex flex-col items-center">
                         <motion.div
                           animate={{ rotateX: [0, -40, 0, -40, 0], z: [0, 80, 0, 80, 0], scale: [1, 1.15, 1, 1.15, 1] }}
                           transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 1.2 }}
                           style={{ 
                             originY: "100%",
-                            filter: "sepia(0.3) saturate(1.2) hue-rotate(-10deg) brightness(1.1)" // Teinte beige[cite: 1]
+                            filter: "sepia(0.3) saturate(1.2) hue-rotate(-10deg) brightness(1.1)" 
                           }}
                           className="text-[100px] select-none"
                         >✊</motion.div>
@@ -237,7 +238,6 @@ export function InvitationPreview({ invitation }: any) {
                         </div>
                       </div>
                     ) : invitation.opening_style === 'vault' ? (
-                      /* COFFRE RÉDUIT[cite: 1] */
                       <div className="flex flex-col items-center">
                         <div className="relative w-60 h-60 flex flex-col items-center justify-center">
                            <div className="absolute inset-0 bg-gradient-to-br from-gray-400 via-gray-100 to-gray-500 rounded-full border-[10px] border-amber-400/80 shadow-2xl" />
@@ -268,7 +268,6 @@ export function InvitationPreview({ invitation }: any) {
                       </div>
                     )}
 
-                    {/* MESSAGE UNIFIÉ EN BAS[cite: 1] */}
                     <p className="absolute bottom-12 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse text-center w-full px-4">
                       {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? "Tap to open invitation" : "Nhấn để mở lời mời"}
                     </p>
