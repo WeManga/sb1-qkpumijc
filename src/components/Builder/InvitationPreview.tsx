@@ -270,7 +270,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
               </div>
               <span className="text-[10px] font-black uppercase text-amber-800 flex items-center gap-2"><Move size={12}/> {t.adjust_label}</span>
               <div 
-                className="w-full bg-gray-200 overflow-hidden relative border-2 border-white shadow-sm cursor-move touch-none flex items-center justify-center min-h-[200px]"
+                className="w-full h-[300px] bg-gray-200 overflow-hidden relative border-2 border-white shadow-sm cursor-move touch-none"
                 onMouseDown={(e) => { dragRef.current = { x: e.clientX, y: e.clientY, isDragging: true, lastDist: 0 }; }}
                 onTouchStart={(e) => { 
                     if (e.touches.length === 2) {
@@ -289,12 +289,8 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
               >
                 <img 
                   src={invitation[selectedPhotoKey]} 
-                  style={{ 
-                    transform: `translate(${invitation[`${selectedPhotoKey}_pos_x`] || 0}px, ${invitation[`${selectedPhotoKey}_pos_y`] || 0}px) scale(${invitation[`${selectedPhotoKey}_scale`] || 1})`, 
-                    pointerEvents: 'none',
-                    maxHeight: '400px'
-                  }} 
-                  className="w-auto h-auto max-w-full block origin-center"
+                  style={{ transform: `translate(${invitation[`${selectedPhotoKey}_pos_x`] || 0}px, ${invitation[`${selectedPhotoKey}_pos_y`] || 0}px) scale(${invitation[`${selectedPhotoKey}_scale`] || 1})`, pointerEvents: 'none' }} 
+                  className="w-full h-full object-cover origin-center"
                 />
               </div>
             </div>
