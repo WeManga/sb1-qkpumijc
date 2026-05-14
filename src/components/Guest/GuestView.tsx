@@ -136,9 +136,10 @@ export function GuestView({ invitation }: any) {
               </button>
             )}
 
+            {/* --- ANIMATION D'OUVERTURE (VINYLE OU PELLICULE RAPPROCHÉE) --- */}
             <motion.div 
               initial={{ y: -450 }} 
-              animate={isOpened ? { y: invitation.opening_type === 'filmstrip' ? -35 : 25 } : { y: -450 }} 
+              animate={isOpened ? { y: invitation.opening_type === 'filmstrip' ? -70 : -120 } : { y: -450 }} 
               transition={{ type: "spring", damping: 25 }} 
               className="absolute top-0 z-20"
             >
@@ -191,9 +192,10 @@ export function GuestView({ invitation }: any) {
               )}
             </motion.div>
 
+            {/* --- CARTE D'INVITATION (REMONTEE POUR RAPPROCHEMENT) --- */}
             <motion.div 
               initial={{ scale: 0.8, y: 200 }} 
-              animate={isOpened ? { scale: 1, y: 135 } : {}} 
+              animate={isOpened ? { scale: 1, y: 110 } : {}} 
               transition={{ type: "spring", damping: 20, delay: 0.4 }} 
               onClick={() => isOpened && setView('content')} 
               className={`z-30 w-[310px] h-[370px] rounded-[3rem] shadow-xl p-10 flex flex-col items-center justify-between border border-gray-100 cursor-pointer ${getPaperClass()}`}
@@ -210,6 +212,7 @@ export function GuestView({ invitation }: any) {
               </div>
             </motion.div>
 
+            {/* --- SYSTEME D'OUVERTURE (IDENTIQUE PREVIEW) --- */}
             <div className="absolute inset-0 z-50 overflow-hidden" style={{ perspective: '2000px', pointerEvents: isOpened ? 'none' : 'auto' }}>
               <AnimatePresence>
                 {!isOpened && (
@@ -274,7 +277,7 @@ export function GuestView({ invitation }: any) {
                         )}
                       </motion.div>
                       <p className="absolute bottom-12 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">
-                        {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? "Tap to open invitation" : "Nhấn để mở lời mời"}
+                        {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? "Tap to open invitation" : "Nhấn de mở lời mời"}
                       </p>
                     </motion.div>
 
@@ -307,6 +310,7 @@ export function GuestView({ invitation }: any) {
             </div>
           </motion.div>
         ) : (
+          /* --- CONTENU --- */
           <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`w-full h-full z-[100] flex flex-col overflow-y-auto ${getPaperClass()}`}>
             <div className="h-[30%] relative overflow-hidden shrink-0">
                <img 
