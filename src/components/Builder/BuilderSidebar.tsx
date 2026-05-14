@@ -147,7 +147,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     if (!dragRef.current.isDragging) return;
     const posKeyX = `${selectedPhotoKey}_pos_x`;
     const posKeyY = `${selectedPhotoKey}_pos_y`;
-    const scaleKey = `${selectedPhotoKey}_scale`;
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
     const clientY = e.touches ? e.touches[0].clientY : e.clientY;
     const deltaX = (clientX - dragRef.current.x);
@@ -201,6 +200,79 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
         </div>
       )}
 
+      {activeTab === 'media' && (
+        <div className="space-y-8">
+          <div className="space-y-4">
+            <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Photos & Musique</label>
+            <div className="grid grid-cols-2 gap-4">
+              <label className="flex flex-col items-center justify-center aspect-square bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-200 cursor-pointer overflow-hidden relative">
+                {invitation.main_photo_url ? (
+                  <img src={invitation.main_photo_url} className="w-full h-full object-cover opacity-30" alt="Preview" />
+                ) : <ImageIcon className="text-gray-400 mb-2" />}
+                <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-gray-600 uppercase bg-white/40 text-center px-2">
+                  Photo de début
+                </span>
+                <input type="file" className="hidden" accept="image/*" onChange={(e) => uploadFile(e, 'main_photo_url')} />
+              </label>
+
+              <label className="flex flex-col items-center justify-center aspect-square bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-200 cursor-pointer overflow-hidden relative">
+                {invitation.end_photo_url ? (
+                  <img src={invitation.end_photo_url} className="w-full h-full object-cover opacity-30" alt="Preview" />
+                ) : <Sparkles className="text-gray-400 mb-2" />}
+                <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-gray-600 uppercase bg-white/40 text-center px-2 flex flex-col items-center gap-1">
+                  Photo de fin
+                  {invitation.plan_type !== 'PREMIUM' && <Lock size={16} className="text-gray-400" />}
+                </span>
+                <input type="file" className="hidden" accept="image/*" onChange={(e) => {
+                  if(invitation.plan_type !== 'PREMIUM') return alert("Passez au Premium !");
+                  uploadFile(e, 'end_photo_url');
+                }} />
+              </label>
+
+              <label className="col-span-2 flex items-center gap-3 p-4 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 cursor-pointer transition-colors hover:bg-gray-100">
+                <Music className="text-gray-400 shrink-0" size={20} />
+                <span className="text-[10px] font-bold text-gray-500 uppercase truncate">
+                  {invitation.music_url ? "Musique chargée ✓" : t.upload_music}
+                </span>
+                <input type="file" className="hidden" accept=".mp3,audio/mpeg" onChange={(e) => uploadFile(e, 'music_url')} />
+              </label>
+            </div>
+          </div>
+
+          {(invitation.main_photo_url || invitation.end_photo_url) && (
+            <div className="bg-amber-50/50 p-6 rounded-[2rem] border border-amber-100 space-y-4">
+              <div className="flex flex-wrap gap-2">
+                <button onClick={() => setSelectedPhotoKey('main_photo_url')} className={`px-3 py-1 rounded-full text-[9px] font-black uppercase transition-all ${selectedPhotoKey === 'main_photo_url' ? 'bg-amber-500 text-white shadow-sm' : 'bg-white text-amber-800 border border-amber-200'}`}>Début</button>
+                {invitation.end_photo_url && <button onClick={() => setSelectedPhotoKey('end_photo_url')} className={`px-3 py-1 rounded-full text-[9px] font-black uppercase transition-all ${selectedPhotoKey === 'end_photo_url' ? 'bg-amber-500 text-white shadow-sm' : 'bg-white text-amber-800 border border-amber-200'}`}>Fin</button>}
+              </div>
+              
+              <span className="text-[10px] font-black uppercase text-amber-800 tracking-wider flex items-center gap-2">
+                <Move size={12}/> Ajuster la photo
+              </span>
+              <div 
+                className="w-full aspect-video rounded-2xl bg-gray-200 overflow-hidden relative border-2 border-white shadow-sm cursor-move touch-none"
+                onMouseDown={(e) => { dragRef.current = { x: e.clientX, y: e.clientY, isDragging: true, lastDist: 0 }; }}
+                onTouchStart={(e) => { dragRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY, isDragging: true, lastDist: 0 }; }}
+                onMouseMove={handleDragMove}
+                onTouchMove={handleDragMove}
+                onMouseUp={() => dragRef.current.isDragging = false}
+                onMouseLeave={() => dragRef.current.isDragging = false}
+                onTouchEnd={() => { dragRef.current.isDragging = false; dragRef.current.lastDist = 0; }}
+              >
+                <img 
+                  src={invitation[selectedPhotoKey]} 
+                  style={{ 
+                    transform: `translate(${invitation[`${selectedPhotoKey}_pos_x`] || 0}px, ${invitation[`${selectedPhotoKey}_pos_y`] || 0}px) scale(${invitation[`${selectedPhotoKey}_scale`] || 1})`,
+                    pointerEvents: 'none'
+                  }} 
+                  className="w-full h-full object-cover origin-center"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {activeTab === 'style' && (
         <div className="space-y-8">
           <div>
@@ -231,6 +303,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
               </button>
             </div>
           </div>
+          {/* ... suite des thèmes, textures et couleurs ... */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">{t.theme_label}</label>
             <div className="grid grid-cols-2 gap-3">
