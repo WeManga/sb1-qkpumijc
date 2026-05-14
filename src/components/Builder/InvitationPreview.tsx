@@ -160,124 +160,101 @@ export function InvitationPreview({ invitation }: any) {
               </div>
             </motion.div>
 
-            {/* --- ENVELOPPE OU INTERACTION D'OUVERTURE --- */}
+            {/* --- ENVELOPPE OU PORTE INTERACTIVE --- */}
             <AnimatePresence>
               {!isOpened && (
-                <motion.div 
-                  exit={invitation.opening_style === 'vault' ? { scale: 4, opacity: 0 } : { y: "-100%" }} 
-                  animate={invitation.opening_style === 'knock' ? {
-                    x: [0, -1, 2, -2, 1, 0, 0, -1, 2, -2, 1, 0, 0], 
-                    y: [0, 1, -1, 1, -1, 0, 0, 1, -1, 1, -1, 0, 0]
-                  } : {}}
-                  transition={invitation.opening_style === 'knock' ? {
-                    duration: 0.6, repeat: Infinity, repeatDelay: 1.2
-                  } : { duration: 0.8, ease: "easeInOut" }}
-                  className="absolute inset-0 z-50 flex flex-col items-center justify-center cursor-pointer overflow-hidden" 
-                  style={{ background: invitation?.envelope_color || '#FEE2E2' }}
-                  onClick={() => setIsOpened(true)}
-                >
-                  {invitation.opening_style === 'knock' ? (
-                    /* MAIN QUI TOQUE */
-                    <div className="flex flex-col items-center justify-center">
-                      <div className="relative flex flex-col items-center justify-center" style={{ perspective: '1200px' }}>
-                        <motion.div
-                          initial={{ rotateX: 0, rotateZ: 0, z: 0 }}
-                          animate={{ 
-                            rotateX: [0, -40, 0, -40, 0], 
-                            z: [0, 80, 0, 80, 0],
-                            scale: [1, 1.15, 1, 1.15, 1]
-                          }}
-                          transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 1.2, ease: "easeOut" }}
-                          style={{ originY: "100%" }}
-                          className="text-[140px] select-none drop-shadow-[0_20px_50px_rgba(0,0,0,0.3)]"
-                        >✊</motion.div>
-                      </div>
-                      <p className="mt-8 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">{t.tap_open}</p>
-                    </div>
-                  ) : invitation.opening_style === 'key' ? (
-                    /* SERRURE ET CLÉ ALIGNÉES */
-                    <div className="relative flex flex-col items-center justify-center w-full h-full">
-                       {/* Trou de serrure vertical et réaliste */}
-                       <div className="relative w-20 h-28 bg-black/20 rounded-full flex flex-col items-center justify-center border-2 border-white/30 backdrop-blur-sm">
-                          <div className="w-3 h-10 bg-black rounded-full mb-1 shadow-inner" /> {/* Fente supérieure */}
-                          <div className="w-7 h-7 bg-black rounded-full shadow-inner" /> {/* Base ronde */}
-                       </div>
-                       
-                       {/* Clé verticale qui s'insère parfaitement */}
-                       <motion.div
-                         initial={{ y: 150, opacity: 0, rotate: -90 }}
-                         animate={{ 
-                           y: [150, 0, 0, 0], 
-                           opacity: [0, 1, 1, 1], 
-                           rotate: [-90, -90, -180, -180] 
-                         }}
-                         transition={{ duration: 3, repeat: Infinity, times: [0, 0.4, 0.7, 1] }}
-                         className="absolute text-7xl z-10 filter drop-shadow-lg"
-                         style={{ transformOrigin: "center 70%" }}
-                       >🔑</motion.div>
-                       
-                       <p className="mt-16 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">{t.tap_open}</p>
-                    </div>
-                  ) : invitation.opening_style === 'vault' ? (
-                    /* CADRAN DE COFFRE SANS PORTE */
-                    <div className="relative flex flex-col items-center justify-center w-full h-full">
-                       <div className="relative flex items-center justify-center">
-                          {/* Anneau de chiffres statique en fond */}
-                          <div className="absolute w-64 h-64 border-4 border-white/20 rounded-full flex items-center justify-center">
-                             {[...Array(12)].map((_, i) => (
-                                <span key={i} className="absolute text-white/40 font-bold text-xs" 
-                                      style={{ transform: `rotate(${i * 30}deg) translateY(-110px)` }}>
-                                   {i * 5}
-                                </span>
-                             ))}
-                          </div>
+                <div className="absolute inset-0 z-50 overflow-hidden" style={{ perspective: '2000px' }}>
+                  {/* Battant Gauche */}
+                  <motion.div 
+                    exit={{ rotateY: -110, originX: 0, x: -20, opacity: 0 }} 
+                    transition={{ duration: 1.2, ease: [0.45, 0.05, 0.55, 0.95] }}
+                    className="absolute inset-y-0 left-0 w-1/2 z-50 border-r border-white/10"
+                    style={{ background: invitation?.envelope_color || '#FEE2E2' }}
+                  />
+                  {/* Battant Droit */}
+                  <motion.div 
+                    exit={{ rotateY: 110, originX: 1, x: 20, opacity: 0 }} 
+                    transition={{ duration: 1.2, ease: [0.45, 0.05, 0.55, 0.95] }}
+                    className="absolute inset-y-0 right-0 w-1/2 z-50 border-l border-white/10"
+                    style={{ background: invitation?.envelope_color || '#FEE2E2' }}
+                  />
 
-                          {/* Roue centrale qui tourne avec combinaison */}
-                          <motion.div
-                            animate={{ rotate: [0, 120, -60, 240, 0] }}
-                            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                            className="w-44 h-44 bg-gradient-to-br from-gray-200 to-gray-400 rounded-full border-8 border-white/50 shadow-[0_15px_35px_rgba(0,0,0,0.3)] flex items-center justify-center relative"
-                          >
-                             {/* Crans de la roue */}
-                             {[...Array(24)].map((_, i) => (
-                                <div key={i} className="absolute w-1 h-3 bg-gray-500/50" 
-                                     style={{ transform: `rotate(${i * 15}deg) translateY(-80px)` }} />
-                             ))}
-                             
-                             {/* Centre de la roue */}
-                             <div className="w-20 h-20 bg-gray-300 rounded-full border-4 border-gray-400 flex items-center justify-center shadow-inner">
-                                <div className="w-2 h-10 bg-red-500 rounded-full transform -translate-y-4" /> {/* Aiguille de repère */}
-                             </div>
-                          </motion.div>
-                       </div>
-                       
-                       <p className="mt-12 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">{t.tap_open}</p>
-                    </div>
-                  ) : (
-                    /* VOLET CLASSIQUE */
-                    <div className="flex flex-col items-center">
-                      <div className="w-[32rem] h-[32rem] flex items-center justify-center p-0 overflow-visible">
-                        <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-full h-full object-contain" alt="Sceau" />
+                  {/* Contenu Interactif (Clé, Main, Coffre) */}
+                  <motion.div 
+                    exit={{ opacity: 0, scale: 0.8 }} 
+                    className="absolute inset-0 z-[60] flex flex-col items-center justify-center cursor-pointer"
+                    onClick={() => setIsOpened(true)}
+                  >
+                    {invitation.opening_style === 'knock' ? (
+                      /* MAIN QUI TOQUE */
+                      <div className="flex flex-col items-center">
+                        <motion.div
+                          animate={{ rotateX: [0, -40, 0, -40, 0], z: [0, 80, 0, 80, 0], scale: [1, 1.15, 1, 1.15, 1] }}
+                          transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 1.2 }}
+                          style={{ originY: "100%" }}
+                          className="text-[140px] drop-shadow-2xl"
+                        >✊</motion.div>
+                        <p className="mt-8 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">{t.tap_open}</p>
                       </div>
-                      <p className="mt-8 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">{t.tap_open}</p>
-                    </div>
-                  )}
-                </motion.div>
+                    ) : invitation.opening_style === 'key' ? (
+                      /* ANCIENNE SERRURE ET CLÉ */
+                      <div className="flex flex-col items-center relative">
+                        <div className="w-32 h-48 bg-[#2a2a2a] rounded-t-full rounded-b-xl border-4 border-[#1a1a1a] shadow-2xl flex flex-col items-center pt-8 relative overflow-hidden">
+                           <div className="w-4 h-16 bg-black rounded-full shadow-inner" />
+                           <div className="w-10 h-10 bg-black rounded-full -mt-2 shadow-inner" />
+                           <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+                        </div>
+                        <motion.div
+                          initial={{ x: -150, opacity: 0, rotate: -45 }}
+                          animate={{ x: 0, opacity: 1, rotate: [0, 0, 90, 0] }}
+                          transition={{ duration: 2.5, repeat: Infinity, repeatDelay: 1 }}
+                          className="absolute text-8xl drop-shadow-2xl z-10 top-12"
+                        >🔑</motion.div>
+                        <p className="mt-12 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">{t.tap_open}</p>
+                      </div>
+                    ) : invitation.opening_style === 'vault' ? (
+                      /* COFFRE FORT RÉALISTE */
+                      <div className="flex flex-col items-center">
+                        <div className="relative w-64 h-64 flex items-center justify-center">
+                           <div className="absolute inset-0 bg-[#333] rounded-full border-8 border-[#444] shadow-2xl" />
+                           <motion.div
+                             animate={{ rotate: [0, 90, -120, 180, 0] }}
+                             transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                             className="w-48 h-48 rounded-full border-8 border-dashed border-white/20 flex items-center justify-center bg-[#2a2a2a] shadow-inner relative z-10"
+                           >
+                              <div className="w-12 h-12 bg-red-600 rounded-full border-4 border-white/30 shadow-lg" />
+                              {[...Array(8)].map((_, i) => (
+                                <div key={i} className="absolute w-2 h-8 bg-white/40 rounded-full" style={{ transform: `rotate(${i * 45}deg) translateY(-80px)` }} />
+                              ))}
+                           </motion.div>
+                           <div className="absolute -right-8 w-12 h-40 bg-gradient-to-b from-[#444] to-[#222] rounded-full shadow-xl border-4 border-[#555]" />
+                        </div>
+                        <p className="mt-12 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">{t.tap_open}</p>
+                      </div>
+                    ) : (
+                      /* VOLET CLASSIQUE */
+                      <div className="flex flex-col items-center">
+                        <div className="w-[32rem] h-[32rem] flex items-center justify-center p-0 overflow-visible">
+                          <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-full h-full object-contain" alt="Sceau" />
+                        </div>
+                        <p className="mt-8 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">{t.tap_open}</p>
+                      </div>
+                    )}
+                  </motion.div>
+                </div>
               )}
             </AnimatePresence>
           </motion.div>
         ) : (
           /* --- CONTENU --- */
           <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`w-full h-full z-[100] flex flex-col overflow-y-auto ${getPaperClass()}`}>
-            {/* ... Le reste du contenu reste identique ... */}
             <div className="h-[30%] relative overflow-hidden shrink-0">
                <img src={invitation.main_photo_url} className="w-full h-full object-cover" style={{ transform: `translate(${invitation.main_photo_url_pos_x || 0}px, ${invitation.main_photo_url_pos_y || 0}px) scale(${invitation.main_photo_url_scale || 1})` }} />
                <div className="absolute inset-0 bg-gradient-to-t from-white/80 to-transparent pointer-events-none" />
                <button onClick={() => setView('envelope')} className="absolute top-6 left-6 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-md"><X size={20}/></button>
             </div>
             <div className="flex-1 p-8">
-               {/* Informations hôtes, date, adresse, description et programme */}
-               <div className="text-center mb-10">
+              <div className="text-center mb-10">
                 <h2 className="text-3xl font-black mb-4 leading-tight" style={{ fontFamily: invitation.font_style }}>{invitation?.host_names || tBuilder.hosts_placeholder}</h2>
                 <div className="flex flex-col items-center gap-2 opacity-60 font-bold text-[10px] uppercase tracking-widest">
                   <div className="flex items-center gap-2"><Calendar size={14} className="text-amber-500"/> {invitation.event_date ? new Date(invitation.event_date).toLocaleDateString(lang === 'vi' ? 'vi-VN' : lang === 'en' ? 'en-US' : 'fr-FR', {day:'numeric', month:'long', year:'numeric'}) : t.save_date}</div>
@@ -290,7 +267,7 @@ export function InvitationPreview({ invitation }: any) {
                   <div className="w-12 h-[1px] bg-amber-200 mx-auto mt-6" />
                 </div>
               )}
-              {/* Reste du programme et photo de fin... */}
+              {/* Le reste du code (programme, etc.) demeure inchangé */}
             </div>
           </motion.div>
         )}
