@@ -222,22 +222,16 @@ export function GuestView({ invitation }: any) {
                     exit={{ opacity: 1 }}
                     className="w-full h-full relative"
                   >
-                    {/* LE VISUEL (MAIN, CLE, ETC) - DISPARAIT INSTANTANEMENT */}
+                    {/* VISUEL INTERACTIF - DISPARAIT IMMEDIATEMENT */}
                     <AnimatePresence>
                       {!isOpened && (
                         <motion.div 
                           key="visual-trigger"
-                          exit={{ opacity: 0, transition: { duration: 0.1 } }}
+                          exit={{ opacity: 0, scale: 0.8, transition: { duration: 0.1 } }}
                           className="absolute inset-0 z-[70] flex flex-col items-center justify-center cursor-pointer"
                           onClick={() => { setIsOpened(true); audioRef.current?.play().catch(()=>{}); }}
                         >
-                          <motion.div
-                            animate={invitation.opening_style === 'knock' ? {
-                              x: [0, -1, 2, -2, 1, 0, 0, -1, 2, -2, 1, 0, 0], 
-                              y: [0, 1, -1, 1, -1, 0, 0, 1, -1, 1, -1, 0, 0]
-                            } : {}}
-                            transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 1.2 }}
-                          >
+                          <div className="relative">
                             {invitation.opening_style === 'knock' ? (
                               <motion.div
                                 animate={{ rotateX: [0, -40, 0, -40, 0], z: [0, 80, 0, 80, 0], scale: [1, 1.15, 1, 1.15, 1] }}
@@ -271,41 +265,32 @@ export function GuestView({ invitation }: any) {
                             ) : (
                               <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-80 h-80 object-contain drop-shadow-2xl" />
                             )}
-                          </motion.div>
-                          <p className="absolute bottom-12 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">
+                          </div>
+                          <p className="absolute bottom-12 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse text-center w-full px-4">
                             {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? "Tap to open invitation" : "Nhấn để mở lời mời"}
                           </p>
                         </motion.div>
                       )}
                     </AnimatePresence>
 
-                    {/* L'ENVELOPPE / PORTES - TREMBLEMENT APPLIQUÉ ICI UNIQUEMENT */}
-                    <motion.div 
-                      className="absolute inset-0 z-50"
-                      animate={(!isOpened && invitation.opening_style === 'knock') ? {
-                        x: [0, -1, 2, -2, 1, 0, 0, -1, 2, -2, 1, 0, 0], 
-                        y: [0, 1, -1, 1, -1, 0, 0, 1, -1, 1, -1, 0, 0]
-                      } : { x: 0, y: 0 }}
-                      transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 1.2 }}
-                    >
-                      {isDoorType ? (
-                        <>
-                          <motion.div exit={{ rotateY: -110, originX: 0, opacity: 0 }} transition={{ duration: 1.2, ease: "easeInOut", delay: 0.1 }}
-                            className="absolute inset-y-0 left-0 w-1/2 z-50 border-r border-white/10 shadow-2xl"
-                            style={{ background: invitation?.envelope_color || '#F3F4F6' }}
-                          />
-                          <motion.div exit={{ rotateY: 110, originX: 1, opacity: 0 }} transition={{ duration: 1.2, ease: "easeInOut", delay: 0.1 }}
-                            className="absolute inset-y-0 right-0 w-1/2 z-50 border-l border-white/10 shadow-2xl"
-                            style={{ background: invitation?.envelope_color || '#F3F4F6' }}
-                          />
-                        </>
-                      ) : (
-                        <motion.div exit={{ y: "-100%" }} transition={{ duration: 0.8, ease: "easeInOut", delay: 0.1 }}
-                          className="absolute inset-0 z-50 shadow-2xl"
+                    {/* ENVELOPPE / PORTES */}
+                    {isDoorType ? (
+                      <>
+                        <motion.div exit={{ rotateY: -110, originX: 0, opacity: 0 }} transition={{ duration: 1.2, ease: "easeInOut", delay: 0.1 }}
+                          className="absolute inset-y-0 left-0 w-1/2 z-50 border-r border-white/10 shadow-2xl"
                           style={{ background: invitation?.envelope_color || '#F3F4F6' }}
                         />
-                      )}
-                    </motion.div>
+                        <motion.div exit={{ rotateY: 110, originX: 1, opacity: 0 }} transition={{ duration: 1.2, ease: "easeInOut", delay: 0.1 }}
+                          className="absolute inset-y-0 right-0 w-1/2 z-50 border-l border-white/10 shadow-2xl"
+                          style={{ background: invitation?.envelope_color || '#F3F4F6' }}
+                        />
+                      </>
+                    ) : (
+                      <motion.div exit={{ y: "-100%" }} transition={{ duration: 0.8, ease: "easeInOut", delay: 0.1 }}
+                        className="absolute inset-0 z-50 shadow-2xl"
+                        style={{ background: invitation?.envelope_color || '#F3F4F6' }}
+                      />
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -345,7 +330,6 @@ export function GuestView({ invitation }: any) {
                 </div>
               )}
 
-              {/* --- PROGRAMME --- */}
               <div className="space-y-12">
                 <h3 className="text-center font-black uppercase tracking-[0.6em] text-amber-600 text-[10px] opacity-80 flex items-center justify-center gap-2"> —— <Sparkles size={12}/> {tBuilder.program_title} <Sparkles size={12}/> —— </h3>
                 <div className="relative flex flex-col items-center">
@@ -373,7 +357,6 @@ export function GuestView({ invitation }: any) {
                 </div>
               </div>
 
-              {/* --- PHOTO DE FIN --- */}
               {invitation.plan_type === 'PREMIUM' && invitation.end_photo_url && (
                 <div className="px-2">
                   <div className="rounded-[3rem] overflow-hidden shadow-2xl border-4 border-white rotate-1">
@@ -390,7 +373,6 @@ export function GuestView({ invitation }: any) {
                  </motion.button>
               </div>
 
-              {/* --- FORMULAIRE RSVP --- */}
               <div className="bg-gray-900 rounded-[4rem] p-10 shadow-2xl relative overflow-hidden">
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-500 via-yellow-200 to-amber-500 opacity-50" />
                 {!isSubmitted ? (
