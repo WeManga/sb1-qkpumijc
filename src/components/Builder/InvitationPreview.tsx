@@ -152,7 +152,7 @@ export function InvitationPreview({ invitation }: any) {
               )}
             </motion.div>
 
-            {/* --- CARTE D'INVITATION (L'INTÉRIEUR) --- */}
+            {/* --- CARTE D'INVITATION --- */}
             <motion.div 
               initial={{ scale: 0.8, y: 200 }} 
               animate={isOpened ? { scale: 1, y: 135 } : {}} 
@@ -172,7 +172,7 @@ export function InvitationPreview({ invitation }: any) {
               </div>
             </motion.div>
 
-            {/* --- ENVELOPPE / PORTE / INTERACTION --- */}
+            {/* --- SYSTEME D'OUVERTURE --- */}
             <div className="absolute inset-0 z-50 overflow-hidden" style={{ perspective: '2000px', pointerEvents: isOpened ? 'none' : 'auto' }}>
               <AnimatePresence>
                 {!isOpened && (
@@ -181,66 +181,90 @@ export function InvitationPreview({ invitation }: any) {
                     exit={{ opacity: 1 }}
                     className="w-full h-full relative"
                   >
-                    {/* VISUEL INTERACTIF - DISPARAIT IMMEDIATEMENT */}
-                    {!isOpened && (
-                        <div className="absolute inset-0 z-[70] flex flex-col items-center justify-center cursor-pointer"
-                          onClick={() => { setIsOpened(true); audioRef.current?.play().catch(()=>{}); }}
-                        >
-                          <div className="relative">
-                            {invitation.opening_style === 'knock' ? (
+                    {/* LE VISUEL (MAIN, CLE, ETC) */}
+                    <motion.div 
+                      key="visual-trigger"
+                      exit={{ opacity: 0, scale: 0.8 }}
+                      transition={{ duration: 0.1 }}
+                      className="absolute inset-0 z-[70] flex flex-col items-center justify-center cursor-pointer"
+                      onClick={() => setIsOpened(true)}
+                    >
+                      <motion.div
+                        animate={invitation.opening_style === 'knock' ? {
+                          x: [0, -1, 2, -2, 1, 0, 0, -1, 2, -2, 1, 0, 0], 
+                          y: [0, 1, -1, 1, -1, 0, 0, 1, -1, 1, -1, 0, 0]
+                        } : {}}
+                        transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 1.2 }}
+                      >
+                        {invitation.opening_style === 'knock' ? (
+                          <motion.div
+                            animate={{ rotateX: [0, -40, 0, -40, 0], z: [0, 80, 0, 80, 0], scale: [1, 1.15, 1, 1.15, 1] }}
+                            transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 1.2 }}
+                            style={{ 
+                              originY: "100%", 
+                              filter: "sepia(0.5) saturate(0.8) brightness(1.2)" // FILTRE BEIGE ICI
+                            }}
+                            className="text-[100px] select-none"
+                          >✊</motion.div>
+                        ) : invitation.opening_style === 'key' ? (
+                            <div className="flex flex-col items-center relative">
+                              <div className="w-2.5 h-10 bg-black/80 rounded-full shadow-sm" />
+                              <div className="w-6 h-6 bg-black/80 rounded-full -mt-1.5 shadow-sm" />
                               <motion.div
-                                animate={{ rotateX: [0, -40, 0, -40, 0], z: [0, 80, 0, 80, 0], scale: [1, 1.15, 1, 1.15, 1] }}
-                                transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 1.2 }}
-                                style={{ originY: "100%", filter: "sepia(0.5) saturate(0.8) brightness(1.2)" }}
-                                className="text-[100px] select-none"
-                              >✊</motion.div>
-                            ) : invitation.opening_style === 'key' ? (
-                              <div className="flex flex-col items-center relative">
-                                 <div className="w-2.5 h-10 bg-black/80 rounded-full shadow-sm" />
-                                 <div className="w-6 h-6 bg-black/80 rounded-full -mt-1.5 shadow-sm" />
-                                 <motion.div animate={{ rotate: [0, 30, 0, 30, 0] }} transition={{ duration: 2.2, repeat: Infinity, repeatDelay: 0.5 }}
-                                   className="absolute text-[110px] z-10" style={{ top: '-25%', transformOrigin: "center 65%" }}
-                                 >🗝️</motion.div>
-                              </div>
-                            ) : invitation.opening_style === 'vault' ? (
-                              <div className="relative w-60 h-60 flex flex-col items-center justify-center">
-                                 <div className="absolute inset-0 bg-gradient-to-br from-gray-400 via-gray-100 to-gray-500 rounded-full border-[10px] border-amber-400/80 shadow-2xl" />
-                                 <div className="absolute top-8 bg-black/90 px-4 py-1 rounded-lg border-2 border-amber-500/50 z-20">
-                                    <span className="text-amber-500 font-mono text-xl tracking-[0.4em]">{vaultCode < 10 ? `0${vaultCode}` : vaultCode}</span>
-                                 </div>
-                                 <motion.div animate={{ rotate: [0, 160, -80, 290, 0] }} transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-                                   className="w-40 h-40 rounded-full border-[6px] border-gray-600 bg-gradient-to-tr from-[#222] via-[#444] to-[#111] flex items-center justify-center relative z-10"
-                                 >
-                                    {[...Array(12)].map((_, i) => (<div key={i} className="absolute w-1 h-2.5 bg-amber-400/60" style={{ transform: `rotate(${i * 30}deg) translateY(-68px)` }} />))}
-                                    <div className="w-14 h-14 rounded-full bg-gradient-to-b from-gray-200 to-gray-500 border-4 border-amber-500/50 flex items-center justify-center">
-                                       <div className="w-1.5 h-10 bg-red-600 rounded-full -translate-y-2" />
-                                    </div>
-                                 </motion.div>
-                              </div>
-                            ) : (
-                              <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-80 h-80 object-contain drop-shadow-2xl" alt="Sceau" />
-                            )}
+                                animate={{ rotate: [0, 30, 0, 30, 0] }}
+                                transition={{ duration: 2.2, repeat: Infinity, repeatDelay: 0.5 }}
+                                className="absolute text-[110px] z-10"
+                                style={{ top: '-25%', transformOrigin: "center 65%" }}
+                              >🗝️</motion.div>
+                            </div>
+                        ) : invitation.opening_style === 'vault' ? (
+                          <div className="relative w-60 h-60 flex flex-col items-center justify-center">
+                             <div className="absolute inset-0 bg-gradient-to-br from-gray-400 via-gray-100 to-gray-500 rounded-full border-[10px] border-amber-400/80 shadow-2xl" />
+                             <div className="absolute top-8 bg-black/90 px-4 py-1 rounded-lg border-2 border-amber-500/50 z-20">
+                                <span className="text-amber-500 font-mono text-xl tracking-[0.4em]">{vaultCode < 10 ? `0${vaultCode}` : vaultCode}</span>
+                             </div>
+                             <motion.div
+                               animate={{ rotate: [0, 160, -80, 290, 0] }}
+                               transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                               className="w-40 h-40 rounded-full border-[6px] border-gray-600 bg-gradient-to-tr from-[#222] via-[#444] to-[#111] flex items-center justify-center relative z-10"
+                             >
+                                {[...Array(12)].map((_, i) => (
+                                  <div key={i} className="absolute w-1 h-2.5 bg-amber-400/60" style={{ transform: `rotate(${i * 30}deg) translateY(-68px)` }} />
+                                ))}
+                                <div className="w-14 h-14 rounded-full bg-gradient-to-b from-gray-200 to-gray-500 border-4 border-amber-500/50 flex items-center justify-center">
+                                   <div className="w-1.5 h-10 bg-red-600 rounded-full -translate-y-2" />
+                                </div>
+                             </motion.div>
                           </div>
-                          <p className="absolute bottom-12 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse text-center w-full px-4">
-                            {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? "Tap to open invitation" : "Nhấn để mở lời mời"}
-                          </p>
-                        </div>
-                    )}
+                        ) : (
+                          <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-[32rem] h-[32rem] object-contain" alt="Sceau" />
+                        )}
+                      </motion.div>
+                      <p className="absolute bottom-12 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">
+                        {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? "Tap to open invitation" : "Nhấn để mở lời mời"}
+                      </p>
+                    </motion.div>
 
-                    {/* ENVELOPPE / PORTES */}
+                    {/* L'ENVELOPPE / PORTES */}
                     {isDoorType ? (
                       <>
-                        <motion.div exit={{ rotateY: -110, originX: 0, opacity: 0 }} transition={{ duration: 1.2, ease: "easeInOut", delay: 0.1 }}
+                        <motion.div 
+                          exit={{ rotateY: -110, originX: 0, opacity: 0 }} 
+                          transition={{ duration: 1.2, ease: "easeInOut", delay: 0.1 }}
                           className="absolute inset-y-0 left-0 w-1/2 z-50 border-r border-white/10 shadow-2xl"
                           style={{ background: invitation?.envelope_color || '#FEE2E2' }}
                         />
-                        <motion.div exit={{ rotateY: 110, originX: 1, opacity: 0 }} transition={{ duration: 1.2, ease: "easeInOut", delay: 0.1 }}
+                        <motion.div 
+                          exit={{ rotateY: 110, originX: 1, opacity: 0 }} 
+                          transition={{ duration: 1.2, ease: "easeInOut", delay: 0.1 }}
                           className="absolute inset-y-0 right-0 w-1/2 z-50 border-l border-white/10 shadow-2xl"
                           style={{ background: invitation?.envelope_color || '#FEE2E2' }}
                         />
                       </>
                     ) : (
-                      <motion.div exit={{ y: "-100%" }} transition={{ duration: 0.8, ease: "easeInOut", delay: 0.1 }}
+                      <motion.div 
+                        exit={{ y: "-100%" }} 
+                        transition={{ duration: 0.8, ease: "easeInOut", delay: 0.1 }}
                         className="absolute inset-0 z-50 shadow-2xl"
                         style={{ background: invitation?.envelope_color || '#FEE2E2' }}
                       />
@@ -254,16 +278,10 @@ export function InvitationPreview({ invitation }: any) {
           /* --- CONTENU --- */
           <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`w-full h-full z-[100] flex flex-col overflow-y-auto ${getPaperClass()}`}>
             <div className="h-[30%] relative overflow-hidden shrink-0">
-               <img 
-                 src={invitation.main_photo_url} 
-                 className="w-full h-full object-cover" 
-                 style={{ transform: `translate(${invitation.main_photo_url_pos_x || 0}px, ${invitation.main_photo_url_pos_y || 0}px) scale(${invitation.main_photo_url_scale || 1})` }} 
-                 alt=""
-               />
+               <img src={invitation.main_photo_url} className="w-full h-full object-cover" style={{ transform: `translate(${invitation.main_photo_url_pos_x || 0}px, ${invitation.main_photo_url_pos_y || 0}px) scale(${invitation.main_photo_url_scale || 1})` }} />
                <div className="absolute inset-0 bg-gradient-to-t from-white/80 to-transparent pointer-events-none" />
                <button onClick={() => setView('envelope')} className="absolute top-6 left-6 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-md"><X size={20}/></button>
             </div>
-
             <div className="flex-1 p-8">
               <div className="text-center mb-10">
                 <h2 className="text-3xl font-black mb-4 leading-tight" style={{ fontFamily: invitation.font_style }}>{invitation?.host_names || tBuilder.hosts_placeholder}</h2>
@@ -272,19 +290,16 @@ export function InvitationPreview({ invitation }: any) {
                   <div className="flex items-center gap-2"><MapPin size={14} className="text-amber-500"/> {invitation.event_address || tBuilder.address_placeholder}</div>
                 </div>
               </div>
-
               {invitation.description && (
                 <div className="mb-14 text-center">
                   <p className="text-[13px] leading-relaxed opacity-80 whitespace-pre-wrap italic" style={{ fontFamily: invitation.font_style }}>{invitation.description}</p>
                   <div className="w-12 h-[1px] bg-amber-200 mx-auto mt-6" />
                 </div>
               )}
-
               <div className="space-y-12 pb-10">
                 <h3 className="text-[10px] font-black text-amber-600 uppercase tracking-[0.3em] text-center mb-8 flex items-center justify-center gap-2">
                   <Sparkles size={12}/> {tBuilder.program_title} <Sparkles size={12}/>
                 </h3>
-
                 <div className="relative flex flex-col items-center">
                   <motion.div initial={{ scaleY: 0 }} whileInView={{ scaleY: 1 }} viewport={{ once: true }} transition={{ duration: 3.0, ease: "easeInOut" }} className="absolute top-0 w-[2px] h-full bg-gradient-to-b from-amber-200 via-amber-500 to-amber-200 rounded-full origin-top" />
                   <div className="relative space-y-12 w-full pt-4">
@@ -308,7 +323,6 @@ export function InvitationPreview({ invitation }: any) {
                   </div>
                 </div>
               </div>
-
               {invitation.plan_type === 'PREMIUM' && invitation.end_photo_url && (
                 <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mt-20 px-2 pb-10">
                   <div className="rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white rotate-2">
