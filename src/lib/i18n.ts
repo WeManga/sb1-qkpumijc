@@ -53,6 +53,7 @@ export const translations = {
       title_placeholder: "Invitation Title",
       hosts_placeholder: "Hosts (e.g. Julie & Marc)",
       address_placeholder: "Event Address",
+      description_placeholder: "Welcome message...",
       program_title: "Golden Program",
       activity_placeholder: "e.g. Cocktail hour",
       add_step: "+ Add a step",
@@ -64,8 +65,11 @@ export const translations = {
       theme_birthday: "Birthday",
       theme_party: "Party",
       theme_baptism: "Baptism",
+      theme_babyshower: "Babyshower",
+      theme_funeral: "Funeral",
       texture_label: "Paper Texture",
       opening_style_label: "Opening Type",
+      opening_type_label: "Internal Animation",
       media_section_label: "Photos & Music",
       start_photo: "Start Photo",
       end_photo: "End Photo",
@@ -79,13 +83,19 @@ export const translations = {
       additional_photos: "Additional Photos",
       premium_album: "Premium Album",
       coming_soon: "Coming Soon",
-      upgrade_premium: "Please upgrade to Premium to unlock this option!"
+      upgrade_premium: "Please upgrade to Premium to unlock this option!",
+      modify_photo: "Change photo",
+      add_photo: "Add photo"
     },
     opening_styles: {
       default: "FLAP",
       knock: "HAND",
       key: "KEY",
       vault: "VAULT"
+    },
+    opening_types: {
+      vinyl: "Vinyl Record",
+      filmstrip: "Film Strip"
     },
     guest: {
       tap_open: "Tap to open the invitation",
@@ -156,6 +166,7 @@ export const translations = {
       title_placeholder: "Titre de l'invitation",
       hosts_placeholder: "Hôtes (ex: Julie & Marc)",
       address_placeholder: "Adresse de l'événement",
+      description_placeholder: "Texte d'accueil...",
       program_title: "Programme d'Or",
       activity_placeholder: "Ex: Vin d'honneur",
       add_step: "+ Ajouter une étape",
@@ -167,8 +178,11 @@ export const translations = {
       theme_birthday: "Anniversaire",
       theme_party: "Fête",
       theme_baptism: "Baptême",
+      theme_babyshower: "Babyshower",
+      theme_funeral: "Obsèques",
       texture_label: "Texture du papier",
       opening_style_label: "Type d'ouverture",
+      opening_type_label: "Animation interne",
       media_section_label: "Photos & Musique",
       start_photo: "Photo de début",
       end_photo: "Photo de fin",
@@ -182,13 +196,19 @@ export const translations = {
       additional_photos: "Photos additionnelles",
       premium_album: "Album Premium",
       coming_soon: "Bientôt disponible",
-      upgrade_premium: "Passez au Premium pour débloquer cette option !"
+      upgrade_premium: "Passez au Premium pour débloquer cette option !",
+      modify_photo: "Modifier photo",
+      add_photo: "Ajouter photo"
     },
     opening_styles: {
       default: "VOLET",
       knock: "MAIN",
       key: "CLÉ",
       vault: "COFFRE"
+    },
+    opening_types: {
+      vinyl: "Disque Vinyle",
+      filmstrip: "Pellicule Photo"
     },
     guest: {
       tap_open: "Appuyez pour ouvrir l'invitation",
@@ -259,6 +279,7 @@ export const translations = {
       title_placeholder: "Tiêu đề lời mời",
       hosts_placeholder: "Chủ nhà (Ví dụ: Julie & Marc)",
       address_placeholder: "Địa chỉ sự kiện",
+      description_placeholder: "Lời nhắn chào mừng...",
       program_title: "Chương trình vàng",
       activity_placeholder: "Ví dụ: Khai tiệc",
       add_step: "+ Thêm sự kiện",
@@ -270,8 +291,11 @@ export const translations = {
       theme_birthday: "Sinh nhật",
       theme_party: "Bữa tiệc",
       theme_baptism: "Lễ rửa tội",
+      theme_babyshower: "Tiệc mừng đầy tháng",
+      theme_funeral: "Tang lễ",
       texture_label: "Chất liệu giấy",
       opening_style_label: "Loại mở thiệp",
+      opening_type_label: "Hiệu ứng bên trong",
       media_section_label: "Ảnh & Nhạc",
       start_photo: "Ảnh bắt đầu",
       end_photo: "Ảnh kết thúc",
@@ -285,13 +309,19 @@ export const translations = {
       additional_photos: "Ảnh bổ sung",
       premium_album: "Album Cao cấp",
       coming_soon: "Sắp ra mắt",
-      upgrade_premium: "Vui lòng nâng cấp lên Premium để mở khóa tùy chọn này!"
+      upgrade_premium: "Vui lòng nâng cấp lên Premium để mở khóa tùy chọn này!",
+      modify_photo: "Sửa ảnh",
+      add_photo: "Thêm ảnh"
     },
     opening_styles: {
       default: "CỬA SỔ",
       knock: "BÀN TAY",
       key: "CHÌA KHÓA",
       vault: "KÉT SẮT"
+    },
+    opening_types: {
+      vinyl: "Đĩa Than",
+      filmstrip: "Cuộn Phim"
     },
     guest: {
       tap_open: "Nhấn để mở lời mời",
