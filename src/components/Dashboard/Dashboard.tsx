@@ -77,7 +77,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('openPlans') === 'true') {
       setIsPlansModalOpen(true);
-      // Nettoyer l'URL proprement pour l'utilisateur
       window.history.replaceState({}, document.title, window.location.pathname);
     }
 
@@ -240,25 +239,29 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   };
 
   const handleManageAccountClick = () => {
-    setIsAccountModalOpen(false);
-
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
 
     if (isStandalone) {
+      setIsAccountModalOpen(false);
       const webDashboardUrl = `https://invitstudio.vercel.app/dashboard?openPlans=true`;
       window.open(webDashboardUrl, '_blank');
     } else {
-      setIsPlansModalOpen(true);
+      // Correction page blanche Safari : on laisse un infime délai pour fermer proprement la première modale avant d'ouvrir la seconde
+      setIsAccountModalOpen(false);
+      setTimeout(() => {
+        setIsPlansModalOpen(true);
+      }, 100);
     }
   };
 
   const handleSelectPlan = (plan: any) => {
     setSelectedPlan(plan);
     setIsPlansModalOpen(false);
-    setIsCheckoutModalOpen(true);
+    setTimeout(() => {
+      setIsCheckoutModalOpen(true);
+    }, 100);
   };
 
-  // Données des plans de paiement qui lisent désormais correctement tPln
   const paymentPlans = [
     {
       id: '1_month',
@@ -404,12 +407,12 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                       </p>
                     )}
                   </div>
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-sm bg-white`}>
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm bg-white">
                     <ShieldCheck className={`w-6 h-6 ${accountStatus === 'PREMIUM' ? 'text-amber-500' : 'text-gray-300'}`} />
                   </div>
                 </div>
 
-                {/* Lien de gestion externe avec détection PWA/App Play Store */}
+                {/* Lien de gestion externe */}
                 <div className="text-center">
                   <button 
                     onClick={handleManageAccountClick}
