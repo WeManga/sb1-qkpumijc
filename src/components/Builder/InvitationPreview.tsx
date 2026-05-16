@@ -175,7 +175,7 @@ export function InvitationPreview({ invitation }: any) {
                       <motion.div 
                         key="visual-trigger"
                         initial={{ opacity: 1 }}
-                        exit={{ opacity: 0, transition: { duration: 0 } }}
+                        exit={{ opacity: 0, transition: { duration: 0.5, ease: "easeInOut" } }}
                         className="absolute inset-0 z-[70] flex flex-col items-center justify-center cursor-pointer" 
                         onClick={() => { setIsOpened(true); audioRef.current?.play().catch(()=>{}); }}
                       >
@@ -193,9 +193,8 @@ export function InvitationPreview({ invitation }: any) {
                                 repeatDelay: 1.5,
                                 ease: "easeInOut"
                               }}
-                              className="w-44 h-44 select-none flex items-center justify-center"
+                              className="w-56 h-56 select-none flex items-center justify-center"
                             >
-                              {/* APPLICATION DU CHEMIN ABSOLU PUBLIC DIRECT SANS IMPORT */}
                               <img 
                                 src="/images/main-qui-toque.PNG" 
                                 className="w-full h-full object-contain drop-shadow-2xl" 
