@@ -337,7 +337,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
       {activeTab === 'style' && (
         <div className="space-y-8">
-          {/* STYLE D'ANIMATION SEPARÉ (DÉCLENCHEUR ACCUMULÉ) */}
+          {/* SELECTION DU STYLE D'ANIMATION (DÉCLENCHEUR ACCUMULÉ) */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">
               {localLabels.action_style}
