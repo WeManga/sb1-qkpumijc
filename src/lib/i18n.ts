@@ -12,6 +12,7 @@ export const translations = {
       loading: "Loading...",
       login_btn: "Sign In",
       signup_btn: "Create Account",
+      google_btn: "Continue with Google",
       error_default: "An error occurred"
     },
     sidebar: {
@@ -125,6 +126,7 @@ export const translations = {
       loading: "Chargement...",
       login_btn: "Se connecter",
       signup_btn: "Créer un compte",
+      google_btn: "Continuer avec Google",
       error_default: "Une erreur est survenue"
     },
     sidebar: {
@@ -238,6 +240,7 @@ export const translations = {
       loading: "Đang tải...",
       login_btn: "Đăng nhập",
       signup_btn: "Tạo tài khoản",
+      google_btn: "Tiếp tục với Google",
       error_default: "Đã xảy ra lỗi"
     },
     sidebar: {
