@@ -127,6 +127,34 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     alert(t.share);
   };
 
+  const handleCopyResponsesList = () => {
+    if (!selectedResponses || selectedResponses.length === 0) return;
+
+    let textList = "";
+    
+    if (lang === 'fr') textList += "📋 LISTE DES INVITÉS CONFIRMÉS\n\n";
+    else if (lang === 'vi') textList += "📋 DANH SÁCH KHÁCH MỜI XÁC NHẬN\n\n";
+    else textList += "📋 CONFIRMED GUEST LIST\n\n";
+
+    selectedResponses.forEach((resp, index) => {
+      textList += `${index + 1}. ${resp.group_leader_name} (${resp.total_guests} ${t.person_unit})\n`;
+      
+      if (Array.isArray(resp.guest_details) && resp.guest_details.length > 0) {
+        resp.guest_details.forEach((guest: any) => {
+          if (guest.firstName || guest.lastName) {
+            textList += `   ▪ ${guest.firstName || ''} ${guest.lastName || ''}\n`;
+          }
+        });
+      }
+      textList += "\n";
+    });
+
+    navigator.clipboard.writeText(textList.trim());
+    
+    const alertMsg = lang === 'fr' ? "Liste copiée dans le presse-papiers !" : lang === 'vi' ? "Đã sao chép danh sách!" : "List copied to clipboard!";
+    alert(alertMsg);
+  };
+
   return (
     <div className="absolute inset-0 overflow-y-auto bg-gradient-to-b from-gray-50 to-white scrollbar-hide">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-0 pb-32">
@@ -217,21 +245,45 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                   <h3 className="text-xl font-black text-gray-900 uppercase tracking-tighter">{t.responses_title}</h3>
                   <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest">{t.responses_subtitle}</p>
                 </div>
-                <button onClick={() => setIsViewModalOpen(false)} className="p-2 hover:bg-white rounded-full transition-colors"><X /></button>
+                <div className="flex items-center gap-2">
+                  {selectedResponses && selectedResponses.length > 0 && (
+                    <button 
+                      onClick={handleCopyResponsesList}
+                      className="px-3 py-1.5 bg-amber-500 text-white rounded-xl text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 hover:bg-amber-600 transition-colors shadow-sm"
+                    >
+                      <Copy size={12} />
+                      {lang === 'fr' ? 'Copier la liste' : lang === 'vi' ? 'Sao chép danh sách' : 'Copy list'}
+                    </button>
+                  )}
+                  <button onClick={() => setIsViewModalOpen(false)} className="p-2 hover:bg-white rounded-full transition-colors"><X /></button>
+                </div>
               </div>
               <div className="p-6 max-h-[60vh] overflow-y-auto space-y-4">
                 {selectedResponses?.length === 0 ? (
                   <p className="text-center py-10 text-gray-400 font-medium">{t.no_responses}</p>
                 ) : (
                   selectedResponses?.map((resp, i) => (
-                    <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                      <div>
-                        <p className="font-bold text-gray-900">{resp.group_leader_name}</p>
-                        <p className="text-[10px] text-gray-400 uppercase font-black tracking-widest">{resp.total_guests} {t.person_unit}</p>
+                    <div key={i} className="flex flex-col p-4 bg-gray-50 rounded-2xl border border-gray-100 gap-2">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-bold text-gray-900">{resp.group_leader_name}</p>
+                          <p className="text-[10px] text-gray-400 uppercase font-black tracking-widest">{resp.total_guests} {t.person_unit}</p>
+                        </div>
+                        <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
+                          <Users className="w-4 h-4 text-amber-500" />
+                        </div>
                       </div>
-                      <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
-                        <Users className="w-4 h-4 text-amber-500" />
-                      </div>
+                      
+                      {Array.isArray(resp.guest_details) && resp.guest_details.length > 0 && (
+                        <div className="mt-1 pt-2 border-t border-gray-200/60 space-y-1">
+                          {resp.guest_details.map((g: any, idx: number) => (
+                            <p key={idx} className="text-xs text-gray-600 font-medium pl-1 flex items-center gap-1.5">
+                              <span className="w-1 h-1 bg-gray-400 rounded-full" />
+                              {g.firstName || ''} {g.lastName || ''}
+                            </p>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   ))
                 )}
