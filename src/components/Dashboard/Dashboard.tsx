@@ -3,7 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { Database } from '../../lib/database.types';
 import { translations as allTranslations, Language } from '../../lib/i18n';
-import { Plus, Calendar, Eye, CreditCard as Edit, LogOut, Trash2, Copy, Loader2, Users, X, Share, User, ShieldCheck, Ticket, Sparkles, Check, QrCode, CreditCard } from 'lucide-react';
+import { Plus, Calendar, Eye, CreditCard as Edit, LogOut, Trash2, Copy, Loader2, Users, X, Share, User, ShieldCheck, Ticket, Sparkles, Check, QrCode, CreditCard, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Extension locale des traductions pour la PWA, le compte, les plans et le paiement
@@ -55,10 +55,10 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [showIOSPrompt, setShowIOSPrompt] = useState(false);
   
-  // États pour la modale Mon Compte et de paiement
+  // Gestion unifiée de l'affichage du compte (Étape 1: Profil, Étape 2: Plans, Étape 3: Choix Paiement)
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
-  const [isPlansModalOpen, setIsPlansModalOpen] = useState(false);
-  const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
+  const [accountStep, setAccountStep] = useState<'PROFILE' | 'PLANS' | 'CHECKOUT'>('PROFILE');
+  
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [accountStatus, setAccountStatus] = useState<'FREE' | 'PREMIUM'>('FREE');
   const [premiumDuration, setPremiumDuration] = useState<string>('');
@@ -73,10 +73,11 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     loadInvitations();
     loadAccountStatus();
 
-    // Ouvrir automatiquement la grille de prix si redirection depuis l'application PlayStore externe
+    // Ouvrir automatiquement la grille de prix si redirection depuis le PlayStore (URL Web externe)
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('openPlans') === 'true') {
-      setIsPlansModalOpen(true);
+      setAccountStep('PLANS');
+      setIsAccountModalOpen(true);
       window.history.replaceState({}, document.title, window.location.pathname);
     }
 
@@ -238,28 +239,24 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     }
   };
 
-  // Correction cruciale : temporisation augmentée pour laisser le DOM nettoyer l'overlay de la modale 1
+  // Logique du clic sur "Gérer mon compte"
   const handleManageAccountClick = () => {
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
 
     if (isStandalone) {
+      // Si on est dans l'application Play Store Android, on sort vers le navigateur externe web officiel
       setIsAccountModalOpen(false);
       const webDashboardUrl = `https://invitstudio.vercel.app/dashboard?openPlans=true`;
       window.open(webDashboardUrl, '_blank');
     } else {
-      setIsAccountModalOpen(false);
-      setTimeout(() => {
-        setIsPlansModalOpen(true);
-      }, 300); // 300ms garantit que l'ancienne animation n'interfère plus sous iOS/Safari
+      // Si on est sur Safari/Web standard, on change juste l'étape interne, sans AUCUNE fermeture de fenêtre
+      setAccountStep('PLANS');
     }
   };
 
   const handleSelectPlan = (plan: any) => {
     setSelectedPlan(plan);
-    setIsPlansModalOpen(false);
-    setTimeout(() => {
-      setIsCheckoutModalOpen(true);
-    }, 300);
+    setAccountStep('CHECKOUT');
   };
 
   const paymentPlans = [
@@ -309,7 +306,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
           <div className="absolute right-0 flex items-center gap-2">
             {/* BOUTON MON COMPTE ACCUEIL */}
             <button
-              onClick={() => setIsAccountModalOpen(true)}
+              onClick={() => { setAccountStep('PROFILE'); setIsAccountModalOpen(true); }}
               className="flex items-center gap-2 text-gray-400 hover:text-amber-500 transition-colors text-[10px] sm:text-[11px] font-bold uppercase tracking-widest px-2 py-2 border-r border-gray-100 pr-4"
             >
               <User className="w-4 h-4" />
@@ -381,194 +378,184 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
           </div>
         )}
 
-        {/* MODALE COMPTE USER */}
+        {/* MODALE UNIQUE UNIFIÉE (PAS DE FERMETURE = PAS DE PAGE BLANCHE SAFARI) */}
         {isAccountModalOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
+            <div className={`bg-white w-full rounded-[2.5rem] shadow-2xl overflow-hidden transition-all duration-300 ${accountStep === 'PLANS' ? 'max-w-4xl' : 'max-w-md'}`}>
+              
+              {/* HEADER DE LA MODALE */}
               <div className="p-8 border-b border-gray-100 flex items-center justify-between bg-amber-50/50">
-                <div>
-                  <h3 className="text-xl font-black text-gray-900 uppercase tracking-tighter">{tAcc.title}</h3>
-                  <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest">{user?.email}</p>
+                <div className="flex items-center gap-3">
+                  {accountStep !== 'PROFILE' && (
+                    <button 
+                      onClick={() => setAccountStep(accountStep === 'CHECKOUT' ? 'PLANS' : 'PROFILE')} 
+                      className="p-2 hover:bg-white rounded-full transition-colors border border-gray-200/50 bg-white/50"
+                    >
+                      <ArrowLeft size={16} />
+                    </button>
+                  )}
+                  <div>
+                    <h3 className="text-xl font-black text-gray-900 uppercase tracking-tighter">
+                      {accountStep === 'PROFILE' && tAcc.title}
+                      {accountStep === 'PLANS' && tPln.title}
+                      {accountStep === 'CHECKOUT' && tChk.title}
+                    </h3>
+                    <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest">
+                      {accountStep === 'PROFILE' && user?.email}
+                      {accountStep === 'PLANS' && tPln.subtitle}
+                      {accountStep === 'CHECKOUT' && `${selectedPlan?.duration} • ${selectedPlan?.totalPrice}`}
+                    </p>
+                  </div>
                 </div>
                 <button onClick={() => setIsAccountModalOpen(false)} className="p-2 hover:bg-white rounded-full transition-colors"><X /></button>
               </div>
-              <div className="p-8 space-y-6">
+
+              {/* CONTENU DE LA MODALE SELON L'ÉTAPE ACTIVE */}
+              <div className="p-8">
                 
-                {/* Statut du compte */}
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                  <div>
-                    <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">{tAcc.status}</p>
-                    <p className={`text-xl font-black ${accountStatus === 'PREMIUM' ? 'text-amber-500' : 'text-gray-500'}`}>
-                      {accountStatus}
-                    </p>
-                    {accountStatus === 'PREMIUM' && premiumDuration && (
-                      <p className="text-[10px] text-gray-400 font-bold mt-1">
-                        {tAcc.duration} <span className="text-gray-700 font-black">{premiumDuration}</span>
-                      </p>
-                    )}
-                  </div>
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm bg-white">
-                    <ShieldCheck className={`w-6 h-6 ${accountStatus === 'PREMIUM' ? 'text-amber-500' : 'text-gray-300'}`} />
-                  </div>
-                </div>
-
-                {/* Lien de déclenchement unifié pour Gérer Mon Compte */}
-                <div className="text-center">
-                  <button 
-                    onClick={handleManageAccountClick}
-                    className="text-xs font-black text-amber-600 hover:text-amber-700 uppercase tracking-widest underline decoration-2 underline-offset-4"
-                  >
-                    {tAcc.manage}
-                  </button>
-                </div>
-
-                <div className="border-t border-gray-100 pt-6 space-y-3">
-                  {/* Formulaire d'activation par code */}
-                  <form onSubmit={handleActivateCode} className="space-y-3">
-                    <div className="relative">
-                      <Ticket className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 w-4 h-4" />
-                      <input 
-                        type="text" 
-                        required
-                        value={activationCode}
-                        onChange={(e) => setActivationCode(e.target.value)}
-                        placeholder={tAcc.placeholder} 
-                        className="w-full bg-gray-50 border-none h-12 pl-12 pr-4 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-amber-300 outline-none transition-all"
-                      />
-                    </div>
-                    <button 
-                      type="submit"
-                      disabled={activationLoading || !activationCode.trim()}
-                      className="w-full h-12 bg-gray-900 text-white rounded-xl text-xs font-bold uppercase tracking-widest transition-all hover:bg-gray-800 active:scale-98 disabled:opacity-40 flex items-center justify-center"
-                    >
-                      {activationLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : tAcc.activate}
-                    </button>
-                  </form>
-                </div>
-
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* POPUP/MODALE PLANS DE PAIEMENT (Directement dans Safari) */}
-        {isPlansModalOpen && (
-          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
-            <div className="bg-gradient-to-b from-white to-gray-50/50 w-full max-w-4xl rounded-[3rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 max-h-[90vh] flex flex-col">
-              <div className="p-8 border-b border-gray-100 flex items-start justify-between bg-amber-50/30 shrink-0">
-                <div className="space-y-1">
-                  <h3 className="text-2xl font-black text-gray-900 uppercase tracking-tight flex items-center gap-2">
-                    <Sparkles className="text-amber-500 fill-amber-500" size={22} />
-                    {tPln.title}
-                  </h3>
-                  <p className="text-xs text-gray-500 font-medium max-w-xl leading-relaxed">{tPln.subtitle}</p>
-                </div>
-                <button onClick={() => setIsPlansModalOpen(false)} className="p-2 hover:bg-white rounded-full transition-colors border border-gray-200/60 bg-white/50"><X /></button>
-              </div>
-              
-              <div className="p-8 overflow-y-auto grid grid-cols-1 md:grid-cols-3 gap-6">
-                {paymentPlans.map((plan, idx) => (
-                  <div 
-                    key={idx} 
-                    className={`bg-white rounded-[2rem] p-6 border flex flex-col justify-between relative transition-all duration-300 ${
-                      plan.tag ? 'border-amber-400 shadow-xl md:scale-105 bg-gradient-to-b from-amber-50/20 to-white' : 'border-gray-100 shadow-sm'
-                    }`}
-                  >
-                    {plan.tag && (
-                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-amber-500 text-white rounded-full text-[9px] font-black uppercase tracking-wider shadow-sm">
-                        {plan.tag}
-                      </span>
-                    )}
-
-                    <div className="space-y-4">
-                      <div className="flex justify-between items-start">
-                        <h4 className="text-lg font-black text-gray-900 uppercase tracking-tight">{plan.duration}</h4>
-                        {plan.discount && (
-                          <span className="px-2 py-0.5 bg-rose-100 text-rose-600 rounded-lg text-[10px] font-black">
-                            {tPln.save} {plan.discount}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="pt-2">
-                        <p className="text-3xl font-black text-gray-900 tracking-tight">
-                          {plan.monthlyPrice}
-                          <span className="text-xs text-gray-400 font-bold lowercase tracking-normal ml-0.5">
-                            {tPln.current || '/mo'}
-                          </span>
+                {/* ÉTAPE 1 : PROFIL DE L'UTILISATEUR */}
+                {accountStep === 'PROFILE' && (
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                      <div>
+                        <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">{tAcc.status}</p>
+                        <p className={`text-xl font-black ${accountStatus === 'PREMIUM' ? 'text-amber-500' : 'text-gray-500'}`}>
+                          {accountStatus}
                         </p>
-                        {idx > 0 && (
-                          <p className="text-[10px] text-gray-400 font-bold mt-1 uppercase tracking-wider">
-                            Total: {plan.totalPrice}
+                        {accountStatus === 'PREMIUM' && premiumDuration && (
+                          <p className="text-[10px] text-gray-400 font-bold mt-1">
+                            {tAcc.duration} <span className="text-gray-700 font-black">{premiumDuration}</span>
                           </p>
                         )}
                       </div>
+                      <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm bg-white">
+                        <ShieldCheck className={`w-6 h-6 ${accountStatus === 'PREMIUM' ? 'text-amber-500' : 'text-gray-300'}`} />
+                      </div>
                     </div>
 
-                    <div className="mt-8 pt-4 border-t border-gray-50">
+                    <div className="text-center">
                       <button 
-                        onClick={() => handleSelectPlan(plan)}
-                        className={`w-full h-11 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-                          plan.tag ? 'bg-amber-500 text-white hover:bg-amber-600 shadow-md' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                        }`}
+                        onClick={handleManageAccountClick}
+                        className="text-xs font-black text-amber-600 hover:text-amber-700 uppercase tracking-widest underline decoration-2 underline-offset-4"
                       >
-                        {tPln.buy || 'Acheter un code'}
+                        {tAcc.manage}
                       </button>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
 
-        {/* POPUP SÉLECTION TUNNEL PAIEMENT (QR OU CB) */}
-        {isCheckoutModalOpen && (
-          <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
-            <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-              <div className="p-8 border-b border-gray-100 flex items-start justify-between bg-amber-50/30">
-                <div className="space-y-1">
-                  <h3 className="text-xl font-black text-gray-900 uppercase tracking-tight">{tChk.title}</h3>
-                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
-                    {selectedPlan?.duration} • <span className="text-amber-600 font-black">{selectedPlan?.totalPrice}</span>
-                  </p>
-                </div>
-                <button 
-                  onClick={() => { setIsCheckoutModalOpen(false); setIsPlansModalOpen(true); }} 
-                  className="p-2 hover:bg-white rounded-full transition-colors border border-gray-200/60 bg-white"
-                >
-                  <X size={16} />
-                </button>
-              </div>
+                    <div className="border-t border-gray-100 pt-6 space-y-3">
+                      <form onSubmit={handleActivateCode} className="space-y-3">
+                        <div className="relative">
+                          <Ticket className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 w-4 h-4" />
+                          <input 
+                            type="text" 
+                            required
+                            value={activationCode}
+                            onChange={(e) => setActivationCode(e.target.value)}
+                            placeholder={tAcc.placeholder} 
+                            className="w-full bg-gray-50 border-none h-12 pl-12 pr-4 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-amber-300 outline-none transition-all"
+                          />
+                        </div>
+                        <button 
+                          type="submit"
+                          disabled={activationLoading || !activationCode.trim()}
+                          className="w-full h-12 bg-gray-900 text-white rounded-xl text-xs font-bold uppercase tracking-widest transition-all hover:bg-gray-800 active:scale-98 disabled:opacity-40 flex items-center justify-center"
+                        >
+                          {activationLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : tAcc.activate}
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                )}
 
-              <div className="p-8 space-y-4">
-                <p className="text-xs text-gray-500 font-medium leading-relaxed mb-2">{tChk.subtitle}</p>
+                {/* ÉTAPE 2 : LA GRILLE TARIFAIRE DES PLANS */}
+                {accountStep === 'PLANS' && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-h-[60vh] overflow-y-auto pt-2">
+                    {paymentPlans.map((plan, idx) => (
+                      <div 
+                        key={idx} 
+                        className={`bg-white rounded-[2rem] p-6 border flex flex-col justify-between relative transition-all duration-300 ${
+                          plan.tag ? 'border-amber-400 shadow-xl bg-gradient-to-b from-amber-50/20 to-white' : 'border-gray-100 shadow-sm'
+                        }`}
+                      >
+                        {plan.tag && (
+                          <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-amber-500 text-white rounded-full text-[9px] font-black uppercase tracking-wider shadow-sm">
+                            {plan.tag}
+                          </span>
+                        )}
 
-                {/* BOUTON QR CODE */}
-                <button 
-                  onClick={() => alert(lang === 'fr' ? "Ouverture du module de paiement QR Code..." : "Opening QR Code payment module...")}
-                  className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl flex items-center gap-4 transition-all hover:bg-amber-50/40 hover:border-amber-300 group text-left"
-                >
-                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm text-gray-700 group-hover:text-amber-500 group-hover:shadow-md transition-all">
-                    <QrCode size={24} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-black text-gray-900 uppercase tracking-tight">{tChk.qr}</p>
-                  </div>
-                </button>
+                        <div className="space-y-4">
+                          <div className="flex justify-between items-start">
+                            <h4 className="text-lg font-black text-gray-900 uppercase tracking-tight">{plan.duration}</h4>
+                            {plan.discount && (
+                              <span className="px-2 py-0.5 bg-rose-100 text-rose-600 rounded-lg text-[10px] font-black">
+                                {tPln.save} {plan.discount}
+                              </span>
+                            )}
+                          </div>
 
-                {/* BOUTON CARTE BANCAIRE */}
-                <button 
-                  onClick={() => alert(lang === 'fr' ? "Ouverture de la passerelle CB (Paypal/Stripe)..." : "Opening Credit Card gateway...")}
-                  className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl flex items-center gap-4 transition-all hover:bg-amber-50/40 hover:border-amber-300 group text-left"
-                >
-                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm text-gray-700 group-hover:text-amber-500 group-hover:shadow-md transition-all">
-                    <CreditCard size={24} />
+                          <div className="pt-2">
+                            <p className="text-3xl font-black text-gray-900 tracking-tight">
+                              {plan.monthlyPrice}
+                              <span className="text-xs text-gray-400 font-bold lowercase tracking-normal ml-0.5">
+                                {tPln.current || '/mo'}
+                              </span>
+                            </p>
+                            {idx > 0 && (
+                              <p className="text-[10px] text-gray-400 font-bold mt-1 uppercase tracking-wider">
+                                Total: {plan.totalPrice}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="mt-8 pt-4 border-t border-gray-50">
+                          <button 
+                            onClick={() => handleSelectPlan(plan)}
+                            className={`w-full h-11 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+                              plan.tag ? 'bg-amber-500 text-white hover:bg-amber-600 shadow-md' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                            }`}
+                          >
+                            {tPln.buy || 'Acheter un code'}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <div>
-                    <p className="text-sm font-black text-gray-900 uppercase tracking-tight">{tChk.cb}</p>
+                )}
+
+                {/* ÉTAPE 3 : TUNNEL DE CHOIX DU MODE DE PAIEMENT */}
+                {accountStep === 'CHECKOUT' && (
+                  <div className="space-y-4 max-w-sm mx-auto">
+                    <p className="text-xs text-gray-500 font-medium leading-relaxed text-center mb-4">{tChk.subtitle}</p>
+
+                    {/* BOUTON QR CODE */}
+                    <button 
+                      onClick={() => alert(lang === 'fr' ? "Ouverture du module de paiement QR Code..." : "Opening QR Code payment module...")}
+                      className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl flex items-center gap-4 transition-all hover:bg-amber-50/40 hover:border-amber-300 group text-left"
+                    >
+                      <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm text-gray-700 group-hover:text-amber-500 group-hover:shadow-md transition-all">
+                        <QrCode size={24} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-black text-gray-900 uppercase tracking-tight">{tChk.qr}</p>
+                      </div>
+                    </button>
+
+                    {/* BOUTON CARTE BANCAIRE */}
+                    <button 
+                      onClick={() => alert(lang === 'fr' ? "Ouverture de la passerelle CB (Paypal/Stripe)..." : "Opening Credit Card gateway...")}
+                      className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl flex items-center gap-4 transition-all hover:bg-amber-50/40 hover:border-amber-300 group text-left"
+                    >
+                      <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm text-gray-700 group-hover:text-amber-500 group-hover:shadow-md transition-all">
+                        <CreditCard size={24} />
+                      </div>
+                      <div>
+                        <p className="text-sm font-black text-gray-900 uppercase tracking-tight">{tChk.cb}</p>
+                      </div>
+                    </button>
                   </div>
-                </button>
+                )}
+
               </div>
             </div>
           </div>
