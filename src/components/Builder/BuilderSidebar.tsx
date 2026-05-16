@@ -4,7 +4,7 @@ import { translations, Language } from '../../lib/i18n';
 import { 
   Heart, PartyPopper, Sparkles, Baby, MapPin, 
   Music, Image as ImageIcon, Calendar, Plus, X, Move, Skull, Milk, Lock,
-  Hand, Key, Vault
+  Hand, Key, Vault, DoorClosed
 } from 'lucide-react';
 import { PREMIUM_COLORS } from '../../constants/colors';
 
@@ -53,43 +53,87 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
   const t = translations[lang].builder;
   const isPremium = invitation.plan_type === 'PREMIUM';
 
-  const handlePremiumClick = (colorValue: string) => {
-    if (!isPremium) {
-      alert(t.upgrade_premium);
-      return;
+  // Dictionnaire de traduction local pour l'organisation de la Sidebar
+  const localLabels = {
+    fr: {
+      action_style: "Le Style d'action (Déclencheur)",
+      opening_container: "Le Type d'ouverture (Contenant)",
+      free: "Gratuit",
+      premium: "PREMIUM",
+      style_default: "Sceau ancestral",
+      style_knock: "Main qui toque",
+      style_key: "Clé classique",
+      style_vault: "Code digital (Vault)",
+      type_vinyl: "Enveloppe classique",
+      type_filmstrip: "Les Portes Bois",
+      type_metal: "La Porte Métal",
+      alert_msg: "Vous possédez un compte FREE, veuillez passer en PREMIUM pour débloquer cette fonctionnalité."
+    },
+    en: {
+      action_style: "Action Style (Trigger)",
+      opening_container: "Opening Type (Container)",
+      free: "Free",
+      premium: "PREMIUM",
+      style_default: "Ancestral Seal",
+      style_knock: "Knocking Hand",
+      style_key: "Classic Key",
+      style_vault: "Digital Code (Vault)",
+      type_vinyl: "Classic Envelope",
+      type_filmstrip: "Wooden Doors",
+      type_metal: "Metal Door",
+      alert_msg: "You have a FREE account, please upgrade to PREMIUM to unlock this feature."
+    },
+    vi: {
+      action_style: "Kiểu hành động (Kích hoạt)",
+      opening_container: "Loại mở rộng (Hộp chứa)",
+      free: "Miễn phí",
+      premium: "PREMIUM",
+      style_default: "Dấu ấn cổ xưa",
+      style_knock: "Tay gõ cửa",
+      style_key: "Chìa khóa cổ điển",
+      style_vault: "Mã kỹ thuật số (Vault)",
+      type_vinyl: "Phong bì cổ điển",
+      type_filmstrip: "Cửa gỗ",
+      type_metal: "Cửa kim loại",
+      alert_msg: "Bạn đang sử dụng tài khoản MIỄN PHÍ, vui lòng nâng cấp lên PREMIUM để mở khóa tính năng này."
     }
+  }[lang];
+
+  const checkPremiumAccess = (condition: boolean) => {
+    if (!condition && !isPremium) {
+      alert(localLabels.alert_msg);
+      return false;
+    }
+    return true;
+  };
+
+  const handlePremiumClick = (colorValue: string) => {
+    if (!checkPremiumAccess(false)) return;
     onInvitationChange({...invitation, envelope_color: colorValue});
   };
 
-  const handleOpeningStyleClick = (styleId: string) => {
-    if (!isPremium) {
-      alert(t.upgrade_premium);
-      return;
-    }
+  const handleOpeningStyleClick = (styleId: string, premium: boolean) => {
+    if (!checkPremiumAccess(!premium)) return;
     onInvitationChange({...invitation, opening_style: styleId});
   };
 
+  const handleOpeningTypeClick = (typeId: string, premium: boolean) => {
+    if (!checkPremiumAccess(!premium)) return;
+    onInvitationChange({...invitation, opening_type: typeId});
+  };
+
   const handleThemeClick = (themeId: string, premium: boolean) => {
-    if (premium && !isPremium) {
-      alert(t.upgrade_premium);
-      return;
-    }
+    if (!checkPremiumAccess(!premium)) return;
     onInvitationChange({...invitation, event_type: themeId});
   };
 
   const handleFontClick = (fontFamily: string, premium: boolean) => {
-    if (premium && !isPremium) {
-      alert(t.upgrade_premium);
-      return;
-    }
+    if (!checkPremiumAccess(!premium)) return;
     onInvitationChange({...invitation, font_style: fontFamily});
   };
 
   const handleTextureClick = (textureId: string, premium: boolean) => {
-    if (premium && !isPremium) {
-      alert(t.upgrade_premium);
-      return;
-    }
+    if (!checkPremiumAccess(!premium)) return;
     onInvitationChange({...invitation, paper_type: textureId});
   };
 
@@ -131,10 +175,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
   const uploadProgramImage = async (e: any, index: number) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    if (!isPremium) {
-      alert(t.upgrade_premium);
-      return;
-    }
+    if (!checkPremiumAccess(false)) return;
     setUploading(true);
     const fileName = `prog-${Date.now()}-${index}.${file.name.split('.').pop()}`;
     try {
@@ -300,47 +341,123 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
       {activeTab === 'style' && (
         <div className="space-y-8">
+          {/* REORGANISATION PARTIE 1 : STYLE D'ACTION (DÉCLENCHEUR) */}
           <div>
-            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">{t.opening_style_label}</label>
+            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">
+              {localLabels.action_style}
+            </label>
             <div className="grid grid-cols-2 gap-3">
-              <button onClick={() => onInvitationChange({...invitation, opening_style: 'default'})} className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all ${invitation.opening_style === 'default' || !invitation.opening_style ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}>
+              {/* GRATUIT : SCEAU */}
+              <button 
+                type="button"
+                onClick={() => onInvitationChange({...invitation, opening_style: 'default'})} 
+                className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all ${invitation.opening_style === 'default' || !invitation.opening_style ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}
+              >
                 <ImageIcon size={18} className={invitation.opening_style === 'default' || !invitation.opening_style ? 'text-amber-500' : 'text-gray-400'} />
-                <span className="text-[10px] font-bold uppercase">{translations[lang].opening_styles.default}</span>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold uppercase">{localLabels.style_default}</span>
+                  <span className="text-[8px] font-medium text-green-600 lowercase">{localLabels.free}</span>
+                </div>
               </button>
-              <button onClick={() => handleOpeningStyleClick('knock')} className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all relative ${invitation.opening_style === 'knock' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'} ${!isPremium ? 'opacity-50 grayscale pointer-events-none' : ''}`}>
+
+              {/* PREMIUM : MAIN QUI TOQUE */}
+              <button 
+                type="button"
+                onClick={() => handleOpeningStyleClick('knock', true)} 
+                className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all relative ${invitation.opening_style === 'knock' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'} ${!isPremium ? 'border-transparent shadow-sm' : ''}`}
+              >
                 <Hand size={18} className={invitation.opening_style === 'knock' ? 'text-amber-500' : 'text-gray-400'} />
-                <span className="text-[10px] font-bold uppercase">{translations[lang].opening_styles.knock}</span>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold uppercase">{localLabels.style_knock}</span>
+                  <span className="text-[8px] font-black text-amber-500 lowercase">{localLabels.premium}</span>
+                </div>
                 {!isPremium && <Lock size={12} className="absolute right-2 top-2 text-gray-400" />}
               </button>
-              <button onClick={() => handleOpeningStyleClick('key')} className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all relative ${invitation.opening_style === 'key' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'} ${!isPremium ? 'opacity-50 grayscale pointer-events-none' : ''}`}>
+
+              {/* PREMIUM : CLÉ CLASSIQUE */}
+              <button 
+                type="button"
+                onClick={() => handleOpeningStyleClick('key', true)} 
+                className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all relative ${invitation.opening_style === 'key' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'} ${!isPremium ? 'border-transparent shadow-sm' : ''}`}
+              >
                 <Key size={18} className={invitation.opening_style === 'key' ? 'text-amber-500' : 'text-gray-400'} />
-                <span className="text-[10px] font-bold uppercase">{translations[lang].opening_styles.key}</span>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold uppercase">{localLabels.style_key}</span>
+                  <span className="text-[8px] font-black text-amber-500 lowercase">{localLabels.premium}</span>
+                </div>
                 {!isPremium && <Lock size={12} className="absolute right-2 top-2 text-gray-400" />}
               </button>
-              <button onClick={() => handleOpeningStyleClick('vault')} className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all relative ${invitation.opening_style === 'vault' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'} ${!isPremium ? 'opacity-50 grayscale pointer-events-none' : ''}`}>
+
+              {/* PREMIUM : CODE DIGITAL (VAULT) */}
+              <button 
+                type="button"
+                onClick={() => handleOpeningStyleClick('vault', true)} 
+                className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all relative ${invitation.opening_style === 'vault' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'} ${!isPremium ? 'border-transparent shadow-sm' : ''}`}
+              >
                 <Vault size={18} className={invitation.opening_style === 'vault' ? 'text-amber-500' : 'text-gray-400'} />
-                <span className="text-[10px] font-bold uppercase">{translations[lang].opening_styles.vault}</span>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold uppercase">{localLabels.style_vault}</span>
+                  <span className="text-[8px] font-black text-amber-500 lowercase">{localLabels.premium}</span>
+                </div>
                 {!isPremium && <Lock size={12} className="absolute right-2 top-2 text-gray-400" />}
               </button>
             </div>
           </div>
+
+          {/* REORGANISATION PARTIE 2 : TYPE D'OUVERTURE (CONTENANT) */}
           <div>
-            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">{t.opening_type_label}</label>
+            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">
+              {localLabels.opening_container}
+            </label>
             <div className="grid grid-cols-2 gap-3">
-              <button onClick={() => onInvitationChange({...invitation, opening_type: 'vinyl'})} className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all ${invitation.opening_type === 'vinyl' || !invitation.opening_type ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}>
-                <span className="text-[10px] font-bold uppercase">{translations[lang].opening_types.vinyl}</span>
+              {/* GRATUIT : ENVELOPPE CLASSIQUE */}
+              <button 
+                type="button"
+                onClick={() => handleOpeningTypeClick('vinyl', false)} 
+                className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all ${invitation.opening_type === 'vinyl' || !invitation.opening_type ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}
+              >
+                <ImageIcon size={18} className={invitation.opening_type === 'vinyl' || !invitation.opening_type ? 'text-amber-500' : 'text-gray-400'} />
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold uppercase">{localLabels.type_vinyl}</span>
+                  <span className="text-[8px] font-medium text-green-600 lowercase">{localLabels.free}</span>
+                </div>
               </button>
-              <button onClick={() => onInvitationChange({...invitation, opening_type: 'filmstrip'})} className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all ${invitation.opening_type === 'filmstrip' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}>
-                <span className="text-[10px] font-bold uppercase">{translations[lang].opening_types.filmstrip}</span>
+
+              {/* PREMIUM : LES PORTES BOIS */}
+              <button 
+                type="button"
+                onClick={() => handleOpeningTypeClick('filmstrip', true)} 
+                className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all relative ${invitation.opening_type === 'filmstrip' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'} ${!isPremium ? 'border-transparent shadow-sm' : ''}`}
+              >
+                <DoorClosed size={18} className={invitation.opening_type === 'filmstrip' ? 'text-amber-500' : 'text-gray-400'} />
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold uppercase">{localLabels.type_filmstrip}</span>
+                  <span className="text-[8px] font-black text-amber-500 lowercase">{localLabels.premium}</span>
+                </div>
+                {!isPremium && <Lock size={12} className="absolute right-2 top-2 text-gray-400" />}
+              </button>
+
+              {/* PREMIUM : LA PORTE MÉTAL */}
+              <button 
+                type="button"
+                onClick={() => handleOpeningTypeClick('metal', true)} 
+                className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all relative ${invitation.opening_type === 'metal' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'} ${!isPremium ? 'border-transparent shadow-sm' : ''}`}
+              >
+                <DoorClosed size={18} className={invitation.opening_type === 'metal' ? 'text-amber-500' : 'text-gray-400'} />
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-bold uppercase">{localLabels.type_metal}</span>
+                  <span className="text-[8px] font-black text-amber-500 lowercase">{localLabels.premium}</span>
+                </div>
+                {!isPremium && <Lock size={12} className="absolute right-2 top-2 text-gray-400" />}
               </button>
             </div>
           </div>
+
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">{t.theme_label}</label>
             <div className="grid grid-cols-2 gap-3">
               {EVENT_TYPES.map(type => (
                 <button key={type.id} onClick={() => handleThemeClick(type.id, type.premium)} className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all relative ${invitation.event_type === type.id ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'} ${type.premium && !isPremium ? 'opacity-50 grayscale pointer-events-none' : ''}`}>
-                  <type.icon size={18} className={invitation.event_type === type.id ? 'text-amber-500' : 'text-gray-400'} />
                   <type.icon size={18} className={invitation.event_type === type.id ? 'text-amber-500' : 'text-gray-400'} />
                   <span className="text-[10px] font-bold uppercase">{type.name}</span>
                   {type.premium && !isPremium && <Lock size={12} className="absolute right-2 top-2 text-gray-400" />}
