@@ -239,17 +239,15 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     }
   };
 
-  // Logique du clic sur "Gérer mon compte"
-  const handleManageAccountClick = () => {
+  const handleManageAccountClick = (e: React.MouseEvent) => {
+    e.preventDefault();
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
 
     if (isStandalone) {
-      // Si on est dans l'application Play Store Android, on sort vers le navigateur externe web officiel
       setIsAccountModalOpen(false);
       const webDashboardUrl = `https://invitstudio.vercel.app/dashboard?openPlans=true`;
       window.open(webDashboardUrl, '_blank');
     } else {
-      // Si on est sur Safari/Web standard, on change juste l'étape interne, sans AUCUNE fermeture de fenêtre
       setAccountStep('PLANS');
     }
   };
@@ -378,18 +376,19 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
           </div>
         )}
 
-        {/* MODALE UNIQUE UNIFIÉE (PAS DE FERMETURE = PAS DE PAGE BLANCHE SAFARI) */}
+        {/* MODALE COMPTE USER STABLE (LARGEUR FIXE SANS CONFLIT RENDU SAFARI) */}
         {isAccountModalOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <div className={`bg-white w-full rounded-[2.5rem] shadow-2xl overflow-hidden transition-all duration-300 ${accountStep === 'PLANS' ? 'max-w-4xl' : 'max-w-md'}`}>
+            <div className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
               
-              {/* HEADER DE LA MODALE */}
-              <div className="p-8 border-b border-gray-100 flex items-center justify-between bg-amber-50/50">
+              {/* HEADER UNIQUE DE LA MODALE */}
+              <div className="p-8 border-b border-gray-100 flex items-center justify-between bg-amber-50/50 shrink-0">
                 <div className="flex items-center gap-3">
                   {accountStep !== 'PROFILE' && (
                     <button 
+                      type="button"
                       onClick={() => setAccountStep(accountStep === 'CHECKOUT' ? 'PLANS' : 'PROFILE')} 
-                      className="p-2 hover:bg-white rounded-full transition-colors border border-gray-200/50 bg-white/50"
+                      className="p-2 hover:bg-white rounded-full transition-colors border border-gray-200/50 bg-white"
                     >
                       <ArrowLeft size={16} />
                     </button>
@@ -407,13 +406,13 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                     </p>
                   </div>
                 </div>
-                <button onClick={() => setIsAccountModalOpen(false)} className="p-2 hover:bg-white rounded-full transition-colors"><X /></button>
+                <button type="button" onClick={() => setIsAccountModalOpen(false)} className="p-2 hover:bg-white rounded-full transition-colors"><X /></button>
               </div>
 
-              {/* CONTENU DE LA MODALE SELON L'ÉTAPE ACTIVE */}
-              <div className="p-8">
+              {/* ZONE DE CONTENU DE LA MODALE */}
+              <div className="p-8 overflow-y-auto flex-1">
                 
-                {/* ÉTAPE 1 : PROFIL DE L'UTILISATEUR */}
+                {/* ETAPE 1 : PROFIL DE L'UTILISATEUR */}
                 {accountStep === 'PROFILE' && (
                   <div className="space-y-6">
                     <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
@@ -435,6 +434,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
 
                     <div className="text-center">
                       <button 
+                        type="button"
                         onClick={handleManageAccountClick}
                         className="text-xs font-black text-amber-600 hover:text-amber-700 uppercase tracking-widest underline decoration-2 underline-offset-4"
                       >
@@ -467,55 +467,45 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                   </div>
                 )}
 
-                {/* ÉTAPE 2 : LA GRILLE TARIFAIRE DES PLANS */}
+                {/* ETAPE 2 : LA GRILLE DES GRANDS PLANS TARIFAIRES (ADAPTÉE EN VERTICAL POUR S'INTÉGRER AU CONTENEUR FIXE) */}
                 {accountStep === 'PLANS' && (
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-h-[60vh] overflow-y-auto pt-2">
+                  <div className="space-y-4">
                     {paymentPlans.map((plan, idx) => (
                       <div 
                         key={idx} 
-                        className={`bg-white rounded-[2rem] p-6 border flex flex-col justify-between relative transition-all duration-300 ${
-                          plan.tag ? 'border-amber-400 shadow-xl bg-gradient-to-b from-amber-50/20 to-white' : 'border-gray-100 shadow-sm'
+                        className={`bg-white rounded-2xl p-5 border flex items-center justify-between relative transition-all duration-300 ${
+                          plan.tag ? 'border-amber-400 shadow-md bg-gradient-to-r from-amber-50/10 via-white to-white' : 'border-gray-100 shadow-sm'
                         }`}
                       >
-                        {plan.tag && (
-                          <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-amber-500 text-white rounded-full text-[9px] font-black uppercase tracking-wider shadow-sm">
-                            {plan.tag}
-                          </span>
-                        )}
-
-                        <div className="space-y-4">
-                          <div className="flex justify-between items-start">
-                            <h4 className="text-lg font-black text-gray-900 uppercase tracking-tight">{plan.duration}</h4>
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <h4 className="text-sm font-black text-gray-900 uppercase tracking-tight">{plan.duration}</h4>
                             {plan.discount && (
-                              <span className="px-2 py-0.5 bg-rose-100 text-rose-600 rounded-lg text-[10px] font-black">
-                                {tPln.save} {plan.discount}
+                              <span className="px-1.5 py-0.5 bg-rose-100 text-rose-600 rounded text-[9px] font-black">
+                                {plan.discount}
                               </span>
                             )}
                           </div>
-
-                          <div className="pt-2">
-                            <p className="text-3xl font-black text-gray-900 tracking-tight">
-                              {plan.monthlyPrice}
-                              <span className="text-xs text-gray-400 font-bold lowercase tracking-normal ml-0.5">
-                                {tPln.current || '/mo'}
-                              </span>
-                            </p>
-                            {idx > 0 && (
-                              <p className="text-[10px] text-gray-400 font-bold mt-1 uppercase tracking-wider">
-                                Total: {plan.totalPrice}
-                              </p>
-                            )}
-                          </div>
+                          <p className="text-[10px] text-gray-400 font-bold uppercase">
+                            Total: <span className="text-gray-700 font-black">{plan.totalPrice}</span>
+                          </p>
                         </div>
 
-                        <div className="mt-8 pt-4 border-t border-gray-50">
+                        <div className="flex items-center gap-4">
+                          <div className="text-right">
+                            <p className="text-base font-black text-gray-900 tracking-tight">
+                              {plan.monthlyPrice}
+                              <span className="text-[10px] text-gray-400 font-normal">/mo</span>
+                            </p>
+                          </div>
                           <button 
+                            type="button"
                             onClick={() => handleSelectPlan(plan)}
-                            className={`w-full h-11 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
-                              plan.tag ? 'bg-amber-500 text-white hover:bg-amber-600 shadow-md' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${
+                              plan.tag ? 'bg-amber-500 text-white hover:bg-amber-600' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
                             }`}
                           >
-                            {tPln.buy || 'Acheter un code'}
+                            {tPln.buy || 'Code'}
                           </button>
                         </div>
                       </div>
@@ -523,18 +513,17 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                   </div>
                 )}
 
-                {/* ÉTAPE 3 : TUNNEL DE CHOIX DU MODE DE PAIEMENT */}
+                {/* ETAPE 3 : CHOIX FINAUX DE PAIEMENT */}
                 {accountStep === 'CHECKOUT' && (
-                  <div className="space-y-4 max-w-sm mx-auto">
-                    <p className="text-xs text-gray-500 font-medium leading-relaxed text-center mb-4">{tChk.subtitle}</p>
-
+                  <div className="space-y-3">
                     {/* BOUTON QR CODE */}
                     <button 
+                      type="button"
                       onClick={() => alert(lang === 'fr' ? "Ouverture du module de paiement QR Code..." : "Opening QR Code payment module...")}
-                      className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl flex items-center gap-4 transition-all hover:bg-amber-50/40 hover:border-amber-300 group text-left"
+                      className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl flex items-center gap-4 transition-all hover:bg-amber-50/40 border-transparent hover:border-amber-300 group text-left"
                     >
-                      <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm text-gray-700 group-hover:text-amber-500 group-hover:shadow-md transition-all">
-                        <QrCode size={24} />
+                      <div className="w-11 h-11 bg-white rounded-xl flex items-center justify-center shadow-sm text-gray-700 group-hover:text-amber-500 group-hover:shadow-md transition-all">
+                        <QrCode size={20} />
                       </div>
                       <div>
                         <p className="text-sm font-black text-gray-900 uppercase tracking-tight">{tChk.qr}</p>
@@ -543,11 +532,12 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
 
                     {/* BOUTON CARTE BANCAIRE */}
                     <button 
+                      type="button"
                       onClick={() => alert(lang === 'fr' ? "Ouverture de la passerelle CB (Paypal/Stripe)..." : "Opening Credit Card gateway...")}
-                      className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl flex items-center gap-4 transition-all hover:bg-amber-50/40 hover:border-amber-300 group text-left"
+                      className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl flex items-center gap-4 transition-all hover:bg-amber-50/40 border-transparent hover:border-amber-300 group text-left"
                     >
-                      <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm text-gray-700 group-hover:text-amber-500 group-hover:shadow-md transition-all">
-                        <CreditCard size={24} />
+                      <div className="w-11 h-11 bg-white rounded-xl flex items-center justify-center shadow-sm text-gray-700 group-hover:text-amber-500 group-hover:shadow-md transition-all">
+                        <CreditCard size={20} />
                       </div>
                       <div>
                         <p className="text-sm font-black text-gray-900 uppercase tracking-tight">{tChk.cb}</p>
