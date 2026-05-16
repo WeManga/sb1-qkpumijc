@@ -3,26 +3,32 @@ import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { Database } from '../../lib/database.types';
 import { translations as allTranslations, Language } from '../../lib/i18n';
-import { Plus, Calendar, Eye, CreditCard as Edit, LogOut, Trash2, Copy, Loader2, Users, X, Share, User, ShieldCheck, Ticket } from 'lucide-react';
+import { Plus, Calendar, Eye, CreditCard as Edit, LogOut, Trash2, Copy, Loader2, Users, X, Share, User, ShieldCheck, Ticket, Sparkles, Check, QrCode, CreditCard } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Extension locale des traductions pour la PWA et le compte
+// Extension locale des traductions pour la PWA, le compte, les plans et le paiement
 const translations: any = {
   ...allTranslations,
   en: { 
     ...allTranslations.en, 
     pwa: { title: "Install Studio App", desc: "Manage invitations easily. Tap", then: "then", action: "Add to Home Screen" },
-    account: { title: "My Account", manage: "Manage My Account", placeholder: "Enter activation code", activate: "Activate", status: "Account Status", duration: "Subscription duration:" }
+    account: { title: "My Account", manage: "Manage My Account", placeholder: "Enter activation code", activate: "Activate", status: "Account Status", duration: "Subscription duration:" },
+    plans: { title: "Upgrade to PREMIUM", subtitle: "Unlock all templates, custom music, text style, and high fidelity albums.", month: "month", months: "months", popular: "Most Popular", best: "Best Value", save: "Save", current: "/mo", buy: "Buy a code" },
+    checkout: { title: "Select Payment Method", subtitle: "Choose how you want to purchase your single-use activation code.", qr: "Pay by QR Code", cb: "Pay by Credit Card" }
   },
   fr: { 
     ...allTranslations.fr, 
     pwa: { title: "Installez l'App Studio", desc: "Gérez vos invitations facilement. Appuyez sur", then: "puis sur", action: "Sur l'écran d'accueil" },
-    account: { title: "Mon Compte", manage: "Gérer Mon Compte", placeholder: "Entrez votre code unique", activate: "Activer", status: "Statut du compte", duration: "Durée de l'abonnement :" }
+    account: { title: "Mon Compte", manage: "Gérer Mon Compte", placeholder: "Entrez votre code unique", activate: "Activer", status: "Statut du compte", duration: "Durée de l'abonnement :" },
+    plans: { title: "Upgrade to PREMIUM", subtitle: "Unlock all templates, custom music, text style, and high fidelity albums.", month: "month", months: "months", popular: "Most Popular", best: "Best Value", save: "Save", current: "/mo", buy: "Acheter un code" },
+    checkout: { title: "Choisir le moyen de paiement", subtitle: "Sélectionnez votre mode de règlement pour obtenir votre code d'activation unique.", qr: "Payer par QR Code", cb: "Payer par CB" }
   },
   vi: { 
     ...allTranslations.vi, 
     pwa: { title: "Cài đặt App Studio", desc: "Quản lý lời mời dễ dàng hơn. Nhấn vào", then: "sau đó chọn", action: "Thêm vào MH chính" },
-    account: { title: "Tài khoản của tôi", manage: "Quản lý tài khoản", placeholder: "Nhập mã kích hoạt", activate: "Kích hoạt", status: "Trạng thái tài khoản", duration: "Thời hạn gói:" }
+    account: { title: "Tài khoản của tôi", manage: "Quản lý tài khoản", placeholder: "Nhập mã kích hoạt", activate: "Kích hoạt", status: "Trạng thái tài khoản", duration: "Thời hạn gói:" },
+    plans: { title: "Nâng cấp lên PREMIUM", subtitle: "Mở khóa toàn bộ giao diện, nhạc nền tự chọn, chất liệu giấy cao cấp và album ảnh.", month: "tháng", months: "tháng", popular: "Phổ biến", best: "Tiết kiệm nhất", save: "Tiết kiệm", current: "/tháng", buy: "Mua mã kích hoạt" },
+    checkout: { title: "Chọn phương thức thanh toán", subtitle: "Chọn cách thức thanh toán để nhận mã kích hoạt sử dụng một lần.", qr: "Thanh toán qua mã QR", cb: "Thanh toán thẻ ngân hàng" }
   }
 };
 
@@ -49,8 +55,11 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [showIOSPrompt, setShowIOSPrompt] = useState(false);
   
-  // États pour la modale Mon Compte
+  // États pour la modale Mon Compte et de paiement
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
+  const [isPlansModalOpen, setIsPlansModalOpen] = useState(false);
+  const [isCheckoutModalOpen, setIsCheckoutModalOpen] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [accountStatus, setAccountStatus] = useState<'FREE' | 'PREMIUM'>('FREE');
   const [premiumDuration, setPremiumDuration] = useState<string>('');
   const [activationCode, setActivationCode] = useState('');
@@ -63,6 +72,14 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   useEffect(() => {
     loadInvitations();
     loadAccountStatus();
+
+    // Ouvrir automatiquement la grille de prix si redirection depuis l'application PlayStore externe
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('openPlans') === 'true') {
+      setIsPlansModalOpen(true);
+      // Nettoyer l'URL proprement pour l'utilisateur
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
 
     // Détection iOS pour installation PWA
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
@@ -85,6 +102,8 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   const tAuth = translations[lang].sidebar;
   const tPwa = translations[lang].pwa;
   const tAcc = translations[lang].account;
+  const tPln = translations[lang].plans || translations['en'].plans;
+  const tChk = translations[lang].checkout || translations['en'].checkout;
 
   const dismissPrompt = () => {
     localStorage.setItem('pwa_prompt_dismissed', 'true');
@@ -140,7 +159,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   };
 
   const fetchResponses = async (invitationId: string) => {
-    const { data, error } = await supabase
+    const { data, error = null } = await supabase
       .from('responses')
       .select('group_leader_name, total_guests, guest_details')
       .eq('invitation_id', invitationId);
@@ -202,10 +221,9 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     setActivationLoading(true);
 
     try {
-      // Simulation ou appel RPC Supabase pour valider le coupon à implémenter plus tard
       const { error } = await supabase
         .from('profiles')
-        .update({ plan_type: 'PREMIUM', premium_duration_months: 12 }) // Par défaut 12 mois pour le test
+        .update({ plan_type: 'PREMIUM', premium_duration_months: 12 }) 
         .eq('id', user.id);
 
       if (error) throw error;
@@ -220,6 +238,57 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
       setActivationLoading(false);
     }
   };
+
+  // Logique de contournement de la commission des stores (Play Store / App natives)
+  const handleManageAccountClick = () => {
+    setIsAccountModalOpen(false);
+
+    // Détection si l'application tourne en mode Standalone (PWA installée via PlayStore ou Accueil iOS)
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
+
+    if (isStandalone) {
+      // Éviter la commission Google : on redirige impérativement vers l'adresse web officielle extérieure
+      const webDashboardUrl = `https://invitstudio.vercel.app/dashboard?openPlans=true`;
+      window.open(webDashboardUrl, '_blank');
+    } else {
+      // Si l'utilisateur navigue déjà sur le site web classique (Safari/Chrome mobile), on affiche directement le Pop-up
+      setIsPlansModalOpen(true);
+    }
+  };
+
+  const handleSelectPlan = (plan: any) => {
+    setSelectedPlan(plan);
+    setIsPlansModalOpen(false);
+    setIsCheckoutModalOpen(true);
+  };
+
+  // Données des plans de paiement
+  const paymentPlans = [
+    {
+      id: '1_month',
+      duration: `1 ${lang === 'fr' ? 'Mois' : tPln.month}`,
+      totalPrice: lang === 'vi' ? '199.000 VND' : lang === 'fr' ? '6,67 €' : '$7.55',
+      monthlyPrice: lang === 'vi' ? '199.000 VND' : lang === 'fr' ? '6,67 €' : '$7.55',
+      discount: null,
+      tag: null
+    },
+    {
+      id: '3_months',
+      duration: `3 ${lang === 'fr' ? 'Mois' : tPln.months}`,
+      totalPrice: lang === 'vi' ? '522.000 VND' : lang === 'fr' ? '17,00 €' : '$19.81',
+      monthlyPrice: lang === 'vi' ? '174.000 VND' : lang === 'fr' ? '5,67 €' : '$6.60',
+      discount: '-12.56%',
+      tag: tPln.popular || 'Popular'
+    },
+    {
+      id: '6_months',
+      duration: `6 ${lang === 'fr' ? 'Mois' : tPln.months}`,
+      totalPrice: lang === 'vi' ? '894.000 VND' : lang === 'fr' ? '29,12 €' : '$33.92',
+      monthlyPrice: lang === 'vi' ? '149.000 VND' : lang === 'fr' ? '4,85 €' : '$5.65',
+      discount: '-25.13%',
+      tag: tPln.best || 'Best Value'
+    }
+  ];
 
   return (
     <div className="absolute inset-0 overflow-y-auto bg-gradient-to-b from-gray-50 to-white scrollbar-hide">
@@ -344,14 +413,14 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                   </div>
                 </div>
 
-                {/* Lien de gestion externe */}
+                {/* Lien de gestion externe avec détection PWA/App Play Store */}
                 <div className="text-center">
-                  <a 
-                    href="/payment-placeholder" // Sera remplacé plus tard par la vraie page
-                    className="text-xs font-bold text-amber-600 hover:text-amber-700 uppercase tracking-widest underline decoration-2 underline-offset-4"
+                  <button 
+                    onClick={handleManageAccountClick}
+                    className="text-xs font-black text-amber-600 hover:text-amber-700 uppercase tracking-widest underline decoration-2 underline-offset-4"
                   >
                     {tAcc.manage}
-                  </a>
+                  </button>
                 </div>
 
                 <div className="border-t border-gray-100 pt-6 space-y-3">
@@ -378,6 +447,129 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                   </form>
                 </div>
 
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* POPUP/MODALE PLANS DE PAIEMENT */}
+        {isPlansModalOpen && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+            <div className="bg-gradient-to-b from-white to-gray-50/50 w-full max-w-4xl rounded-[3rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 max-h-[90vh] flex flex-col">
+              <div className="p-8 border-b border-gray-100 flex items-start justify-between bg-amber-50/30 shrink-0">
+                <div className="space-y-1">
+                  <h3 className="text-2xl font-black text-gray-900 uppercase tracking-tight flex items-center gap-2">
+                    <Sparkles className="text-amber-500 fill-amber-500" size={22} />
+                    {tPln.title}
+                  </h3>
+                  <p className="text-xs text-gray-500 font-medium max-w-xl leading-relaxed">{tPln.subtitle}</p>
+                </div>
+                <button onClick={() => setIsPlansModalOpen(false)} className="p-2 hover:bg-white rounded-full transition-colors border border-gray-200/60 bg-white/50"><X /></button>
+              </div>
+              
+              <div className="p-8 overflow-y-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+                {paymentPlans.map((plan, idx) => (
+                  <div 
+                    key={idx} 
+                    className={`bg-white rounded-[2rem] p-6 border flex flex-col justify-between relative transition-all duration-300 ${
+                      plan.tag ? 'border-amber-400 shadow-xl md:scale-105 bg-gradient-to-b from-amber-50/20 to-white' : 'border-gray-100 shadow-sm'
+                    }`}
+                  >
+                    {plan.tag && (
+                      <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-amber-500 text-white rounded-full text-[9px] font-black uppercase tracking-wider shadow-sm">
+                        {plan.tag}
+                      </span>
+                    )}
+
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-start">
+                        <h4 className="text-lg font-black text-gray-900 uppercase tracking-tight">{plan.duration}</h4>
+                        {plan.discount && (
+                          <span className="px-2 py-0.5 bg-rose-100 text-rose-600 rounded-lg text-[10px] font-black">
+                            {tPln.save} {plan.discount}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="pt-2">
+                        <p className="text-3xl font-black text-gray-900 tracking-tight">
+                          {plan.monthlyPrice}
+                          <span className="text-xs text-gray-400 font-bold lowercase tracking-normal ml-0.5">
+                            {tPln.current || '/mo'}
+                          </span>
+                        </p>
+                        {idx > 0 && (
+                          <p className="text-[10px] text-gray-400 font-bold mt-1 uppercase tracking-wider">
+                            Total: {plan.totalPrice}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="mt-8 pt-4 border-t border-gray-50">
+                      <button 
+                        onClick={() => handleSelectPlan(plan)}
+                        className={`w-full h-11 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${
+                          plan.tag ? 'bg-amber-500 text-white hover:bg-amber-600 shadow-md' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                        }`}
+                      >
+                        {tPln.buy || 'Acheter un code'}
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* POPUP SÉLECTION TUNNEL PAIEMENT (QR OU CB) */}
+        {isCheckoutModalOpen && (
+          <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
+            <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+              <div className="p-8 border-b border-gray-100 flex items-start justify-between bg-amber-50/30">
+                <div className="space-y-1">
+                  <h3 className="text-xl font-black text-gray-900 uppercase tracking-tight">{tChk.title}</h3>
+                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                    {selectedPlan?.duration} • <span className="text-amber-600 font-black">{selectedPlan?.totalPrice}</span>
+                  </p>
+                </div>
+                <button 
+                  onClick={() => { setIsCheckoutModalOpen(false); setIsPlansModalOpen(true); }} 
+                  className="p-2 hover:bg-white rounded-full transition-colors border border-gray-200/60 bg-white"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <div className="p-8 space-y-4">
+                <p className="text-xs text-gray-500 font-medium leading-relaxed mb-2">{tChk.subtitle}</p>
+
+                {/* BOUTON QR CODE */}
+                <button 
+                  onClick={() => alert(lang === 'fr' ? "Ouverture du module de paiement QR Code..." : "Opening QR Code payment module...")}
+                  className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl flex items-center gap-4 transition-all hover:bg-amber-50/40 hover:border-amber-300 group text-left"
+                >
+                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm text-gray-700 group-hover:text-amber-500 group-hover:shadow-md transition-all">
+                    <QrCode size={24} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-black text-gray-900 uppercase tracking-tight">{tChk.qr}</p>
+                  </div>
+                </button>
+
+                {/* BOUTON CARTE BANCAIRE */}
+                <button 
+                  onClick={() => alert(lang === 'fr' ? "Ouverture de la passerelle CB (Paypal/Stripe)..." : "Opening Credit Card gateway...")}
+                  className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl flex items-center gap-4 transition-all hover:bg-amber-50/40 hover:border-amber-300 group text-left"
+                >
+                  <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm text-gray-700 group-hover:text-amber-500 group-hover:shadow-md transition-all">
+                    <CreditCard size={24} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-black text-gray-900 uppercase tracking-tight">{tChk.cb}</p>
+                  </div>
+                </button>
               </div>
             </div>
           </div>
