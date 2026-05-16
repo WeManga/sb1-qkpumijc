@@ -20,7 +20,7 @@ const translations: any = {
     ...allTranslations.fr, 
     pwa: { title: "Installez l'App Studio", desc: "Gérez vos invitations facilement. Appuyez sur", then: "puis sur", action: "Sur l'écran d'accueil" },
     account: { title: "Mon Compte", manage: "Gérer Mon Compte", placeholder: "Entrez votre code unique", activate: "Activer", status: "Statut du compte", duration: "Durée de l'abonnement :" },
-    plans: { title: "Upgrade to PREMIUM", subtitle: "Unlock all templates, custom music, text style, and high fidelity albums.", month: "month", months: "months", popular: "Most Popular", best: "Best Value", save: "Save", current: "/mo", buy: "Acheter un code" },
+    plans: { title: "Passer au PREMIUM", subtitle: "Débloquez tous les modèles, musiques personnalisées, textures de papier et albums haute fidélité.", month: "mois", months: "mois", popular: "Le plus populaire", best: "Meilleure offre", save: "Économisez", current: "/mois", buy: "Acheter un code" },
     checkout: { title: "Choisir le moyen de paiement", subtitle: "Sélectionnez votre mode de règlement pour obtenir votre code d'activation unique.", qr: "Payer par QR Code", cb: "Payer par CB" }
   },
   vi: { 
@@ -239,19 +239,15 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     }
   };
 
-  // Logique de contournement de la commission des stores (Play Store / App natives)
   const handleManageAccountClick = () => {
     setIsAccountModalOpen(false);
 
-    // Détection si l'application tourne en mode Standalone (PWA installée via PlayStore ou Accueil iOS)
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
 
     if (isStandalone) {
-      // Éviter la commission Google : on redirige impérativement vers l'adresse web officielle extérieure
       const webDashboardUrl = `https://invitstudio.vercel.app/dashboard?openPlans=true`;
       window.open(webDashboardUrl, '_blank');
     } else {
-      // Si l'utilisateur navigue déjà sur le site web classique (Safari/Chrome mobile), on affiche directement le Pop-up
       setIsPlansModalOpen(true);
     }
   };
@@ -262,11 +258,11 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     setIsCheckoutModalOpen(true);
   };
 
-  // Données des plans de paiement
+  // Données des plans de paiement qui lisent désormais correctement tPln
   const paymentPlans = [
     {
       id: '1_month',
-      duration: `1 ${lang === 'fr' ? 'Mois' : tPln.month}`,
+      duration: `1 ${tPln.month}`,
       totalPrice: lang === 'vi' ? '199.000 VND' : lang === 'fr' ? '6,67 €' : '$7.55',
       monthlyPrice: lang === 'vi' ? '199.000 VND' : lang === 'fr' ? '6,67 €' : '$7.55',
       discount: null,
@@ -274,7 +270,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     },
     {
       id: '3_months',
-      duration: `3 ${lang === 'fr' ? 'Mois' : tPln.months}`,
+      duration: `3 ${tPln.months}`,
       totalPrice: lang === 'vi' ? '522.000 VND' : lang === 'fr' ? '17,00 €' : '$19.81',
       monthlyPrice: lang === 'vi' ? '174.000 VND' : lang === 'fr' ? '5,67 €' : '$6.60',
       discount: '-12.56%',
@@ -282,7 +278,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     },
     {
       id: '6_months',
-      duration: `6 ${lang === 'fr' ? 'Mois' : tPln.months}`,
+      duration: `6 ${tPln.months}`,
       totalPrice: lang === 'vi' ? '894.000 VND' : lang === 'fr' ? '29,12 €' : '$33.92',
       monthlyPrice: lang === 'vi' ? '149.000 VND' : lang === 'fr' ? '4,85 €' : '$5.65',
       discount: '-25.13%',
