@@ -41,6 +41,31 @@ export const translations = {
       then: "then",
       action: "Add to Home Screen"
     },
+    account: {
+      title: "My Account",
+      manage: "Manage My Account",
+      placeholder: "Enter activation code",
+      activate: "Activate",
+      status: "Account Status",
+      duration: "Subscription duration:"
+    },
+    plans: {
+      title: "Upgrade to PREMIUM",
+      subtitle: "Unlock all templates, custom music, text style, and high fidelity albums.",
+      month: "month",
+      months: "months",
+      popular: "Most Popular",
+      best: "Best Value",
+      save: "Save",
+      current: "/mo",
+      buy: "Buy a code"
+    },
+    checkout: {
+      title: "Select Payment Method",
+      subtitle: "Choose how you want to purchase your single-use activation code.",
+      qr: "Pay by QR Code",
+      cb: "Pay by Credit Card"
+    },
     builder: {
       back_btn: "Back",
       save_btn: "Save",
@@ -155,6 +180,31 @@ export const translations = {
       then: "puis sur",
       action: "Sur l'écran d'accueil"
     },
+    account: {
+      title: "Mon Compte",
+      manage: "Gérer Mon Compte",
+      placeholder: "Entrez votre code unique",
+      activate: "Activer",
+      status: "Statut du compte",
+      duration: "Durée de l'abonnement :"
+    },
+    plans: {
+      title: "Passer au PREMIUM",
+      subtitle: "Débloquez tous les modèles, musiques personnalisées, textures de papier et albums haute fidélité.",
+      month: "mois",
+      months: "mois",
+      popular: "Le plus populaire",
+      best: "Meilleure offre",
+      save: "Économisez",
+      current: "/mois",
+      buy: "Acheter un code"
+    },
+    checkout: {
+      title: "Choisir le moyen de paiement",
+      subtitle: "Sélectionnez votre mode de règlement pour obtenir votre code d'activation unique.",
+      qr: "Payer par QR Code",
+      cb: "Payer par CB"
+    },
     builder: {
       back_btn: "Retour",
       save_btn: "Enregistrer",
@@ -268,6 +318,31 @@ export const translations = {
       desc: "Quản lý lời mời dễ dàng hơn. Nhấn vào",
       then: "sau đó chọn",
       action: "Thêm vào MH chính"
+    },
+    account: {
+      title: "Tài khoản của tôi",
+      manage: "Quản lý tài khoản",
+      placeholder: "Nhập mã kích hoạt",
+      activate: "Kích hoạt",
+      status: "Trạng thái tài khoản",
+      duration: "Thời hạn gói:"
+    },
+    plans: {
+      title: "Nâng cấp lên PREMIUM",
+      subtitle: "Mở khóa toàn bộ giao diện, nhạc nền tự chọn, chất liệu giấy cao cấp và album ảnh.",
+      month: "tháng",
+      months: "tháng",
+      popular: "Phổ biến",
+      best: "Tiết kiệm nhất",
+      save: "Tiết kiệm",
+      current: "/tháng",
+      buy: "Mua mã kích hoạt"
+    },
+    checkout: {
+      title: "Chọn phương thức thanh toán",
+      subtitle: "Chọn cách thức thanh toán để nhận mã kích hoạt sử dụng một lần.",
+      qr: "Thanh toán qua mã QR",
+      cb: "Thanh toán thẻ ngân hàng"
     },
     builder: {
       back_btn: "Quay lại",
