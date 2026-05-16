@@ -238,19 +238,22 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     }
   };
 
+  // Logique unifiée du clic sur "Gérer mon compte"
   const handleManageAccountClick = () => {
+    setIsAccountModalOpen(false);
+
+    // Détection si l'application s'exécute en mode PWA/App installée (Standalone)
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
 
     if (isStandalone) {
-      setIsAccountModalOpen(false);
+      // Si l'utilisateur est dans l'app, on évite les règles du Store en ouvrant le vrai Safari vers le Web extérieur
       const webDashboardUrl = `https://invitstudio.vercel.app/dashboard?openPlans=true`;
       window.open(webDashboardUrl, '_blank');
     } else {
-      // Correction page blanche Safari : on laisse un infime délai pour fermer proprement la première modale avant d'ouvrir la seconde
-      setIsAccountModalOpen(false);
+      // Si l'utilisateur navigue sur le Safari standard, on lance directement le Pop-up interne fluide
       setTimeout(() => {
         setIsPlansModalOpen(true);
-      }, 100);
+      }, 150);
     }
   };
 
@@ -259,7 +262,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     setIsPlansModalOpen(false);
     setTimeout(() => {
       setIsCheckoutModalOpen(true);
-    }, 100);
+    }, 150);
   };
 
   const paymentPlans = [
@@ -307,7 +310,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
           </h1>
 
           <div className="absolute right-0 flex items-center gap-2">
-            {/* BOUTON MON COMPTE */}
+            {/* BOUTON MON COMPTE ACCUEIL */}
             <button
               onClick={() => setIsAccountModalOpen(true)}
               className="flex items-center gap-2 text-gray-400 hover:text-amber-500 transition-colors text-[10px] sm:text-[11px] font-bold uppercase tracking-widest px-2 py-2 border-r border-gray-100 pr-4"
@@ -412,7 +415,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                   </div>
                 </div>
 
-                {/* Lien de gestion externe */}
+                {/* Lien de déclenchement unifié pour Gérer Mon Compte */}
                 <div className="text-center">
                   <button 
                     onClick={handleManageAccountClick}
@@ -451,7 +454,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
           </div>
         )}
 
-        {/* POPUP/MODALE PLANS DE PAIEMENT */}
+        {/* POPUP/MODALE PLANS DE PAIEMENT (Directement dans Safari) */}
         {isPlansModalOpen && (
           <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
             <div className="bg-gradient-to-b from-white to-gray-50/50 w-full max-w-4xl rounded-[3rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300 max-h-[90vh] flex flex-col">
