@@ -238,22 +238,19 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     }
   };
 
-  // Logique unifiée du clic sur "Gérer mon compte"
+  // Correction cruciale : temporisation augmentée pour laisser le DOM nettoyer l'overlay de la modale 1
   const handleManageAccountClick = () => {
-    setIsAccountModalOpen(false);
-
-    // Détection si l'application s'exécute en mode PWA/App installée (Standalone)
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
 
     if (isStandalone) {
-      // Si l'utilisateur est dans l'app, on évite les règles du Store en ouvrant le vrai Safari vers le Web extérieur
+      setIsAccountModalOpen(false);
       const webDashboardUrl = `https://invitstudio.vercel.app/dashboard?openPlans=true`;
       window.open(webDashboardUrl, '_blank');
     } else {
-      // Si l'utilisateur navigue sur le Safari standard, on lance directement le Pop-up interne fluide
+      setIsAccountModalOpen(false);
       setTimeout(() => {
         setIsPlansModalOpen(true);
-      }, 150);
+      }, 300); // 300ms garantit que l'ancienne animation n'interfère plus sous iOS/Safari
     }
   };
 
@@ -262,7 +259,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     setIsPlansModalOpen(false);
     setTimeout(() => {
       setIsCheckoutModalOpen(true);
-    }, 150);
+    }, 300);
   };
 
   const paymentPlans = [
