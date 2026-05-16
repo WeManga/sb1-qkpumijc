@@ -3,7 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { Database } from '../../lib/database.types';
 import { translations as allTranslations, Language } from '../../lib/i18n';
-import { Plus, Calendar, Eye, CreditCard as Edit, LogOut, Trash2, Copy, Loader2, Users, X, Share, User, ShieldCheck, Ticket, Sparkles, Check, QrCode, CreditCard, ArrowLeft } from 'lucide-react';
+import { Plus, Calendar, Eye, CreditCard as Edit, LogOut, Trash2, Copy, Loader2, Users, X, Share, User, ShieldCheck, Ticket, Sparkles, Check, QrCode, CreditCard, ChevronDown, ChevronUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Extension locale des traductions pour la PWA, le compte, les plans et le paiement
@@ -55,9 +55,10 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [showIOSPrompt, setShowIOSPrompt] = useState(false);
   
-  // Gestion unifiée de l'affichage du compte (Étape 1: Profil, Étape 2: Plans, Étape 3: Choix Paiement)
+  // États pour la modale Mon Compte déroulante
   const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
-  const [accountStep, setAccountStep] = useState<'PROFILE' | 'PLANS' | 'CHECKOUT'>('PROFILE');
+  const [showPlansDropdown, setShowPlansDropdown] = useState(false);
+  const [showCheckoutDropdown, setShowCheckoutDropdown] = useState(false);
   
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [accountStatus, setAccountStatus] = useState<'FREE' | 'PREMIUM'>('FREE');
@@ -73,11 +74,11 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     loadInvitations();
     loadAccountStatus();
 
-    // Ouvrir automatiquement la grille de prix si redirection depuis le PlayStore (URL Web externe)
+    // Ouvrir automatiquement la section prix si redirection depuis l'app du PlayStore
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('openPlans') === 'true') {
-      setAccountStep('PLANS');
       setIsAccountModalOpen(true);
+      setShowPlansDropdown(true);
       window.history.replaceState({}, document.title, window.location.pathname);
     }
 
@@ -239,22 +240,26 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     }
   };
 
-  const handleManageAccountClick = (e: React.MouseEvent) => {
-    e.preventDefault();
+  // Gestion du clic avec redirection PlayStore pour contourner la commission
+  const handleManageAccountClick = () => {
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
 
     if (isStandalone) {
+      // Redirection obligatoire si on est à l'intérieur d'une application de Store
       setIsAccountModalOpen(false);
       const webDashboardUrl = `https://invitstudio.vercel.app/dashboard?openPlans=true`;
       window.open(webDashboardUrl, '_blank');
     } else {
-      setAccountStep('PLANS');
+      // Sur Safari standard : on déplie simplement le menu, sans aucun pop-up supplémentaire
+      setShowPlansDropdown(!showPlansDropdown);
+      setShowCheckoutDropdown(false);
     }
   };
 
   const handleSelectPlan = (plan: any) => {
     setSelectedPlan(plan);
-    setAccountStep('CHECKOUT');
+    setShowPlansDropdown(false);
+    setShowCheckoutDropdown(true);
   };
 
   const paymentPlans = [
@@ -304,7 +309,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
           <div className="absolute right-0 flex items-center gap-2">
             {/* BOUTON MON COMPTE ACCUEIL */}
             <button
-              onClick={() => { setAccountStep('PROFILE'); setIsAccountModalOpen(true); }}
+              onClick={() => { setShowPlansDropdown(false); setShowCheckoutDropdown(false); setIsAccountModalOpen(true); }}
               className="flex items-center gap-2 text-gray-400 hover:text-amber-500 transition-colors text-[10px] sm:text-[11px] font-bold uppercase tracking-widest px-2 py-2 border-r border-gray-100 pr-4"
             >
               <User className="w-4 h-4" />
@@ -376,175 +381,130 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
           </div>
         )}
 
-        {/* MODALE COMPTE USER STABLE (LARGEUR FIXE SANS CONFLIT RENDU SAFARI) */}
+        {/* MODALE MON COMPTE UNIQUE - SANS CHOC DE POPUPS */}
         {isAccountModalOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <div className="bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+            <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col max-h-[85vh] animate-in zoom-in duration-200">
               
-              {/* HEADER UNIQUE DE LA MODALE */}
               <div className="p-8 border-b border-gray-100 flex items-center justify-between bg-amber-50/50 shrink-0">
-                <div className="flex items-center gap-3">
-                  {accountStep !== 'PROFILE' && (
-                    <button 
-                      type="button"
-                      onClick={() => setAccountStep(accountStep === 'CHECKOUT' ? 'PLANS' : 'PROFILE')} 
-                      className="p-2 hover:bg-white rounded-full transition-colors border border-gray-200/50 bg-white"
-                    >
-                      <ArrowLeft size={16} />
-                    </button>
-                  )}
-                  <div>
-                    <h3 className="text-xl font-black text-gray-900 uppercase tracking-tighter">
-                      {accountStep === 'PROFILE' && tAcc.title}
-                      {accountStep === 'PLANS' && tPln.title}
-                      {accountStep === 'CHECKOUT' && tChk.title}
-                    </h3>
-                    <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest">
-                      {accountStep === 'PROFILE' && user?.email}
-                      {accountStep === 'PLANS' && tPln.subtitle}
-                      {accountStep === 'CHECKOUT' && `${selectedPlan?.duration} • ${selectedPlan?.totalPrice}`}
-                    </p>
-                  </div>
+                <div>
+                  <h3 className="text-xl font-black text-gray-900 uppercase tracking-tighter">{tAcc.title}</h3>
+                  <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest">{user?.email}</p>
                 </div>
                 <button type="button" onClick={() => setIsAccountModalOpen(false)} className="p-2 hover:bg-white rounded-full transition-colors"><X /></button>
               </div>
 
-              {/* ZONE DE CONTENU DE LA MODALE */}
-              <div className="p-8 overflow-y-auto flex-1">
+              <div className="p-8 overflow-y-auto flex-1 space-y-6">
                 
-                {/* ETAPE 1 : PROFIL DE L'UTILISATEUR */}
-                {accountStep === 'PROFILE' && (
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                      <div>
-                        <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">{tAcc.status}</p>
-                        <p className={`text-xl font-black ${accountStatus === 'PREMIUM' ? 'text-amber-500' : 'text-gray-500'}`}>
-                          {accountStatus}
-                        </p>
-                        {accountStatus === 'PREMIUM' && premiumDuration && (
-                          <p className="text-[10px] text-gray-400 font-bold mt-1">
-                            {tAcc.duration} <span className="text-gray-700 font-black">{premiumDuration}</span>
-                          </p>
-                        )}
-                      </div>
-                      <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm bg-white">
-                        <ShieldCheck className={`w-6 h-6 ${accountStatus === 'PREMIUM' ? 'text-amber-500' : 'text-gray-300'}`} />
-                      </div>
-                    </div>
+                {/* 1. Statut du compte */}
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                  <div>
+                    <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">{tAcc.status}</p>
+                    <p className={`text-xl font-black ${accountStatus === 'PREMIUM' ? 'text-amber-500' : 'text-gray-500'}`}>
+                      {accountStatus}
+                    </p>
+                    {accountStatus === 'PREMIUM' && premiumDuration && (
+                      <p className="text-[10px] text-gray-400 font-bold mt-1">
+                        {tAcc.duration} <span className="text-gray-700 font-black">{premiumDuration}</span>
+                      </p>
+                    )}
+                  </div>
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm bg-white">
+                    <ShieldCheck className={`w-6 h-6 ${accountStatus === 'PREMIUM' ? 'text-amber-500' : 'text-gray-300'}`} />
+                  </div>
+                </div>
 
-                    <div className="text-center">
+                {/* 2. Menu Déroulant Accordéon : Gérer mon compte / Souscriptions */}
+                <div className="border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+                  <button 
+                    type="button"
+                    onClick={handleManageAccountClick}
+                    className="w-full p-4 bg-white font-black text-xs uppercase tracking-widest text-amber-600 hover:bg-gray-50 transition-colors flex items-center justify-between"
+                  >
+                    <span>{tAcc.manage}</span>
+                    {showPlansDropdown ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                  </button>
+
+                  {/* Le menu se déroule uniquement ici en cas de clic Safari */}
+                  {showPlansDropdown && (
+                    <div className="p-4 bg-gray-50 border-t border-gray-100 space-y-3 max-h-[40vh] overflow-y-auto">
+                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-2">{tPln.title}</p>
+                      {paymentPlans.map((plan, idx) => (
+                        <div key={idx} className="bg-white p-4 rounded-xl border border-gray-200/60 flex items-center justify-between shadow-xs">
+                          <div>
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-xs font-black text-gray-800 uppercase">{plan.duration}</span>
+                              {plan.discount && <span className="px-1 bg-rose-100 text-rose-600 text-[8px] font-black rounded">{plan.discount}</span>}
+                            </div>
+                            <span className="text-[9px] text-gray-400 font-bold uppercase">Total: {plan.totalPrice}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-black text-gray-900">{plan.monthlyPrice}<span className="text-[9px] text-gray-400 font-normal">/m</span></span>
+                            <button 
+                              type="button"
+                              onClick={() => handleSelectPlan(plan)}
+                              className="px-3 py-1.5 bg-amber-500 text-white font-black text-[9px] uppercase tracking-wider rounded-lg"
+                            >
+                              Code
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Sous-Menu déroulant de Checkout final (Choix QR / CB) */}
+                  {showCheckoutDropdown && (
+                    <div className="p-4 bg-gray-50 border-t border-gray-100 space-y-2">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-[9px] text-gray-400 font-bold uppercase">{selectedPlan?.duration} • {selectedPlan?.totalPrice}</p>
+                        <button type="button" onClick={() => { setShowCheckoutDropdown(false); setShowPlansDropdown(true); }} className="text-[9px] text-amber-600 font-black uppercase underline">Retour</button>
+                      </div>
+                      
                       <button 
-                        type="button"
-                        onClick={handleManageAccountClick}
-                        className="text-xs font-black text-amber-600 hover:text-amber-700 uppercase tracking-widest underline decoration-2 underline-offset-4"
+                        type="button" 
+                        onClick={() => alert("QR Code...")}
+                        className="w-full p-3 bg-white border border-gray-100 rounded-xl flex items-center gap-3 text-left font-bold text-xs uppercase"
                       >
-                        {tAcc.manage}
+                        <QrCode size={16} className="text-amber-500" />
+                        <span>{tChk.qr}</span>
+                      </button>
+                      
+                      <button 
+                        type="button" 
+                        onClick={() => alert("CB...")}
+                        className="w-full p-3 bg-white border border-gray-100 rounded-xl flex items-center gap-3 text-left font-bold text-xs uppercase"
+                      >
+                        <CreditCard size={16} className="text-amber-500" />
+                        <span>{tChk.cb}</span>
                       </button>
                     </div>
+                  )}
+                </div>
 
-                    <div className="border-t border-gray-100 pt-6 space-y-3">
-                      <form onSubmit={handleActivateCode} className="space-y-3">
-                        <div className="relative">
-                          <Ticket className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 w-4 h-4" />
-                          <input 
-                            type="text" 
-                            required
-                            value={activationCode}
-                            onChange={(e) => setActivationCode(e.target.value)}
-                            placeholder={tAcc.placeholder} 
-                            className="w-full bg-gray-50 border-none h-12 pl-12 pr-4 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-amber-300 outline-none transition-all"
-                          />
-                        </div>
-                        <button 
-                          type="submit"
-                          disabled={activationLoading || !activationCode.trim()}
-                          className="w-full h-12 bg-gray-900 text-white rounded-xl text-xs font-bold uppercase tracking-widest transition-all hover:bg-gray-800 active:scale-98 disabled:opacity-40 flex items-center justify-center"
-                        >
-                          {activationLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : tAcc.activate}
-                        </button>
-                      </form>
+                {/* 3. Zone d'activation de code manuel */}
+                <div className="border-t border-gray-100 pt-6 space-y-3">
+                  <form onSubmit={handleActivateCode} className="space-y-3">
+                    <div className="relative">
+                      <Ticket className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 w-4 h-4" />
+                      <input 
+                        type="text" 
+                        required
+                        value={activationCode}
+                        onChange={(e) => setActivationCode(e.target.value)}
+                        placeholder={tAcc.placeholder} 
+                        className="w-full bg-gray-50 border-none h-12 pl-12 pr-4 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-amber-300 outline-none transition-all"
+                      />
                     </div>
-                  </div>
-                )}
-
-                {/* ETAPE 2 : LA GRILLE DES GRANDS PLANS TARIFAIRES (ADAPTÉE EN VERTICAL POUR S'INTÉGRER AU CONTENEUR FIXE) */}
-                {accountStep === 'PLANS' && (
-                  <div className="space-y-4">
-                    {paymentPlans.map((plan, idx) => (
-                      <div 
-                        key={idx} 
-                        className={`bg-white rounded-2xl p-5 border flex items-center justify-between relative transition-all duration-300 ${
-                          plan.tag ? 'border-amber-400 shadow-md bg-gradient-to-r from-amber-50/10 via-white to-white' : 'border-gray-100 shadow-sm'
-                        }`}
-                      >
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <h4 className="text-sm font-black text-gray-900 uppercase tracking-tight">{plan.duration}</h4>
-                            {plan.discount && (
-                              <span className="px-1.5 py-0.5 bg-rose-100 text-rose-600 rounded text-[9px] font-black">
-                                {plan.discount}
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-[10px] text-gray-400 font-bold uppercase">
-                            Total: <span className="text-gray-700 font-black">{plan.totalPrice}</span>
-                          </p>
-                        </div>
-
-                        <div className="flex items-center gap-4">
-                          <div className="text-right">
-                            <p className="text-base font-black text-gray-900 tracking-tight">
-                              {plan.monthlyPrice}
-                              <span className="text-[10px] text-gray-400 font-normal">/mo</span>
-                            </p>
-                          </div>
-                          <button 
-                            type="button"
-                            onClick={() => handleSelectPlan(plan)}
-                            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${
-                              plan.tag ? 'bg-amber-500 text-white hover:bg-amber-600' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                            }`}
-                          >
-                            {tPln.buy || 'Code'}
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* ETAPE 3 : CHOIX FINAUX DE PAIEMENT */}
-                {accountStep === 'CHECKOUT' && (
-                  <div className="space-y-3">
-                    {/* BOUTON QR CODE */}
                     <button 
-                      type="button"
-                      onClick={() => alert(lang === 'fr' ? "Ouverture du module de paiement QR Code..." : "Opening QR Code payment module...")}
-                      className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl flex items-center gap-4 transition-all hover:bg-amber-50/40 border-transparent hover:border-amber-300 group text-left"
+                      type="submit"
+                      disabled={activationLoading || !activationCode.trim()}
+                      className="w-full h-12 bg-gray-900 text-white rounded-xl text-xs font-bold uppercase tracking-widest transition-all hover:bg-gray-800 active:scale-98 disabled:opacity-40 flex items-center justify-center"
                     >
-                      <div className="w-11 h-11 bg-white rounded-xl flex items-center justify-center shadow-sm text-gray-700 group-hover:text-amber-500 group-hover:shadow-md transition-all">
-                        <QrCode size={20} />
-                      </div>
-                      <div>
-                        <p className="text-sm font-black text-gray-900 uppercase tracking-tight">{tChk.qr}</p>
-                      </div>
+                      {activationLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : tAcc.activate}
                     </button>
-
-                    {/* BOUTON CARTE BANCAIRE */}
-                    <button 
-                      type="button"
-                      onClick={() => alert(lang === 'fr' ? "Ouverture de la passerelle CB (Paypal/Stripe)..." : "Opening Credit Card gateway...")}
-                      className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl flex items-center gap-4 transition-all hover:bg-amber-50/40 border-transparent hover:border-amber-300 group text-left"
-                    >
-                      <div className="w-11 h-11 bg-white rounded-xl flex items-center justify-center shadow-sm text-gray-700 group-hover:text-amber-500 group-hover:shadow-md transition-all">
-                        <CreditCard size={20} />
-                      </div>
-                      <div>
-                        <p className="text-sm font-black text-gray-900 uppercase tracking-tight">{tChk.cb}</p>
-                      </div>
-                    </button>
-                  </div>
-                )}
+                  </form>
+                </div>
 
               </div>
             </div>
