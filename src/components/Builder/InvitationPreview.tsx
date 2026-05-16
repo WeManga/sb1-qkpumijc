@@ -136,7 +136,7 @@ export function InvitationPreview({ invitation }: any) {
                     <div className="w-24 h-24 bg-white rounded-full border-[5px] border-[#111] overflow-hidden">
                       {invitation.main_photo_url && (
                         <img src={invitation.main_photo_url} className="w-full h-full object-cover" 
-                          style={{ transform: `translate(${invitation.main_photo_url_pos_x || 0}px, ${invitation.main_photo_url_pos_y || 0}px) scale(${invitation.main_photo_url_scale || 1})` }} />
+                          style={{ transform: `translate(${invitation.main_photo_url_pos_x || 0}px, ${invitation.main_photo_url_pos_y || 0}px) scale(${invitation.main_photo_url_scale || 1})` }} alt="" />
                       )}
                     </div>
                   </div>
@@ -195,8 +195,9 @@ export function InvitationPreview({ invitation }: any) {
                               }}
                               className="w-56 h-56 select-none flex items-center justify-center"
                             >
+                              {/* LIEN DE STOCKAGE ULTRA-FIABLE SUPABASE - TERMINE DEFINITIVEMENT LE BUG DE DOSSIER PUBLIC */}
                               <img 
-                                src="/images/main-qui-toque.PNG" 
+                                src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/main-qui-toque.PNG" 
                                 className="w-full h-full object-contain drop-shadow-2xl" 
                                 alt="Main qui toque" 
                               />
