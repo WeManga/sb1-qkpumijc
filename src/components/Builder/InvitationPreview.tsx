@@ -3,6 +3,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar, Volume2, VolumeX, MapPin, Clock, Sparkles, Film } from 'lucide-react';
 import { translations, Language } from '../../lib/i18n';
 
+// Importation de l'image de la main depuis ton dossier src
+import mainQuiToque from '../public/images/main-qui-toque.png'; 
+
 const THEME_EMOJIS: Record<string, string[]> = {
   wedding: ['🤍', '💍', '🕊️', '✨', '🌸'],
   birthday: ['🎂', '🎈', '✨', '🎉', '🍰'],
@@ -171,7 +174,6 @@ export function InvitationPreview({ invitation }: any) {
                     exit={{ opacity: 1 }} 
                     className="w-full h-full relative"
                   >
-                    {/* LE VISUEL DISPARAÎT ICI IMMÉDIATEMENT SANS DÉLAI */}
                     {!isOpened && (
                       <motion.div 
                         key="visual-trigger"
@@ -180,10 +182,28 @@ export function InvitationPreview({ invitation }: any) {
                         className="absolute inset-0 z-[70] flex flex-col items-center justify-center cursor-pointer" 
                         onClick={() => { setIsOpened(true); audioRef.current?.play().catch(()=>{}); }}
                       >
-                        <div className="relative">
+                        <div className="relative w-full flex items-center justify-center">
                           {invitation.opening_style === 'knock' ? (
-                            <motion.div animate={{ rotateX: [0, -40, 0, -40, 0], z: [0, 80, 0, 80, 0], scale: [1, 1.15, 1, 1.15, 1] }} transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 1.2 }}
-                              style={{ originY : "100%", filter : "sepia(0.5) saturate(0.8) brightness(1.2)" }} className="text-[100px] select-none">✊</motion.div>
+                            <motion.div 
+                              animate={{ 
+                                x: [0, -12, 4, -12, 4, 0],
+                                y: [0, -6, 2, -6, 2, 0],
+                                scale: [1, 1.05, 0.98, 1.05, 0.98, 1]
+                              }} 
+                              transition={{ 
+                                duration: 0.5, 
+                                repeat: Infinity, 
+                                repeatDelay: 1.5,
+                                ease: "easeInOut"
+                              }}
+                              className="w-44 h-44 select-none flex items-center justify-center"
+                            >
+                              <img 
+                                src={mainQuiToque} 
+                                className="w-full h-full object-contain drop-shadow-2xl" 
+                                alt="Main qui toque" 
+                              />
+                            </motion.div>
                           ) : invitation.opening_style === 'key' ? (
                               <div className="flex flex-col items-center relative">
                                 <div className="w-2.5 h-10 bg-black/80 rounded-full shadow-sm" />
