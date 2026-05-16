@@ -3,9 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar, Volume2, VolumeX, MapPin, Clock, Sparkles, Film } from 'lucide-react';
 import { translations, Language } from '../../lib/i18n';
 
-// Importation de l'image de la main depuis ton dossier src
-import mainQuiToque from '../public/images/main-qui-toque.PNG'; 
-
 const THEME_EMOJIS: Record<string, string[]> = {
   wedding: ['🤍', '💍', '🕊️', '✨', '🌸'],
   birthday: ['🎂', '🎈', '✨', '🎉', '🍰'],
@@ -198,8 +195,9 @@ export function InvitationPreview({ invitation }: any) {
                               }}
                               className="w-44 h-44 select-none flex items-center justify-center"
                             >
+                              {/* APPLICATION DU CHEMIN ABSOLU PUBLIC DIRECT SANS IMPORT */}
                               <img 
-                                src={mainQuiToque} 
+                                src="/images/main-qui-toque.PNG" 
                                 className="w-full h-full object-contain drop-shadow-2xl" 
                                 alt="Main qui toque" 
                               />
