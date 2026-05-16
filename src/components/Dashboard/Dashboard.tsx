@@ -3,7 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { Database } from '../../lib/database.types';
 import { translations as allTranslations, Language } from '../../lib/i18n';
-import { Plus, Calendar, Eye, CreditCard as Edit, LogOut, Trash2, Copy, Loader2, Users, X, Share, User, ShieldCheck, Ticket, Sparkles, Check, QrCode, CreditCard, ChevronDown, ChevronUp, ArrowLeft } from 'lucide-react';
+import { Plus, Calendar, Eye, CreditCard as Edit, LogOut, Trash2, Copy, Loader2, Users, X, Share, User, ShieldCheck, Ticket, Sparkles, Check, QrCode, CreditCard, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 // Extension locale des traductions pour la PWA, le compte, les plans et le paiement
@@ -153,8 +153,9 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
       setInvitations(invsWithCounts);
     } catch (error) {
       console.error("Erreur chargement:", error);
-    } Array.isArray(invs) ? null : null;
-    setLoading(false);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const fetchResponses = async (invitationId: string) => {
@@ -238,20 +239,15 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     }
   };
 
-  // Logique de ciblage : Redirection stricte pour Android Play Store / Tiroir pour iPhone Safari
   const handleManageAccountClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    
-    // Détection stricte d'Android (pour cibler les utilisateurs de l'app du PlayStore)
     const isAndroid = /Android/i.test(navigator.userAgent);
 
     if (isAndroid) {
-      // Les utilisateurs Android du Play Store sont expulsés vers le navigateur web externe pour payer sans commission
       setIsAccountOpen(false);
       const webDashboardUrl = `https://invitstudio.vercel.app/dashboard?openPlans=true`;
       window.open(webDashboardUrl, '_blank');
     } else {
-      // Les utilisateurs d'iPhone sur Safari restent à l'intérieur et passent à l'étape des tarifs
       setAccountStep('PLANS');
     }
   };
@@ -380,282 +376,277 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
           </div>
         )}
 
-        {/* TIROIR COULISSANT NATIF - PLUS DE MODALES IMBRIQUÉES COMPLEXES */}
-        {isAccountOpen && (
-          <>
-            <div 
-              className="fixed inset-0 z-[150] bg-black/50 backdrop-blur-xs transition-opacity duration-300"
-              onClick={() => setIsAccountOpen(false)}
-            />
-            
-            <div className="fixed bottom-0 left-0 right-0 z-[200] max-w-xl mx-auto bg-white rounded-t-[2.5rem] shadow-2xl flex flex-col max-h-[85vh] border-t border-gray-100 overflow-hidden transform transition-transform duration-300 animate-in slide-in-from-bottom duration-300">
+        {/* TIROIR COULISSANT COMPTE - CORRIGÉ SANS BALISES IMBRIQUÉES CASSEES */}
+        <AnimatePresence>
+          {isAccountOpen && (
+            <div className="fixed inset-0 z-[150] flex flex-col justify-end">
+              <div 
+                className="absolute inset-0 bg-black/50 backdrop-blur-xs"
+                onClick={() => setIsAccountOpen(false)}
+              />
               
-              <div className="w-full flex justify-center py-3 shrink-0 bg-gray-50/30">
-                <div className="w-10 h-1 bg-gray-300 rounded-full" />
-              </div>
-
-              <div className="px-8 pb-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/30 shrink-0">
-                <div className="flex items-center gap-3">
-                  {accountStep !== 'PROFILE' && (
-                    <button 
-                      type="button"
-                      onClick={() => setAccountStep(accountStep === 'CHECKOUT' ? 'PLANS' : 'PROFILE')} 
-                      className="p-2 hover:bg-white rounded-full transition-colors border border-gray-200/50 bg-white shadow-xs"
-                    >
-                      <ArrowLeft size={16} />
-                    </button>
-                  )}
-                  <div>
-                    <h3 className="text-lg font-black text-gray-900 uppercase tracking-tight">
-                      {accountStep === 'PROFILE' && tAcc.title}
-                      {accountStep === 'PLANS' && tPln.title}
-                      {accountStep === 'CHECKOUT' && tChk.title}
-                    </h3>
-                    <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest">
-                      {accountStep === 'PROFILE' && user?.email}
-                      {accountStep === 'PLANS' && tPln.subtitle}
-                      {accountStep === 'CHECKOUT' && `${selectedPlan?.duration} • ${selectedPlan?.totalPrice}`}
-                    </p>
-                  </div>
+              <div className="relative z-10 w-full max-w-xl mx-auto bg-white rounded-t-[2.5rem] shadow-2xl flex flex-col max-h-[85vh] border-t border-gray-100 overflow-hidden">
+                <div className="w-full flex justify-center py-3 shrink-0 bg-gray-50/30">
+                  <div className="w-10 h-1 bg-gray-300 rounded-full" />
                 </div>
-                <button type="button" onClick={() => setIsAccountOpen(false)} className="p-2 bg-gray-100 rounded-full text-gray-400 hover:bg-gray-200 transition-colors"><X size={16} /></button>
-              </div>
 
-              <div className="p-8 overflow-y-auto flex-1 pb-12">
-                
-                {/* ETAPE 1 : PROFIL DE L'UTILISATEUR */}
-                {accountStep === 'PROFILE' && (
-                  <div className="space-y-6">
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                      <div>
-                        <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">{tAcc.status}</p>
-                        <p className={`text-xl font-black ${accountStatus === 'PREMIUM' ? 'text-amber-500' : 'text-gray-500'}`}>
-                          {accountStatus}
-                        </p>
-                        {accountStatus === 'PREMIUM' && premiumDuration && (
-                          <p className="text-[10px] text-gray-400 font-bold mt-1">
-                            {tAcc.duration} <span className="text-gray-700 font-black">{premiumDuration}</span>
-                          </p>
-                        )}
-                      </div>
-                      <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm bg-white">
-                        <ShieldCheck className={`w-6 h-6 ${accountStatus === 'PREMIUM' ? 'text-amber-500' : 'text-gray-300'}`} />
-                      </div>
-                    </div>
-
-                    <div className="text-center">
+                <div className="px-8 pb-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/30 shrink-0">
+                  <div className="flex items-center gap-3">
+                    {accountStep !== 'PROFILE' && (
                       <button 
                         type="button"
-                        onClick={handleManageAccountClick}
-                        className="text-xs font-black text-amber-600 hover:text-amber-700 uppercase tracking-widest underline decoration-2 underline-offset-4"
+                        onClick={() => setAccountStep(accountStep === 'CHECKOUT' ? 'PLANS' : 'PROFILE')} 
+                        className="p-2 hover:bg-white rounded-full transition-colors border border-gray-200/50 bg-white shadow-xs"
                       >
-                        {tAcc.manage}
+                        <ArrowLeft size={16} />
                       </button>
-                    </div>
-
-                    <div className="border-t border-gray-100 pt-6 space-y-3">
-                      <form onSubmit={handleActivateCode} className="space-y-3">
-                        <div className="relative">
-                          <Ticket className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 w-4 h-4" />
-                          <input 
-                            type="text" 
-                            required
-                            value={activationCode}
-                            onChange={(e) => setActivationCode(e.target.value)}
-                            placeholder={tAcc.placeholder} 
-                            className="w-full bg-gray-50 border-none h-12 pl-12 pr-4 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-amber-300 outline-none transition-all"
-                          />
-                        </div>
-                        <button 
-                          type="submit"
-                          disabled={activationLoading || !activationCode.trim()}
-                          className="w-full h-12 bg-gray-900 text-white rounded-xl text-xs font-bold uppercase tracking-widest transition-all hover:bg-gray-800 active:scale-98 disabled:opacity-40 flex items-center justify-center"
-                        >
-                          {activationLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : tAcc.activate}
-                        </button>
-                      </form>
+                    )}
+                    <div>
+                      <h3 className="text-lg font-black text-gray-900 uppercase tracking-tight">
+                        {accountStep === 'PROFILE' && tAcc.title}
+                        {accountStep === 'PLANS' && tPln.title}
+                        {accountStep === 'CHECKOUT' && tChk.title}
+                      </h3>
+                      <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest">
+                        {accountStep === 'PROFILE' && user?.email}
+                        {accountStep === 'PLANS' && tPln.subtitle}
+                        {accountStep === 'CHECKOUT' && `${selectedPlan?.duration} • ${selectedPlan?.totalPrice}`}
+                      </p>
                     </div>
                   </div>
-                )}
+                  <button type="button" onClick={() => setIsAccountOpen(false)} className="p-2 bg-gray-100 rounded-full text-gray-400 hover:bg-gray-200 transition-colors"><X size={16} /></button>
+                </div>
 
-                {/* ETAPE 2 : GRILLE TARIFAIRE DES PLANS */}
-                {accountStep === 'PLANS' && (
-                  <div className="space-y-4">
-                    {paymentPlans.map((plan, idx) => (
-                      <div 
-                        key={idx} 
-                        className={`bg-white rounded-2xl p-5 border flex items-center justify-between relative transition-all duration-300 ${
-                          plan.tag ? 'border-amber-400 shadow-md bg-gradient-to-r from-amber-50/10 via-white to-white' : 'border-gray-100 shadow-sm'
-                        }`}
-                      >
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <h4 className="text-sm font-black text-gray-900 uppercase tracking-tight">{plan.duration}</h4>
-                            {plan.discount && (
-                              <span className="px-1.5 py-0.5 bg-rose-100 text-rose-600 rounded text-[9px] font-black">
-                                {plan.discount}
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-[10px] text-gray-400 font-bold uppercase">
-                            Total: <span className="text-gray-700 font-black">{plan.totalPrice}</span>
+                <div className="p-8 overflow-y-auto flex-1 pb-12">
+                  {accountStep === 'PROFILE' && (
+                    <div className="space-y-6">
+                      <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                        <div>
+                          <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">{tAcc.status}</p>
+                          <p className={`text-xl font-black ${accountStatus === 'PREMIUM' ? 'text-amber-500' : 'text-gray-500'}`}>
+                            {accountStatus}
                           </p>
-                        </div>
-
-                        <div className="flex items-center gap-4">
-                          <div className="text-right">
-                            <p className="text-base font-black text-gray-900 tracking-tight">
-                              {plan.monthlyPrice}
-                              <span className="text-[10px] text-gray-400 font-normal">/mo</span>
+                          {accountStatus === 'PREMIUM' && premiumDuration && (
+                            <p className="text-[10px] text-gray-400 font-bold mt-1">
+                              {tAcc.duration} <span className="text-gray-700 font-black">{premiumDuration}</span>
                             </p>
+                          )}
+                        </div>
+                        <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm bg-white">
+                          <ShieldCheck className={`w-6 h-6 ${accountStatus === 'PREMIUM' ? 'text-amber-500' : 'text-gray-300'}`} />
+                        </div>
+                      </div>
+
+                      <div className="text-center">
+                        <button 
+                          type="button"
+                          onClick={handleManageAccountClick}
+                          className="text-xs font-black text-amber-600 hover:text-amber-700 uppercase tracking-widest underline decoration-2 underline-offset-4"
+                        >
+                          {tAcc.manage}
+                        </button>
+                      </div>
+
+                      <div className="border-t border-gray-100 pt-6 space-y-3">
+                        <form onSubmit={handleActivateCode} className="space-y-3">
+                          <div className="relative">
+                            <Ticket className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 w-4 h-4" />
+                            <input 
+                              type="text" 
+                              required
+                              value={activationCode}
+                              onChange={(e) => setActivationCode(e.target.value)}
+                              placeholder={tAcc.placeholder} 
+                              className="w-full bg-gray-50 border-none h-12 pl-12 pr-4 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-amber-300 outline-none transition-all"
+                            />
                           </div>
                           <button 
-                            type="button"
-                            onClick={() => handleSelectPlan(plan)}
-                            className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${
-                              plan.tag ? 'bg-amber-500 text-white hover:bg-amber-600 shadow-sm' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
-                            }`}
+                            type="submit"
+                            disabled={activationLoading || !activationCode.trim()}
+                            className="w-full h-12 bg-gray-900 text-white rounded-xl text-xs font-bold uppercase tracking-widest transition-all hover:bg-gray-800 active:scale-98 disabled:opacity-40 flex items-center justify-center"
                           >
-                            {tPln.buy || 'Code'}
+                            {activationLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : tAcc.activate}
                           </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* ETAPE 3 : PAIEMENT (QR OU CB) */}
-                {accountStep === 'CHECKOUT' && (
-                  <div className="space-y-3">
-                    <button 
-                      type="button" 
-                      onClick={() => alert(lang === 'fr' ? "Ouverture du module de paiement QR Code..." : "Opening QR Code payment module...")}
-                      className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl flex items-center gap-4 transition-all hover:bg-amber-50/40 border-transparent hover:border-amber-300 group text-left"
-                    >
-                      <div className="w-11 h-11 bg-white rounded-xl flex items-center justify-center shadow-sm text-gray-700 group-hover:text-amber-500 group-hover:shadow-md transition-all">
-                        <QrCode size={20} />
-                      </div>
-                      <div>
-                        <p className="text-sm font-black text-gray-900 uppercase tracking-tight">{tChk.qr}</p>
-                      </div>
-                    </button>
-
-                    <button 
-                      type="button" 
-                      onClick={() => alert(lang === 'fr' ? "Ouverture de la passerelle CB (Paypal/Stripe)..." : "Opening Credit Card gateway...")}
-                      className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl flex items-center gap-4 transition-all hover:bg-amber-50/40 border-transparent hover:border-amber-300 group text-left"
-                    >
-                      <div className="w-11 h-11 bg-white rounded-xl flex items-center justify-center shadow-sm text-gray-700 group-hover:text-amber-500 group-hover:shadow-md transition-all">
-                        <CreditCard size={20} />
-                      </div>
-                      <div>
-                        <p className="text-sm font-black text-gray-900 uppercase tracking-tight">{tChk.cb}</p>
-                      </div>
-                    </button>
-                  </div>
-                )}
-
-              </div>
-            </div>
-          </>
-        )}
-      </AnimatePresence>
-
-      {/* MODALE LISTE INVITÉS */}
-      {isViewModalOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
-            <div className="p-8 border-b border-gray-100 flex items-center justify-between bg-amber-50/50">
-              <div>
-                <h3 className="text-xl font-black text-gray-900 uppercase tracking-tighter">{t.responses_title}</h3>
-                <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest">{t.responses_subtitle}</p>
-              </div>
-              <div className="flex items-center gap-2">
-                {selectedResponses && selectedResponses.length > 0 && (
-                  <button 
-                    onClick={handleCopyResponsesList}
-                    className="px-3 py-1.5 bg-amber-500 text-white rounded-xl text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 hover:bg-amber-600 transition-colors shadow-sm"
-                  >
-                    <Copy size={12} />
-                    {lang === 'fr' ? 'Copier la liste' : lang === 'vi' ? 'Sao chép danh sách' : 'Copy list'}
-                  </button>
-                )}
-                <button onClick={() => setIsViewModalOpen(false)} className="p-2 hover:bg-white rounded-full transition-colors"><X /></button>
-              </div>
-            </div>
-            <div className="p-6 max-h-[60vh] overflow-y-auto space-y-4">
-              {selectedResponses?.length === 0 ? (
-                <p className="text-center py-10 text-gray-400 font-medium">{t.no_responses}</p>
-              ) : (
-                selectedResponses?.map((resp, i) => (
-                  <div key={i} className="flex flex-col p-4 bg-gray-50 rounded-2xl border border-gray-100 gap-2">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="font-bold text-gray-900">{resp.group_leader_name}</p>
-                        <p className="text-[10px] text-gray-400 uppercase font-black tracking-widest">{resp.total_guests} {t.person_unit}</p>
-                      </div>
-                      <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
-                        <Users className="w-4 h-4 text-amber-500" />
+                        </form>
                       </div>
                     </div>
-                    
-                    {Array.isArray(resp.guest_details) && resp.guest_details.length > 0 && (
-                      <div className="mt-1 pt-2 border-t border-gray-200/60 space-y-1">
-                        {resp.guest_details.map((g: any, idx: number) => (
-                          <p key={idx} className="text-xs text-gray-600 font-medium pl-1 flex items-center gap-1.5">
-                            <span className="w-1 h-1 bg-gray-400 rounded-full" />
-                            {g.firstName || ''} {g.lastName || ''}
-                          </p>
-                        ))}
+                  )}
+
+                  {accountStep === 'PLANS' && (
+                    <div className="space-y-4">
+                      {paymentPlans.map((plan, idx) => (
+                        <div 
+                          key={idx} 
+                          className={`bg-white rounded-2xl p-5 border flex items-center justify-between relative transition-all duration-300 ${
+                            plan.tag ? 'border-amber-400 shadow-md bg-gradient-to-r from-amber-50/10 via-white to-white' : 'border-gray-100 shadow-sm'
+                          }`}
+                        >
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <h4 className="text-sm font-black text-gray-900 uppercase tracking-tight">{plan.duration}</h4>
+                              {plan.discount && (
+                                <span className="px-1.5 py-0.5 bg-rose-100 text-rose-600 rounded text-[9px] font-black">
+                                  {plan.discount}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[10px] text-gray-400 font-bold uppercase">
+                              Total: <span className="text-gray-700 font-black">{plan.totalPrice}</span>
+                            </p>
+                          </div>
+
+                          <div className="flex items-center gap-4">
+                            <div className="text-right">
+                              <p className="text-base font-black text-gray-900 tracking-tight">
+                                {plan.monthlyPrice}
+                                <span className="text-[10px] text-gray-400 font-normal">/mo</span>
+                              </p>
+                            </div>
+                            <button 
+                              type="button"
+                              onClick={() => handleSelectPlan(plan)}
+                              className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${
+                                plan.tag ? 'bg-amber-500 text-white hover:bg-amber-600 shadow-sm' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                              }`}
+                            >
+                              {tPln.buy || 'Code'}
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {accountStep === 'CHECKOUT' && (
+                    <div className="space-y-3">
+                      <button 
+                        type="button" 
+                        onClick={() => alert(lang === 'fr' ? "Ouverture du module de paiement QR Code..." : "Opening QR Code payment module...")}
+                        className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl flex items-center gap-4 transition-all hover:bg-amber-50/40 border-transparent hover:border-amber-300 group text-left"
+                      >
+                        <div className="w-11 h-11 bg-white rounded-xl flex items-center justify-center shadow-sm text-gray-700 group-hover:text-amber-500 group-hover:shadow-md transition-all">
+                          <QrCode size={20} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-black text-gray-900 uppercase tracking-tight">{tChk.qr}</p>
+                        </div>
+                      </button>
+
+                      <button 
+                        type="button" 
+                        onClick={() => alert(lang === 'fr' ? "Ouverture de la passerelle CB (Paypal/Stripe)..." : "Opening Credit Card gateway...")}
+                        className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl flex items-center gap-4 transition-all hover:bg-amber-50/40 border-transparent hover:border-amber-300 group text-left"
+                      >
+                        <div className="w-11 h-11 bg-white rounded-xl flex items-center justify-center shadow-sm text-gray-700 group-hover:text-amber-500 group-hover:shadow-md transition-all">
+                          <CreditCard size={20} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-black text-gray-900 uppercase tracking-tight">{tChk.cb}</p>
+                        </div>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* MODALE LISTE INVITÉS */}
+        {isViewModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
+              <div className="p-8 border-b border-gray-100 flex items-center justify-between bg-amber-50/50">
+                <div>
+                  <h3 className="text-xl font-black text-gray-900 uppercase tracking-tighter">{t.responses_title}</h3>
+                  <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest">{t.responses_subtitle}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  {selectedResponses && selectedResponses.length > 0 && (
+                    <button 
+                      onClick={handleCopyResponsesList}
+                      className="px-3 py-1.5 bg-amber-500 text-white rounded-xl text-[9px] font-black uppercase tracking-wider flex items-center gap-1.5 hover:bg-amber-600 transition-colors shadow-sm"
+                    >
+                      <Copy size={12} />
+                      {lang === 'fr' ? 'Copier la liste' : lang === 'vi' ? 'Sao chép danh sách' : 'Copy list'}
+                    </button>
+                  )}
+                  <button onClick={() => setIsViewModalOpen(false)} className="p-2 hover:bg-white rounded-full transition-colors"><X /></button>
+                </div>
+              </div>
+              <div className="p-6 max-h-[60vh] overflow-y-auto space-y-4">
+                {selectedResponses?.length === 0 ? (
+                  <p className="text-center py-10 text-gray-400 font-medium">{t.no_responses}</p>
+                ) : (
+                  selectedResponses?.map((resp, i) => (
+                    <div key={i} className="flex flex-col p-4 bg-gray-50 rounded-2xl border border-gray-100 gap-2">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-bold text-gray-900">{resp.group_leader_name}</p>
+                          <p className="text-[10px] text-gray-400 uppercase font-black tracking-widest">{resp.total_guests} {t.person_unit}</p>
+                        </div>
+                        <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
+                          <Users className="w-4 h-4 text-amber-500" />
+                        </div>
                       </div>
-                    )}
-                  </div>
-                ))
-              )}
+                      
+                      {Array.isArray(resp.guest_details) && resp.guest_details.length > 0 && (
+                        <div className="mt-1 pt-2 border-t border-gray-200/60 space-y-1">
+                          {resp.guest_details.map((g: any, idx: number) => (
+                            <p key={idx} className="text-xs text-gray-600 font-medium pl-1 flex items-center gap-1.5">
+                              <span className="w-1 h-1 bg-gray-400 rounded-full" />
+                              {g.firstName || ''} {g.lastName || ''}
+                            </p>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* PROMPT IOS PWA */}
-      <AnimatePresence>
-        {showIOSPrompt && (
-          <motion.div 
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
-            className="fixed bottom-10 left-4 right-4 z-[500] bg-white/95 backdrop-blur-xl shadow-2xl rounded-[2.5rem] p-6 border border-amber-100"
-          >
-            <div className="flex items-start gap-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0">
-                <Plus size={28} />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight">
-                  {tPwa.title}
-                </h3>
-                <p className="text-[11px] text-gray-500 leading-snug mt-1 flex items-center flex-wrap">
-                  {tPwa.desc} 
-                  <Share size={14} className="inline mx-1 text-blue-500" /> 
-                  {tPwa.then} 
-                  <span className="flex items-center gap-1 ml-1 font-bold text-gray-800">
-                    <Plus size={14} className="text-blue-500" /> "{tPwa.action}"
-                  </span>.
-                </p>
-              </div>
-              <button onClick={dismissPrompt} className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full text-gray-400">
-                <X size={18} />
-              </button>
-            </div>
-          </motion.div>
         )}
-      </AnimatePresence>
 
-      {loading && (
-        <div className="flex flex-col items-center justify-center py-20 relative z-10">
-          <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
-        </div>
-      )}
+        {/* NOTIFICATION INSTALLATION PWA SUR IPHONE */}
+        <AnimatePresence>
+          {showIOSPrompt && (
+            <motion.div 
+              initial={{ y: 100, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 100, opacity: 0 }}
+              className="fixed bottom-10 left-4 right-4 z-[500] bg-white/95 backdrop-blur-xl shadow-2xl rounded-[2.5rem] p-6 border border-amber-100"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0">
+                  <Plus size={28} />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight">
+                    {tPwa.title}
+                  </h3>
+                  <p className="text-[11px] text-gray-500 leading-snug mt-1 flex items-center flex-wrap">
+                    {tPwa.desc} 
+                    <Share size={14} className="inline mx-1 text-blue-500" /> 
+                    {tPwa.then} 
+                    <span className="flex items-center gap-1 ml-1 font-bold text-gray-800">
+                      <Plus size={14} className="text-blue-500" /> "{tPwa.action}"
+                    </span>.
+                  </p>
+                </div>
+                <button onClick={dismissPrompt} className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full text-gray-400">
+                  <X size={18} />
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {loading && (
+          <div className="flex flex-col items-center justify-center py-20 relative z-10">
+            <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
+          </div>
+        )}
       </div>
     </div>
   );
