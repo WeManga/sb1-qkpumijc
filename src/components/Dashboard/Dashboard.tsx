@@ -3,15 +3,27 @@ import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { Database } from '../../lib/database.types';
 import { translations as allTranslations, Language } from '../../lib/i18n';
-import { Plus, Calendar, Eye, CreditCard as Edit, LogOut, Trash2, Copy, Loader2, Users, X, Share } from 'lucide-react';
+import { Plus, Calendar, Eye, CreditCard as Edit, LogOut, Trash2, Copy, Loader2, Users, X, Share, User, ShieldCheck, Ticket } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// Extension locale des traductions pour la PWA
+// Extension locale des traductions pour la PWA et le compte
 const translations: any = {
   ...allTranslations,
-  en: { ...allTranslations.en, pwa: { title: "Install Studio App", desc: "Manage invitations easily. Tap", then: "then", action: "Add to Home Screen" } },
-  fr: { ...allTranslations.fr, pwa: { title: "Installez l'App Studio", desc: "Gérez vos invitations facilement. Appuyez sur", then: "puis sur", action: "Sur l'écran d'accueil" } },
-  vi: { ...allTranslations.vi, pwa: { title: "Cài đặt App Studio", desc: "Quản lý lời mời dễ dàng hơn. Nhấn vào", then: "sau đó chọn", action: "Thêm vào MH chính" } }
+  en: { 
+    ...allTranslations.en, 
+    pwa: { title: "Install Studio App", desc: "Manage invitations easily. Tap", then: "then", action: "Add to Home Screen" },
+    account: { title: "My Account", manage: "Manage My Account", placeholder: "Enter activation code", activate: "Activate", status: "Account Status", duration: "Subscription duration:" }
+  },
+  fr: { 
+    ...allTranslations.fr, 
+    pwa: { title: "Installez l'App Studio", desc: "Gérez vos invitations facilement. Appuyez sur", then: "puis sur", action: "Sur l'écran d'accueil" },
+    account: { title: "Mon Compte", manage: "Gérer Mon Compte", placeholder: "Entrez votre code unique", activate: "Activer", status: "Statut du compte", duration: "Durée de l'abonnement :" }
+  },
+  vi: { 
+    ...allTranslations.vi, 
+    pwa: { title: "Cài đặt App Studio", desc: "Quản lý lời mời dễ dàng hơn. Nhấn vào", then: "sau đó chọn", action: "Thêm vào MH chính" },
+    account: { title: "Tài khoản của tôi", manage: "Quản lý tài khoản", placeholder: "Nhập mã kích hoạt", activate: "Kích hoạt", status: "Trạng thái tài khoản", duration: "Thời hạn gói:" }
+  }
 };
 
 type Invitation = Database['public']['Tables']['invitations']['Row'] & {
@@ -37,12 +49,20 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [showIOSPrompt, setShowIOSPrompt] = useState(false);
   
+  // États pour la modale Mon Compte
+  const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
+  const [accountStatus, setAccountStatus] = useState<'FREE' | 'PREMIUM'>('FREE');
+  const [premiumDuration, setPremiumDuration] = useState<string>('');
+  const [activationCode, setActivationCode] = useState('');
+  const [activationLoading, setActivationLoading] = useState(false);
+  
   const [lang, setLang] = useState<Language>(
     (localStorage.getItem('invite_lang') as Language) || 'en'
   );
 
   useEffect(() => {
     loadInvitations();
+    loadAccountStatus();
 
     // Détection iOS pour installation PWA
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
@@ -64,10 +84,31 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   const t = translations[lang].dashboard;
   const tAuth = translations[lang].sidebar;
   const tPwa = translations[lang].pwa;
+  const tAcc = translations[lang].account;
 
   const dismissPrompt = () => {
     localStorage.setItem('pwa_prompt_dismissed', 'true');
     setShowIOSPrompt(false);
+  };
+
+  const loadAccountStatus = async () => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('plan_type, premium_duration_months')
+        .eq('id', user.id)
+        .single();
+
+      if (!error && data) {
+        setAccountStatus(data.plan_type || 'FREE');
+        if (data.premium_duration_months) {
+          setPremiumDuration(`${data.premium_duration_months} ${lang === 'fr' ? 'mois' : lang === 'vi' ? 'tháng' : 'months'}`);
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const loadInvitations = async () => {
@@ -155,6 +196,31 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     alert(alertMsg);
   };
 
+  const handleActivateCode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!activationCode.trim() || !user) return;
+    setActivationLoading(true);
+
+    try {
+      // Simulation ou appel RPC Supabase pour valider le coupon à implémenter plus tard
+      const { error } = await supabase
+        .from('profiles')
+        .update({ plan_type: 'PREMIUM', premium_duration_months: 12 }) // Par défaut 12 mois pour le test
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      setAccountStatus('PREMIUM');
+      setPremiumDuration(lang === 'fr' ? '12 mois' : lang === 'vi' ? '12 tháng' : '12 months');
+      setActivationCode('');
+      alert(lang === 'fr' ? "Félicitations ! Votre compte est maintenant PREMIUM ✨" : "Success! Your account is now PREMIUM ✨");
+    } catch (err: any) {
+      alert("Erreur: " + err.message);
+    } finally {
+      setActivationLoading(false);
+    }
+  };
+
   return (
     <div className="absolute inset-0 overflow-y-auto bg-gradient-to-b from-gray-50 to-white scrollbar-hide">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-0 pb-32">
@@ -172,7 +238,17 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
             Invit Studio
           </h1>
 
-          <div className="absolute right-0">
+          <div className="absolute right-0 flex items-center gap-2">
+            {/* BOUTON MON COMPTE */}
+            <button
+              onClick={() => setIsAccountModalOpen(true)}
+              className="flex items-center gap-2 text-gray-400 hover:text-amber-500 transition-colors text-[10px] sm:text-[11px] font-bold uppercase tracking-widest px-2 py-2 border-r border-gray-100 pr-4"
+            >
+              <User className="w-4 h-4" />
+              <span className="hidden xs:inline">{tAcc.title}</span>
+            </button>
+
+            {/* BOUTON DECONNEXION */}
             <button
               onClick={() => signOut()}
               className="flex items-center gap-2 text-gray-400 hover:text-rose-500 transition-colors text-[10px] sm:text-[11px] font-bold uppercase tracking-widest px-2 py-2"
@@ -237,6 +313,77 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
           </div>
         )}
 
+        {/* MODALE COMPTE USER */}
+        {isAccountModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+            <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
+              <div className="p-8 border-b border-gray-100 flex items-center justify-between bg-amber-50/50">
+                <div>
+                  <h3 className="text-xl font-black text-gray-900 uppercase tracking-tighter">{tAcc.title}</h3>
+                  <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest">{user?.email}</p>
+                </div>
+                <button onClick={() => setIsAccountModalOpen(false)} className="p-2 hover:bg-white rounded-full transition-colors"><X /></button>
+              </div>
+              <div className="p-8 space-y-6">
+                
+                {/* Statut du compte */}
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                  <div>
+                    <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">{tAcc.status}</p>
+                    <p className={`text-xl font-black ${accountStatus === 'PREMIUM' ? 'text-amber-500' : 'text-gray-500'}`}>
+                      {accountStatus}
+                    </p>
+                    {accountStatus === 'PREMIUM' && premiumDuration && (
+                      <p className="text-[10px] text-gray-400 font-bold mt-1">
+                        {tAcc.duration} <span className="text-gray-700 font-black">{premiumDuration}</span>
+                      </p>
+                    )}
+                  </div>
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-sm bg-white`}>
+                    <ShieldCheck className={`w-6 h-6 ${accountStatus === 'PREMIUM' ? 'text-amber-500' : 'text-gray-300'}`} />
+                  </div>
+                </div>
+
+                {/* Lien de gestion externe */}
+                <div className="text-center">
+                  <a 
+                    href="/payment-placeholder" // Sera remplacé plus tard par la vraie page
+                    className="text-xs font-bold text-amber-600 hover:text-amber-700 uppercase tracking-widest underline decoration-2 underline-offset-4"
+                  >
+                    {tAcc.manage}
+                  </a>
+                </div>
+
+                <div className="border-t border-gray-100 pt-6 space-y-3">
+                  {/* Formulaire d'activation par code */}
+                  <form onSubmit={handleActivateCode} className="space-y-3">
+                    <div className="relative">
+                      <Ticket className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 w-4 h-4" />
+                      <input 
+                        type="text" 
+                        required
+                        value={activationCode}
+                        onChange={(e) => setActivationCode(e.target.value)}
+                        placeholder={tAcc.placeholder} 
+                        className="w-full bg-gray-50 border-none h-12 pl-12 pr-4 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-amber-300 outline-none transition-all"
+                      />
+                    </div>
+                    <button 
+                      type="submit"
+                      disabled={activationLoading || !activationCode.trim()}
+                      className="w-full h-12 bg-gray-900 text-white rounded-xl text-xs font-bold uppercase tracking-widest transition-all hover:bg-gray-800 active:scale-98 disabled:opacity-40 flex items-center justify-center"
+                    >
+                      {activationLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : tAcc.activate}
+                    </button>
+                  </form>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* MODALE LISTE INVITÉS */}
         {isViewModalOpen && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
             <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
