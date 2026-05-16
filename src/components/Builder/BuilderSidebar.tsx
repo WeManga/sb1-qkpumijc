@@ -325,10 +325,22 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </div>
           <div>
+            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">{t.opening_type_label}</label>
+            <div className="grid grid-cols-2 gap-3">
+              <button onClick={() => onInvitationChange({...invitation, opening_type: 'vinyl'})} className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all ${invitation.opening_type === 'vinyl' || !invitation.opening_type ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}>
+                <span className="text-[10px] font-bold uppercase">{translations[lang].opening_types.vinyl}</span>
+              </button>
+              <button onClick={() => onInvitationChange({...invitation, opening_type: 'filmstrip'})} className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all ${invitation.opening_type === 'filmstrip' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}>
+                <span className="text-[10px] font-bold uppercase">{translations[lang].opening_types.filmstrip}</span>
+              </button>
+            </div>
+          </div>
+          <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">{t.theme_label}</label>
             <div className="grid grid-cols-2 gap-3">
               {EVENT_TYPES.map(type => (
                 <button key={type.id} onClick={() => handleThemeClick(type.id, type.premium)} className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all relative ${invitation.event_type === type.id ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'} ${type.premium && !isPremium ? 'opacity-50 grayscale pointer-events-none' : ''}`}>
+                  <type.icon size={18} className={invitation.event_type === type.id ? 'text-amber-500' : 'text-gray-400'} />
                   <type.icon size={18} className={invitation.event_type === type.id ? 'text-amber-500' : 'text-gray-400'} />
                   <span className="text-[10px] font-bold uppercase">{type.name}</span>
                   {type.premium && !isPremium && <Lock size={12} className="absolute right-2 top-2 text-gray-400" />}
