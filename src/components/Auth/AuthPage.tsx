@@ -25,6 +25,10 @@ export function AuthPage() {
 
   const t = translations[lang].auth;
 
+  // Traduction dynamique pour le séparateur et le bouton Google
+  const textOr = lang === 'vi' ? 'Hoặc' : lang === 'en' ? 'Or' : 'Ou';
+  const textGoogle = t.google_btn || (lang === 'vi' ? 'Tiếp tục với Google' : lang === 'en' ? 'Continue with Google' : 'Continuer avec Google');
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -157,24 +161,24 @@ export function AuthPage() {
               {loading ? t.loading : (isLogin ? t.login_btn : t.signup_btn)}
             </button>
 
-            {/* SEPARATEUR */}
+            {/* SEPARATEUR TRADUIT */}
             <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-200"></div>
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-gray-400 font-bold">Ou</span>
+                <span className="bg-white px-2 text-gray-400 font-bold">{textOr}</span>
               </div>
             </div>
 
-            {/* BOUTON GOOGLE */}
+            {/* BOUTON GOOGLE TRADUIT */}
             <button
               type="button"
               onClick={handleGoogleSignIn}
               className="w-full py-4 bg-white border border-gray-100 text-gray-700 rounded-2xl font-bold shadow-sm hover:bg-gray-50 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3"
             >
               <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" className="w-5 h-5" alt="Google" />
-              Continuer avec Google
+              {textGoogle}
             </button>
           </form>
         </div>
