@@ -4,7 +4,7 @@ import { X, Calendar, Volume2, VolumeX, MapPin, Clock, Sparkles, Film } from 'lu
 import { translations, Language } from '../../lib/i18n';
 
 // Importation de l'image de la main depuis ton dossier src
-import mainQuiToque from '../public/images/main-qui-toque.png'; 
+import mainQuiToque from '../public/images/main-qui-toque.PNG'; 
 
 const THEME_EMOJIS: Record<string, string[]> = {
   wedding: ['🤍', '💍', '🕊️', '✨', '🌸'],
