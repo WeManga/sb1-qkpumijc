@@ -225,25 +225,27 @@ export function GuestView({ invitation }: any) {
                   >
                     <motion.div 
                       key="visual-trigger"
-                      exit={{ opacity: 0, scale: 0.8 }}
-                      transition={{ duration: 0.1 }}
+                      exit={{ opacity: 0, transition: { duration: 0.5, ease: "easeInOut" } }}
                       className="absolute inset-0 z-[70] flex flex-col items-center justify-center cursor-pointer"
                       onClick={() => setIsOpened(true)}
                     >
-                      <motion.div
-                        animate={invitation.opening_style === 'knock' ? {
-                          x: [0, -1, 2, -2, 1, 0, 0, -1, 2, -2, 1, 0, 0], 
-                          y: [0, 1, -1, 1, -1, 0, 0, 1, -1, 1, -1, 0, 0]
-                        } : {}}
-                        transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 1.2 }}
-                      >
+                      <div className="relative w-full flex items-center justify-center">
                         {invitation.opening_style === 'knock' ? (
                           <motion.div
-                            animate={{ rotateX: [0, -40, 0, -40, 0], z: [0, 80, 0, 80, 0], scale: [1, 1.15, 1, 1.15, 1] }}
-                            transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 1.2 }}
-                            style={{ originY: "100%", filter: "sepia(0.5) saturate(0.8) brightness(1.2)" }}
-                            className="text-[100px] select-none"
-                          >✊</motion.div>
+                            animate={{ 
+                              x: [0, -12, 4, -12, 4, 0], 
+                              y: [0, -6, 2, -6, 2, 0],
+                              scale: [1, 1.05, 0.98, 1.05, 0.98, 1] 
+                            }}
+                            transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 1.5, ease: "easeInOut" }}
+                            className="w-56 h-56 select-none flex items-center justify-center"
+                          >
+                            <img 
+                              src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/main-qui-toque.PNG" 
+                              className="w-full h-full object-contain drop-shadow-2xl" 
+                              alt="Main qui toque" 
+                            />
+                          </motion.div>
                         ) : invitation.opening_style === 'key' ? (
                             <div className="flex flex-col items-center relative">
                               <div className="w-2.5 h-10 bg-black/80 rounded-full shadow-sm" />
@@ -277,7 +279,7 @@ export function GuestView({ invitation }: any) {
                         ) : (
                           <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-[32rem] h-[32rem] object-contain" alt="Sceau" />
                         )}
-                      </motion.div>
+                      </div>
                       <p className="absolute bottom-12 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">
                         {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? "Tap to open invitation" : "Nhấn để mở lời mời"}
                       </p>
@@ -413,4 +415,4 @@ export function GuestView({ invitation }: any) {
       </AnimatePresence>
     </div>
   );
-} 
+}
