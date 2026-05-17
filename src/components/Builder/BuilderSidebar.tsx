@@ -438,7 +438,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 <span className="text-[10px] font-bold uppercase">{localLabels.type_vinyl}</span>
               </button>
 
-              {/* PREMIUM : PORTE EN BOIS */}
+              {/* PREMIUM : PORTE EN BOIS (OUVERTURE INTERIEURE) */}
               <button 
                 type="button"
                 onClick={() => handleContainerTypeClick('filmstrip', true)} 
