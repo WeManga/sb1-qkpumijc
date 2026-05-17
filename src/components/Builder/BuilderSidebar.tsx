@@ -111,19 +111,16 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     onInvitationChange({...invitation, envelope_color: colorValue});
   };
 
-  // Section 1 : Style d'animation (Vinyle / Pellicule)
   const handleOpeningTypeClick = (typeId: string, premium: boolean) => {
     if (!checkPremiumAccess(!premium)) return;
     onInvitationChange({...invitation, opening_type: typeId});
   };
 
-  // Section 2 : Style d'action (Sceau, Main, Clé, Vault)
   const handleOpeningStyleClick = (styleId: string, premium: boolean) => {
     if (!checkPremiumAccess(!premium)) return;
     onInvitationChange({...invitation, opening_style: styleId});
   };
 
-  // Section 3 : Type d'ouverture (Enveloppe, Porte en bois, Porte en métal)
   const handleContainerOpenClick = (containerOpenId: string, premium: boolean) => {
     if (!checkPremiumAccess(!premium)) return;
     onInvitationChange({...invitation, container_open: containerOpenId});
@@ -348,7 +345,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
       {activeTab === 'style' && (
         <div className="space-y-8">
-          {/* SECTION 1 : STYLE D'ANIMATION (CONSERVÉ SUR OPENING_TYPE) */}
+          {/* SECTION 1 : STYLE D'ANIMATION */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">
               {localLabels.opening_type_label}
@@ -374,7 +371,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </div>
 
-          {/* SECTION 2 : STYLE D'ACTION (DÉCLENCHEURS STRICTEMENT CONSERVÉS SUR OPENING_STYLE) */}
+          {/* SECTION 2 : STYLE D'ACTION (L'ANIMATION SEULE) */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">
               {localLabels.action_style}
@@ -425,7 +422,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </div>
 
-          {/* SECTION 3 : LE TYPE D'OUVERTURE (SÉPARÉ ET BASCULÉ SUR CONTAINER_OPEN) */}
+          {/* SECTION 3 : TYPE D'OUVERTURE (LE FOND / CONTENANT DE L'ACTION) */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">
               {localLabels.opening_container}
@@ -503,7 +500,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           )}
 
-          {/* PALETTES DE COULEURS PREMIUM CONSERVÉES MAIS SÉPARÉES */}
+          {/* PALETTES DE COULEURS PREMIUM */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 flex items-center gap-2 ml-1">{localLabels.premium_colors}</label>
             <div className="flex gap-3 overflow-x-auto pt-2 pb-4 px-4 -mx-4 scrollbar-hide">
