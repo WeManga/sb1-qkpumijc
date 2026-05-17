@@ -43,7 +43,7 @@ export function InvitationPreview({ invitation }: any) {
   };
 
   // Système audio natif et hybride (fichiers locaux .wav + synthétiseur)
-  const playSyntheticSound = (type: 'beep' | 'lock' | 'key' | 'open_door') => {
+  const playSyntheticSound = (type: 'beep' | 'lock' | 'key' | 'open_door' | 'open_metal_door') => {
     if (isMuted) return;
     try {
       const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
@@ -90,6 +90,8 @@ export function InvitationPreview({ invitation }: any) {
         playWavFile('/sounds/key-turn.wav');
       } else if (type === 'open_door') {
         playWavFile('/sounds/door-open.wav');
+      } else if (type === 'open_metal_door') {
+        playWavFile('/sounds/metal-door.wav');
       }
     } catch (e) {
       console.error("Le système audio n'a pas pu s'initialiser", e);
@@ -192,6 +194,8 @@ export function InvitationPreview({ invitation }: any) {
   const triggerContainerOpening = () => {
     if (invitation.container_open === 'wooden_door') {
       playSyntheticSound('open_door');
+    } else if (invitation.container_open === 'metal_door') {
+      playSyntheticSound('open_metal_door');
     }
     setIsOpened(true);
     audioRef.current?.play().catch(() => {});
@@ -331,7 +335,7 @@ export function InvitationPreview({ invitation }: any) {
                 {(!isOpened || invitation.container_open === 'metal_door') && (
                   <motion.div 
                     key="gate-container" 
-                    exit={invitation.container_open === 'metal_door' ? { opacity: 1 } : { opacity: 1 }}
+                    exit={{ opacity: 1 }}
                     className="w-full h-full relative flex items-center justify-center"
                   >
                     <AnimatePresence>
@@ -339,7 +343,7 @@ export function InvitationPreview({ invitation }: any) {
                         <motion.div 
                           key="visual-trigger"
                           initial={{ opacity: 1 }}
-                          exit={{ 
+                          exit={invitation.container_open === 'metal_door' ? {} : { 
                             opacity: 0, 
                             transition: { duration: 0.4, ease: "easeInOut" } 
                           }}
@@ -455,7 +459,7 @@ export function InvitationPreview({ invitation }: any) {
                           animate={isOpened ? { x: "100%" } : { x: "0%" }}
                           transition={{ duration: 1.6, ease: "easeInOut" }}
                           className="absolute inset-0 w-full h-full bg-cover bg-center shadow-2xl"
-                          style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20noir.png")` }}
+                          style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20en%20metal.png")` }}
                         />
                       ) : (
                         <AnimatePresence>
