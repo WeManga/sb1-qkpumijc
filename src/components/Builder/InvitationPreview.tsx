@@ -94,14 +94,12 @@ export function InvitationPreview({ invitation }: any) {
       } else if (type === 'open_door') {
         playWavFile('/sounds/door-open.wav');
       } else if (type === 'explosion') {
-        // SYNTHÉTISEUR DE DÉTONATION D'EXPLOSION LOURDE (Basse fréquence + Distorsion + Décroissance)
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         const filter = ctx.createBiquadFilter();
         
         osc.type = 'triangle';
         osc.frequency.setValueAtTime(160, ctx.currentTime);
-        // Chute brutale de fréquence pour imiter l'onde de choc de l'explosion
         osc.frequency.exponentialRampToValueAtTime(10, ctx.currentTime + 0.8);
         
         filter.type = 'lowpass';
@@ -217,13 +215,13 @@ export function InvitationPreview({ invitation }: any) {
   // Centralisation et exécution de l'ouverture (Avec embranchement Explosion)
   const triggerContainerOpening = () => {
     if (invitation.container_open === 'metal_door') {
-      playSyntheticSound('explosion'); // Déclenche le synthétiseur de détonation lourde natif
-      setIsExploding(true); // Déclenche le flash et l'illusion d'optique destructive
+      playSyntheticSound('explosion');
+      setIsExploding(true);
       setTimeout(() => {
         setIsOpened(true);
         setIsExploding(false);
         audioRef.current?.play().catch(() => {});
-      }, 1100); // Temps réduit pour faire apparaître le faire-part et la pellicule plus vite
+      }, 1100); // Révèle l'invitation de manière fluide pendant la dispersion des débris
     } else {
       if (invitation.container_open === 'wooden_door') {
         playSyntheticSound('open_door');
@@ -278,14 +276,13 @@ export function InvitationPreview({ invitation }: any) {
 
   // Génération dynamique d'une grille de fragments texturés basés sur l'image de la porte en métal
   const explosionFragments = useMemo(() => {
-    const totalFragments = 36; // Grille de 6x6 pour casser l'image proprement
+    const totalFragments = 36;
     const rows = 6;
     const cols = 6;
     return Array.from({ length: totalFragments }).map((_, i) => {
       const r = Math.floor(i / cols);
       const c = i % cols;
       const angle = Math.random() * Math.PI * 2;
-      // Force d'expulsion modulée à la baisse pour ralentir l'effet de souffle et voir les morceaux s'écarter
       const force = 190 + Math.random() * 210; 
       return {
         id: i,
@@ -296,8 +293,8 @@ export function InvitationPreview({ invitation }: any) {
         bgX: `${(c * 100) / (cols - 1)}%`,
         bgY: `${(r * 100) / (rows - 1)}%`,
         targetX: Math.cos(angle) * force,
-        targetY: Math.sin(angle) * force + 220, // Inertie verticale descendante (gravité)
-        rotate: (Math.random() - 0.5) * 800 // Rotation ralentie et réaliste des éclats
+        targetY: Math.sin(angle) * force + 220, 
+        rotate: (Math.random() - 0.5) * 800 
       };
     });
   }, []);
@@ -309,15 +306,20 @@ export function InvitationPreview({ invitation }: any) {
       {invitation?.music_url && <audio ref={audioRef} src={invitation.music_url} loop />}
       {isOpened && <EmojiRain />}
       
-      {/* --- FLASH BLANC ET AMBRE ULTRA-INTENSE DE LA DÉTONATION --- */}
+      {/* --- RECONSTRUCTION INTERACTIVE DE L'OUVERTURE AVEC LE FICHIER EXPLOSION.PNG INTEGRÉ --- */}
       <AnimatePresence>
         {isExploding && (
           <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: [0, 1, 0.9, 1, 0] }}
+            initial={{ scale: 0.2, opacity: 0, rotate: 0 }}
+            animate={{ 
+              scale: [0.3, 1.4, 1.1], 
+              opacity: [0, 1, 0.9, 0],
+              rotate: [0, 15, -10]
+            }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.6, times: [0, 0.1, 0.25, 0.45, 1], ease: "easeInOut" }}
-            className="absolute inset-0 z-[95] bg-gradient-to-r from-orange-500 via-white to-amber-500 mix-blend-overlay pointer-events-none"
+            transition={{ duration: 1.5, times: [0, 0.2, 0.7, 1], ease: "easeOut" }}
+            className="absolute inset-0 z-[95] pointer-events-none bg-contain bg-center bg-none bg-no-repeat"
+            style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/explosion.png")` }}
           />
         )}
       </AnimatePresence>
@@ -337,7 +339,7 @@ export function InvitationPreview({ invitation }: any) {
                   opacity: 0,
                   rotate: f.rotate
                 }}
-                transition={{ duration: 2.5, ease: [0.05, 0.7, 0.1, 1] }} // Durée augmentée à 2.5s et courbe très étirée pour figer l'effet
+                transition={{ duration: 2.5, ease: [0.05, 0.7, 0.1, 1] }} 
                 className="absolute shadow-2xl border border-black/30"
                 style={{
                   width: f.w,
@@ -345,7 +347,7 @@ export function InvitationPreview({ invitation }: any) {
                   top: f.top,
                   left: f.left,
                   backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20en%20metal.png")`,
-                  backgroundSize: '600% 600%', // Subdivision 6x6
+                  backgroundSize: '600% 600%', 
                   backgroundPosition: `${f.bgX} ${f.bgY}`,
                   backgroundRepeat: 'no-repeat'
                 }}
