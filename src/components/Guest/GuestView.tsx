@@ -48,7 +48,7 @@ export function GuestView({ invitation }: any) {
   };
 
   // Synthétiseur audio natif (Pas besoin d'importer de fichier externe)
-  const playSyntheticSound = (type: 'beep' | 'lock' | 'knock' | 'door') => {
+  const playSyntheticSound = (type: 'beep' | 'lock' | 'knock' | 'key') => {
     if (isMuted) return;
     try {
       const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
@@ -59,7 +59,7 @@ export function GuestView({ invitation }: any) {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = 'sine';
-        osc.frequency.setValueAtTime(880, ctx.currentTime); // Note aiguë électronique
+        osc.frequency.setValueAtTime(880, ctx.currentTime);
         gain.gain.setValueAtTime(0.05, ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
         osc.connect(gain);
@@ -78,30 +78,35 @@ export function GuestView({ invitation }: any) {
         osc.start();
         osc.stop(ctx.currentTime + 0.15);
       } else if (type === 'knock') {
-        // Simulation d'un impact sourd (toctoc)
+        // Simulation d'un impact sourd en basse fréquence
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = 'triangle';
-        osc.frequency.setValueAtTime(120, ctx.currentTime);
-        gain.gain.setValueAtTime(0.2, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+        osc.frequency.setValueAtTime(110, ctx.currentTime);
+        gain.gain.setValueAtTime(0.25, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.start();
-        osc.stop(ctx.currentTime + 0.1);
-      } else if (type === 'door') {
-        // Friction basse fréquence pour imiter une porte en bois ou un volet
-        const osc = ctx.createOscillator();
+        osc.stop(ctx.currentTime + 0.12);
+      } else if (type === 'key') {
+        // Double cliquetis aigu pour imiter le mécanisme de la serrure
+        const osc1 = ctx.createOscillator();
+        const osc2 = ctx.createOscillator();
         const gain = ctx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(80, ctx.currentTime);
-        osc.frequency.linearRampToValueAtTime(40, ctx.currentTime + 0.5);
-        gain.gain.setValueAtTime(0.15, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
-        osc.connect(gain);
+        osc1.type = 'sine';
+        osc2.type = 'triangle';
+        osc1.frequency.setValueAtTime(1500, ctx.currentTime);
+        osc2.frequency.setValueAtTime(2000, ctx.currentTime + 0.05);
+        gain.gain.setValueAtTime(0.06, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+        osc1.connect(gain);
+        osc2.connect(gain);
         gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.6);
+        osc1.start();
+        osc2.start();
+        osc1.stop(ctx.currentTime + 0.2);
+        osc2.stop(ctx.currentTime + 0.2);
       }
     } catch (e) {
       console.error("Audio system blocked or unsupported", e);
@@ -164,18 +169,17 @@ export function GuestView({ invitation }: any) {
               return next;
             });
             setActiveKey(targetCode[index]);
-            playSyntheticSound('beep'); // Bip à chaque chiffre validé !
+            playSyntheticSound('beep');
           }, (index + 1) * 550);
         });
 
         endTimer = setTimeout(() => {
           clearInterval(interval);
           setActiveKey(null);
-          playSyntheticSound('lock'); // Son de déverrouillage final
+          playSyntheticSound('lock');
           setIsCodeFading(true);
           
           setTimeout(() => {
-            playSyntheticSound('door'); // Son mécanique d'ouverture des battants/enveloppe
             setIsOpened(true);
             audioRef.current?.play().catch(() => {});
           }, 600);
@@ -199,11 +203,12 @@ export function GuestView({ invitation }: any) {
     } else {
       if (invitation.opening_style === 'knock') {
         playSyntheticSound('knock');
-        setTimeout(() => playSyntheticSound('knock'), 150);
+        setTimeout(() => playSyntheticSound('knock'), 140); // Effet toctoc réaliste en deux temps
+      } else if (invitation.opening_style === 'key') {
+        playSyntheticSound('key');
       }
       setIsCodeFading(true);
       setTimeout(() => {
-        playSyntheticSound('door');
         setIsOpened(true);
         audioRef.current?.play().catch(() => {});
       }, 400);
@@ -412,7 +417,7 @@ export function GuestView({ invitation }: any) {
                                   />
                                 </div>
                             ) : invitation.opening_style === 'vault' ? (
-                              /* --- BOITIER DIGITAL TACTILE ULTRA-COMPACT APPLIQUÉ --- */
+                              /* --- BOITIER DIGITAL TACTILE ULTRA-COMPACT --- */
                               <div className="relative w-[220px] h-[330px] flex flex-col items-center justify-start bg-neutral-950 border-[4px] border-neutral-800 rounded-[1.75rem] shadow-[0_20px_40px_rgba(0,0,0,0.8)] overflow-hidden p-4">
                                 <img 
                                   src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/dgital.png" 
@@ -473,7 +478,7 @@ export function GuestView({ invitation }: any) {
                             )}
                           </div>
                           
-                          {/* LOGIQUE RESTAURÉE DE LA PHRASE EN BAS DE L'ÉCRAN */}
+                          {/* Phrase d'indication textuelle restaurée en bas */}
                           <p className="absolute bottom-12 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse text-center w-full px-4">
                             {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? "Tap to open invitation" : "Nhấn de mở lời mời"}
                           </p>
