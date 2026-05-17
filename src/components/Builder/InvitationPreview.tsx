@@ -93,7 +93,7 @@ export function InvitationPreview({ invitation }: any) {
               return next;
             });
             setActiveKey(targetCode[index]);
-          }, (index + 1) * 550); // Ajustement de la vitesse de découverte pour les 6 chiffres
+          }, (index + 1) * 550);
         });
 
         endTimer = setTimeout(() => {
@@ -293,24 +293,18 @@ export function InvitationPreview({ invitation }: any) {
                                   />
                                 </div>
                             ) : invitation.opening_style === 'vault' ? (
-                              /* --- BOITIER DIGITAL TACTILE (6 CHIFFRES) --- */
-                              <div className="relative w-[300px] h-[440px] flex flex-col items-center justify-start bg-neutral-900 border-[6px] border-neutral-800 rounded-[2.5rem] shadow-[0_30px_60px_rgba(0,0,0,0.8)] overflow-hidden p-6">
-                                <img 
-                                  src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/dgital.png" 
-                                  className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-30 pointer-events-none" 
-                                  alt="" 
-                                />
-
+                              /* --- BOITIER NETTOYÉ SANS TRANSMISSION D'IMAGE PAR ASSIGNATION --- */
+                              <div className="relative w-[220px] h-[330px] flex flex-col items-center justify-start bg-neutral-950 border-[4px] border-neutral-800 rounded-[1.75rem] shadow-[0_20px_40px_rgba(0,0,0,0.8)] overflow-hidden p-4">
                                 {/* Écran LCD Supérieur */}
-                                <div className="w-full h-24 bg-black/95 rounded-2xl border-2 border-neutral-800 p-3 flex flex-col items-center justify-center shadow-inner relative z-10 mb-8">
-                                  <span className="text-[10px] font-mono tracking-[0.25em] text-neutral-400 font-bold uppercase mb-1">🔒 Invit Studio</span>
-                                  <div className="flex gap-1.5">
+                                <div className="w-full h-16 bg-black/95 rounded-xl border border-neutral-800 p-2 flex flex-col items-center justify-center shadow-inner relative z-10 mb-5">
+                                  <span className="text-[7.5px] font-mono tracking-[0.25em] text-neutral-400 font-bold uppercase mb-0.5">🔒 Invit Studio</span>
+                                  <div className="flex gap-1">
                                     {displayedCode.map((digit, index) => (
                                       <motion.span
                                         key={index}
                                         initial={{ scale: 1.3 }}
                                         animate={{ scale: 1 }}
-                                        className="text-sky-500 font-mono text-2xl font-black drop-shadow-[0_0_10px_rgba(14,165,233,0.8)] tracking-wider"
+                                        className="text-sky-500 font-mono text-xl font-black drop-shadow-[0_0_8px_rgba(14,165,233,0.8)] tracking-wider"
                                       >
                                         {digit}
                                       </motion.span>
@@ -319,7 +313,7 @@ export function InvitationPreview({ invitation }: any) {
                                 </div>
 
                                 {/* Clavier Rétroéclairé Bleu */}
-                                <div className="grid grid-cols-3 gap-3 w-full max-w-[210px] relative z-10">
+                                <div className="grid grid-cols-3 gap-2 w-full max-w-[155px] relative z-10">
                                   {['1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '0', '#'].map((key) => {
                                     const isGlowing = activeKey === key;
                                     return (
@@ -328,24 +322,24 @@ export function InvitationPreview({ invitation }: any) {
                                         animate={isGlowing ? {
                                           backgroundColor: 'rgba(14, 165, 233, 0.35)',
                                           borderColor: '#38bdf8',
-                                          boxShadow: '0 0 15px rgba(56, 189, 248, 0.7)',
+                                          boxShadow: '0 0 10px rgba(56, 189, 248, 0.7)',
                                           scale: 0.95
                                         } : {
                                           backgroundColor: 'rgba(23, 23, 23, 0.85)',
-                                          borderColor: 'rgba(63, 63, 70, 0.3)',
+                                          borderColor: 'rgba(63, 63, 70, 0.2)',
                                           boxShadow: 'none',
                                           scale: 1
                                         }}
-                                        className="aspect-square flex items-center justify-center rounded-xl border font-mono font-bold text-xl text-neutral-400 transition-all select-none"
+                                        className="aspect-square flex items-center justify-center rounded-lg border font-mono font-bold text-sm text-neutral-400 transition-all select-none"
                                       >
-                                        <span className={isGlowing ? "text-sky-400 drop-shadow-[0_0_6px_rgba(56,189,248,0.9)]" : ""}>
+                                        <span className={isGlowing ? "text-sky-400 drop-shadow-[0_0_4px_rgba(56,189,248,0.9)]" : ""}>
                                           {key}
                                         </span>
                                       </motion.div>
                                     );
                                   })}
                                 </div>
-                                <div className="mt-5 font-mono text-[9px] tracking-widest text-neutral-500 animate-pulse uppercase">
+                                <div className="mt-3.5 font-mono text-[8px] tracking-widest text-neutral-500 animate-pulse uppercase">
                                   {isVaultClicked ? "CRACKING CODE..." : "Tap Device to Unlock"}
                                 </div>
                               </div>
