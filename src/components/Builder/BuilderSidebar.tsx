@@ -362,7 +362,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
               <button 
                 type="button"
-                onClick={{/* STRICTEMENT INDÉPENDANT : NE MODIFIE QUE OPENING_TYPE */} () => handleOpeningTypeClick('filmstrip', false)} 
+                onClick={() => handleOpeningTypeClick('filmstrip', false)} 
                 className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all ${invitation.opening_type === 'filmstrip' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}
               >
                 <Film size={18} className={invitation.opening_type === 'filmstrip' ? 'text-amber-500' : 'text-gray-400'} />
@@ -371,7 +371,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </div>
 
-          {/* SECTION 2 : STYLE D'ACTION (DÉCLENCHEUR MÉCANIQUE SEUL) */}
+          {/* SECTION 2 : STYLE D'ACTION */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">
               {localLabels.action_style}
@@ -401,7 +401,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
               {/* PREMIUM : CLÉ CLASSIQUE */}
               <button 
                 type="button"
-                onClick={{/* ACCÈS INDÉPENDANT SANS ÉCRASER LE CONTENANT DE FOND */} () => handleOpeningStyleClick('key', true)} 
+                onClick={() => handleOpeningStyleClick('key', true)} 
                 className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all relative ${invitation.opening_style === 'key' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'} ${!isPremium ? 'opacity-40 grayscale' : ''}`}
               >
                 <Key size={18} className={invitation.opening_style === 'key' ? 'text-amber-500' : 'text-gray-400'} />
@@ -422,7 +422,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </div>
 
-          {/* SECTION 3 : TYPE D'OUVERTURE (LE FOND / CONTENANT DE L'ACTION) */}
+          {/* SECTION 3 : TYPE D'OUVERTURE (LE FOND / CONTENANT) */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">
               {localLabels.opening_container}
