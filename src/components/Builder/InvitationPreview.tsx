@@ -216,12 +216,18 @@ export function InvitationPreview({ invitation }: any) {
   const triggerContainerOpening = () => {
     if (invitation.container_open === 'metal_door') {
       playSyntheticSound('explosion');
-      setIsExploding(true);
+      setIsExploding(true); // Déclenche le cycle d'explosion séquentiel immédiat
+      
+      // Révèle l'arrière-plan de l'invitation très vite pendant le flash de la détonation
       setTimeout(() => {
         setIsOpened(true);
+      }, 250); 
+
+      // Éteint la chambre d'explosion globale après la fin complète de la chute des débris
+      setTimeout(() => {
         setIsExploding(false);
         audioRef.current?.play().catch(() => {});
-      }, 1100); // Révèle l'invitation de manière fluide pendant la dispersion des débris
+      }, 2600);
     } else {
       if (invitation.container_open === 'wooden_door') {
         playSyntheticSound('open_door');
@@ -276,14 +282,14 @@ export function InvitationPreview({ invitation }: any) {
 
   // Génération dynamique d'une grille de fragments texturés basés sur l'image de la porte en métal
   const explosionFragments = useMemo(() => {
-    const totalFragments = 36;
+    const totalFragments = 36; // Grille de 6x6 pour casser l'image proprement
     const rows = 6;
     const cols = 6;
     return Array.from({ length: totalFragments }).map((_, i) => {
       const r = Math.floor(i / cols);
       const c = i % cols;
       const angle = Math.random() * Math.PI * 2;
-      const force = 190 + Math.random() * 210; 
+      const force = 180 + Math.random() * 200; // Force d'expulsion modulée lente
       return {
         id: i,
         w: `${100 / cols}%`,
@@ -293,7 +299,7 @@ export function InvitationPreview({ invitation }: any) {
         bgX: `${(c * 100) / (cols - 1)}%`,
         bgY: `${(r * 100) / (rows - 1)}%`,
         targetX: Math.cos(angle) * force,
-        targetY: Math.sin(angle) * force + 220, 
+        targetY: Math.sin(angle) * force + 240, // Gravité descendante réaliste
         rotate: (Math.random() - 0.5) * 800 
       };
     });
@@ -306,25 +312,38 @@ export function InvitationPreview({ invitation }: any) {
       {invitation?.music_url && <audio ref={audioRef} src={invitation.music_url} loop />}
       {isOpened && <EmojiRain />}
       
-      {/* --- RECONSTRUCTION INTERACTIVE DE L'OUVERTURE AVEC LE FICHIER EXPLOSION.PNG INTEGRÉ --- */}
+      {/* --- FLASH BLANC ET AMBRE ULTRA-INTENSE EN PREMIER PLAN AU MOMENT DU SOUFFLE --- */}
       <AnimatePresence>
         {isExploding && (
           <motion.div 
-            initial={{ scale: 0.2, opacity: 0, rotate: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0, 1, 0.8, 1, 0] }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6, times: [0, 0.1, 0.25, 0.45, 1], ease: "easeInOut" }}
+            className="absolute inset-0 z-[96] bg-gradient-to-r from-orange-500 via-white to-amber-500 mix-blend-overlay pointer-events-none"
+          />
+        )}
+      </AnimatePresence>
+
+      {/* --- VISUEL DE L'EXPLOSION REELLE PNG (S'APPLIQUE EN PREMIER PLAN DIRECT SUR LE CLIC) --- */}
+      <AnimatePresence>
+        {isExploding && (
+          <motion.div 
+            initial={{ scale: 0.1, opacity: 0, rotate: 0 }}
             animate={{ 
-              scale: [0.3, 1.4, 1.1], 
+              scale: [0.2, 1.4, 1.1, 0.9], 
               opacity: [0, 1, 0.9, 0],
-              rotate: [0, 15, -10]
+              rotate: [0, 10, -5]
             }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 1.5, times: [0, 0.2, 0.7, 1], ease: "easeOut" }}
-            className="absolute inset-0 z-[95] pointer-events-none bg-contain bg-center bg-none bg-no-repeat"
+            transition={{ duration: 1.4, times: [0, 0.15, 0.6, 1], ease: "easeOut" }}
+            className="absolute inset-0 z-[95] pointer-events-none bg-contain bg-center bg-no-repeat"
             style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/explosion.png")` }}
           />
         )}
       </AnimatePresence>
 
-      {/* --- CHAMBRE DE FRAGMENTATION MÉTALLIQUE REELLE (RALENTIE) --- */}
+      {/* --- CHAMBRE DE FRAGMENTATION DE LA PORTE (SE DECLENCHE JUSTE APRES LE BLAST) --- */}
       <AnimatePresence>
         {isExploding && (
           <div className="absolute inset-0 z-[90] pointer-events-none overflow-hidden">
@@ -339,7 +358,11 @@ export function InvitationPreview({ invitation }: any) {
                   opacity: 0,
                   rotate: f.rotate
                 }}
-                transition={{ duration: 2.5, ease: [0.05, 0.7, 0.1, 1] }} 
+                transition={{ 
+                  duration: 2.5, 
+                  delay: 0.1, // Léger décalage pour laisser l'explosion se déployer en premier
+                  ease: [0.05, 0.7, 0.1, 1] 
+                }} 
                 className="absolute shadow-2xl border border-black/30"
                 style={{
                   width: f.w,
@@ -347,7 +370,7 @@ export function InvitationPreview({ invitation }: any) {
                   top: f.top,
                   left: f.left,
                   backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20en%20metal.png")`,
-                  backgroundSize: '600% 600%', 
+                  backgroundSize: '600% 600%', // Subdivision 6x6
                   backgroundPosition: `${f.bgX} ${f.bgY}`,
                   backgroundRepeat: 'no-repeat'
                 }}
@@ -450,9 +473,9 @@ export function InvitationPreview({ invitation }: any) {
                           key="visual-trigger"
                           initial={{ opacity: 1 }}
                           exit={invitation.container_open === 'metal_door' ? {
-                            scale: 1.1,
+                            scale: 1.05,
                             opacity: 0,
-                            transition: { duration: 0.1 }
+                            transition: { duration: 0.1 } // Se retire instantanément sous le blast
                           } : { 
                             opacity: 0, 
                             transition: { duration: 0.4, ease: "easeInOut" } 
@@ -562,7 +585,7 @@ export function InvitationPreview({ invitation }: any) {
                       )}
                     </AnimatePresence>
 
-                    {/* ANIMATION DES CONTENANTS DÉCOUPLÉS - PLEIN ÉCRAN TOTAL POUR LA PORTE MÉTAL */}
+                    {/* ANIMATION DES CONTENANTS DÉCOUPLÉS - LA PORTE METAL DU FOND EST MASQUÉE DIRECTEMENT SUR L'EXPLOSION */}
                     <div className="absolute inset-0 z-50 w-full h-full flex" style={{ perspective: '2000px' }}>
                       {invitation.container_open === 'metal_door' ? (
                         <div 
