@@ -282,7 +282,7 @@ export function GuestView({ invitation }: any) {
     );
   };
 
-  const isDoorType = invitation.container_open === 'wooden_door' || invitation.container_open === 'metal_door';
+  const isDoorBackground = invitation.container_open === 'wooden_door' || invitation.container_open === 'metal_door';
 
   return (
     <div className="fixed inset-0 flex items-center justify-center overflow-hidden touch-none bg-white" style={{ fontFamily: invitation.font_style || 'inherit' }}>
@@ -377,10 +377,10 @@ export function GuestView({ invitation }: any) {
             {/* --- SYSTEME D'OUVERTURE --- */}
             <div className="absolute inset-0 z-50 overflow-hidden" style={{ perspective: '2000px', pointerEvents: isOpened ? 'none' : 'auto' }}>
               <AnimatePresence>
-                {!isOpened && (
+                {(!isOpened || invitation.container_open === 'metal_door') && (
                   <motion.div 
                     key="gate-container"
-                    exit={{ opacity: 1 }}
+                    exit={invitation.container_open === 'metal_door' ? { opacity: 1 } : { opacity: 1 }}
                     className="w-full h-full relative flex items-center justify-center"
                   >
                     <AnimatePresence>
@@ -505,26 +505,30 @@ export function GuestView({ invitation }: any) {
                           style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20en%20metal.png")` }}
                         />
                       ) : (
-                        <>
-                          <motion.div 
-                            exit={{ rotateY: -100, x: '-20%', opacity: 0 }} 
-                            transition={{ duration: 1.2, ease: "easeInOut" }} 
-                            className="w-1/2 h-full origin-left bg-cover bg-center shadow-2xl border-r border-black/10" 
-                            style={{ 
-                              backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20gauche.png")`, 
-                              backgroundColor: invitation?.envelope_color || '#FEE2E2'
-                            }} 
-                          />
-                          <motion.div 
-                            exit={{ rotateY: 100, x: '20%', opacity: 0 }} 
-                            transition={{ duration: 1.2, ease: "easeInOut" }} 
-                            className="w-1/2 h-full origin-right bg-cover bg-center shadow-2xl border-l border-black/10" 
-                            style={{ 
-                              backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20droite.png")`, 
-                              backgroundColor: invitation?.envelope_color || '#FEE2E2'
-                            }} 
-                          />
-                        </>
+                        <AnimatePresence>
+                          {!isOpened && (
+                            <>
+                              <motion.div 
+                                exit={{ rotateY: -100, x: '-20%', opacity: 0 }} 
+                                transition={{ duration: 1.2, ease: "easeInOut" }} 
+                                className="w-1/2 h-full origin-left bg-cover bg-center shadow-2xl border-r border-black/10" 
+                                style={{ 
+                                  backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20gauche.png")`, 
+                                  backgroundColor: invitation?.envelope_color || '#FEE2E2'
+                                }} 
+                              />
+                              <motion.div 
+                                exit={{ rotateY: 100, x: '20%', opacity: 0 }} 
+                                transition={{ duration: 1.2, ease: "easeInOut" }} 
+                                className="w-1/2 h-full origin-right bg-cover bg-center shadow-2xl border-l border-black/10" 
+                                style={{ 
+                                  backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20droite.png")`, 
+                                  backgroundColor: invitation?.envelope_color || '#FEE2E2'
+                                }} 
+                              />
+                            </>
+                          )}
+                        </AnimatePresence>
                       )}
                     </div>
                   </motion.div>
