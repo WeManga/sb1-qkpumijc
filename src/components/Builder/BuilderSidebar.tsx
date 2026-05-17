@@ -62,17 +62,19 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
   const localLabels = {
     fr: {
-      opening_type_label: "Style d'animation (Sortie de la carte)",
+      opening_type_label: "Style d'animation (Média du faire-part)",
       action_style: "Le Style d'action (Déclencheur)",
-      opening_container: "Le Type d'ouverture (Contenant)",
+      opening_container: "Le Type d'ouverture (Contenant initial)",
       premium_colors: "Couleurs PREMIUM",
       style_default: "Sceau ancestral",
       style_knock: "Main qui toque",
       style_key: "Clé classique",
       style_vault: "Code digital (Vault)",
-      type_vinyl: "Volet",
-      type_filmstrip: "Porte en Bois",
-      type_metal: "Porte en Métal",
+      type_vinyl: "Disque Vinyle",
+      type_filmstrip: "Pellicule Photo",
+      container_shutter: "Volet Interactif",
+      type_wood_door: "Porte en Bois",
+      type_metal_door: "Porte en Métal",
       vault_date_label: "Date du code secret (6 chiffres animés)",
       alert_msg: "Vous possédez un compte FREE, veuillez passer en PREMIUM pour débloquer cette fonctionnalité.",
       paper_section_label: "Style de la carte d'invitation (Papier)",
@@ -80,23 +82,25 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       paper_mode_color: "Couleur",
       paper_color_label: "Couleur de la carte",
       paper_premium_colors: "Couleurs de carte PREMIUM",
-      envelope_section_label: "Configuration de l'Enveloppe & Décors",
+      envelope_section_label: "Configuration de l'Enveloppe & Décors (Arrière-plan)",
       envelope_color_free: "Couleur de l'enveloppe (FREE)",
       envelope_premium_colors: "Couleurs d'enveloppe PREMIUM",
       envelope_decor_label: "Décorations de l'enveloppe"
     },
     en: {
-      opening_type_label: "Animation Style (Card Reveal)",
+      opening_type_label: "Animation Style (Invitation Media)",
       action_style: "Action Style (Trigger)",
-      opening_container: "Opening Type (Container)",
+      opening_container: "Opening Type (Initial Container)",
       premium_colors: "PREMIUM Colors",
       style_default: "Ancestral Seal",
       style_knock: "Knocking Hand",
       style_key: "Classic Key",
       style_vault: "Digital Code (Vault)",
-      type_vinyl: "Volet",
-      type_filmstrip: "Wooden Door",
-      type_metal: "Metal Door",
+      type_vinyl: "Vinyl Record",
+      type_filmstrip: "Filmstrip Photo",
+      container_shutter: "Volet Shutter",
+      type_wood_door: "Wooden Door",
+      type_metal_door: "Metal Door",
       vault_date_label: "Secret Code Date (6 animated digits)",
       alert_msg: "You have a FREE account, please upgrade to PREMIUM to unlock this feature.",
       paper_section_label: "Invitation Card Style (Paper)",
@@ -104,23 +108,25 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       paper_mode_color: "Color",
       paper_color_label: "Card Color",
       paper_premium_colors: "PREMIUM Card Colors",
-      envelope_section_label: "Envelope Settings & Decors",
+      envelope_section_label: "Envelope Settings & Decors (Background)",
       envelope_color_free: "Envelope Color (FREE)",
       envelope_premium_colors: "PREMIUM Envelope Colors",
       envelope_decor_label: "Envelope Decorations"
     },
     vi: {
-      opening_type_label: "Kiểu hoạt ảnh (Lộ thẻ)",
+      opening_type_label: "Kiểu hoạt ảnh (Phương tiện lời mời)",
       action_style: "Kiểu hành động (Kích hoạt)",
-      opening_container: "Loại mở rộng (Hộp chứa)",
+      opening_container: "Loại mở rộng (Hộp chứa ban đầu)",
       premium_colors: "Màu sắc PREMIUM",
       style_default: "Dấu ấn cổ xưa",
       style_knock: "Tay gõ cửa",
       style_key: "Chìa khóa cổ điển",
       style_vault: "Mã kỹ thuật số (Vault)",
-      type_vinyl: "Volet",
-      type_filmstrip: "Cửa gỗ",
-      type_metal: "Cửa kim loại",
+      type_vinyl: "Đĩa Than Vinyle",
+      type_filmstrip: "Cuộn Phim Ảnh",
+      container_shutter: "Volet Cửa Sập",
+      type_wood_door: "Cửa gỗ",
+      type_metal_door: "Cửa kim loại",
       vault_date_label: "Ngày mã bí mật (6 chữ số hoạt hình)",
       alert_msg: "Bạn đang sử dụng tài khoản MIỄN PHÍ, vui lòng nâng cấp lên PREMIUM để mở khóa tính năng này.",
       paper_section_label: "Kiểu Thẻ Mời (Giấy)",
@@ -128,7 +134,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       paper_mode_color: "Màu sắc",
       paper_color_label: "Màu thẻ",
       paper_premium_colors: "Màu thẻ PREMIUM",
-      envelope_section_label: "Cấu hình Phong bì & Trang trí",
+      envelope_section_label: "Cấu hình Phong bì & Trang trí (Nền)",
       envelope_color_free: "Màu phong bì (FREE)",
       envelope_premium_colors: "Màu phong bì PREMIUM",
       envelope_decor_label: "Trang trí phong bì"
@@ -392,7 +398,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
       {activeTab === 'style' && (
         <div className="space-y-8">
-          {/* SECTION 1 : STYLE D'ANIMATION */}
+          {/* SECTION 1 : STYLE D'ANIMATION (MÉDIA DU FAIRE-PART) */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">
               {localLabels.opening_type_label}
@@ -413,18 +419,17 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all ${invitation.opening_type === 'filmstrip' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}
               >
                 <Film size={18} className={invitation.opening_type === 'filmstrip' ? 'text-amber-500' : 'text-gray-400'} />
-                <span className="text-[10px] font-bold uppercase">{translations[lang].opening_types.filmstrip}</span>
+                <span className="text-[10px] font-bold uppercase">{localLabels.type_filmstrip}</span>
               </button>
             </div>
           </div>
 
-          {/* SECTION 2 : STYLE D'ACTION (L'ANIMATION SEULE) */}
+          {/* SECTION 2 : STYLE D'ACTION (DÉCLENCHEUR DE DÉMARRAGE) */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">
               {localLabels.action_style}
             </label>
             <div className="grid grid-cols-2 gap-3">
-              {/* GRATUIT : SCEAU */}
               <button 
                 type="button"
                 onClick={() => handleOpeningStyleClick('default', false)} 
@@ -434,7 +439,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 <span className="text-[10px] font-bold uppercase">{localLabels.style_default}</span>
               </button>
 
-              {/* PREMIUM : MAIN QUI TOQUE */}
               <button 
                 type="button"
                 onClick={() => handleOpeningStyleClick('knock', true)} 
@@ -445,7 +449,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 {!isPremium && <Lock size={12} className="absolute right-2 top-2 text-gray-400" />}
               </button>
 
-              {/* PREMIUM : CLÉ CLASSIQUE */}
               <button 
                 type="button"
                 onClick={() => handleOpeningStyleClick('key', true)} 
@@ -456,7 +459,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 {!isPremium && <Lock size={12} className="absolute right-2 top-2 text-gray-400" />}
               </button>
 
-              {/* PREMIUM : CODE DIGITAL (VAULT) */}
               <button 
                 type="button"
                 onClick={() => handleOpeningStyleClick('vault', true)} 
@@ -468,7 +470,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
               </button>
             </div>
 
-            {/* CAS DE CALENDRIER CONDITIONNEL INTÉGRÉ POUR LE CODE DIGITAL (VAULT) */}
             {invitation.opening_style === 'vault' && (
               <div className="mt-4 p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-2 animate-fade-in">
                 <label className="text-[10px] font-black uppercase text-gray-500 flex items-center gap-2">
@@ -485,109 +486,104 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             )}
           </div>
 
-          {/* SECTION 3 : TYPE D'OUVERTURE (LE FOND / CONTENANT DE L'ACTION) */}
+          {/* SECTION 3 : TYPE D'OUVERTURE (LE CONTENANT INITIAL EN PLEIN ÉCRAN) */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">
               {localLabels.opening_container}
             </label>
             <div className="grid grid-cols-2 gap-3">
-              {/* GRATUIT : ENVELOPPE CLASSIQUE */}
               <button 
                 type="button"
                 onClick={() => handleContainerOpenClick('envelope', false)} 
                 className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all ${invitation.container_open === 'envelope' || !invitation.container_open ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}
               >
-                <ImageIcon size={18} className={invitation.container_open === 'envelope' || !invitation.container_open ? 'text-amber-500' : 'text-gray-400'} />
-                <span className="text-[10px] font-bold uppercase">{translations[lang].opening_types.vinyl}</span>
+                <DoorClosed size={18} className={invitation.container_open === 'envelope' || !invitation.container_open ? 'text-amber-500' : 'text-gray-400'} />
+                <span className="text-[10px] font-bold uppercase">{localLabels.container_shutter}</span>
               </button>
 
-              {/* PREMIUM : PORTE EN BOIS */}
               <button 
                 type="button"
                 onClick={() => handleContainerOpenClick('wooden_door', true)} 
                 className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all relative ${invitation.container_open === 'wooden_door' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'} ${!isPremium ? 'opacity-40 grayscale' : ''}`}
               >
                 <DoorClosed size={18} className={invitation.container_open === 'wooden_door' ? 'text-amber-500' : 'text-gray-400'} />
-                <span className="text-[10px] font-bold uppercase">{localLabels.type_filmstrip}</span>
+                <span className="text-[10px] font-bold uppercase">{localLabels.type_wood_door}</span>
                 {!isPremium && <Lock size={12} className="absolute right-2 top-2 text-gray-400" />}
               </button>
 
-              {/* PREMIUM : LA PORTE MÉTAL */}
               <button 
                 type="button"
                 onClick={() => handleContainerOpenClick('metal_door', true)} 
                 className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all relative ${invitation.container_open === 'metal_door' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'} ${!isPremium ? 'opacity-40 grayscale' : ''}`}
               >
                 <DoorClosed size={18} className={invitation.container_open === 'metal_door' ? 'text-amber-500' : 'text-gray-400'} />
-                <span className="text-[10px] font-bold uppercase">{localLabels.type_metal}</span>
+                <span className="text-[10px] font-bold uppercase">{localLabels.type_metal_door}</span>
                 {!isPremium && <Lock size={12} className="absolute right-2 top-2 text-gray-400" />}
               </button>
             </div>
           </div>
 
-          {/* CONFIGURATION SPÉCIFIQUE ET COMPLÈTE DE L'ENVELOPPE (COULEURS & DÉCORS) */}
-          {(invitation.container_open === 'envelope' || !invitation.container_open) && (
-            <div className="space-y-6 bg-gray-50/50 p-5 rounded-[2rem] border border-gray-100">
-              <span className="text-[10px] font-black uppercase text-gray-500 block border-b border-gray-200/60 pb-2 ml-1">
-                {localLabels.envelope_section_label}
-              </span>
+          {/* BLOCK COMPLET DE L'ENVELOPPE COMPLÈTE & DÉCORS (DÉSORMAIS TOTALEMENT AUTONOME ET TOUJOURS ACCESSIBLE) */}
+          <div className="space-y-6 bg-gray-50/50 p-5 rounded-[2rem] border border-gray-100">
+            <span className="text-[10px] font-black uppercase text-gray-500 block border-b border-gray-200/60 pb-2 ml-1">
+              {localLabels.envelope_section_label}
+            </span>
 
-              {/* CHOIX DE COULEUR DE L'ENVELOPPE */}
-              <div>
-                <label className="text-[10px] font-black uppercase text-gray-400 mb-3 block ml-1">
-                  {isPremium ? t.envelope_color : localLabels.envelope_color_free}
-                </label>
-                {isPremium ? (
-                  <div className="flex gap-3 overflow-x-auto pt-2 pb-3 px-1 scrollbar-hide">
-                    {COLOR_PALETTES.map(p => (
-                      <button type="button" key={p.color} onClick={() => onInvitationChange({...invitation, envelope_color: p.color})} style={{backgroundColor: p.color}} className={`h-11 w-11 shrink-0 rounded-full border-4 transition-all ${invitation.envelope_color === p.color ? 'border-amber-400 scale-110 shadow-lg' : 'border-white shadow-sm'}`} />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="pt-1 pb-2 px-1">
-                    <button type="button" disabled style={{backgroundColor: '#FFFFFF'}} className="h-11 w-11 rounded-full border-4 border-amber-400 shadow-md cursor-not-allowed" />
-                  </div>
-                )}
-              </div>
-
-              {/* COULEURS PREMIUM DE L'ENVELOPPE */}
-              <div>
-                <label className="text-[10px] font-black uppercase text-gray-400 mb-3 flex items-center gap-2 ml-1">
-                  {localLabels.envelope_premium_colors}
-                </label>
-                <div className="flex gap-3 overflow-x-auto pt-1 pb-2 px-1 scrollbar-hide">
-                  {PREMIUM_PALETTES.map(p => (
-                    <button type="button" key={p.id} onClick={() => handlePremiumClick(p.gradient)} style={{ background: p.gradient }} className={`h-12 w-12 shrink-0 rounded-xl border-4 relative flex items-center justify-center transition-all ${invitation.envelope_color === p.gradient ? 'border-amber-400 scale-110 shadow-lg' : 'border-white shadow-sm'} ${!isPremium ? 'opacity-40 grayscale' : ''}`}>
-                      {!isPremium && <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-lg"><Lock size={12} className="text-white drop-shadow-md" /></div>}
-                    </button>
+            {/* COULEURS UNI DE L'ENVELOPPE */}
+            <div>
+              <label className="text-[10px] font-black uppercase text-gray-400 mb-3 block ml-1">
+                {isPremium ? t.envelope_color : localLabels.envelope_color_free}
+              </label>
+              {isPremium ? (
+                <div className="flex gap-3 overflow-x-auto pt-2 pb-3 px-1 scrollbar-hide">
+                  {COLOR_PALETTES.map(p => (
+                    <button type="button" key={p.color} onClick={() => onInvitationChange({...invitation, envelope_color: p.color})} style={{backgroundColor: p.color}} className={`h-11 w-11 shrink-0 rounded-full border-4 transition-all ${invitation.envelope_color === p.color ? 'border-amber-400 scale-110 shadow-lg' : 'border-white shadow-sm'}`} />
                   ))}
                 </div>
-              </div>
-
-              {/* SÉLECTEUR DE DÉCORS DE L'ENVELOPPE (FREE VS PREMIUM) */}
-              <div>
-                <label className="text-[10px] font-black uppercase text-gray-400 mb-3 block ml-1">
-                  {localLabels.envelope_decor_label}
-                </label>
-                <div className="grid grid-cols-1 gap-2">
-                  {ENVELOPE_DECORS.map(decor => (
-                    <button
-                      type="button"
-                      key={decor.id}
-                      onClick={() => handleEnvelopeDecorClick(decor.id, decor.premium)}
-                      className={`w-full h-14 px-4 rounded-2xl text-left border-2 flex items-center gap-3 transition-all relative ${invitation.envelope_decor === decor.id || (!invitation.envelope_decor && decor.id === 'none') ? 'border-amber-400 bg-amber-50 text-gray-900' : 'bg-white border-transparent text-gray-700'} ${decor.premium && !isPremium ? 'opacity-40 grayscale' : ''}`}
-                    >
-                      <decor.icon size={18} className={invitation.envelope_decor === decor.id || (!invitation.envelope_decor && decor.id === 'none') ? 'text-amber-500' : 'text-gray-400'} />
-                      <span className="text-[10px] font-bold uppercase tracking-wide">{decor.name}</span>
-                      {decor.premium && !isPremium && <Lock size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" />}
-                    </button>
-                  ))}
+              ) : (
+                <div className="pt-1 pb-2 px-1">
+                  <button type="button" disabled style={{backgroundColor: '#FFFFFF'}} className="h-11 w-11 rounded-full border-4 border-amber-400 shadow-md cursor-not-allowed" />
                 </div>
+              )}
+            </div>
+
+            {/* COULEURS MATIÈRES PREMIUM DE L'ENVELOPPE */}
+            <div>
+              <label className="text-[10px] font-black uppercase text-gray-400 mb-3 flex items-center gap-2 ml-1">
+                {localLabels.envelope_premium_colors}
+              </label>
+              <div className="flex gap-3 overflow-x-auto pt-1 pb-2 px-1 scrollbar-hide">
+                {PREMIUM_PALETTES.map(p => (
+                  <button type="button" key={p.id} onClick={() => handlePremiumClick(p.gradient)} style={{ background: p.gradient }} className={`h-12 w-12 shrink-0 rounded-xl border-4 relative flex items-center justify-center transition-all ${invitation.envelope_color === p.gradient ? 'border-amber-400 scale-110 shadow-lg' : 'border-white shadow-sm'} ${!isPremium ? 'opacity-40 grayscale' : ''}`}>
+                    {!isPremium && <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-lg"><Lock size={12} className="text-white drop-shadow-md" /></div>}
+                  </button>
+                ))}
               </div>
             </div>
-          )}
 
-          {/* SÉLECTEUR VISUEL MULTI-ONGLETS : CONFIGURATION INTÉGRALE DU PAPIER */}
+            {/* DÉCORATIONS D'ATMOSPHÈRE DE L'ENVELOPPE (BALLONS, FLEURS...) */}
+            <div>
+              <label className="text-[10px] font-black uppercase text-gray-400 mb-3 block ml-1">
+                {localLabels.envelope_decor_label}
+              </label>
+              <div className="grid grid-cols-1 gap-2">
+                {ENVELOPE_DECORS.map(decor => (
+                  <button
+                    type="button"
+                    key={decor.id}
+                    onClick={() => handleEnvelopeDecorClick(decor.id, decor.premium)}
+                    className={`w-full h-14 px-4 rounded-2xl text-left border-2 flex items-center gap-3 transition-all relative ${invitation.envelope_decor === decor.id || (!invitation.envelope_decor && decor.id === 'none') ? 'border-amber-400 bg-amber-50 text-gray-900' : 'bg-white border-transparent text-gray-700'} ${decor.premium && !isPremium ? 'opacity-40 grayscale' : ''}`}
+                  >
+                    <decor.icon size={18} className={invitation.envelope_decor === decor.id || (!invitation.envelope_decor && decor.id === 'none') ? 'text-amber-500' : 'text-gray-400'} />
+                    <span className="text-[10px] font-bold uppercase tracking-wide">{decor.name}</span>
+                    {decor.premium && !isPremium && <Lock size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" />}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* SÉLECTEUR DU PAPIER DE LA CARTE */}
           <div className="space-y-4 bg-amber-50/20 p-4 rounded-3xl border border-amber-100/60">
             <div className="flex items-center justify-between ml-1 mb-2">
               <label className="text-[10px] font-black uppercase text-gray-500">{localLabels.paper_section_label}</label>
