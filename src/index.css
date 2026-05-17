@@ -32,13 +32,17 @@ input[type="text"] {
 
 /* --- TEXTURES PAPIER COMPATIBLES AVEC LES COULEURS SIDEBAR --- */
 .paper-smooth { 
-  background-image: url("https://www.transparenttextures.com/patterns/natural-paper.png"); 
+  background-image: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/smooth.jpg");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-blend-mode: multiply; /* Fusionne le papier blanc avec paper_color */
 }
 
 .paper-parchment { 
-  background-image: url("https://www.transparenttextures.com/patterns/parchment.png"); 
-  background-blend-mode: multiply;
-  color: #5d4037 !important; 
+  background-image: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/parchemin.jpg"); 
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-blend-mode: multiply; /* Fusionne le parchemin blanche avec paper_color */
 }
 
 .paper-grainy { 
