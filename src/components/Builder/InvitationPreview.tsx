@@ -105,24 +105,16 @@ export function InvitationPreview({ invitation }: any) {
     let loopInterval: NodeJS.Timeout;
 
     if (invitation.opening_style === 'knock') {
-      // Attente initiale synchrone avec l'attente du Framer Motion (1.5 seconde avant le premier coup)
-      const timeout = setTimeout(() => {
-        playSyntheticSound('knock');
-        
-        // Répétition cyclique basée sur 3000ms au global (0.5s d'animation + 2.5s d'attente)
-        loopInterval = setInterval(() => {
+      // Déclenchement du son synchronisé sur la boucle de 3,5 secondes (1,5s d'immobilité + 2s d'action)
+      loopInterval = setInterval(() => {
+        // Le son se déclenche pile après les 1,5s d'immobilité de la main, quand elle commence à bouger
+        setTimeout(() => {
           playSyntheticSound('knock');
-        }, 3000);
-      }, 1500);
-
-      return () => {
-        clearTimeout(timeout);
-        if (loopInterval) clearInterval(loopInterval);
-      };
+        }, 1500);
+      }, 3500);
     } else if (invitation.opening_style === 'key') {
       playSyntheticSound('key');
       
-      // Répétition cyclique calée sur 2500ms au global (1.5s de mouvement + 1s d'attente)
       loopInterval = setInterval(() => {
         playSyntheticSound('key');
       }, 2500);
@@ -194,7 +186,7 @@ export function InvitationPreview({ invitation }: any) {
           
           setTimeout(() => {
             if (invitation.container_open === 'wooden_door') {
-              playSyntheticSound('open_door'); // Se déclenche pile au début de l'ouverture !
+              playSyntheticSound('open_door');
             }
             setIsOpened(true);
             audioRef.current?.play().catch(() => {});
@@ -220,7 +212,7 @@ export function InvitationPreview({ invitation }: any) {
       setIsCodeFading(true);
       setTimeout(() => {
         if (invitation.container_open === 'wooden_door') {
-          playSyntheticSound('open_door'); // Se déclenche pile au début de l'ouverture au clic !
+          playSyntheticSound('open_door');
         }
         setIsOpened(true);
         audioRef.current?.play().catch(() => {});
@@ -364,11 +356,17 @@ export function InvitationPreview({ invitation }: any) {
                             {invitation.opening_style === 'knock' ? (
                               <motion.div 
                                 animate={{ 
-                                  x: [0, -12, 4, -12, 4, 0],
-                                  y: [0, -6, 2, -6, 2, 0],
-                                  scale: [1, 1.05, 0.98, 1.05, 0.98, 1]
+                                  // Attente statique initiale (1.5s) puis double oscillation rapide de frappe (0.5s au total)
+                                  x: [0, 0, -12, 4, -12, 4, 0],
+                                  y: [0, 0, -6, 2, -6, 2, 0],
+                                  scale: [1, 1, 1.05, 0.98, 1.05, 0.98, 1]
                                 }} 
-                                transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2.5, ease: "easeInOut" }} // Attente augmentée de 1.5s à 2.5s
+                                transition={{ 
+                                  duration: 3.5, // Cycle global calé sur l'intervalle de 3.5 secondes
+                                  times: [0, 0.42, 0.52, 0.62, 0.72, 0.82, 1], // Gère la répartition temporelle exacte
+                                  repeat: Infinity, 
+                                  ease: "easeInOut" 
+                                }}
                                 className="w-56 h-56 select-none flex items-center justify-center"
                               >
                                 <img 
@@ -386,8 +384,8 @@ export function InvitationPreview({ invitation }: any) {
                                   />
                                   <motion.img
                                     src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/cleserrure.png" 
-                                    animate={{ rotate: [0, 45, 0] }} // Modifié pour ne faire qu'un seul tour propre
-                                    transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1.0, ease: "easeInOut" }} // Attente d'1s ajoutée
+                                    animate={{ rotate: [0, 45, 0] }} 
+                                    transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1.0, ease: "easeInOut" }} 
                                     className="absolute w-full h-full object-contain origin-center"
                                     alt="Clé"
                                   />
@@ -450,7 +448,6 @@ export function InvitationPreview({ invitation }: any) {
                                 </div>
                               </div>
                             ) : (
-                              /* --- RENDU DU SCEAU COMMUNE AVEC FONDU ACTIVÉ --- */
                               <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-[32rem] h-[32rem] object-contain" alt="Sceau" />
                             )}
                           </div>
