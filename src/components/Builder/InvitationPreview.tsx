@@ -105,17 +105,27 @@ export function InvitationPreview({ invitation }: any) {
     let loopInterval: NodeJS.Timeout;
 
     if (invitation.opening_style === 'knock') {
-      playSyntheticSound('knock');
-      
-      loopInterval = setInterval(() => {
+      // Attente initiale synchrone avec l'attente du Framer Motion (1.5 seconde avant le premier coup)
+      const timeout = setTimeout(() => {
         playSyntheticSound('knock');
-      }, 2000);
+        
+        // Répétition cyclique basée sur 3000ms au global (0.5s d'animation + 2.5s d'attente)
+        loopInterval = setInterval(() => {
+          playSyntheticSound('knock');
+        }, 3000);
+      }, 1500);
+
+      return () => {
+        clearTimeout(timeout);
+        if (loopInterval) clearInterval(loopInterval);
+      };
     } else if (invitation.opening_style === 'key') {
       playSyntheticSound('key');
       
+      // Répétition cyclique calée sur 2500ms au global (1.5s de mouvement + 1s d'attente)
       loopInterval = setInterval(() => {
         playSyntheticSound('key');
-      }, 2300);
+      }, 2500);
     }
 
     return () => {
@@ -184,7 +194,7 @@ export function InvitationPreview({ invitation }: any) {
           
           setTimeout(() => {
             if (invitation.container_open === 'wooden_door') {
-              playSyntheticSound('open_door'); // Son de porte en bois synchronisé !
+              playSyntheticSound('open_door'); // Se déclenche pile au début de l'ouverture !
             }
             setIsOpened(true);
             audioRef.current?.play().catch(() => {});
@@ -210,7 +220,7 @@ export function InvitationPreview({ invitation }: any) {
       setIsCodeFading(true);
       setTimeout(() => {
         if (invitation.container_open === 'wooden_door') {
-          playSyntheticSound('open_door'); // Son de porte en bois synchronisé au clic !
+          playSyntheticSound('open_door'); // Se déclenche pile au début de l'ouverture au clic !
         }
         setIsOpened(true);
         audioRef.current?.play().catch(() => {});
@@ -298,7 +308,7 @@ export function InvitationPreview({ invitation }: any) {
               ) : (
                 <div className={`w-[270px] h-[270px] relative ${isOpened ? 'animate-disk-spin' : ''}`}>
                   <div className="absolute inset-0 rounded-full bg-[#111] overflow-hidden">
-                    <div className="absolute inset-0 opacity-30" style={{ background: 'repeating-radial-gradient(circle, #444 0, #000(2px, #111 4px)' }} />
+                    <div className="absolute inset-0 opacity-30" style={{ background: 'repeating-radial-gradient(circle, #444 0, #000 2px, #111 4px)' }} />
                   </div>
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="w-24 h-24 bg-white rounded-full border-[5px] border-[#111] overflow-hidden">
@@ -358,7 +368,7 @@ export function InvitationPreview({ invitation }: any) {
                                   y: [0, -6, 2, -6, 2, 0],
                                   scale: [1, 1.05, 0.98, 1.05, 0.98, 1]
                                 }} 
-                                transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 1.5, ease: "easeInOut" }}
+                                transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 2.5, ease: "easeInOut" }} // Attente augmentée de 1.5s à 2.5s
                                 className="w-56 h-56 select-none flex items-center justify-center"
                               >
                                 <img 
@@ -376,8 +386,8 @@ export function InvitationPreview({ invitation }: any) {
                                   />
                                   <motion.img
                                     src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/cleserrure.png" 
-                                    animate={{ rotate: [0, 45, 0, 45, 0] }}
-                                    transition={{ duration: 1.8, repeat: Infinity, repeatDelay: 0.5, ease: "easeInOut" }}
+                                    animate={{ rotate: [0, 45, 0] }} // Modifié pour ne faire qu'un seul tour propre
+                                    transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1.0, ease: "easeInOut" }} // Attente d'1s ajoutée
                                     className="absolute w-full h-full object-contain origin-center"
                                     alt="Clé"
                                   />
