@@ -42,6 +42,87 @@ export function InvitationPreview({ invitation }: any) {
     }
   };
 
+  // Système audio natif et hybride (fichiers locaux .wav + synthétiseur)
+  const playSyntheticSound = (type: 'beep' | 'lock' | 'knock' | 'key' | 'open') => {
+    if (isMuted) return;
+    try {
+      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContext) return;
+      const ctx = new AudioContext();
+
+      const playWavFile = async (path: string) => {
+        try {
+          const response = await fetch(path);
+          const arrayBuffer = await response.arrayBuffer();
+          const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
+          const source = ctx.createBufferSource();
+          source.buffer = audioBuffer;
+          source.connect(ctx.destination);
+          source.start();
+        } catch (err) {
+          console.error("Impossible de lire le fichier .wav :", path, err);
+        }
+      };
+      
+      if (type === 'beep') {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, ctx.currentTime);
+        gain.gain.setValueAtTime(0.05, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.08);
+      } else if (type === 'lock') {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(1200, ctx.currentTime);
+        gain.gain.setValueAtTime(0.08, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.15);
+      } else if (type === 'knock') {
+        playWavFile('/sounds/door-knock.wav');
+      } else if (type === 'key') {
+        playWavFile('/sounds/key-turn.wav');
+      } else if (type === 'open') {
+        playWavFile('/sounds/door-open.wav');
+      }
+    } catch (e) {
+      console.error("Le système audio n'a pas pu s'initialiser", e);
+    }
+  };
+
+  // Synchronisation des sons réels sur les boucles d'animations automatiques (Main et Clé)
+  useEffect(() => {
+    if (isOpened || isCodeFading) return;
+
+    let loopInterval: NodeJS.Timeout;
+
+    if (invitation.opening_style === 'knock') {
+      // Synchronisé sur les répétitions de la Main (duration 0.5 + repeatDelay 1.5 = 2000ms)
+      loopInterval = setInterval(() => {
+        playSyntheticSound('knock');
+        setTimeout(() => playSyntheticSound('knock'), 140);
+      }, 2000);
+    } else if (invitation.opening_style === 'key') {
+      // Synchronisé sur les rotations de la Clé (duration 1.8 + repeatDelay 0.5 = 2300ms)
+      loopInterval = setInterval(() => {
+        playSyntheticSound('key');
+        setTimeout(() => playSyntheticSound('key'), 250);
+      }, 2300);
+    }
+
+    return () => {
+      if (loopInterval) clearInterval(loopInterval);
+    };
+  }, [isOpened, isCodeFading, invitation.opening_style, isMuted]);
+
   // Extraction et formatage de la date choisie pour le code secret (Ex: 24 Juin = "2406")
   const targetCode = useMemo(() => {
     const dateSource = invitation?.vault_date || invitation?.event_date;
@@ -49,7 +130,7 @@ export function InvitationPreview({ invitation }: any) {
     const d = new Date(dateSource);
     const day = String(d.getDate()).padStart(2, '0');
     const month = String(d.getMonth() + 1).padStart(2, '0');
-    const year = String(d.getFullYear()).slice(-2); // Récupère les 2 derniers chiffres de l'année
+    const year = String(d.getFullYear()).slice(-2);
     return `${day}${month}${year}`;
   }, [invitation?.vault_date, invitation?.event_date]);
 
@@ -64,7 +145,6 @@ export function InvitationPreview({ invitation }: any) {
     if (!isOpened && invitation.opening_style === 'vault') {
       let currentDigitIndex = 0;
 
-      // Boucle permanente de chiffres et touches aléatoires au chargement
       const interval = setInterval(() => {
         setDisplayedCode((prev) => {
           const next = [...prev];
@@ -82,7 +162,6 @@ export function InvitationPreview({ invitation }: any) {
       let digitLockTimers: NodeJS.Timeout[] = [];
       let endTimer: NodeJS.Timeout;
 
-      // C'est SEULEMENT après le clic qu'on enclenche la fixation séquentielle des 6 chiffres
       if (isVaultClicked) {
         digitLockTimers = Array.from({ length: 6 }).map((_, index) => {
           return setTimeout(() => {
@@ -93,15 +172,18 @@ export function InvitationPreview({ invitation }: any) {
               return next;
             });
             setActiveKey(targetCode[index]);
+            playSyntheticSound('beep');
           }, (index + 1) * 550);
         });
 
         endTimer = setTimeout(() => {
           clearInterval(interval);
           setActiveKey(null);
-          setIsCodeFading(true); // Lance le fondu sortant du boîtier numérique
+          playSyntheticSound('lock');
+          setIsCodeFading(true);
           
           setTimeout(() => {
+            playSyntheticSound('open');
             setIsOpened(true);
             audioRef.current?.play().catch(() => {});
           }, 600);
@@ -120,11 +202,12 @@ export function InvitationPreview({ invitation }: any) {
   const handleTriggerClick = () => {
     if (invitation.opening_style === 'vault') {
       if (!isVaultClicked) {
-        setIsVaultClicked(true); // Arrête l'attente infinie et lance la résolution vers la date
+        setIsVaultClicked(true);
       }
     } else {
-      setIsCodeFading(true); // Lance instantanément le fondu sortant pour Sceau, Main, Clé
+      setIsCodeFading(true);
       setTimeout(() => {
+        playSyntheticSound('open');
         setIsOpened(true);
         audioRef.current?.play().catch(() => {});
       }, 400);
@@ -296,8 +379,14 @@ export function InvitationPreview({ invitation }: any) {
                                   />
                                 </div>
                             ) : invitation.opening_style === 'vault' ? (
-                              /* --- BOITIER DIGITAL PROPRE ET SANS SURCOUTE D'IMAGE EN ARRIÈRE-PLAN --- */
+                              /* --- BOITIER DIGITAL TACTILE RÉDUIT --- */
                               <div className="relative w-[220px] h-[330px] flex flex-col items-center justify-start bg-neutral-950 border-[4px] border-neutral-800 rounded-[1.75rem] shadow-[0_20px_40px_rgba(0,0,0,0.8)] overflow-hidden p-4">
+                                <img 
+                                  src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/dgital.png" 
+                                  className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-30 pointer-events-none" 
+                                  alt="" 
+                                />
+
                                 {/* Écran LCD Supérieur */}
                                 <div className="w-full h-16 bg-black/95 rounded-xl border border-neutral-800 p-2 flex flex-col items-center justify-center shadow-inner relative z-10 mb-5">
                                   <span className="text-[7.5px] font-mono tracking-[0.25em] text-neutral-400 font-bold uppercase mb-0.5">🔒 Invit Studio</span>
