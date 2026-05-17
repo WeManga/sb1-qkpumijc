@@ -309,12 +309,16 @@ export function InvitationPreview({ invitation }: any) {
               )}
             </motion.div>
 
-            {/* --- CARTE COMMUNE CENTRALE --- */}
+            {/* --- CARTE COMMUNE CENTRALE AVEC INTEGRATION DE LA COULEUR DE FOND DU PAPIER SIDEBAR --- */}
             <motion.div 
               initial={{ scale: 0.8, y: 200 }} 
               animate={isOpened ? { scale: 1, y: 135 } : {}} 
               transition={{ type: "spring", damping: 20, delay: 0.4 }} 
               onClick={() => isOpened && setView('content')} 
+              style={{ 
+                backgroundColor: invitation.paper_color || '#FFFFFF',
+                fontFamily: invitation.font_style 
+              }}
               className={`z-30 w-[310px] h-[370px] rounded-[3rem] shadow-xl p-10 flex flex-col items-center justify-between border border-gray-100 cursor-pointer ${getPaperClass()}`}
             >
               <div className="text-center pt-14 w-full">
@@ -446,47 +450,47 @@ export function InvitationPreview({ invitation }: any) {
                   )}
                 </AnimatePresence>
 
-                {/* ANIMATION SEPARÉE DES CONTENANTS : AUCUN IMPACT MECANIQUE ENTRE BOIS ET METAL */}
+                {/* ANIMATION DES CONTENANTS DÉCOUPLÉS - COULISSEMENT POUR LA PORTE METAL / OUVERTURE VERS L'INTERIEUR POUR LA PORTE EN BOIS */}
                 <div className="absolute inset-0 z-50 w-full h-full flex" style={{ perspective: '2000px' }}>
                   {invitation.container_open === 'metal_door' ? (
                     <motion.div 
                       animate={isOpened ? { x: "100%" } : { x: "0%" }}
                       transition={{ duration: 1.6, ease: "easeInOut" }}
                       className="absolute inset-0 w-full h-full bg-cover bg-center shadow-2xl"
-                      style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20noir.png")` }}
-                        />
-                      ) : (
-                        <AnimatePresence>
-                          {!isOpened && (
-                            <>
-                              <motion.div 
-                                exit={{ rotateY: -100, x: '-20%', opacity: 0 }} 
-                                transition={{ duration: 1.2, ease: "easeInOut" }} 
-                                className="w-1/2 h-full origin-left bg-cover bg-center shadow-2xl border-r border-black/10" 
-                                style={{ 
-                                  backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20gauche.png")`, 
-                                  backgroundColor: invitation?.envelope_color || '#FEE2E2'
-                                }} 
-                              />
-                              <motion.div 
-                                exit={{ rotateY: 100, x: '20%', opacity: 0 }} 
-                                transition={{ duration: 1.2, ease: "easeInOut" }} 
-                                className="w-1/2 h-full origin-right bg-cover bg-center shadow-2xl border-l border-black/10" 
-                                style={{ 
-                                  backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20droite.png")`, 
-                                  backgroundColor: invitation?.envelope_color || '#FEE2E2'
-                                }} 
-                              />
-                            </>
-                          )}
-                        </AnimatePresence>
+                      style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20en%20metal.png")` }}
+                    />
+                  ) : (
+                    <AnimatePresence>
+                      {!isOpened && (
+                        <>
+                          <motion.div 
+                            exit={{ rotateY: -100, x: '-20%', opacity: 0 }} 
+                            transition={{ duration: 1.2, ease: "easeInOut" }} 
+                            className="w-1/2 h-full origin-left bg-cover bg-center shadow-2xl border-r border-black/10" 
+                            style={{ 
+                              backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20gauche.png")`, 
+                              backgroundColor: invitation?.envelope_color || '#FEE2E2'
+                            }} 
+                          />
+                          <motion.div 
+                            exit={{ rotateY: 100, x: '20%', opacity: 0 }} 
+                            transition={{ duration: 1.2, ease: "easeInOut" }} 
+                            className="w-1/2 h-full origin-right bg-cover bg-center shadow-2xl border-l border-black/10" 
+                            style={{ 
+                              backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20droite.png")`, 
+                              backgroundColor: invitation?.envelope_color || '#FEE2E2'
+                            }} 
+                          />
+                        </>
                       )}
-                    </div>
+                    </AnimatePresence>
+                  )}
+                </div>
               </div>
             </div>
           </motion.div>
         ) : (
-          <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`w-full h-full z-[100] flex flex-col overflow-y-auto ${getPaperClass()}`}>
+          <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ backgroundColor: invitation.paper_color || '#FFFFFF' }} className={`w-full h-full z-[100] flex flex-col overflow-y-auto ${getPaperClass()}`}>
             <div className="h-[30%] relative overflow-hidden shrink-0">
                <img src={invitation.main_photo_url} className="w-full h-full object-cover" style={{ transform: `translate(${invitation.main_photo_url_pos_x || 0}px, ${invitation.main_photo_url_pos_y || 0}px) scale(${invitation.main_photo_url_scale || 1})` }} />
                <div className="absolute inset-0 bg-gradient-to-t from-white/80 to-transparent pointer-events-none" />
