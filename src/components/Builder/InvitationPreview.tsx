@@ -123,8 +123,11 @@ export function InvitationPreview({ invitation }: any) {
         setIsVaultClicked(true); // Arrête l'attente infinie et lance la résolution vers la date
       }
     } else {
-      setIsOpened(true);
-      audioRef.current?.play().catch(() => {});
+      setIsCodeFading(true); // Lance instantanément le fondu sortant pour Sceau, Main, Clé
+      setTimeout(() => {
+        setIsOpened(true);
+        audioRef.current?.play().catch(() => {});
+      }, 400);
     }
   };
 
@@ -256,7 +259,7 @@ export function InvitationPreview({ invitation }: any) {
                         <motion.div 
                           key="visual-trigger"
                           initial={{ opacity: 1 }}
-                          exit={{ opacity: 0, transition: { duration: 0.5, ease: "easeInOut" } }}
+                          exit={{ opacity: 0, transition: { duration: 0.4, ease: "easeInOut" } }}
                           className="absolute inset-0 z-[70] flex flex-col items-center justify-center cursor-pointer" 
                           onClick={handleTriggerClick}
                         >
@@ -293,8 +296,14 @@ export function InvitationPreview({ invitation }: any) {
                                   />
                                 </div>
                             ) : invitation.opening_style === 'vault' ? (
-                              /* --- BOITIER NETTOYÉ SANS TRANSMISSION D'IMAGE PAR ASSIGNATION --- */
-                              <div className="relative w-[220px] h-[330px] flex flex-col items-center justify-start bg-neutral-950 border-[4px] border-neutral-800 rounded-[1.75rem] shadow-[0_20px_40px_rgba(0,0,0,0.8)] overflow-hidden p-4">
+                              /* --- BOITIER DIGITAL TACTILE RÉDUIT --- */
+                              <div className="relative w-[220px] h-[330px] flex flex-col items-center justify-start bg-neutral-900 border-[4px] border-neutral-800 rounded-[1.75rem] shadow-[0_20px_40px_rgba(0,0,0,0.8)] overflow-hidden p-4">
+                                <img 
+                                  src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/dgital.png" 
+                                  className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-30 pointer-events-none" 
+                                  alt="" 
+                                />
+
                                 {/* Écran LCD Supérieur */}
                                 <div className="w-full h-16 bg-black/95 rounded-xl border border-neutral-800 p-2 flex flex-col items-center justify-center shadow-inner relative z-10 mb-5">
                                   <span className="text-[7.5px] font-mono tracking-[0.25em] text-neutral-400 font-bold uppercase mb-0.5">🔒 Invit Studio</span>
@@ -330,7 +339,7 @@ export function InvitationPreview({ invitation }: any) {
                                           boxShadow: 'none',
                                           scale: 1
                                         }}
-                                        className="aspect-square flex items-center justify-center rounded-lg border font-mono font-bold text-sm text-neutral-400 transition-all select-none"
+                                        className="aspect-square flex items-center justify-center rounded-lg border font-mono font-bold text-xl text-neutral-400 transition-all select-none"
                                       >
                                         <span className={isGlowing ? "text-sky-400 drop-shadow-[0_0_4px_rgba(56,189,248,0.9)]" : ""}>
                                           {key}
@@ -344,6 +353,7 @@ export function InvitationPreview({ invitation }: any) {
                                 </div>
                               </div>
                             ) : (
+                              /* --- RENDU DU SCEAU COMMUNE AVEC FONDU ACTIVÉ --- */
                               <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-[32rem] h-[32rem] object-contain" alt="Sceau" />
                             )}
                           </div>
