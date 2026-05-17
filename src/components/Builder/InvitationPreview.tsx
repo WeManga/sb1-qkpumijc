@@ -24,6 +24,9 @@ export function InvitationPreview({ invitation }: any) {
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const [isCodeFading, setIsCodeFading] = useState(false);
   
+  // États créés pour gérer le flash et les débris de l'explosion
+  const [isExploding, setIsExploding] = useState(false);
+  
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const lang = (invitation.language as Language) || (localStorage.getItem('invite_lang') as Language) || 'fr';
@@ -175,11 +178,7 @@ export function InvitationPreview({ invitation }: any) {
           setIsCodeFading(true); // Lance le fondu sortant du boîtier numérique
           
           setTimeout(() => {
-            if (invitation.container_open === 'wooden_door') {
-              playSyntheticSound('open_door');
-            }
-            setIsOpened(true);
-            audioRef.current?.play().catch(() => {});
+            triggerContainerOpening();
           }, 600);
         }, 4000);
       }
@@ -192,6 +191,24 @@ export function InvitationPreview({ invitation }: any) {
     }
   }, [isOpened, invitation.opening_style, isVaultClicked, targetCode, invitation.container_open]);
 
+  // Centralisation et exécution de l'ouverture (Avec embranchement Explosion)
+  const triggerContainerOpening = () => {
+    if (invitation.container_open === 'metal_door') {
+      setIsExploding(true); // Déclenche le flash et l'illusion d'optique destructive
+      setTimeout(() => {
+        setIsOpened(true);
+        setIsExploding(false);
+        audioRef.current?.play().catch(() => {});
+      }, 700); // Durée parfaite pour consommer l'effet visuel de la détonation
+    } else {
+      if (invitation.container_open === 'wooden_door') {
+        playSyntheticSound('open_door');
+      }
+      setIsOpened(true);
+      audioRef.current?.play().catch(() => {});
+    }
+  };
+
   // Déclencheur au clic/toucher de l'interface
   const handleTriggerClick = () => {
     if (invitation.opening_style === 'vault') {
@@ -201,11 +218,7 @@ export function InvitationPreview({ invitation }: any) {
     } else {
       setIsCodeFading(true);
       setTimeout(() => {
-        if (invitation.container_open === 'wooden_door') {
-          playSyntheticSound('open_door');
-        }
-        setIsOpened(true);
-        audioRef.current?.play().catch(() => {});
+        triggerContainerOpening();
       }, 400);
     }
   };
@@ -246,6 +259,47 @@ export function InvitationPreview({ invitation }: any) {
       {invitation?.music_url && <audio ref={audioRef} src={invitation.music_url} loop />}
       {isOpened && <EmojiRain />}
       
+      {/* --- FLASH BLANC/ORANGE DE LA DÉTONATION --- */}
+      <AnimatePresence>
+        {isExploding && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: [0, 1, 1, 0] }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6, times: [0, 0.15, 0.45, 1], ease: "easeOut" }}
+            className="absolute inset-0 z-[90] bg-gradient-to-r from-amber-500 via-white to-orange-600 mix-blend-lightning pointer-events-none"
+          />
+        )}
+      </AnimatePresence>
+
+      {/* --- PLUIE DE PARTICULES ET DÉBRIS MÉTALLIQUES REELS --- */}
+      <AnimatePresence>
+        {isExploding && (
+          <div className="absolute inset-0 z-[85] pointer-events-none overflow-hidden">
+            {Array.from({ length: 30 }).map((_, i) => {
+              const angle = (i / 30) * Math.PI * 2;
+              const distance = 250 + Math.random() * 200;
+              return (
+                <motion.div
+                  key={i}
+                  initial={{ x: 0, y: 0, scale: 1, opacity: 1, rotate: 0 }}
+                  animate={{ 
+                    x: Math.cos(angle) * distance, 
+                    y: Math.sin(angle) * distance, 
+                    scale: 0.2, 
+                    opacity: 0,
+                    rotate: Math.random() * 720
+                  }}
+                  transition={{ duration: 0.6, ease: "easyOut" }}
+                  className="absolute top-1/2 left-1/2 w-4 h-4 bg-neutral-700 border border-neutral-500 rounded-sm shadow-md"
+                  style={{ marginLeft: '-8px', marginTop: '-8px' }}
+                />
+              );
+            })}
+          </div>
+        )}
+      </AnimatePresence>
+
       <AnimatePresence mode="wait">
         {view === 'envelope' ? (
           <motion.div key="env" className="relative w-full h-full flex items-center justify-center" style={{ perspective: '1200px' }}>
@@ -338,7 +392,16 @@ export function InvitationPreview({ invitation }: any) {
                         <motion.div 
                           key="visual-trigger"
                           initial={{ opacity: 1 }}
-                          exit={{ opacity: 0, transition: { duration: 0.4, ease: "easeInOut" } }}
+                          exit={invitation.container_open === 'metal_door' ? {
+                            scale: 1.4,
+                            rotate: 15,
+                            filter: 'blur(8px)',
+                            opacity: 0,
+                            transition: { duration: 0.35, ease: "easeInOut" }
+                          } : { 
+                            opacity: 0, 
+                            transition: { duration: 0.4, ease: "easeInOut" } 
+                          }}
                           className="absolute inset-0 z-[70] flex flex-col items-center justify-center cursor-pointer" 
                           onClick={handleTriggerClick}
                         >
@@ -346,16 +409,11 @@ export function InvitationPreview({ invitation }: any) {
                             {invitation.opening_style === 'knock' ? (
                               <motion.div 
                                 animate={{ 
-                                  x: [0, 0, -12, 4, -12, 4, 0],
-                                  y: [0, 0, -6, 2, -6, 2, 0],
-                                  scale: [1, 1, 1.05, 0.98, 1.05, 0.98, 1]
+                                  x: [0, -12, 4, -12, 4, 0],
+                                  y: [0, -6, 2, -6, 2, 0],
+                                  scale: [1, 1.05, 0.98, 1.05, 0.98, 1]
                                 }} 
-                                transition={{ 
-                                  duration: 3.5, 
-                                  times: [0, 0.42, 0.52, 0.62, 0.72, 0.82, 1], 
-                                  repeat: Infinity, 
-                                  ease: "easeInOut" 
-                                }}
+                                transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 1.5, ease: "easeInOut" }}
                                 className="w-56 h-56 select-none flex items-center justify-center"
                               >
                                 <img 
@@ -373,8 +431,8 @@ export function InvitationPreview({ invitation }: any) {
                                   />
                                   <motion.img
                                     src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/cleserrure.png" 
-                                    animate={{ rotate: [0, 45, 0] }} 
-                                    transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1.0, ease: "easeInOut" }} 
+                                    animate={{ rotate: [0, 45, 0, 45, 0] }}
+                                    transition={{ duration: 1.8, repeat: Infinity, repeatDelay: 0.5, ease: "easeInOut" }}
                                     className="absolute w-full h-full object-contain origin-center"
                                     alt="Clé"
                                   />
@@ -437,6 +495,7 @@ export function InvitationPreview({ invitation }: any) {
                                 </div>
                               </div>
                             ) : (
+                              /* --- RENDU DU SCEAU COMMUNE AVEC FONDU ACTIVÉ --- */
                               <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-[32rem] h-[32rem] object-contain" alt="Sceau" />
                             )}
                           </div>
@@ -451,22 +510,46 @@ export function InvitationPreview({ invitation }: any) {
                     {/* ANIMATION DES CONTENANTS DÉCOUPLÉS */}
                     {isDoorType ? (
                       <div className="absolute inset-0 z-50 flex w-full h-full" style={{ perspective: '2000px' }}>
+                        {/* PORTE GAUCHE */}
                         <motion.div 
-                          exit={{ rotateY: -100, x: '-20%', opacity: 0 }} 
-                          transition={{ duration: 1.2, ease: "easeInOut" }} 
+                          exit={invitation.container_open === 'metal_door' ? {
+                            x: '-100%',
+                            opacity: 0,
+                            scale: 0.85,
+                            rotateY: -45
+                          } : { 
+                            rotateY: -100, 
+                            x: '-20%', 
+                            opacity: 0 
+                          }} 
+                          transition={{ duration: invitation.container_open === 'metal_door' ? 0.6 : 1.2, ease: "easeInOut" }} 
                           className="w-1/2 h-full origin-left bg-cover bg-center shadow-2xl border-r border-black/10" 
                           style={{ 
-                            backgroundImage: invitation.container_open === 'metal_door' ? 'none' : `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20gauche.png")`, 
-                            backgroundColor: invitation?.envelope_color || '#FEE2E2' 
+                            backgroundImage: `url("${invitation.container_open === 'metal_door' ? 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20metal.png' : 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20gauche.png'}")`, 
+                            backgroundColor: invitation?.envelope_color || '#FEE2E2',
+                            backgroundSize: invitation.container_open === 'metal_door' ? '200% 100%' : 'cover',
+                            backgroundPosition: invitation.container_open === 'metal_door' ? 'left center' : 'center'
                           }} 
                         />
+                        {/* PORTE DROITE */}
                         <motion.div 
-                          exit={{ rotateY: 100, x: '20%', opacity: 0 }} 
-                          transition={{ duration: 1.2, ease: "easeInOut" }} 
+                          exit={invitation.container_open === 'metal_door' ? {
+                            x: '100%',
+                            opacity: 0,
+                            scale: 0.85,
+                            rotateY: 45
+                          } : { 
+                            rotateY: 100, 
+                            x: '20%', 
+                            opacity: 0 
+                          }} 
+                          transition={{ duration: invitation.container_open === 'metal_door' ? 0.6 : 1.2, ease: "easeInOut" }} 
                           className="w-1/2 h-full origin-right bg-cover bg-center shadow-2xl border-l border-black/10" 
                           style={{ 
-                            backgroundImage: invitation.container_open === 'metal_door' ? 'none' : `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20droite.png")`, 
-                            backgroundColor: invitation?.envelope_color || '#FEE2E2' 
+                            backgroundImage: `url("${invitation.container_open === 'metal_door' ? 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20metal.png' : 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20droite.png'}")`, 
+                            backgroundColor: invitation?.envelope_color || '#FEE2E2',
+                            backgroundSize: invitation.container_open === 'metal_door' ? '200% 100%' : 'cover',
+                            backgroundPosition: invitation.container_open === 'metal_door' ? 'right center' : 'center'
                           }} 
                         />
                       </div>
