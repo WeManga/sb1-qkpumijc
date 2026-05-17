@@ -116,14 +116,22 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     onInvitationChange({...invitation, opening_type: typeId});
   };
 
+  // ISOLATION STRICTE : On ne met à jour QUE la propriété opening_style sans toucher au reste
   const handleOpeningStyleClick = (styleId: string, premium: boolean) => {
     if (!checkPremiumAccess(!premium)) return;
-    onInvitationChange({...invitation, opening_style: styleId});
+    onInvitationChange({
+      ...invitation,
+      opening_style: styleId
+    });
   };
 
+  // ISOLATION STRICTE : On ne met à jour QUE la propriété container_type sans toucher au reste
   const handleContainerTypeClick = (containerId: string, premium: boolean) => {
     if (!checkPremiumAccess(!premium)) return;
-    onInvitationChange({...invitation, container_type: containerId});
+    onInvitationChange({
+      ...invitation,
+      container_type: containerId
+    });
   };
 
   const handleThemeClick = (themeId: string, premium: boolean) => {
@@ -313,7 +321,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 <button onClick={() => setSelectedPhotoKey('main_photo_url')} className={`px-3 py-1 rounded-full text-[9px] font-black uppercase transition-all ${selectedPhotoKey === 'main_photo_url' ? 'bg-amber-500 text-white shadow-sm' : 'bg-white text-amber-800 border border-amber-200'}`}>{t.back_btn}</button>
                 {invitation.end_photo_url && <button onClick={() => setSelectedPhotoKey('end_photo_url')} className={`px-3 py-1 rounded-full text-[9px] font-black uppercase transition-all ${selectedPhotoKey === 'end_photo_url' ? 'bg-amber-500 text-white shadow-sm' : 'bg-white text-amber-800 border border-amber-200'}`}>{t.end_photo}</button>}
               </div>
-              <span className="text-[10px] font-black uppercase text-amber-800 flex items-center gap-2"><Move size={12}/> {t.adjust_label}</span>
+              <div className="text-[10px] font-black uppercase text-amber-800 flex items-center gap-2"><Move size={12}/> {t.adjust_label}</div>
               <div 
                 className="w-full h-[450px] bg-gray-200 rounded-2xl overflow-hidden relative border-2 border-white shadow-sm cursor-move touch-none flex items-center justify-center"
                 onMouseDown={(e) => { dragRef.current = { x: e.clientX, y: e.clientY, isDragging: true, lastDist: 0 }; }}
@@ -345,7 +353,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
       {activeTab === 'style' && (
         <div className="space-y-8">
-          {/* SECTION 1 : STYLE D'ANIMATION (SORTIE CARTE) */}
+          {/* SECTION 1 : STYLE D'ANIMATION */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">
               {localLabels.opening_type_label}
@@ -371,7 +379,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </div>
 
-          {/* SECTION 2 : STYLE D'ACTION (DECLENCHEUR SEUL) */}
+          {/* SECTION 2 : STYLE D'ACTION (DÉCLENCHEUR MÉCANIQUE ISOLÉ) */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">
               {localLabels.action_style}
