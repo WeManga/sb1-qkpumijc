@@ -24,9 +24,6 @@ export function InvitationPreview({ invitation }: any) {
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const [isCodeFading, setIsCodeFading] = useState(false);
   
-  // États créés pour gérer le flash et les débris de l'explosion
-  const [isExploding, setIsExploding] = useState(false);
-  
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const lang = (invitation.language as Language) || (localStorage.getItem('invite_lang') as Language) || 'fr';
@@ -46,7 +43,7 @@ export function InvitationPreview({ invitation }: any) {
   };
 
   // Système audio natif et hybride (fichiers locaux .wav + synthétiseur)
-  const playSyntheticSound = (type: 'beep' | 'lock' | 'key' | 'open_door' | 'explosion') => {
+  const playSyntheticSound = (type: 'beep' | 'lock' | 'key' | 'open_door') => {
     if (isMuted) return;
     try {
       const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
@@ -93,27 +90,6 @@ export function InvitationPreview({ invitation }: any) {
         playWavFile('/sounds/key-turn.wav');
       } else if (type === 'open_door') {
         playWavFile('/sounds/door-open.wav');
-      } else if (type === 'explosion') {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        const filter = ctx.createBiquadFilter();
-        
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(160, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(10, ctx.currentTime + 0.8);
-        
-        filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(300, ctx.currentTime);
-        
-        gain.gain.setValueAtTime(0.4, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.2);
-        
-        osc.connect(filter);
-        filter.connect(gain);
-        gain.connect(ctx.destination);
-        
-        osc.start();
-        osc.stop(ctx.currentTime + 1.2);
       }
     } catch (e) {
       console.error("Le système audio n'a pas pu s'initialiser", e);
@@ -212,29 +188,13 @@ export function InvitationPreview({ invitation }: any) {
     }
   }, [isOpened, invitation.opening_style, isVaultClicked, targetCode, invitation.container_open]);
 
-  // Centralisation et exécution de l'ouverture (Avec embranchement Explosion)
+  // Centralisation et exécution de l'ouverture (Avec coulissement vers la droite)
   const triggerContainerOpening = () => {
-    if (invitation.container_open === 'metal_door') {
-      playSyntheticSound('explosion');
-      setIsExploding(true); // Déclenche le cycle d'explosion séquentiel immédiat
-      
-      // Révèle l'arrière-plan de l'invitation très vite pendant le flash de la détonation
-      setTimeout(() => {
-        setIsOpened(true);
-      }, 250); 
-
-      // Éteint la chambre d'explosion globale après la fin complète de la chute des débris
-      setTimeout(() => {
-        setIsExploding(false);
-        audioRef.current?.play().catch(() => {});
-      }, 2600);
-    } else {
-      if (invitation.container_open === 'wooden_door') {
-        playSyntheticSound('open_door');
-      }
-      setIsOpened(true);
-      audioRef.current?.play().catch(() => {});
+    if (invitation.container_open === 'wooden_door') {
+      playSyntheticSound('open_door');
     }
+    setIsOpened(true);
+    audioRef.current?.play().catch(() => {});
   };
 
   // Déclencheur au clic/toucher de l'interface
@@ -280,31 +240,6 @@ export function InvitationPreview({ invitation }: any) {
     );
   };
 
-  // Génération dynamique d'une grille de fragments texturés basés sur l'image de la porte en métal
-  const explosionFragments = useMemo(() => {
-    const totalFragments = 36; // Grille de 6x6 pour casser l'image proprement
-    const rows = 6;
-    const cols = 6;
-    return Array.from({ length: totalFragments }).map((_, i) => {
-      const r = Math.floor(i / cols);
-      const c = i % cols;
-      const angle = Math.random() * Math.PI * 2;
-      const force = 180 + Math.random() * 210; 
-      return {
-        id: i,
-        w: `${100 / cols}%`,
-        h: `${100 / rows}%`,
-        top: `${(r * 100) / rows}%`,
-        left: `${(c * 100) / cols}%`,
-        bgX: `${(c * 100) / (cols - 1)}%`,
-        bgY: `${(r * 100) / (rows - 1)}%`,
-        targetX: Math.cos(angle) * force,
-        targetY: Math.sin(angle) * force + 240, 
-        rotate: (Math.random() - 0.5) * 800 
-      };
-    });
-  }, []);
-
   const isDoorType = invitation.container_open === 'wooden_door' || invitation.container_open === 'metal_door';
 
   return (
@@ -312,74 +247,6 @@ export function InvitationPreview({ invitation }: any) {
       {invitation?.music_url && <audio ref={audioRef} src={invitation.music_url} loop />}
       {isOpened && <EmojiRain />}
       
-      {/* --- FLASH BLANC ET AMBRE ULTRA-INTENSE EN PREMIER PLAN AU MOMENT DU SOUFFLE --- */}
-      <AnimatePresence>
-        {isExploding && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: [0, 1, 0.8, 1, 0] }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.6, times: [0, 0.1, 0.25, 0.45, 1], ease: "easeInOut" }}
-            className="absolute inset-0 z-[96] bg-gradient-to-r from-orange-500 via-white to-amber-500 mix-blend-overlay pointer-events-none"
-          />
-        )}
-      </AnimatePresence>
-
-      {/* --- VISUEL DE L'EXPLOSION REELLE PNG (S'EXPANSE DE MANIERE CONTINUE SANS REBOND ET S'ESTOMPE RAPIDEMENT) --- */}
-      <AnimatePresence>
-        {isExploding && (
-          <motion.div 
-            initial={{ scale: 0.1, opacity: 0, rotate: 0 }}
-            animate={{ 
-              scale: [0.1, 1.45], 
-              opacity: [0, 1, 0.7, 0],
-              rotate: [0, 12]
-            }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.95, times: [0, 0.15, 0.55, 1], ease: "linear" }}
-            className="absolute inset-0 z-[95] pointer-events-none bg-contain bg-center bg-no-repeat"
-            style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/explosion.png")` }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* --- CHAMBRE DE FRAGMENTATION DE LA PORTE (SE DECLENCHE JUSTE APRES LE BLAST) --- */}
-      <AnimatePresence>
-        {isExploding && (
-          <div className="absolute inset-0 z-[90] pointer-events-none overflow-hidden">
-            {explosionFragments.map((f) => (
-              <motion.div
-                key={f.id}
-                initial={{ x: 0, y: 0, scale: 1, opacity: 1, rotate: 0 }}
-                animate={{ 
-                  x: f.targetX, 
-                  y: f.targetY, 
-                  scale: 0.05, 
-                  opacity: 0,
-                  rotate: f.rotate
-                }}
-                transition={{ 
-                  duration: 2.5, 
-                  delay: 0.05, 
-                  ease: [0.05, 0.7, 0.1, 1] 
-                }} 
-                className="absolute shadow-2xl border border-black/30"
-                style={{
-                  width: f.w,
-                  height: f.h,
-                  top: f.top,
-                  left: f.left,
-                  backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20en%20metal.png")`,
-                  backgroundSize: '600% 600%', 
-                  backgroundPosition: `${f.bgX} ${f.bgY}`,
-                  backgroundRepeat: 'no-repeat'
-                }}
-              />
-            ))}
-          </div>
-        )}
-      </AnimatePresence>
-
       <AnimatePresence mode="wait">
         {view === 'envelope' ? (
           <motion.div key="env" className="relative w-full h-full flex items-center justify-center" style={{ perspective: '1200px' }}>
@@ -461,7 +328,7 @@ export function InvitationPreview({ invitation }: any) {
             {/* --- COUCHE DECLENCHEURS MECANIQUES ET FOND --- */}
             <div className="absolute inset-0 z-50 overflow-hidden" style={{ perspective: '2000px', pointerEvents: isOpened ? 'none' : 'auto' }}>
               <AnimatePresence>
-                {!isOpened && !isExploding && (
+                {!isOpened && (
                   <motion.div 
                     key="gate-container" 
                     exit={{ opacity: 1 }} 
@@ -472,11 +339,7 @@ export function InvitationPreview({ invitation }: any) {
                         <motion.div 
                           key="visual-trigger"
                           initial={{ opacity: 1 }}
-                          exit={invitation.container_open === 'metal_door' ? {
-                            scale: 1.05,
-                            opacity: 0,
-                            transition: { duration: 0.1 }
-                          } : { 
+                          exit={{ 
                             opacity: 0, 
                             transition: { duration: 0.4, ease: "easeInOut" } 
                           }}
@@ -585,11 +448,13 @@ export function InvitationPreview({ invitation }: any) {
                       )}
                     </AnimatePresence>
 
-                    {/* ANIMATION DES CONTENANTS DÉCOUPLÉS - PLEIN ÉCRAN TOTAL POUR LA PORTE MÉTAL */}
+                    {/* ANIMATION DES CONTENANTS DÉCOUPLÉS - COULISSEMENT VERS LA DROITE INTEGRÉ POUR LA PORTE MÉTAL */}
                     <div className="absolute inset-0 z-50 w-full h-full flex" style={{ perspective: '2000px' }}>
                       {invitation.container_open === 'metal_door' ? (
-                        <div 
-                          className="absolute inset-0 w-full h-full bg-cover bg-center"
+                        <motion.div 
+                          exit={{ x: "100%", opacity: 0 }}
+                          transition={{ duration: 0.8, ease: "easeInOut" }}
+                          className="absolute inset-0 w-full h-full bg-cover bg-center shadow-2xl"
                           style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20en%20metal.png")` }}
                         />
                       ) : (
