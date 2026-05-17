@@ -43,7 +43,6 @@ export function InvitationPreview({ invitation }: any) {
     }
   };
 
-  // Système audio natif et hybride (fichiers locaux .wav + synthétiseur)
   const playSyntheticSound = (type: 'beep' | 'lock' | 'key' | 'open_door' | 'open_metal_door') => {
     if (isMuted) return;
     try {
@@ -99,7 +98,6 @@ export function InvitationPreview({ invitation }: any) {
     }
   };
 
-  // Synchronisation du son réel uniquement sur le début exact de la boucle de la Clé
   useEffect(() => {
     if (isOpened || isCodeFading) return;
 
@@ -118,7 +116,6 @@ export function InvitationPreview({ invitation }: any) {
     };
   }, [isOpened, isCodeFading, invitation.opening_style, isMuted]);
 
-  // Extraction et formatage de la date choisie pour le code secret (Ex: 24 Juin = "2406")
   const targetCode = useMemo(() => {
     const dateSource = invitation?.vault_date || invitation?.event_date;
     if (!dateSource) return "123456";
@@ -135,7 +132,6 @@ export function InvitationPreview({ invitation }: any) {
     }
   }, [isOpened, invitation?.music_url]);
 
-  // LOGIQUE DE DÉFILEMENT DE 6 CHIFFRES : Gère l'attente infinie ET la fixation après clic
   useEffect(() => {
     if (!isOpened && invitation.opening_style === 'vault') {
       let currentDigitIndex = 0;
@@ -175,7 +171,7 @@ export function InvitationPreview({ invitation }: any) {
           clearInterval(interval);
           setActiveKey(null);
           playSyntheticSound('lock');
-          setIsCodeFading(true); // Lance le fondu sortant du boîtier numérique
+          setIsCodeFading(true);
           
           setTimeout(() => {
             triggerContainerOpening();
@@ -191,7 +187,6 @@ export function InvitationPreview({ invitation }: any) {
     }
   }, [isOpened, invitation.opening_style, isVaultClicked, targetCode, invitation.container_open]);
 
-  // Centralisation et exécution de l'ouverture
   const triggerContainerOpening = () => {
     if (invitation.container_open === 'wooden_door') {
       playSyntheticSound('open_door');
@@ -204,7 +199,6 @@ export function InvitationPreview({ invitation }: any) {
     audioRef.current?.play().catch(() => {});
   };
 
-  // Déclencheur au clic/toucher de l'interface
   const handleTriggerClick = () => {
     if (invitation.opening_style === 'vault') {
       if (!isVaultClicked) {
@@ -264,13 +258,13 @@ export function InvitationPreview({ invitation }: any) {
             )}
 
             {/* ========================================================================= */}
-            {/* L'ECRAN PRINCIPAL : LA NOUVELLE ENVELOPPE AVEC SES DÉCORS (REVELÉE APRES L'OUVERTURE DU CONTENANT) */}
+            {/* ESPACE DE CONFIGURATION DE LA BELLE ENVELOPPE ET SON CONTENU (VERS LE BAS DE L'ÉCRAN) */}
             {/* ========================================================================= */}
-            <div className="relative w-[340px] h-[480px] flex items-center justify-center">
+            <div className="relative w-[340px] h-[520px] flex flex-col justify-end pb-4 items-center">
 
-              {/* 1. FOND DE SCÈNE : BALLONS PREMIUM (UNIQUEMENT COMPATIBLE ENVELOPPE) */}
+              {/* 1. DÉCOR EN FOND TOTAL : BALLONS COMPATIBLES */}
               {isEnvelopeContainer && invitation.envelope_decor === 'balloons' && (
-                <div className="absolute inset-x-0 -top-16 z-10 pointer-events-none flex justify-center">
+                <div className="absolute inset-x-0 top-4 z-10 pointer-events-none flex justify-center">
                   <img 
                     src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/ballons.png" 
                     className="w-[280px] h-auto object-contain select-none" 
@@ -279,125 +273,171 @@ export function InvitationPreview({ invitation }: any) {
                 </div>
               )}
 
-              {/* 2. LE CORPS DE LA TOUTE NOUVELLE ENVELOPPE (APPARAÎT APRÈS L'OUVERTURE INITIALE EFFECTIVE) */}
+              {/* SECTION CONTENANT TECHNIQUE ENVELOPPE (EFFET SANDWICH POUR FENTE DE SORTIE) */}
               {isEnvelopeContainer && (
                 <motion.div 
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={isEnvelopeAnimDone ? { opacity: 1, scale: 1 } : {}}
-                  transition={{ duration: 0.5 }}
-                  className="absolute inset-0 z-20 bg-center bg-no-repeat bg-contain"
-                  style={{ 
-                    backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/enveloppe.png")`,
-                    backgroundColor: invitation.envelope_color || '#FFFFFF',
-                    mixBlendMode: 'multiply'
-                  }}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={isEnvelopeAnimDone ? { opacity: 1, y: 0 } : {}}
+                  transition={{ duration: 0.6, ease: "easeOut" }}
+                  className="relative w-[320px] h-[340px] mt-auto z-20"
                 >
-                  {/* VOLET 3D DE LA NOUVELLE ENVELOPPE (S'OUVRE AUTOMATIQUEMENT APRES LA FIN DU PREMIER VOLET INITIAL) */}
+                  {/* CALQUE BACKGROUND ENVELOPPE (FACE ARRIÈRE DU SAC DE COULEUR VARIABLE) */}
+                  <div 
+                    className="absolute inset-0 bg-center bg-no-repeat bg-contain z-10"
+                    style={{ 
+                      backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/enveloppe.png")`,
+                      backgroundColor: invitation.envelope_color || '#FFFFFF',
+                      backgroundBlendMode: 'multiply'
+                    }}
+                  />
+
+                  {/* VOLET DE L'ENVELOPPE (RABAT SUPÉRIEUR QUI S'OUVRE EN PIVOTANT À 180° VERS LE HAUT) */}
                   <motion.div 
                     initial={{ rotateX: 0 }}
-                    animate={isEnvelopeAnimDone ? { rotateX: -180, z: 10, y: -2 } : { rotateX: 0 }}
-                    transition={{ duration: 1.1, ease: "easeInOut", delay: 0.2 }}
+                    animate={isEnvelopeAnimDone ? { rotateX: -180, y: -1 } : { rotateX: 0 }}
+                    transition={{ duration: 1.0, ease: "easeInOut", delay: 0.1 }}
                     style={{ 
                       originY: 0,
                       backgroundColor: invitation.envelope_color || '#FFFFFF',
-                      clipPath: 'polygon(0% 0%, 100% 0%, 50% 48%)'
+                      clipPath: 'polygon(0% 0%, 100% 0%, 50% 46%)',
+                      transformStyle: 'preserve-3d'
                     }}
-                    className="absolute inset-x-0 top-0 h-[48%] shadow-inner pointer-events-none z-40"
+                    className="absolute inset-x-0 top-0 h-[46%] shadow-inner pointer-events-none z-45"
                   />
-                </motion.div>
-              )}
 
-              {/* 3. MULTIMÉDIA GLISSANT : VINYLE OU PELLICULE AUDIO (SORT AVEC PRÉCISION ET NE COUVRE PAS LE TITRE) */}
-              <motion.div 
-                initial={isEnvelopeContainer ? { y: 60, opacity: 0 } : { y: -450 }} 
-                animate={isEnvelopeAnimDone ? { y: invitation.opening_type === 'filmstrip' ? -150 : -100, opacity: 1 } : (isEnvelopeContainer ? { y: 60, opacity: 0 } : (isOpened ? { y: invitation.opening_type === 'filmstrip' ? -35 : 25 } : { y: -450 }))} 
-                transition={{ type: "spring", damping: 22, delay: isEnvelopeContainer ? 1.0 : 0.2 }} 
-                className={`absolute ${isEnvelopeContainer ? 'top-[20%]' : 'top-0'} z-25 flex justify-center w-full`}
-              >
-                {invitation.opening_type === 'filmstrip' ? (
-                  <div className="relative w-44 h-64 bg-[#1a1a1a] rounded-xl shadow-2xl rotate-[-2deg] overflow-hidden p-2 border-y-4 border-[#1a1a1a]">
-                    <div className="absolute inset-y-0 left-1.5 w-1.5 border-l-2 border-dashed border-white/20 z-10" />
-                    <div className="absolute inset-y-0 right-1.5 w-1.5 border-r-2 border-dashed border-white/20 z-10" />
-                    <motion.div animate={{ y: [0, -360] }} transition={{ duration: 12, repeat: Infinity, ease: "linear" }} className="flex flex-col gap-2">
-                      {[
-                        { url: invitation.main_photo_url, key: 'main_photo_url' },
-                        { url: invitation.photo_url_2, key: 'photo_url_2' },
-                        { url: invitation.photo_url_3, key: 'photo_url_3' },
-                        { url: invitation.main_photo_url, key: 'main_photo_url' },
-                        { url: invitation.photo_url_2, key: 'photo_url_2' },
-                        { url: invitation.photo_url_3, key: 'photo_url_3' }
-                      ].map((imgObj, idx) => (
-                        <div key={idx} className="w-full h-24 bg-[#222] rounded-sm overflow-hidden relative shrink-0">
-                          {imgObj.url ? (
-                            <img src={imgObj.url} className="w-full h-full object-cover grayscale-[0.2] contrast-125" 
-                              style={{ transform: `translate(${invitation[`${imgObj.key}_pos_x`] || 0}px, ${invitation[`${imgObj.key}_pos_y`] || 0}px) scale(${invitation[`${imgObj.key}_scale`] || 1})` }} alt="" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gray-800"><Film className="text-gray-600" size={18}/></div>
-                          )}
-                          <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none" />
-                        </div>
-                      ))}
-                    </motion.div>
-                  </div>
-                ) : (
-                  <div className={`w-[230px] h-[230px] relative ${isOpened ? 'animate-disk-spin' : ''}`}>
-                    <div className="absolute inset-0 rounded-full bg-[#111] overflow-hidden shadow-2xl">
-                      <div className="absolute inset-0 opacity-30" style={{ background: 'repeating-radial-gradient(circle, #444 0, #000 2px, #111 4px)' }} />
-                    </div>
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-20 h-20 bg-white rounded-full border-[4px] border-[#111] overflow-hidden">
-                        {invitation.main_photo_url && (
-                          <img src={invitation.main_photo_url} className="w-full h-full object-cover" 
-                            style={{ transform: `translate(${invitation.main_photo_url_pos_x || 0}px, ${invitation.main_photo_url_pos_y || 0}px) scale(${invitation.main_photo_url_scale || 1})` }} alt="" />
-                        )}
+                  {/* ----------------- INTÉRIEUR DE LA FENTE (Z-INDEX INTERMÉDIAIRE : 20) ----------------- */}
+                  
+                  {/* A. CELLULE DU MÉDIA GLISSANT (VINYLE / PELLICULE FLOTTANTE) */}
+                  <motion.div 
+                    initial={{ y: 160, opacity: 0 }} 
+                    animate={isEnvelopeAnimDone ? { y: invitation.opening_type === 'filmstrip' ? -210 : -160, opacity: 1 } : { y: 160, opacity: 0 }} 
+                    transition={{ type: "spring", damping: 20, delay: 0.9 }} 
+                    className="absolute inset-x-0 top-0 z-20 flex justify-center"
+                  >
+                    {invitation.opening_type === 'filmstrip' ? (
+                      <div className="relative w-40 h-60 bg-[#1a1a1a] rounded-xl shadow-2xl rotate-[-2deg] overflow-hidden p-2 border-y-4 border-[#1a1a1a]">
+                        <div className="absolute inset-y-0 left-1.5 w-1.5 border-l-2 border-dashed border-white/20 z-10" />
+                        <div className="absolute inset-y-0 right-1.5 w-1.5 border-r-2 border-dashed border-white/20 z-10" />
+                        <motion.div animate={{ y: [0, -360] }} transition={{ duration: 12, repeat: Infinity, ease: "linear" }} className="flex flex-col gap-2">
+                          {[
+                            { url: invitation.main_photo_url, key: 'main_photo_url' },
+                            { url: invitation.photo_url_2, key: 'photo_url_2' },
+                            { url: invitation.photo_url_3, key: 'photo_url_3' },
+                            { url: invitation.main_photo_url, key: 'main_photo_url' },
+                            { url: invitation.photo_url_2, key: 'photo_url_2' },
+                            { url: invitation.photo_url_3, key: 'photo_url_3' }
+                          ].map((imgObj, idx) => (
+                            <div key={idx} className="w-full h-20 bg-[#222] rounded-sm overflow-hidden relative shrink-0">
+                              {imgObj.url ? (
+                                <img src={imgObj.url} className="w-full h-full object-cover grayscale-[0.2] contrast-125" 
+                                  style={{ transform: `translate(${invitation[`${imgObj.key}_pos_x`] || 0}px, ${invitation[`${imgObj.key}_pos_y`] || 0}px) scale(${invitation[`${imgObj.key}_scale`] || 1})` }} alt="" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center bg-gray-800"><Film className="text-gray-600" size={16}/></div>
+                              )}
+                              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none" />
+                            </div>
+                          ))}
+                        </motion.div>
                       </div>
+                    ) : (
+                      <div className={`w-[200px] h-[200px] relative ${isOpened ? 'animate-disk-spin' : ''}`}>
+                        <div className="absolute inset-0 rounded-full bg-[#111] overflow-hidden shadow-2xl">
+                          <div className="absolute inset-0 opacity-30" style={{ background: 'repeating-radial-gradient(circle, #444 0, #000 2px, #111 4px)' }} />
+                        </div>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="w-16 h-16 bg-white rounded-full border-[4px] border-[#111] overflow-hidden">
+                            {invitation.main_photo_url && (
+                              <img src={invitation.main_photo_url} className="w-full h-full object-cover" 
+                                style={{ transform: `translate(${invitation.main_photo_url_pos_x || 0}px, ${invitation.main_photo_url_pos_y || 0}px) scale(${invitation.main_photo_url_scale || 1})` }} alt="" />
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </motion.div>
+
+                  {/* B. LE FAIRE-PART (GLISSE ET EXTRAIT DE L'ENVELOPPE VERS LE HAUT MAIS RESTE COUPE PAR L'AVANT DE L'ENVELOPPE) */}
+                  <motion.div 
+                    initial={{ y: 150, opacity: 0, scale: 0.95 }} 
+                    animate={isEnvelopeAnimDone ? { y: -80, opacity: 1, scale: 1 } : { y: 150, opacity: 0 }} 
+                    transition={{ type: "spring", damping: 17, delay: 0.6 }} 
+                    onClick={() => isOpened && setView('content')} 
+                    style={{ 
+                      backgroundColor: invitation.paper_color || '#FFFFFF',
+                      fontFamily: invitation.font_style 
+                    }}
+                    className={`absolute left-1/2 -translate-x-1/2 z-20 w-[285px] h-[330px] rounded-[2.5rem] shadow-2xl p-7 flex flex-col items-center justify-between border border-gray-100/80 cursor-pointer ${getPaperClass()}`}
+                  >
+                    <div className="text-center pt-8 w-full">
+                      <h2 className="text-lg font-black uppercase tracking-tighter mb-2 block text-gray-900 line-clamp-2" style={{ fontFamily: invitation.font_style }}>
+                        {invitation?.title || tBuilder.title_placeholder}
+                      </h2>
+                      <div className="w-8 h-1 bg-amber-400 mx-auto mb-2" />
+                      <p className="opacity-60 text-[7.5px] font-black uppercase tracking-[0.3em] text-gray-500">{t.tap_open}</p>
                     </div>
-                  </div>
-                )}
-              </motion.div>
+                    <div className="w-full py-3 bg-gray-900 text-white rounded-xl text-[8.5px] font-black uppercase text-center tracking-widest hover:bg-amber-500 transition-colors shadow-md">
+                      {lang === 'vi' ? 'Xem chi tiết' : lang === 'en' ? 'See details' : 'Voir les détails'}
+                    </div>
+                  </motion.div>
 
-              {/* 4. LE FAIRE-PART (GLISSE ET SORT DE LA TOUTE NOUVELLE ENVELOPPE APRÈS SON OUVERTURE) */}
-              <motion.div 
-                initial={isEnvelopeContainer ? { scale: 0.9, y: 40, opacity: 0 } : { scale: 0.8, y: 200 }} 
-                animate={isEnvelopeAnimDone ? { scale: 1, y: -20, opacity: 1 } : (!isEnvelopeContainer && isOpened ? { scale: 1, y: 135 } : (isEnvelopeContainer ? { y: 40, opacity: 0 } : {}))} 
-                transition={{ type: "spring", damping: 18, delay: isEnvelopeContainer ? 0.7 : 0.4 }} 
-                onClick={() => isOpened && setView('content')} 
-                style={{ 
-                  backgroundColor: invitation.paper_color || '#FFFFFF',
-                  fontFamily: invitation.font_style 
-                }}
-                className={`z-30 rounded-[2.5rem] shadow-2xl p-8 flex flex-col items-center justify-between border border-gray-100 cursor-pointer ${getPaperClass()} ${isEnvelopeContainer ? 'w-[295px] h-[350px]' : 'w-[310px] h-[370px]'}`}
-              >
-                <div className="text-center pt-10 w-full">
-                  <h2 className="text-xl font-black uppercase tracking-tighter mb-3 block text-gray-900 line-clamp-2" style={{ fontFamily: invitation.font_style }}>
-                    {invitation?.title || tBuilder.title_placeholder}
-                  </h2>
-                  <div className="w-8 h-1 bg-amber-400 mx-auto mb-3" />
-                  <p className="opacity-60 text-[8px] font-black uppercase tracking-[0.3em] text-gray-500">{t.tap_open}</p>
-                </div>
-                <div className="w-full py-3.5 bg-gray-900 text-white rounded-xl text-[9px] font-black uppercase text-center tracking-widest hover:bg-amber-500 transition-colors shadow-md">
-                  {lang === 'vi' ? 'Xem chi tiết' : lang === 'en' ? 'See details' : 'Voir les détails'}
-                </div>
-              </motion.div>
+                  {/* --------------------------------------------------------------------------------- */}
 
-              {/* 5. AVANT-PLAN : DÉCOR DE FLEURS PREMIUM (AVEC EFFET FILTRE DE TRANSPARENCE SCREEN NET) */}
-              {isEnvelopeContainer && invitation.envelope_decor === 'floral' && (
-                <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={isEnvelopeAnimDone ? { opacity: 1 } : {}}
-                  className="absolute inset-0 z-45 pointer-events-none overflow-hidden mix-blend-screen scale-105"
-                >
-                  <img 
-                    src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/flower.png" 
-                    className="w-full h-full object-cover select-none pointer-events-none" 
-                    alt="Fleurs" 
+                  {/* CALQUE AVANT DE L'ENVELOPPE (POCHETTE INVISIBLE DU BAS POUR CRÉER L'EFFET DE GLISSEMENT INTERNE) */}
+                  <div 
+                    className="absolute inset-x-0 bottom-0 h-[54%] bg-center bg-no-repeat bg-contain z-30 pointer-events-none"
+                    style={{ 
+                      backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/enveloppe.png")`,
+                      backgroundColor: invitation.envelope_color || '#FFFFFF',
+                      backgroundBlendMode: 'multiply',
+                      backgroundPosition: 'bottom center',
+                      clipPath: 'polygon(0% 46%, 100% 46%, 100% 100%, 0% 100%)'
+                    }}
                   />
+
+                  {/* 5. AVANT-PLAN : DÉCOR DE FLEURS PREMIUM (POSITIONNÉ PAR DESSUS L'ENVELOPPE COMPLÈTE) */}
+                  {invitation.envelope_decor === 'floral' && (
+                    <motion.div 
+                      initial={{ opacity: 0 }}
+                      animate={isEnvelopeAnimDone ? { opacity: 1 } : {}}
+                      className="absolute -inset-4 z-40 pointer-events-none overflow-hidden mix-blend-screen scale-105"
+                    >
+                      <img 
+                        src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/flower.png" 
+                        className="w-full h-full object-cover select-none pointer-events-none" 
+                        alt="Fleurs" 
+                      />
+                    </motion.div>
+                  )}
                 </motion.div>
               )}
 
-              {/* ========================================================================= */}
-              {/* COUCHE INITIALE : DÉCLENCHEURS INTERACTIFS (SCEAU, BOÎTIER) ET L'ANCIEN VOLET / PORTES */}
-              {/* ========================================================================= */}
+              {/* ------------------- CADRE DES ANCIENS FAIRE-PART (UNIQUEMENT COMPATIBLE PORTES) ------------------- */}
+              {!isEnvelopeContainer && (
+                <motion.div 
+                  initial={{ scale: 0.8, y: 200 }} 
+                  animate={isOpened ? { scale: 1, y: 135 } : {}} 
+                  transition={{ type: "spring", damping: 20, delay: 0.4 }} 
+                  onClick={() => isOpened && setView('content')} 
+                  style={{ 
+                    backgroundColor: invitation.paper_color || '#FFFFFF',
+                    fontFamily: invitation.font_style 
+                  }}
+                  className={`z-30 w-[310px] h-[370px] rounded-[3rem] shadow-xl p-10 flex flex-col items-center justify-between border border-gray-100 cursor-pointer ${getPaperClass()}`}
+                >
+                  <div className="text-center pt-14 w-full">
+                    <h2 className="text-2xl font-black uppercase tracking-tighter mb-4 break-words" style={{ fontFamily: invitation.font_style }}>
+                      {invitation?.title || tBuilder.title_placeholder}
+                    </h2>
+                    <div className="w-8 h-1 bg-amber-400 mx-auto mb-4" />
+                    <p className="opacity-60 text-[9px] font-bold uppercase tracking-[0.3em]">{t.tap_open}</p>
+                  </div>
+                  <div className="w-full py-4 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase text-center tracking-widest">
+                    {lang === 'vi' ? 'Xem chi tiết' : lang === 'en' ? 'See details' : 'Voir les détails'}
+                  </div>
+                </motion.div>
+              )}
+              
+              {/* ----------------- CADRE COMMUN DES ACTIVATIONS / BOÎTIER ET COUCHE DECLENCHEUR (100% ÉCRAN) ----------------- */}
               <div className="absolute inset-0 z-50 overflow-hidden rounded-[2.5rem]" style={{ pointerEvents: isOpened ? 'none' : 'auto' }}>
                 <div className="w-full h-full relative flex items-center justify-center">
                   <AnimatePresence>
@@ -498,7 +538,7 @@ export function InvitationPreview({ invitation }: any) {
                         </div>
                         
                         <p className="absolute bottom-6 text-white font-black text-[9px] uppercase tracking-[0.25em] animate-pulse text-center w-full px-4 drop-shadow-md">
-                          {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? "Tap to open invitation" : "Nhấn để mở lời mời"}
+                          {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? "Tap to open invitation" : "Nhấn de mở lời mời"}
                         </p>
                       </motion.div>
                     )}
@@ -506,7 +546,7 @@ export function InvitationPreview({ invitation }: any) {
                 </div>
               </div>
 
-              {/* 7. ANIMATION DES ANCIENS CONTENANTS (GRAND VOLET UNIQUE, PORTES EN BOIS ET METAL) */}
+              {/* 8. ANIMATION PLEIN ÉCRAN DES OUVERTURES PHYSIQUES INITIALES (GRAND VOLET, PORTES) */}
               <div className="absolute inset-0 z-40 w-full h-full flex pointer-events-none" style={{ perspective: '2000px' }}>
                 {invitation.container_open === 'metal_door' ? (
                   <motion.div 
@@ -535,14 +575,14 @@ export function InvitationPreview({ invitation }: any) {
                     )}
                   </AnimatePresence>
                 ) : (
-                  /* ANCIENNEMENT APPELÉ "ENVELOPPE CLASSIQUE", C'EST EN FAIT LE GRAND VOLET UNI INITIAL QUI MONTE */
+                  /* LE GRAND VOLET INITIAL S'ÉJECTE VERS LE HAUT ET DISPARAÎT EN DECLENCHANT L'ENVELOPPE INTERNE */
                   <AnimatePresence onExitComplete={() => setIsEnvelopeAnimDone(true)}>
                     {!isOpened && (
                       <motion.div 
                         exit={{ y: "-100%", opacity: 0 }} 
-                        transition={{ duration: 0.9, ease: "scale-[0.98] easeIn" }} 
+                        transition={{ duration: 0.85, ease: "easeIn" }} 
                         style={{ backgroundColor: invitation?.envelope_color || '#FFFFFF' }}
-                        className="absolute inset-0 w-full h-full shadow-2xl rounded-[2.5rem] border border-gray-100"
+                        className="absolute inset-0 w-full h-full shadow-2xl rounded-[2.5rem] border border-gray-100/60 pointer-events-auto"
                       />
                     )}
                   </AnimatePresence>
@@ -552,7 +592,7 @@ export function InvitationPreview({ invitation }: any) {
             </div>
           </motion.div>
         ) : (
-          /* --- PANNEAU DE CONTENU INTERNE DE L'INVITATION --- */
+          /* --- PANNEAU DE CONTENU DU FAIRE-PART --- */
           <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ backgroundColor: invitation.paper_color || '#FFFFFF' }} className={`w-full h-full z-[100] flex flex-col overflow-y-auto ${getPaperClass()}`}>
             <div className="h-[30%] relative overflow-hidden shrink-0">
                <img src={invitation.main_photo_url} className="w-full h-full object-cover" style={{ transform: `translate(${invitation.main_photo_url_pos_x || 0}px, ${invitation.main_photo_url_pos_y || 0}px) scale(${invitation.main_photo_url_scale || 1})` }} />
