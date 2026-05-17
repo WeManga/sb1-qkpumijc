@@ -42,7 +42,7 @@ export function InvitationPreview({ invitation }: any) {
     }
   };
 
-  // LOGIQUE CORRIGÉE : Extraction au format JJMMAA (6 chiffres) basé sur la date choisie
+  // Extraction et formatage de la date choisie pour le code secret (Ex: 24 Juin = "2406")
   const targetCode = useMemo(() => {
     const dateSource = invitation?.vault_date || invitation?.event_date;
     if (!dateSource) return "123456";
@@ -93,7 +93,7 @@ export function InvitationPreview({ invitation }: any) {
               return next;
             });
             setActiveKey(targetCode[index]);
-          }, (index + 1) * 550); // Légèrement accéléré pour harmoniser la découverte des 6 chiffres
+          }, (index + 1) * 550); // Ajustement de la vitesse de découverte pour les 6 chiffres
         });
 
         endTimer = setTimeout(() => {
@@ -303,7 +303,7 @@ export function InvitationPreview({ invitation }: any) {
 
                                 {/* Écran LCD Supérieur */}
                                 <div className="w-full h-24 bg-black/95 rounded-2xl border-2 border-neutral-800 p-3 flex flex-col items-center justify-center shadow-inner relative z-10 mb-8">
-                                  <span className="text-[9px] font-mono tracking-[0.25em] text-neutral-500 uppercase mb-1">🔒 SYSTEM MATRIX</span>
+                                  <span className="text-[10px] font-mono tracking-[0.25em] text-neutral-400 font-bold uppercase mb-1">🔒 Invit Studio</span>
                                   <div className="flex gap-1.5">
                                     {displayedCode.map((digit, index) => (
                                       <motion.span
