@@ -48,7 +48,7 @@ export function GuestView({ invitation }: any) {
   };
 
   // Système audio natif et hybride (fichiers locaux .wav + synthétiseur)
-  const playSyntheticSound = (type: 'beep' | 'lock' | 'key' | 'open_door') => {
+  const playSyntheticSound = (type: 'beep' | 'lock' | 'key' | 'open_door' | 'open_metal_door') => {
     if (isMuted) return;
     try {
       const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
@@ -95,6 +95,8 @@ export function GuestView({ invitation }: any) {
         playWavFile('/sounds/key-turn.wav');
       } else if (type === 'open_door') {
         playWavFile('/sounds/door-open.wav');
+      } else if (type === 'open_metal_door') {
+        playWavFile('/sounds/metal-door.wav');
       }
     } catch (e) {
       console.error("Le système audio n'a pas pu s'initialiser", e);
@@ -204,6 +206,8 @@ export function GuestView({ invitation }: any) {
   const triggerContainerOpening = () => {
     if (invitation.container_open === 'wooden_door') {
       playSyntheticSound('open_door');
+    } else if (invitation.container_open === 'metal_door') {
+      playSyntheticSound('open_metal_door');
     }
     setIsOpened(true);
     audioRef.current?.play().catch(() => {});
@@ -282,7 +286,7 @@ export function GuestView({ invitation }: any) {
     );
   };
 
-  const isDoorBackground = invitation.container_open === 'wooden_door' || invitation.container_open === 'metal_door';
+  const isDoorType = invitation.container_open === 'wooden_door' || invitation.container_open === 'metal_door';
 
   return (
     <div className="fixed inset-0 flex items-center justify-center overflow-hidden touch-none bg-white" style={{ fontFamily: invitation.font_style || 'inherit' }}>
@@ -403,7 +407,12 @@ export function GuestView({ invitation }: any) {
                                   y: [0, -6, 2, -6, 2, 0],
                                   scale: [1, 1.05, 0.98, 1.05, 0.98, 1]
                                 }}
-                                transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 1.5, ease: "easeInOut" }}
+                                transition={{ 
+                                  duration: 3.5, 
+                                  times: [0, 0.42, 0.52, 0.62, 0.72, 0.82, 1], 
+                                  repeat: Infinity, 
+                                  ease: "easeInOut" 
+                                }}
                                 className="w-56 h-56 select-none flex items-center justify-center"
                               >
                                 <img 
@@ -502,7 +511,7 @@ export function GuestView({ invitation }: any) {
                           animate={isOpened ? { x: "100%" } : { x: "0%" }}
                           transition={{ duration: 1.6, ease: "easeInOut" }}
                           className="absolute inset-0 w-full h-full bg-cover bg-center shadow-2xl"
-                          style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20noir.png")` }}
+                          style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20en%20metal.png")` }}
                         />
                       ) : (
                         <AnimatePresence>
