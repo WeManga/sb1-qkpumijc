@@ -59,9 +59,12 @@ input[type="text"] {
   background-blend-mode: multiply; /* Fusionne la soie blanche avec paper_color */
 }
 
+/* TON NOUVEAU VELOURS (VELVET) HD EN FUSION DE COULEUR */
 .paper-velvet {
-  background-image: url("https://www.transparenttextures.com/patterns/felt.png");
-  background-blend-mode: multiply;
+  background-image: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/velvet.PNG");
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-blend-mode: multiply; /* Fusionne le velours blanc avec paper_color */
   box-shadow: inset 0 0 50px rgba(0,0,0,0.05);
 }
 
