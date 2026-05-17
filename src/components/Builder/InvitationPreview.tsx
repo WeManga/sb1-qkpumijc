@@ -18,8 +18,9 @@ export function InvitationPreview({ invitation }: any) {
   const [view, setView] = useState<'envelope' | 'content'>('envelope');
   const [isMuted, setIsMuted] = useState(false);
   
-  // États pour l'animation du boîtier à code digital
-  const [displayedCode, setDisplayedCode] = useState(['*', '*', '*', '*']);
+  // États pour l'animation du boîtier à code digital (6 chiffres)
+  const [isVaultClicked, setIsVaultClicked] = useState(false);
+  const [displayedCode, setDisplayedCode] = useState(['*', '*', '*', '*', '*', '*']);
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const [isCodeFading, setIsCodeFading] = useState(false);
   
@@ -41,14 +42,15 @@ export function InvitationPreview({ invitation }: any) {
     }
   };
 
-  // Extraction et formatage de la date choisie pour le code secret (Ex: 24 Juin = "2406")
+  // LOGIQUE CORRIGÉE : Extraction au format JJMMAA (6 chiffres) basé sur la date choisie
   const targetCode = useMemo(() => {
     const dateSource = invitation?.vault_date || invitation?.event_date;
-    if (!dateSource) return "1234";
+    if (!dateSource) return "123456";
     const d = new Date(dateSource);
     const day = String(d.getDate()).padStart(2, '0');
     const month = String(d.getMonth() + 1).padStart(2, '0');
-    return `${day}${month}`;
+    const year = String(d.getFullYear()).slice(-2); // Récupère les 2 derniers chiffres de l'année
+    return `${day}${month}${year}`;
   }, [invitation?.vault_date, invitation?.event_date]);
 
   useEffect(() => {
@@ -57,15 +59,17 @@ export function InvitationPreview({ invitation }: any) {
     }
   }, [isOpened, invitation?.music_url]);
 
-  // Logique d'animation automatique du boîtier digital
+  // LOGIQUE DE DÉFILEMENT DE 6 CHIFFRES : Gère l'attente infinie ET la fixation après clic
   useEffect(() => {
     if (!isOpened && invitation.opening_style === 'vault') {
       let currentDigitIndex = 0;
-      
+
+      // Boucle permanente de chiffres et touches aléatoires au chargement
       const interval = setInterval(() => {
         setDisplayedCode((prev) => {
           const next = [...prev];
-          for (let i = currentDigitIndex; i < 4; i++) {
+          const startIndex = isVaultClicked ? currentDigitIndex : 0;
+          for (let i = startIndex; i < 6; i++) {
             next[i] = String(Math.floor(Math.random() * 10));
           }
           return next;
@@ -75,37 +79,54 @@ export function InvitationPreview({ invitation }: any) {
         setActiveKey(randomKey);
       }, 75);
 
-      const digitLockTimers = Array.from({ length: 4 }).map((_, index) => {
-        return setTimeout(() => {
-          currentDigitIndex = index + 1;
-          setDisplayedCode((prev) => {
-            const next = [...prev];
-            next[index] = targetCode[index];
-            return next;
-          });
-          setActiveKey(targetCode[index]);
-        }, (index + 1) * 700);
-      });
+      let digitLockTimers: NodeJS.Timeout[] = [];
+      let endTimer: NodeJS.Timeout;
 
-      const endTimer = setTimeout(() => {
-        clearInterval(interval);
-        setActiveKey(null);
-        setIsCodeFading(true); // Lance le fondu sortant du boîtier
-        
-        // Attendre la fin du fondu du boîtier pour déclencher l'ouverture des portes
-        setTimeout(() => {
-          setIsOpened(true);
-          audioRef.current?.play().catch(() => {});
-        }, 600);
-      }, 3500);
+      // C'est SEULEMENT après le clic qu'on enclenche la fixation séquentielle des 6 chiffres
+      if (isVaultClicked) {
+        digitLockTimers = Array.from({ length: 6 }).map((_, index) => {
+          return setTimeout(() => {
+            currentDigitIndex = index + 1;
+            setDisplayedCode((prev) => {
+              const next = [...prev];
+              next[index] = targetCode[index];
+              return next;
+            });
+            setActiveKey(targetCode[index]);
+          }, (index + 1) * 550); // Légèrement accéléré pour harmoniser la découverte des 6 chiffres
+        });
+
+        endTimer = setTimeout(() => {
+          clearInterval(interval);
+          setActiveKey(null);
+          setIsCodeFading(true); // Lance le fondu sortant du boîtier numérique
+          
+          setTimeout(() => {
+            setIsOpened(true);
+            audioRef.current?.play().catch(() => {});
+          }, 600);
+        }, 4000);
+      }
 
       return () => {
         clearInterval(interval);
         digitLockTimers.forEach(clearTimeout);
-        clearTimeout(endTimer);
+        if (endTimer) clearTimeout(endTimer);
       };
     }
-  }, [isOpened, invitation.opening_style, targetCode]);
+  }, [isOpened, invitation.opening_style, isVaultClicked, targetCode]);
+
+  // Déclencheur au clic/toucher de l'interface
+  const handleTriggerClick = () => {
+    if (invitation.opening_style === 'vault') {
+      if (!isVaultClicked) {
+        setIsVaultClicked(true); // Arrête l'attente infinie et lance la résolution vers la date
+      }
+    } else {
+      setIsOpened(true);
+      audioRef.current?.play().catch(() => {});
+    }
+  };
 
   const toggleMute = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -237,7 +258,7 @@ export function InvitationPreview({ invitation }: any) {
                           initial={{ opacity: 1 }}
                           exit={{ opacity: 0, transition: { duration: 0.5, ease: "easeInOut" } }}
                           className="absolute inset-0 z-[70] flex flex-col items-center justify-center cursor-pointer" 
-                          onClick={() => { if (invitation.opening_style !== 'vault') { setIsOpened(true); audioRef.current?.play().catch(()=>{}); } }}
+                          onClick={handleTriggerClick}
                         >
                           <div className="relative w-full flex items-center justify-center">
                             {invitation.opening_style === 'knock' ? (
@@ -272,9 +293,8 @@ export function InvitationPreview({ invitation }: any) {
                                   />
                                 </div>
                             ) : invitation.opening_style === 'vault' ? (
-                              /* --- BOITIER DIGITAL STRUCTUREL ET COMPOSABLE CORRIGÉ --- */
+                              /* --- BOITIER DIGITAL TACTILE (6 CHIFFRES) --- */
                               <div className="relative w-[300px] h-[440px] flex flex-col items-center justify-start bg-neutral-900 border-[6px] border-neutral-800 rounded-[2.5rem] shadow-[0_30px_60px_rgba(0,0,0,0.8)] overflow-hidden p-6">
-                                {/* Image réelle du boîtier technique calée en arrière-plan */}
                                 <img 
                                   src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/dgital.png" 
                                   className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-30 pointer-events-none" 
@@ -284,13 +304,13 @@ export function InvitationPreview({ invitation }: any) {
                                 {/* Écran LCD Supérieur */}
                                 <div className="w-full h-24 bg-black/95 rounded-2xl border-2 border-neutral-800 p-3 flex flex-col items-center justify-center shadow-inner relative z-10 mb-8">
                                   <span className="text-[9px] font-mono tracking-[0.25em] text-neutral-500 uppercase mb-1">🔒 SYSTEM MATRIX</span>
-                                  <div className="flex gap-2">
+                                  <div className="flex gap-1.5">
                                     {displayedCode.map((digit, index) => (
                                       <motion.span
                                         key={index}
                                         initial={{ scale: 1.3 }}
                                         animate={{ scale: 1 }}
-                                        className="text-sky-500 font-mono text-3xl font-black drop-shadow-[0_0_10px_rgba(14,165,233,0.8)] tracking-widest"
+                                        className="text-sky-500 font-mono text-2xl font-black drop-shadow-[0_0_10px_rgba(14,165,233,0.8)] tracking-wider"
                                       >
                                         {digit}
                                       </motion.span>
@@ -298,7 +318,7 @@ export function InvitationPreview({ invitation }: any) {
                                   </div>
                                 </div>
 
-                                {/* Clavier Matriciel Rétroéclairé Bleu */}
+                                {/* Clavier Rétroéclairé Bleu */}
                                 <div className="grid grid-cols-3 gap-3 w-full max-w-[210px] relative z-10">
                                   {['1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '0', '#'].map((key) => {
                                     const isGlowing = activeKey === key;
@@ -325,22 +345,23 @@ export function InvitationPreview({ invitation }: any) {
                                     );
                                   })}
                                 </div>
-                                <div className="mt-5 font-mono text-[9px] tracking-widest text-neutral-500 animate-pulse uppercase">Searching Key...</div>
+                                <div className="mt-5 font-mono text-[9px] tracking-widest text-neutral-500 animate-pulse uppercase">
+                                  {isVaultClicked ? "CRACKING CODE..." : "Tap Device to Unlock"}
+                                </div>
                               </div>
                             ) : (
                               <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-[32rem] h-[32rem] object-contain" alt="Sceau" />
                             )}
                           </div>
-                          {invitation.opening_style !== 'vault' && (
-                            <p className="absolute bottom-12 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse text-center w-full px-4">
-                              {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? "Tap to open invitation" : "Nhấn de mở lời mời"}
-                            </p>
-                          )}
+                          
+                          <p className="absolute bottom-12 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse text-center w-full px-4">
+                            {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? "Tap to open invitation" : "Nhấn de mở lời mời"}
+                          </p>
                         </motion.div>
                       )}
                     </AnimatePresence>
 
-                    {/* ANIMATION DES PORTES DÉCOUPLÉES */}
+                    {/* ANIMATION DES CONTENANTS DÉCOUPLÉS */}
                     {isDoorType ? (
                       <div className="absolute inset-0 z-50 flex w-full h-full" style={{ perspective: '2000px' }}>
                         <motion.div 
