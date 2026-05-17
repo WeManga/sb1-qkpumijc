@@ -47,6 +47,67 @@ export function GuestView({ invitation }: any) {
     }
   };
 
+  // Synthétiseur audio natif (Pas besoin d'importer de fichier externe)
+  const playSyntheticSound = (type: 'beep' | 'lock' | 'knock' | 'door') => {
+    if (isMuted) return;
+    try {
+      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
+      if (!AudioContext) return;
+      const ctx = new AudioContext();
+      
+      if (type === 'beep') {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, ctx.currentTime); // Note aiguë électronique
+        gain.gain.setValueAtTime(0.05, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.08);
+      } else if (type === 'lock') {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(1200, ctx.currentTime);
+        gain.gain.setValueAtTime(0.08, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.15);
+      } else if (type === 'knock') {
+        // Simulation d'un impact sourd (toctoc)
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(120, ctx.currentTime);
+        gain.gain.setValueAtTime(0.2, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.1);
+      } else if (type === 'door') {
+        // Friction basse fréquence pour imiter une porte en bois ou un volet
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(80, ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(40, ctx.currentTime + 0.5);
+        gain.gain.setValueAtTime(0.15, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.6);
+      }
+    } catch (e) {
+      console.error("Audio system blocked or unsupported", e);
+    }
+  };
+
   useEffect(() => {
     const newGuests = Array.from({ length: guestCount }, (_, i) => 
       guests[i] || { firstName: '', lastName: '' }
@@ -71,7 +132,7 @@ export function GuestView({ invitation }: any) {
     return `${day}${month}${year}`;
   }, [invitation?.vault_date, invitation?.event_date]);
 
-  // LOGIQUE RECOPIÉE ET CORRIGÉE : Défilement permanent puis fixation synchrone après action
+  // LOGIQUE DE DÉFILEMENT DE 6 CHIFFRES : Gère l'attente infinie ET la fixation après action
   useEffect(() => {
     if (!isOpened && invitation.opening_style === 'vault') {
       let currentDigitIndex = 0;
@@ -103,15 +164,18 @@ export function GuestView({ invitation }: any) {
               return next;
             });
             setActiveKey(targetCode[index]);
+            playSyntheticSound('beep'); // Bip à chaque chiffre validé !
           }, (index + 1) * 550);
         });
 
         endTimer = setTimeout(() => {
           clearInterval(interval);
           setActiveKey(null);
+          playSyntheticSound('lock'); // Son de déverrouillage final
           setIsCodeFading(true);
           
           setTimeout(() => {
+            playSyntheticSound('door'); // Son mécanique d'ouverture des battants/enveloppe
             setIsOpened(true);
             audioRef.current?.play().catch(() => {});
           }, 600);
@@ -133,8 +197,13 @@ export function GuestView({ invitation }: any) {
         setIsVaultClicked(true);
       }
     } else {
+      if (invitation.opening_style === 'knock') {
+        playSyntheticSound('knock');
+        setTimeout(() => playSyntheticSound('knock'), 150);
+      }
       setIsCodeFading(true);
       setTimeout(() => {
+        playSyntheticSound('door');
         setIsOpened(true);
         audioRef.current?.play().catch(() => {});
       }, 400);
@@ -404,11 +473,10 @@ export function GuestView({ invitation }: any) {
                             )}
                           </div>
                           
-                          {invitation.opening_style !== 'vault' && (
-                            <p className="absolute bottom-12 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse">
-                              {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? "Tap to open invitation" : "Nhấn de mở lời mời"}
-                            </p>
-                          )}
+                          {/* LOGIQUE RESTAURÉE DE LA PHRASE EN BAS DE L'ÉCRAN */}
+                          <p className="absolute bottom-12 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse text-center w-full px-4">
+                            {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? "Tap to open invitation" : "Nhấn de mở lời mời"}
+                          </p>
                         </motion.div>
                       )}
                     </AnimatePresence>
