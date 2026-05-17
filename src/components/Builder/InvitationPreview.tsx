@@ -319,7 +319,7 @@ export function InvitationPreview({ invitation }: any) {
                   height: f.h,
                   top: f.top,
                   left: f.left,
-                  backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20metal.png")`,
+                  backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20en%20metal.png")`,
                   backgroundSize: '600% 600%', // Subdivision 6x6
                   backgroundPosition: `${f.bgX} ${f.bgY}`,
                   backgroundRepeat: 'no-repeat'
@@ -540,12 +540,13 @@ export function InvitationPreview({ invitation }: any) {
                       {invitation.container_open === 'metal_door' ? (
                         <div 
                           className="absolute inset-0 w-full h-full bg-cover bg-center"
-                          style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20metal.png")` }}
+                          style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20en%20metal.png")` }}
                         />
                       ) : (
                         <>
                           <motion.div 
                             exit={{ rotateY: -100, x: '-20%', opacity: 0 }} 
+ BackToEnvelope
                             transition={{ duration: 1.2, ease: "easeInOut" }} 
                             className="w-1/2 h-full origin-left bg-cover bg-center shadow-2xl border-r border-black/10" 
                             style={{ 
