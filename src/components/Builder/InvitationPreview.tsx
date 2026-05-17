@@ -43,7 +43,7 @@ export function InvitationPreview({ invitation }: any) {
   };
 
   // Système audio natif et hybride (fichiers locaux .wav + synthétiseur)
-  const playSyntheticSound = (type: 'beep' | 'lock' | 'knock' | 'key' | 'open_door') => {
+  const playSyntheticSound = (type: 'beep' | 'lock' | 'key' | 'open_door') => {
     if (isMuted) return;
     try {
       const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
@@ -86,8 +86,6 @@ export function InvitationPreview({ invitation }: any) {
         gain.connect(ctx.destination);
         osc.start();
         osc.stop(ctx.currentTime + 0.15);
-      } else if (type === 'knock') {
-        playWavFile('/sounds/door-knock.wav');
       } else if (type === 'key') {
         playWavFile('/sounds/key-turn.wav');
       } else if (type === 'open_door') {
@@ -98,21 +96,13 @@ export function InvitationPreview({ invitation }: any) {
     }
   };
 
-  // Synchronisation des sons réels sur le début exact des boucles d'animations (Main et Clé)
+  // Synchronisation du son réel uniquement sur le début exact de la boucle de la Clé
   useEffect(() => {
     if (isOpened || isCodeFading) return;
 
     let loopInterval: NodeJS.Timeout;
 
-    if (invitation.opening_style === 'knock') {
-      // Déclenchement du son synchronisé sur la boucle de 3,5 secondes (1,5s d'immobilité + 2s d'action)
-      loopInterval = setInterval(() => {
-        // Le son se déclenche pile après les 1,5s d'immobilité de la main, quand elle commence à bouger
-        setTimeout(() => {
-          playSyntheticSound('knock');
-        }, 1500);
-      }, 3500);
-    } else if (invitation.opening_style === 'key') {
+    if (invitation.opening_style === 'key') {
       playSyntheticSound('key');
       
       loopInterval = setInterval(() => {
@@ -356,14 +346,13 @@ export function InvitationPreview({ invitation }: any) {
                             {invitation.opening_style === 'knock' ? (
                               <motion.div 
                                 animate={{ 
-                                  // Attente statique initiale (1.5s) puis double oscillation rapide de frappe (0.5s au total)
                                   x: [0, 0, -12, 4, -12, 4, 0],
                                   y: [0, 0, -6, 2, -6, 2, 0],
                                   scale: [1, 1, 1.05, 0.98, 1.05, 0.98, 1]
                                 }} 
                                 transition={{ 
-                                  duration: 3.5, // Cycle global calé sur l'intervalle de 3.5 secondes
-                                  times: [0, 0.42, 0.52, 0.62, 0.72, 0.82, 1], // Gère la répartition temporelle exacte
+                                  duration: 3.5, 
+                                  times: [0, 0.42, 0.52, 0.62, 0.72, 0.82, 1], 
                                   repeat: Infinity, 
                                   ease: "easeInOut" 
                                 }}
