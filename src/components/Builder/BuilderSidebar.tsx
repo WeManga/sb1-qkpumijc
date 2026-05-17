@@ -345,7 +345,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
       {activeTab === 'style' && (
         <div className="space-y-8">
-          {/* SECTION 1 : STYLE D'ANIMATION */}
+          {/* SECTION 1 : STYLE D'ANIMATION (SORTIE CARTE) */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">
               {localLabels.opening_type_label}
@@ -371,7 +371,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </div>
 
-          {/* SECTION 2 : STYLE D'ACTION */}
+          {/* SECTION 2 : STYLE D'ACTION (DECLENCHEUR MECANIQUE SEUL) */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">
               {localLabels.action_style}
@@ -380,7 +380,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
               {/* GRATUIT : SCEAU */}
               <button 
                 type="button"
-                onClick={() => onInvitationChange({...invitation, opening_style: 'default'})} 
+                onClick={() => handleOpeningStyleClick('default', false)} 
                 className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all ${invitation.opening_style === 'default' || !invitation.opening_style ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}
               >
                 <ImageIcon size={18} className={invitation.opening_style === 'default' || !invitation.opening_style ? 'text-amber-500' : 'text-gray-400'} />
@@ -422,7 +422,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </div>
 
-          {/* SECTION 3 : TYPE D'OUVERTURE (LE FOND / CONTENANT) */}
+          {/* SECTION 3 : TYPE D'OUVERTURE (LE FOND / CONTENANT DE L'ACTION) */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">
               {localLabels.opening_container}
