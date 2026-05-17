@@ -4,7 +4,7 @@ import { translations, Language } from '../../lib/i18n';
 import { 
   Heart, PartyPopper, Sparkles, Baby, MapPin, 
   Music, Image as ImageIcon, Calendar, Plus, X, Move, Skull, Milk, Lock,
-  Hand, Key, Vault, DoorClosed
+  Hand, Key, Vault, DoorClosed, Disc, Film
 } from 'lucide-react';
 import { PREMIUM_COLORS } from '../../constants/colors';
 
@@ -55,8 +55,9 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
   const localLabels = {
     fr: {
-      action_style: "Le Style d'action (Déclencheur)",
-      opening_container: "Le Type d'ouverture (Contenant)",
+      opening_type_label: "Style d'animation (Sortie de la carte)",
+      action_style: "Style d'action (Déclencheur mécanique)",
+      opening_container: "Type d'ouverture (Le Fond / Contenant)",
       premium_colors: "Couleurs PREMIUM",
       style_default: "Sceau ancestral",
       style_knock: "Main qui toque",
@@ -68,8 +69,9 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       alert_msg: "Vous possédez un compte FREE, veuillez passer en PREMIUM pour débloquer cette fonctionnalité."
     },
     en: {
-      action_style: "Action Style (Trigger)",
-      opening_container: "Opening Type (Container)",
+      opening_type_label: "Animation Style (Card Reveal)",
+      action_style: "Action Style (Mechanical Trigger)",
+      opening_container: "Opening Type (Background / Container)",
       premium_colors: "PREMIUM Colors",
       style_default: "Ancestral Seal",
       style_knock: "Knocking Hand",
@@ -81,8 +83,9 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       alert_msg: "You have a FREE account, please upgrade to PREMIUM to unlock this feature."
     },
     vi: {
-      action_style: "Kiểu hành động (Kích hoạt)",
-      opening_container: "Loại mở rộng (Hộp chứa)",
+      opening_type_label: "Kiểu hoạt ảnh (Lộ thẻ)",
+      action_style: "Kiểu hành động (Kích hoạt cơ học)",
+      opening_container: "Loại mở rộng (Nền / Hộp chứa)",
       premium_colors: "Màu sắc PREMIUM",
       style_default: "Dấu ấn cổ xưa",
       style_knock: "Tay gõ cửa",
@@ -108,14 +111,19 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     onInvitationChange({...invitation, envelope_color: colorValue});
   };
 
+  const handleOpeningTypeClick = (typeId: string, premium: boolean) => {
+    if (!checkPremiumAccess(!premium)) return;
+    onInvitationChange({...invitation, opening_type: typeId});
+  };
+
   const handleOpeningStyleClick = (styleId: string, premium: boolean) => {
     if (!checkPremiumAccess(!premium)) return;
     onInvitationChange({...invitation, opening_style: styleId});
   };
 
-  const handleOpeningTypeClick = (typeId: string, premium: boolean) => {
+  const handleContainerTypeClick = (containerId: string, premium: boolean) => {
     if (!checkPremiumAccess(!premium)) return;
-    onInvitationChange({...invitation, opening_type: typeId});
+    onInvitationChange({...invitation, container_type: containerId});
   };
 
   const handleThemeClick = (themeId: string, premium: boolean) => {
@@ -337,7 +345,33 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
       {activeTab === 'style' && (
         <div className="space-y-8">
-          {/* SELECTION DU STYLE D'ANIMATION */}
+          {/* SECTION 1 : STYLE D'ANIMATION (SORTIE CARTE) */}
+          <div>
+            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">
+              {localLabels.opening_type_label}
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <button 
+                type="button"
+                onClick={() => handleOpeningTypeClick('vinyl', false)} 
+                className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all ${invitation.opening_type === 'vinyl' || !invitation.opening_type ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}
+              >
+                <Disc size={18} className={invitation.opening_type === 'vinyl' || !invitation.opening_type ? 'text-amber-500' : 'text-gray-400'} />
+                <span className="text-[10px] font-bold uppercase">{translations[lang].opening_types.vinyl}</span>
+              </button>
+
+              <button 
+                type="button"
+                onClick={() => handleOpeningTypeClick('filmstrip', false)} 
+                className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all ${invitation.opening_type === 'filmstrip' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}
+              >
+                <Film size={18} className={invitation.opening_type === 'filmstrip' ? 'text-amber-500' : 'text-gray-400'} />
+                <span className="text-[10px] font-bold uppercase">{translations[lang].opening_types.filmstrip}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* SECTION 2 : STYLE D'ACTION (DECLENCHEUR MECANIQUE SEUL) */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">
               {localLabels.action_style}
@@ -388,7 +422,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </div>
 
-          {/* TYPE D'OUVERTURE SEPARÉ (CONTENANT COULISSANT) */}
+          {/* SECTION 3 : TYPE D'OUVERTURE (LE FOND / CONTENANT DE L'ACTION) */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">
               {localLabels.opening_container}
@@ -397,20 +431,20 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
               {/* GRATUIT : ENVELOPPE CLASSIQUE */}
               <button 
                 type="button"
-                onClick={() => handleOpeningTypeClick('vinyl', false)} 
-                className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all ${invitation.opening_type === 'vinyl' || !invitation.opening_type ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}
+                onClick={() => handleContainerTypeClick('vinyl', false)} 
+                className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all ${invitation.container_type === 'vinyl' || !invitation.container_type ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}
               >
-                <ImageIcon size={18} className={invitation.opening_type === 'vinyl' || !invitation.opening_type ? 'text-amber-500' : 'text-gray-400'} />
+                <ImageIcon size={18} className={invitation.container_type === 'vinyl' || !invitation.container_type ? 'text-amber-500' : 'text-gray-400'} />
                 <span className="text-[10px] font-bold uppercase">{localLabels.type_vinyl}</span>
               </button>
 
               {/* PREMIUM : PORTE EN BOIS */}
               <button 
                 type="button"
-                onClick={() => handleOpeningTypeClick('filmstrip', true)} 
-                className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all relative ${invitation.opening_type === 'filmstrip' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'} ${!isPremium ? 'opacity-40 grayscale' : ''}`}
+                onClick={() => handleContainerTypeClick('filmstrip', true)} 
+                className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all relative ${invitation.container_type === 'filmstrip' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'} ${!isPremium ? 'opacity-40 grayscale' : ''}`}
               >
-                <DoorClosed size={18} className={invitation.opening_type === 'filmstrip' ? 'text-amber-500' : 'text-gray-400'} />
+                <DoorClosed size={18} className={invitation.container_type === 'filmstrip' ? 'text-amber-500' : 'text-gray-400'} />
                 <span className="text-[10px] font-bold uppercase">{localLabels.type_filmstrip}</span>
                 {!isPremium && <Lock size={12} className="absolute right-2 top-2 text-gray-400" />}
               </button>
@@ -418,17 +452,17 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
               {/* PREMIUM : LA PORTE MÉTAL */}
               <button 
                 type="button"
-                onClick={() => handleOpeningTypeClick('metal', true)} 
-                className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all relative ${invitation.opening_type === 'metal' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'} ${!isPremium ? 'opacity-40 grayscale' : ''}`}
+                onClick={() => handleContainerTypeClick('metal', true)} 
+                className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all relative ${invitation.container_type === 'metal' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'} ${!isPremium ? 'opacity-40 grayscale' : ''}`}
               >
-                <DoorClosed size={18} className={invitation.opening_type === 'metal' ? 'text-amber-500' : 'text-gray-400'} />
+                <DoorClosed size={18} className={invitation.container_type === 'metal' ? 'text-amber-500' : 'text-gray-400'} />
                 <span className="text-[10px] font-bold uppercase">{localLabels.type_metal}</span>
                 {!isPremium && <Lock size={12} className="absolute right-2 top-2 text-gray-400" />}
               </button>
             </div>
           </div>
 
-          {/* PLUIE D'EMOJIS CONTRÔLÉE */}
+          {/* PLUIE D'EMOJIS */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">{t.theme_label}</label>
             <div className="grid grid-cols-2 gap-3">
@@ -442,7 +476,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </div>
 
-          {/* TEXTURE PAPIER CONTRÔLÉE */}
+          {/* TEXTURE PAPIER */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">{t.texture_label}</label>
             <div className="grid grid-cols-2 gap-2">
@@ -455,7 +489,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
           </div>
 
           {/* SÉLECTEUR COULEUR CONDITIONNEL ENVELOPPE CLASSIQUE */}
-          {(invitation.opening_type === 'vinyl' || !invitation.opening_type) && (
+          {(invitation.container_type === 'vinyl' || !invitation.container_type) && (
             <div>
               <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">{t.envelope_color}</label>
               <div className="flex gap-3 overflow-x-auto pt-2 pb-6 px-4 -mx-4 scrollbar-hide">
@@ -478,7 +512,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </div>
 
-          {/* STYLE DE POLICES ET COMPTES PREMIUM */}
+          {/* STYLE DE POLICES */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">{t.font_style_label}</label>
             <div className="space-y-2">
