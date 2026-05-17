@@ -260,11 +260,60 @@ export function InvitationPreview({ invitation }: any) {
               </button>
             )}
 
-            {/* --- VINYLE OU PELLICULE --- */}
+            {/* --- THÈME DE DÉCORS PREMIUM : BALLONS (EN ARRIÈRE-PLAN DES ENVELOPPES) --- */}
+            {invitation.envelope_decor === 'balloons' && (
+              <div className="absolute inset-0 z-10 pointer-events-none flex items-center justify-center">
+                <img 
+                  src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/ballons.png" 
+                  className="w-full h-full object-contain transform -translate-y-12 select-none" 
+                  alt="Ballons" 
+                />
+              </div>
+            )}
+
+            {/* --- THÈME DE DÉCORS PREMIUM : FLEURS REALISTES (AVEC INTEGRATION DE MIX-BLEND-MODE EN SURFACE COULOIR) --- */}
+            {invitation.envelope_decor === 'floral' && (
+              <div className="absolute inset-0 z-40 pointer-events-none overflow-hidden mix-blend-screen">
+                <img 
+                  src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/flower.png" 
+                  className="w-full h-full object-cover scale-105 pointer-events-none select-none" 
+                  alt="Fleurs" 
+                />
+              </div>
+            )}
+
+            {/* --- CORPS DE L'ENVELOPPE PREMIUM OU CLASSIQUE --- */}
+            {(!invitation.container_open || invitation.container_open === 'envelope') && (
+              <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center">
+                <div 
+                  className="w-full h-full bg-contain bg-center bg-no-repeat relative"
+                  style={{ 
+                    backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/enveloppe.png")`,
+                    backgroundColor: invitation.envelope_color || '#FFFFFF',
+                    mixBlendMode: 'multiply'
+                  }}
+                >
+                  {/* VOLET INTERACTIF (RABAT DE L'ENVELOPPE QUI PIVOTE AU CLIC) */}
+                  <motion.div 
+                    initial={{ rotateX: 0 }}
+                    animate={isOpened ? { rotateX: -180, z: 10 } : { rotateX: 0 }}
+                    transition={{ duration: 1.0, ease: "easeInOut" }}
+                    style={{ 
+                      originY: 0,
+                      backgroundColor: invitation.envelope_color || '#FFFFFF',
+                      clipPath: 'polygon(0% 0%, 100% 0%, 50% 50%)'
+                    }}
+                    className="absolute inset-x-0 top-0 h-full bg-cover shadow-inner pointer-events-auto"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* --- MULTIMÉDIA : VINYLE OU PELLICULE (GLISSEMENT ET POSITION SEMI-SORTIE POUR PROTÉGER LE TITRE DU FAIRE-PART) --- */}
             <motion.div 
-              initial={{ y: -450 }} 
-              animate={isOpened ? { y: invitation.opening_type === 'filmstrip' ? -35 : 25 } : { y: -450 }} 
-              transition={{ type: "spring", damping: 25 }} 
+              initial={{ y: 200 }} 
+              animate={isOpened ? { y: invitation.opening_type === 'filmstrip' ? -150 : -100 } : { y: 200 }} 
+              transition={{ type: "spring", damping: 25, delay: 0.2 }} 
               className="absolute top-0 z-20"
             >
               {invitation.opening_type === 'filmstrip' ? (
@@ -309,10 +358,10 @@ export function InvitationPreview({ invitation }: any) {
               )}
             </motion.div>
 
-            {/* --- CARTE COMMUNE CENTRALE AVEC INTEGRATION DE LA COULEUR DE FOND DU PAPIER SIDEBAR --- */}
+            {/* --- CARTE COMMUNE CENTRALE (FAIRE-PART QUI SORT DE L'ENVELOPPE) --- */}
             <motion.div 
-              initial={{ scale: 0.8, y: 200 }} 
-              animate={isOpened ? { scale: 1, y: 135 } : {}} 
+              initial={{ scale: 0.8, y: 220 }} 
+              animate={isOpened ? { scale: 1, y: 135 } : { y: 220 }} 
               transition={{ type: "spring", damping: 20, delay: 0.4 }} 
               onClick={() => isOpened && setView('content')} 
               style={{ 
@@ -438,7 +487,7 @@ export function InvitationPreview({ invitation }: any) {
                             </div>
                           </div>
                         ) : (
-                          /* --- RENDU DU SCEAU COMMUNE --- */
+                          /* --- RENDU DU SCEAU COMMUNE AVEC LOGO SUPABASE --- */
                           <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-[32rem] h-[32rem] object-contain" alt="Sceau" />
                         )}
                       </div>
