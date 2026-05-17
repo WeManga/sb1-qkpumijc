@@ -80,7 +80,8 @@ export function InvitationPreview({ invitation }: any) {
     );
   };
 
-  const isDoorType = invitation.opening_style === 'key' || invitation.opening_style === 'vault';
+  // LOGIQUE CORRIGÉE : L'affichage des portes dépend UNIQUEMENT du choix de contenant container_open
+  const isDoorType = invitation.container_open === 'wooden_door' || invitation.container_open === 'metal_door';
 
   return (
     <div className="relative w-full h-full max-h-[650px] flex items-center justify-center overflow-hidden bg-white rounded-[3.5rem] shadow-2xl border-[12px] border-gray-50/50" style={{ fontFamily: invitation.font_style || 'inherit' }}>
@@ -234,11 +235,11 @@ export function InvitationPreview({ invitation }: any) {
                         )}
                       </div>
                       <p className="absolute bottom-12 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse text-center w-full px-4">
-                        {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? "Tap to open invitation" : "Nhấn de mở lời mời"}
+                        {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? "Tap to open invitation" : "Nhấn để mở lời mời"}
                       </p>
                     </motion.div>
 
-                    {/* ANIMATION PHYSIQUE DES ELEMENT DE COUVERTURES (PORTES VS ENVELOPPES) */}
+                    {/* ANIMATION PHYSIQUE DES ELEMENT DE COUVERTURES BASÉE SUR CONTAINER_OPEN */}
                     {isDoorType ? (
                       <div className="absolute inset-0 z-50 flex w-full h-full" style={{ perspective: '2000px' }}>
                         {/* PORTE GAUCHE COULISSANTE ET PIVOTANTE VERS L'INTERIEUR */}
@@ -246,14 +247,20 @@ export function InvitationPreview({ invitation }: any) {
                           exit={{ rotateY: -100, x: '-20%', opacity: 0 }} 
                           transition={{ duration: 1.2, ease: "easeInOut" }} 
                           className="w-1/2 h-full origin-left bg-cover bg-center shadow-2xl border-r border-black/10" 
-                          style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20gauche.png")`, backgroundColor: invitation?.envelope_color || '#FEE2E2' }} 
+                          style={{ 
+                            backgroundImage: invitation.container_open === 'metal_door' ? 'none' : `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20gauche.png")`, 
+                            backgroundColor: invitation?.envelope_color || '#FEE2E2' 
+                          }} 
                         />
                         {/* PORTE DROITE COULISSANTE ET PIVOTANTE VERS L'INTERIEUR */}
                         <motion.div 
                           exit={{ rotateY: 100, x: '20%', opacity: 0 }} 
                           transition={{ duration: 1.2, ease: "easeInOut" }} 
                           className="w-1/2 h-full origin-right bg-cover bg-center shadow-2xl border-l border-black/10" 
-                          style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20droite.png")`, backgroundColor: invitation?.envelope_color || '#FEE2E2' }} 
+                          style={{ 
+                            backgroundImage: invitation.container_open === 'metal_door' ? 'none' : `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20droite.png")`, 
+                            backgroundColor: invitation?.envelope_color || '#FEE2E2' 
+                          }} 
                         />
                       </div>
                     ) : (
