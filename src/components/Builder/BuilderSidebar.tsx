@@ -345,7 +345,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
       {activeTab === 'style' && (
         <div className="space-y-8">
-          {/* SECTION 1 : STYLE D'ANIMATION (SORTIE CARTE) */}
+          {/* SECTION 1 : STYLE D'ANIMATION */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">
               {localLabels.opening_type_label}
@@ -371,7 +371,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </div>
 
-          {/* SECTION 2 : STYLE D'ACTION (DECLENCHEUR SEUL) */}
+          {/* SECTION 2 : STYLE D'ACTION */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">
               {localLabels.action_style}
@@ -422,7 +422,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </div>
 
-          {/* SECTION 3 : TYPE D'OUVERTURE (LE FOND / CONTENANT DE L'ACTION) */}
+          {/* SECTION 3 : TYPE D'OUVERTURE (LE FOND / CONTENANT) */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">
               {localLabels.opening_container}
