@@ -358,12 +358,16 @@ export function GuestView({ invitation }: any) {
               )}
             </motion.div>
 
-            {/* --- CARTE D'INVITATION (AU CENTRE) --- */}
+            {/* --- CARTE D'INVITATION (AU CENTRE) AVEC LIAISON DYNAMIQUE DE LA COULEUR --- */}
             <motion.div 
               initial={{ scale: 0.8, y: 0 }} 
               animate={isOpened ? { scale: 1, y: 80 } : { y: 0 }} 
               transition={{ type: "spring", damping: 20, delay: 0.4 }} 
               onClick={() => isOpened && setView('content')} 
+              style={{
+                backgroundColor: invitation.paper_color || '#FFFFFF',
+                fontFamily: invitation.font_style
+              }}
               className={`z-30 w-[310px] h-[370px] rounded-[3rem] shadow-xl p-10 flex flex-col items-center justify-between border border-gray-100 cursor-pointer ${getPaperClass()}`}
             >
               <div className="text-center pt-14 w-full">
@@ -533,8 +537,14 @@ export function GuestView({ invitation }: any) {
             </div>
           </motion.div>
         ) : (
-          /* --- CONTENU --- */
-          <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`w-full h-full z-[100] flex flex-col overflow-y-auto ${getPaperClass()}`}>
+          /* --- CONTENU --- WITH DYNAMIC PAPER COLOR LINKED TO SIDEBAR BACKGROUND SELECTION */
+          <motion.div 
+            key="content" 
+            initial={{ opacity: 0 }} 
+            animate={{ opacity: 1 }} 
+            style={{ backgroundColor: invitation.paper_color || '#FFFFFF' }}
+            className={`w-full h-full z-[100] flex flex-col overflow-y-auto ${getPaperClass()}`}
+          >
             <div className="h-[30%] relative overflow-hidden shrink-0">
                <img 
                  src={invitation.main_photo_url} 
