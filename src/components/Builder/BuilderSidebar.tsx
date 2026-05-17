@@ -345,7 +345,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
       {activeTab === 'style' && (
         <div className="space-y-8">
-          {/* SECTION 1 : STYLE D'ANIMATION (SORTIE CARTE) */}
+          {/* SECTION 1 : STYLE D'ANIMATION */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">
               {localLabels.opening_type_label}
@@ -362,7 +362,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
               <button 
                 type="button"
-                onClick={() => handleOpeningTypeClick('filmstrip', false)} 
+                onClick={{/* STRICTEMENT INDÉPENDANT : NE MODIFIE QUE OPENING_TYPE */} () => handleOpeningTypeClick('filmstrip', false)} 
                 className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all ${invitation.opening_type === 'filmstrip' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}
               >
                 <Film size={18} className={invitation.opening_type === 'filmstrip' ? 'text-amber-500' : 'text-gray-400'} />
@@ -371,7 +371,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </div>
 
-          {/* SECTION 2 : STYLE D'ACTION (DECLENCHEUR MECANIQUE SEUL) */}
+          {/* SECTION 2 : STYLE D'ACTION (DÉCLENCHEUR MÉCANIQUE SEUL) */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">
               {localLabels.action_style}
@@ -401,7 +401,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
               {/* PREMIUM : CLÉ CLASSIQUE */}
               <button 
                 type="button"
-                onClick={() => handleOpeningStyleClick('key', true)} 
+                onClick={{/* ACCÈS INDÉPENDANT SANS ÉCRASER LE CONTENANT DE FOND */} () => handleOpeningStyleClick('key', true)} 
                 className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all relative ${invitation.opening_style === 'key' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'} ${!isPremium ? 'opacity-40 grayscale' : ''}`}
               >
                 <Key size={18} className={invitation.opening_style === 'key' ? 'text-amber-500' : 'text-gray-400'} />
@@ -438,7 +438,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 <span className="text-[10px] font-bold uppercase">{localLabels.type_vinyl}</span>
               </button>
 
-              {/* PREMIUM : PORTE EN BOIS (OUVERTURE INTERIEURE) */}
+              {/* PREMIUM : PORTE EN BOIS */}
               <button 
                 type="button"
                 onClick={() => handleContainerTypeClick('filmstrip', true)} 
