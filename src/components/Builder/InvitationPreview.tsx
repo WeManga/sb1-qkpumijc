@@ -18,7 +18,7 @@ export function InvitationPreview({ invitation }: any) {
   const [view, setView] = useState<'envelope' | 'content'>('envelope');
   const [isMuted, setIsMuted] = useState(false);
   
-  // États de l'animation Digicode
+  // États pour l'animation du boîtier à code digital
   const [displayedCode, setDisplayedCode] = useState(['*', '*', '*', '*']);
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const [isCodeFading, setIsCodeFading] = useState(false);
@@ -41,14 +41,15 @@ export function InvitationPreview({ invitation }: any) {
     }
   };
 
-  // 1. Calcul du code secret basé sur la date (ex: 24 décembre = "2412", par défaut "1234")
+  // Extraction et formatage de la date choisie pour le code secret (Ex: 24 Juin = "2406")
   const targetCode = useMemo(() => {
-    if (!invitation?.event_date) return "1234";
-    const d = new Date(invitation.event_date);
+    const dateSource = invitation?.vault_date || invitation?.event_date;
+    if (!dateSource) return "1234";
+    const d = new Date(dateSource);
     const day = String(d.getDate()).padStart(2, '0');
     const month = String(d.getMonth() + 1).padStart(2, '0');
     return `${day}${month}`;
-  }, [invitation?.event_date]);
+  }, [invitation?.vault_date, invitation?.event_date]);
 
   useEffect(() => {
     if (isOpened && invitation?.music_url && audioRef.current) {
@@ -56,13 +57,12 @@ export function InvitationPreview({ invitation }: any) {
     }
   }, [isOpened, invitation?.music_url]);
 
-  // 2. Animation séquentielle du Digicode (Chiffres aléatoires -> Rétroéclairage bleu -> Fixation -> Fondu)
+  // Logique d'animation automatique du boîtier digital
   useEffect(() => {
     if (!isOpened && invitation.opening_style === 'vault') {
       let currentDigitIndex = 0;
       
       const interval = setInterval(() => {
-        // Simuler des chiffres aléatoires sur le reste du code non encore validé
         setDisplayedCode((prev) => {
           const next = [...prev];
           for (let i = currentDigitIndex; i < 4; i++) {
@@ -71,12 +71,10 @@ export function InvitationPreview({ invitation }: any) {
           return next;
         });
 
-        // Simuler l'activation lumineuse d'une touche aléatoire ou réelle en bleu
         const randomKey = String(Math.floor(Math.random() * 10));
         setActiveKey(randomKey);
-      }, 70);
+      }, 75);
 
-      // Bloquer chaque digit l'un après l'autre sur sa valeur cible réelle
       const digitLockTimers = Array.from({ length: 4 }).map((_, index) => {
         return setTimeout(() => {
           currentDigitIndex = index + 1;
@@ -86,15 +84,20 @@ export function InvitationPreview({ invitation }: any) {
             return next;
           });
           setActiveKey(targetCode[index]);
-        }, (index + 1) * 800);
+        }, (index + 1) * 700);
       });
 
-      // Lancer la disparition en fondu une fois l'affichage complètement stabilisé
       const endTimer = setTimeout(() => {
         clearInterval(interval);
         setActiveKey(null);
-        setIsCodeFading(true); // Déclenche le fondu sortant
-      }, 3800);
+        setIsCodeFading(true); // Lance le fondu sortant du boîtier
+        
+        // Attendre la fin du fondu du boîtier pour déclencher l'ouverture des portes
+        setTimeout(() => {
+          setIsOpened(true);
+          audioRef.current?.play().catch(() => {});
+        }, 600);
+      }, 3500);
 
       return () => {
         clearInterval(interval);
@@ -218,24 +221,23 @@ export function InvitationPreview({ invitation }: any) {
               </div>
             </motion.div>
 
-            {/* --- COUCHE ENVELOPPE / BOITIER CODE DIGITAL --- */}
+            {/* --- COUCHE DECLENCHEURS MECANIQUES ET FOND --- */}
             <div className="absolute inset-0 z-50 overflow-hidden" style={{ perspective: '2000px', pointerEvents: isOpened ? 'none' : 'auto' }}>
               <AnimatePresence>
                 {!isOpened && (
                   <motion.div 
                     key="gate-container" 
                     exit={{ opacity: 1 }} 
-                    className="w-full h-full relative"
+                    className="w-full h-full relative flex items-center justify-center"
                   >
-                    {/* LE DECLENCHEUR VISUEL INTERACTIF */}
                     <AnimatePresence>
                       {!isCodeFading && (
                         <motion.div 
                           key="visual-trigger"
                           initial={{ opacity: 1 }}
-                          exit={{ opacity: 0, transition: { duration: 0.6, ease: "easeInOut" } }}
+                          exit={{ opacity: 0, transition: { duration: 0.5, ease: "easeInOut" } }}
                           className="absolute inset-0 z-[70] flex flex-col items-center justify-center cursor-pointer" 
-                          onClick={() => { setIsOpened(true); audioRef.current?.play().catch(()=>{}); }}
+                          onClick={() => { if (invitation.opening_style !== 'vault') { setIsOpened(true); audioRef.current?.play().catch(()=>{}); } }}
                         >
                           <div className="relative w-full flex items-center justify-center">
                             {invitation.opening_style === 'knock' ? (
@@ -270,22 +272,25 @@ export function InvitationPreview({ invitation }: any) {
                                   />
                                 </div>
                             ) : invitation.opening_style === 'vault' ? (
-                              /* --- BOITIER CODE DIGITAL MIS À JOUR --- */
-                              <div className="relative w-[280px] h-[400px] flex flex-col items-center justify-start p-6 rounded-3xl bg-neutral-900 border-4 border-neutral-800 shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden">
-                                {/* Masque de texture métallique en fond d'écran */}
-                                <div className="absolute inset-0 opacity-15 mix-blend-overlay pointer-events-none bg-center bg-cover" style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/dgital.png")` }} />
-                                
-                                {/* Écran du Boitier Digital */}
-                                <div className="w-full bg-black/95 rounded-xl border-2 border-neutral-700/60 p-4 mb-6 shadow-inner flex flex-col items-center justify-center relative z-20">
-                                  <div className="text-[10px] text-neutral-500 font-mono tracking-widest uppercase mb-1">🔒 SYSTEM CODE</div>
-                                  <div className="flex gap-2 justify-center items-center">
-                                    {displayedCode.map((digit, i) => (
-                                      <motion.span 
-                                        key={i} 
-                                        key={digit}
-                                        initial={{ scale: 1.2, color: '#38bdf8' }}
-                                        animate={{ scale: 1, color: '#0ea5e9' }}
-                                        className="text-sky-500 font-mono text-3xl font-bold tracking-wider drop-shadow-[0_0_8px_rgba(14,165,233,0.7)]"
+                              /* --- BOITIER DIGITAL STRUCTUREL ET COMPOSABLE CORRIGÉ --- */
+                              <div className="relative w-[300px] h-[440px] flex flex-col items-center justify-start bg-neutral-900 border-[6px] border-neutral-800 rounded-[2.5rem] shadow-[0_30px_60px_rgba(0,0,0,0.8)] overflow-hidden p-6">
+                                {/* Image réelle du boîtier technique calée en arrière-plan */}
+                                <img 
+                                  src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/dgital.png" 
+                                  className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-30 pointer-events-none" 
+                                  alt="" 
+                                />
+
+                                {/* Écran LCD Supérieur */}
+                                <div className="w-full h-24 bg-black/95 rounded-2xl border-2 border-neutral-800 p-3 flex flex-col items-center justify-center shadow-inner relative z-10 mb-8">
+                                  <span className="text-[9px] font-mono tracking-[0.25em] text-neutral-500 uppercase mb-1">🔒 SYSTEM MATRIX</span>
+                                  <div className="flex gap-2">
+                                    {displayedCode.map((digit, index) => (
+                                      <motion.span
+                                        key={index}
+                                        initial={{ scale: 1.3 }}
+                                        animate={{ scale: 1 }}
+                                        className="text-sky-500 font-mono text-3xl font-black drop-shadow-[0_0_10px_rgba(14,165,233,0.8)] tracking-widest"
                                       >
                                         {digit}
                                       </motion.span>
@@ -293,49 +298,49 @@ export function InvitationPreview({ invitation }: any) {
                                   </div>
                                 </div>
 
-                                {/* Pavé Tactile Rétroéclairé Bleu */}
-                                <div className="grid grid-cols-3 gap-3 w-full max-w-[200px] relative z-10">
+                                {/* Clavier Matriciel Rétroéclairé Bleu */}
+                                <div className="grid grid-cols-3 gap-3 w-full max-w-[210px] relative z-10">
                                   {['1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '0', '#'].map((key) => {
                                     const isGlowing = activeKey === key;
                                     return (
-                                      <motion.div 
+                                      <motion.div
                                         key={key}
-                                        animate={isGlowing ? { 
-                                          backgroundColor: 'rgba(14, 165, 233, 0.25)', 
+                                        animate={isGlowing ? {
+                                          backgroundColor: 'rgba(14, 165, 233, 0.35)',
                                           borderColor: '#38bdf8',
-                                          boxShadow: '0 0 15px rgba(56, 189, 248, 0.6)'
-                                        } : { 
-                                          backgroundColor: 'rgba(38, 38, 38, 0.8)', 
-                                          borderColor: 'rgba(64, 64, 64, 0.4)',
-                                          boxShadow: 'none'
+                                          boxShadow: '0 0 15px rgba(56, 189, 248, 0.7)',
+                                          scale: 0.95
+                                        } : {
+                                          backgroundColor: 'rgba(23, 23, 23, 0.85)',
+                                          borderColor: 'rgba(63, 63, 70, 0.3)',
+                                          boxShadow: 'none',
+                                          scale: 1
                                         }}
-                                        transition={{ duration: 0.1 }}
-                                        className="aspect-square flex items-center justify-center rounded-xl border font-mono font-bold text-lg text-neutral-300 select-none transition-colors"
+                                        className="aspect-square flex items-center justify-center rounded-xl border font-mono font-bold text-xl text-neutral-400 transition-all select-none"
                                       >
-                                        <span className={isGlowing ? "text-sky-400 drop-shadow-[0_0_5px_rgba(56,189,248,0.8)]" : ""}>
+                                        <span className={isGlowing ? "text-sky-400 drop-shadow-[0_0_6px_rgba(56,189,248,0.9)]" : ""}>
                                           {key}
                                         </span>
                                       </motion.div>
                                     );
                                   })}
                                 </div>
-                                <div className="mt-4 text-[9px] font-mono text-neutral-400 tracking-wider animate-pulse">CRACKING ACCESS...</div>
+                                <div className="mt-5 font-mono text-[9px] tracking-widest text-neutral-500 animate-pulse uppercase">Searching Key...</div>
                               </div>
                             ) : (
                               <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-[32rem] h-[32rem] object-contain" alt="Sceau" />
                             )}
                           </div>
-                          
                           {invitation.opening_style !== 'vault' && (
                             <p className="absolute bottom-12 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse text-center w-full px-4">
-                              {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? "Tap to open invitation" : "Nhấn để mở lời mời"}
+                              {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? "Tap to open invitation" : "Nhấn de mở lời mời"}
                             </p>
                           )}
                         </motion.div>
                       )}
                     </AnimatePresence>
 
-                    {/* ANIMATION DES PORTES */}
+                    {/* ANIMATION DES PORTES DÉCOUPLÉES */}
                     {isDoorType ? (
                       <div className="absolute inset-0 z-50 flex w-full h-full" style={{ perspective: '2000px' }}>
                         <motion.div 
