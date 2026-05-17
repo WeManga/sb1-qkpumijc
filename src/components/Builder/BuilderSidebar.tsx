@@ -47,6 +47,7 @@ const TEXTURES = [
 export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: any) {
   const [uploading, setUploading] = useState(false);
   const [selectedPhotoKey, setSelectedPhotoKey] = useState('main_photo_url');
+  const [paperMode, setPaperMode] = useState<'color' | 'texture'>('texture');
   const dragRef = useRef<{ x: number, y: number, isDragging: boolean, lastDist: number }>({ x: 0, y: 0, isDragging: false, lastDist: 0 });
   
   const lang = (invitation.language as Language) || (localStorage.getItem('invite_lang') as Language) || 'fr';
@@ -67,7 +68,12 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       type_filmstrip: "Porte en Bois",
       type_metal: "Porte en Métal",
       vault_date_label: "Date du code secret (6 chiffres animés)",
-      alert_msg: "Vous possédez un compte FREE, veuillez passer en PREMIUM pour débloquer cette fonctionnalité."
+      alert_msg: "Vous possédez un compte FREE, veuillez passer en PREMIUM pour débloquer cette fonctionnalité.",
+      paper_section_label: "Style de la carte d'invitation (Papier)",
+      paper_mode_texture: "Texture",
+      paper_mode_color: "Couleur",
+      paper_color_label: "Couleur de la carte",
+      paper_premium_colors: "Couleurs de carte PREMIUM"
     },
     en: {
       opening_type_label: "Animation Style (Card Reveal)",
@@ -82,7 +88,12 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       type_filmstrip: "Wooden Door",
       type_metal: "Metal Door",
       vault_date_label: "Secret Code Date (6 animated digits)",
-      alert_msg: "You have a FREE account, please upgrade to PREMIUM to unlock this feature."
+      alert_msg: "You have a FREE account, please upgrade to PREMIUM to unlock this feature.",
+      paper_section_label: "Invitation Card Style (Paper)",
+      paper_mode_texture: "Texture",
+      paper_mode_color: "Color",
+      paper_color_label: "Card Color",
+      paper_premium_colors: "PREMIUM Card Colors"
     },
     vi: {
       opening_type_label: "Kiểu hoạt ảnh (Lộ thẻ)",
@@ -97,7 +108,12 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       type_filmstrip: "Cửa gỗ",
       type_metal: "Cửa kim loại",
       vault_date_label: "Ngày mã bí mật (6 chữ số hoạt hình)",
-      alert_msg: "Bạn đang sử dụng tài khoản MIỄN PHÍ, vui lòng nâng cấp lên PREMIUM để mở khóa tính năng này."
+      alert_msg: "Bạn đang sử dụng tài khoản MIỄN PHÍ, vui lòng nâng cấp lên PREMIUM để mở khóa tính năng này.",
+      paper_section_label: "Kiểu Thẻ Mời (Giấy)",
+      paper_mode_texture: "Kết cấu",
+      paper_mode_color: "Màu sắc",
+      paper_color_label: "Màu thẻ",
+      paper_premium_colors: "Màu thẻ PREMIUM"
     }
   }[lang];
 
@@ -112,6 +128,11 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
   const handlePremiumClick = (colorValue: string) => {
     if (!checkPremiumAccess(false)) return;
     onInvitationChange({...invitation, envelope_color: colorValue});
+  };
+
+  const handlePaperPremiumClick = (colorValue: string) => {
+    if (!checkPremiumAccess(false)) return;
+    onInvitationChange({...invitation, paper_color: colorValue});
   };
 
   const handleOpeningTypeClick = (typeId: string, premium: boolean) => {
@@ -481,51 +502,87 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </div>
 
+          {/* SÉLECTEUR VISUEL AUTONOME : CONFIGURATION DE L'ENVELOPPE */}
+          {(invitation.container_open === 'envelope' || !invitation.container_open) && (
+            <div className="space-y-4 bg-gray-50/50 p-4 rounded-3xl border border-gray-100">
+              <div>
+                <label className="text-[10px] font-black uppercase text-gray-400 mb-3 block ml-1">{t.envelope_color}</label>
+                <div className="flex gap-3 overflow-x-auto pt-2 pb-3 px-1 scrollbar-hide">
+                  {COLOR_PALETTES.map(p => (
+                    <button type="button" key={p.color} onClick={() => onInvitationChange({...invitation, envelope_color: p.color})} style={{backgroundColor: p.color}} className={`h-11 w-11 shrink-0 rounded-full border-4 transition-all ${invitation.envelope_color === p.color ? 'border-amber-400 scale-110 shadow-lg' : 'border-white shadow-sm'}`} />
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-black uppercase text-gray-400 mb-3 flex items-center gap-2 ml-1">{localLabels.premium_colors}</label>
+                <div className="flex gap-3 overflow-x-auto pt-1 pb-2 px-1 scrollbar-hide">
+                  {PREMIUM_PALETTES.map(p => (
+                    <button type="button" key={p.id} onClick={() => handlePremiumClick(p.gradient)} style={{ background: p.gradient }} className={`h-12 w-12 shrink-0 rounded-xl border-4 relative flex items-center justify-center transition-all ${invitation.envelope_color === p.gradient ? 'border-amber-400 scale-110 shadow-lg' : 'border-white shadow-sm'} ${!isPremium ? 'opacity-40 grayscale' : ''}`}>
+                      {!isPremium && <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-lg"><Lock size={12} className="text-white drop-shadow-md" /></div>}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* SÉLECTEUR VISUEL MULTI-ONGLETS : CONFIGURATION INTÉGRALE DU PAPIER */}
+          <div className="space-y-4 bg-amber-50/20 p-4 rounded-3xl border border-amber-100/60">
+            <div className="flex items-center justify-between ml-1 mb-2">
+              <label className="text-[10px] font-black uppercase text-gray-500">{localLabels.paper_section_label}</label>
+              <div className="flex bg-gray-100 p-1 rounded-xl">
+                <button type="button" onClick={() => setPaperMode('texture')} className={`px-3 py-1 text-[9px] font-black uppercase rounded-lg transition-all ${paperMode === 'texture' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'}`}>
+                  {localLabels.paper_mode_texture}
+                </button>
+                <button type="button" onClick={() => setPaperMode('color')} className={`px-3 py-1 text-[9px] font-black uppercase rounded-lg transition-all ${paperMode === 'color' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'}`}>
+                  {localLabels.paper_mode_color}
+                </button>
+              </div>
+            </div>
+
+            {paperMode === 'texture' ? (
+              <div className="grid grid-cols-2 gap-2 animate-fade-in">
+                {TEXTURES.map(texture => (
+                  <button type="button" key={texture.id} onClick={() => handleTextureClick(texture.id, texture.premium)} className={`p-4 rounded-xl border-2 text-[10px] font-bold transition-all relative flex items-center justify-center ${invitation.paper_type === texture.id ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'} ${texture.premium && !isPremium ? 'opacity-40 grayscale' : ''}`}>
+                    {texture.name.toUpperCase()} {texture.premium && !isPremium && <Lock size={10} className="absolute right-2 top-2 text-gray-400" />}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-4 animate-fade-in">
+                <div>
+                  <label className="text-[10px] font-black uppercase text-gray-400 mb-3 block ml-1">{localLabels.paper_color_label}</label>
+                  <div className="flex gap-3 overflow-x-auto pt-2 pb-3 px-1 scrollbar-hide">
+                    {COLOR_PALETTES.map(p => (
+                      <button type="button" key={p.color} onClick={() => onInvitationChange({...invitation, paper_color: p.color})} style={{backgroundColor: p.color}} className={`h-11 w-11 shrink-0 rounded-full border-4 transition-all ${invitation.paper_color === p.color ? 'border-amber-400 scale-110 shadow-lg' : 'border-white shadow-sm'}`} />
+                    ))}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[10px] font-black uppercase text-gray-400 mb-3 block ml-1">{localLabels.paper_premium_colors}</label>
+                  <div className="flex gap-3 overflow-x-auto pt-1 pb-2 px-1 scrollbar-hide">
+                    {PREMIUM_PALETTES.map(p => (
+                      <button type="button" key={p.id} onClick={() => handlePaperPremiumClick(p.gradient)} style={{ background: p.gradient }} className={`h-12 w-12 shrink-0 rounded-xl border-4 relative flex items-center justify-center transition-all ${invitation.paper_color === p.gradient ? 'border-amber-400 scale-110 shadow-lg' : 'border-white shadow-sm'} ${!isPremium ? 'opacity-40 grayscale' : ''}`}>
+                        {!isPremium && <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-lg"><Lock size={12} className="text-white drop-shadow-md" /></div>}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* PLUIE D'EMOJIS */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">{t.theme_label}</label>
             <div className="grid grid-cols-2 gap-3">
               {EVENT_TYPES.map(type => (
-                <button key={type.id} onClick={() => handleThemeClick(type.id, type.premium)} className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all relative ${invitation.event_type === type.id ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'} ${type.premium && !isPremium ? 'opacity-40 grayscale' : ''}`}>
+                <button type="button" key={type.id} onClick={() => handleThemeClick(type.id, type.premium)} className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all relative ${invitation.event_type === type.id ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'} ${type.premium && !isPremium ? 'opacity-40 grayscale' : ''}`}>
                   <type.icon size={18} className={invitation.event_type === type.id ? 'text-amber-500' : 'text-gray-400'} />
                   <span className="text-[10px] font-bold uppercase">{type.name}</span>
                   {type.premium && !isPremium && <Lock size={12} className="absolute right-2 top-2 text-gray-400" />}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* TEXTURE PAPIER */}
-          <div>
-            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">{t.texture_label}</label>
-            <div className="grid grid-cols-2 gap-2">
-              {TEXTURES.map(texture => (
-                <button key={texture.id} onClick={() => handleTextureClick(texture.id, texture.premium)} className={`p-4 rounded-xl border-2 text-[10px] font-bold transition-all relative flex items-center justify-center ${invitation.paper_type === texture.id ? 'border-amber-400 bg-amber-50' : 'bg-gray-50 border-transparent'} ${texture.premium && !isPremium ? 'opacity-40 grayscale' : ''}`}>
-                  {texture.name.toUpperCase()} {texture.premium && !isPremium && <Lock size={10} className="absolute right-2 top-2 text-gray-400" />}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* SÉLECTEUR COULEUR CONDITIONNEL ENVELOPPE CLASSIQUE */}
-          {(invitation.container_open === 'envelope' || !invitation.container_open) && (
-            <div>
-              <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">{t.envelope_color}</label>
-              <div className="flex gap-3 overflow-x-auto pt-2 pb-6 px-4 -mx-4 scrollbar-hide">
-                {COLOR_PALETTES.map(p => (
-                  <button key={p.color} onClick={() => onInvitationChange({...invitation, envelope_color: p.color})} style={{backgroundColor: p.color}} className={`h-12 w-12 shrink-0 rounded-full border-4 transition-all ${invitation.envelope_color === p.color ? 'border-amber-400 scale-110 shadow-lg' : 'border-white shadow-sm'}`} />
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* PALETTES DE COULEURS PREMIUM */}
-          <div>
-            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 flex items-center gap-2 ml-1">{localLabels.premium_colors}</label>
-            <div className="flex gap-3 overflow-x-auto pt-2 pb-4 px-4 -mx-4 scrollbar-hide">
-              {PREMIUM_PALETTES.map(p => (
-                <button key={p.id} onClick={() => handlePremiumClick(p.gradient)} style={{ background: p.gradient }} className={`h-14 w-14 shrink-0 rounded-2xl border-4 relative flex items-center justify-center transition-all ${invitation.envelope_color === p.gradient ? 'border-amber-400 scale-110 shadow-lg' : 'border-white shadow-sm'} ${!isPremium ? 'opacity-40 grayscale' : ''}`}>
-                  {!isPremium && <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-xl"><Lock size={14} className="text-white drop-shadow-md" /></div>}
                 </button>
               ))}
             </div>
@@ -536,7 +593,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">{t.font_style_label}</label>
             <div className="space-y-2">
               {FONTS.map(f => (
-                <button key={f.id} onClick={() => handleFontClick(f.family, f.premium)} className={`w-full h-14 px-4 rounded-2xl text-left border-2 transition-all relative ${invitation.font_style === f.family ? 'border-amber-400 bg-amber-50' : 'bg-gray-50 border-transparent'} ${f.premium && !isPremium ? 'opacity-40 grayscale' : ''}`} style={{ fontFamily: f.family }}>
+                <button type="button" key={f.id} onClick={() => handleFontClick(f.family, f.premium)} className={`w-full h-14 px-4 rounded-2xl text-left border-2 transition-all relative ${invitation.font_style === f.family ? 'border-amber-400 bg-amber-50' : 'bg-gray-50 border-transparent'} ${f.premium && !isPremium ? 'opacity-40 grayscale' : ''}`} style={{ fontFamily: f.family }}>
                   {f.name} {f.premium && !isPremium && <Lock size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" />}
                 </button>
               ))}
