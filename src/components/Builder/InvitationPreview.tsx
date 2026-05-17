@@ -199,7 +199,7 @@ export function InvitationPreview({ invitation }: any) {
         setIsOpened(true);
         setIsExploding(false);
         audioRef.current?.play().catch(() => {});
-      }, 2200); // Ralenti pour laisser apprécier la dispersion complète des morceaux
+      }, 1400); // Temps global réduit (de 2.2s à 1.4s) pour une apparition plus rapide du contenu
     } else {
       if (invitation.container_open === 'wooden_door') {
         playSyntheticSound('open_door');
@@ -261,7 +261,7 @@ export function InvitationPreview({ invitation }: any) {
       const r = Math.floor(i / cols);
       const c = i % cols;
       const angle = Math.random() * Math.PI * 2;
-      const force = 350 + Math.random() * 400; // Force d'expulsion accrue
+      const force = 180 + Math.random() * 200; // Force d'expulsion réduite pour ralentir le mouvement de l'explosion
       return {
         id: i,
         w: `${100 / cols}%`,
@@ -271,8 +271,8 @@ export function InvitationPreview({ invitation }: any) {
         bgX: `${(c * 100) / (cols - 1)}%`,
         bgY: `${(r * 100) / (rows - 1)}%`,
         targetX: Math.cos(angle) * force,
-        targetY: Math.sin(angle) * force + 300, // Composante de gravité descendante lourde
-        rotate: (Math.random() - 0.5) * 1440 // Rotations ultra-violentes sur elles-mêmes
+        targetY: Math.sin(angle) * force + 150, // Gravité descendante adoucie
+        rotate: (Math.random() - 0.5) * 720 // Rotations moins agressives pour accentuer la sensation de lourdeur
       };
     });
   }, []);
@@ -291,7 +291,7 @@ export function InvitationPreview({ invitation }: any) {
             initial={{ opacity: 0 }}
             animate={{ opacity: [0, 1, 0.8, 1, 0] }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.7, times: [0, 0.15, 0.3, 0.5, 1], ease: "easeInOut" }}
+            transition={{ duration: 0.5, times: [0, 0.15, 0.3, 0.5, 1], ease: "easeInOut" }}
             className="absolute inset-0 z-[95] bg-gradient-to-r from-orange-500 via-white to-amber-500 mix-blend-overlay pointer-events-none"
           />
         )}
@@ -300,32 +300,34 @@ export function InvitationPreview({ invitation }: any) {
       {/* --- CHAMBRE DE FRAGMENTATION MÉTALLIQUE REELLE --- */}
       <AnimatePresence>
         {isExploding && (
-          <div className="absolute inset-0 z-[90] pointer-events-none overflow-hidden">
-            {explosionFragments.map((f) => (
-              <motion.div
-                key={f.id}
-                initial={{ x: 0, y: 0, scale: 1, opacity: 1, rotate: 0 }}
-                animate={{ 
-                  x: f.targetX, 
-                  y: f.targetY, 
-                  scale: 0.05, 
-                  opacity: 0,
-                  rotate: f.rotate
-                }}
-                transition={{ duration: 2.2, ease: [0.1, 0.85, 0.2, 1] }} // Courbe amortie ralentie pour le réalisme du poids
-                className="absolute shadow-2xl border border-black/30"
-                style={{
-                  width: f.w,
-                  height: f.h,
-                  top: f.top,
-                  left: f.left,
-                  backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20en%20metal.png")`,
-                  backgroundSize: '600% 600%', // Subdivision 6x6
-                  backgroundPosition: `${f.bgX} ${f.bgY}`,
-                  backgroundRepeat: 'no-repeat'
-                }}
-              />
-            ))}
+          <div className="absolute inset-0 z-[90] px-4 pointer-events-none overflow-hidden flex items-center justify-center">
+            <div className="relative w-full h-full max-w-[calc(100%-2rem)]">
+              {explosionFragments.map((f) => (
+                <motion.div
+                  key={f.id}
+                  initial={{ x: 0, y: 0, scale: 1, opacity: 1, rotate: 0 }}
+                  animate={{ 
+                    x: f.targetX, 
+                    y: f.targetY, 
+                    scale: 0.1, 
+                    opacity: 0,
+                    rotate: f.rotate
+                  }}
+                  transition={{ duration: 1.4, ease: [0.1, 0.8, 0.25, 1] }} // Durée d'animation raccourcie à 1.4s
+                  className="absolute shadow-2xl border border-black/30"
+                  style={{
+                    width: f.w,
+                    height: f.h,
+                    top: f.top,
+                    left: f.left,
+                    backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20en%20metal.png")`,
+                    backgroundSize: '600% 600%', // Subdivision 6x6
+                    backgroundPosition: `${f.bgX} ${f.bgY}`,
+                    backgroundRepeat: 'no-repeat'
+                  }}
+                />
+              ))}
+            </div>
           </div>
         )}
       </AnimatePresence>
@@ -535,18 +537,17 @@ export function InvitationPreview({ invitation }: any) {
                       )}
                     </AnimatePresence>
 
-                    {/* ANIMATION DES CONTENANTS DÉCOUPLÉS - PLEIN ÉCRAN TOTAL POUR LA PORTE MÉTAL */}
-                    <div className="absolute inset-0 z-50 w-full h-full flex" style={{ perspective: '2000px' }}>
+                    {/* ANIMATION DES CONTENANTS DÉCOUPLÉS - TAILLE LÉGÈREMENT RÉDUITE SUR LES CÔTÉS POUR LA PORTE EN MÉTAL */}
+                    <div className="absolute inset-0 z-50 w-full h-full flex px-4 items-center justify-center" style={{ perspective: '2000px' }}>
                       {invitation.container_open === 'metal_door' ? (
                         <div 
-                          className="absolute inset-0 w-full h-full bg-cover bg-center"
+                          className="w-full h-full max-w-[calc(100%-2rem)] bg-cover bg-center"
                           style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20en%20metal.png")` }}
                         />
                       ) : (
                         <>
                           <motion.div 
                             exit={{ rotateY: -100, x: '-20%', opacity: 0 }} 
- BackToEnvelope
                             transition={{ duration: 1.2, ease: "easeInOut" }} 
                             className="w-1/2 h-full origin-left bg-cover bg-center shadow-2xl border-r border-black/10" 
                             style={{ 
