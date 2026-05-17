@@ -188,7 +188,7 @@ export function InvitationPreview({ invitation }: any) {
     }
   }, [isOpened, invitation.opening_style, isVaultClicked, targetCode, invitation.container_open]);
 
-  // Centralisation et exécution de l'ouverture (Avec coulissement vers la droite)
+  // Centralisation et exécution de l'ouverture
   const triggerContainerOpening = () => {
     if (invitation.container_open === 'wooden_door') {
       playSyntheticSound('open_door');
@@ -339,7 +339,7 @@ export function InvitationPreview({ invitation }: any) {
                         <motion.div 
                           key="visual-trigger"
                           initial={{ opacity: 1 }}
-                          exit={{ 
+                          exit={invitation.container_open === 'metal_door' ? {} : { 
                             opacity: 0, 
                             transition: { duration: 0.4, ease: "easeInOut" } 
                           }}
@@ -448,12 +448,12 @@ export function InvitationPreview({ invitation }: any) {
                       )}
                     </AnimatePresence>
 
-                    {/* ANIMATION DES CONTENANTS DÉCOUPLÉS - COULISSEMENT VERS LA DROITE INTEGRÉ POUR LA PORTE MÉTAL */}
+                    {/* ANIMATION DES CONTENANTS DÉCOUPLÉS - COULISSEMENT OPAQUE ET RALENTI SUR LA DROITE POUR LA PORTE MÉTAL */}
                     <div className="absolute inset-0 z-50 w-full h-full flex" style={{ perspective: '2000px' }}>
                       {invitation.container_open === 'metal_door' ? (
                         <motion.div 
-                          exit={{ x: "100%", opacity: 0 }}
-                          transition={{ duration: 0.8, ease: "easeInOut" }}
+                          animate={isOpened ? { x: "100%" } : { x: "0%" }}
+                          transition={{ duration: 1.6, ease: "easeInOut" }}
                           className="absolute inset-0 w-full h-full bg-cover bg-center shadow-2xl"
                           style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20en%20metal.png")` }}
                         />
