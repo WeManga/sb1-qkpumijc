@@ -56,8 +56,8 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
   const localLabels = {
     fr: {
       opening_type_label: "Style d'animation (Sortie de la carte)",
-      action_style: "Style d'action (Déclencheur mécanique)",
-      opening_container: "Type d'ouverture (Le Fond / Contenant)",
+      action_style: "Le Style d'action (Déclencheur)",
+      opening_container: "Le Type d'ouverture (Contenant)",
       premium_colors: "Couleurs PREMIUM",
       style_default: "Sceau ancestral",
       style_knock: "Main qui toque",
@@ -70,8 +70,8 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     },
     en: {
       opening_type_label: "Animation Style (Card Reveal)",
-      action_style: "Action Style (Mechanical Trigger)",
-      opening_container: "Opening Type (Background / Container)",
+      action_style: "Action Style (Trigger)",
+      opening_container: "Opening Type (Container)",
       premium_colors: "PREMIUM Colors",
       style_default: "Ancestral Seal",
       style_knock: "Knocking Hand",
@@ -84,8 +84,8 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     },
     vi: {
       opening_type_label: "Kiểu hoạt ảnh (Lộ thẻ)",
-      action_style: "Kiểu hành động (Kích hoạt cơ học)",
-      opening_container: "Loại mở rộng (Nền / Hộp chứa)",
+      action_style: "Kiểu hành động (Kích hoạt)",
+      opening_container: "Loại mở rộng (Hộp chứa)",
       premium_colors: "Màu sắc PREMIUM",
       style_default: "Dấu ấn cổ xưa",
       style_knock: "Tay gõ cửa",
@@ -345,7 +345,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
       {activeTab === 'style' && (
         <div className="space-y-8">
-          {/* SECTION 1 : STYLE D'ANIMATION */}
+          {/* SECTION 1 : STYLE D'ANIMATION (SORTIE CARTE) */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">
               {localLabels.opening_type_label}
@@ -371,7 +371,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </div>
 
-          {/* SECTION 2 : STYLE D'ACTION */}
+          {/* SECTION 2 : STYLE D'ACTION (DECLENCHEUR SEUL) */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">
               {localLabels.action_style}
@@ -422,7 +422,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </div>
 
-          {/* SECTION 3 : TYPE D'OUVERTURE (LE FOND / CONTENANT) */}
+          {/* SECTION 3 : TYPE D'OUVERTURE (LE FOND / CONTENANT DE L'ACTION) */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">
               {localLabels.opening_container}
@@ -500,7 +500,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           )}
 
-          {/* PALETTES DE GRADIENT POUR COMPTES PREMIUM */}
+          {/* PALETTES DE COULEURS PREMIUM */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 flex items-center gap-2 ml-1">{localLabels.premium_colors}</label>
             <div className="flex gap-3 overflow-x-auto pt-2 pb-4 px-4 -mx-4 scrollbar-hide">
