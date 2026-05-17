@@ -452,7 +452,7 @@ export function InvitationPreview({ invitation }: any) {
                       )}
                     </AnimatePresence>
 
-                    {/* ANIMATION DES CONTENANTS DÉCOUPLÉS - COULISSEMENT REALISTE OPAQUE VERS LA DROITE POUR LA PORTE EN METAL */}
+                    {/* ANIMATION DES CONTENANTS DÉCOUPLÉS - COULISSEMENT POUR LA PORTE METAL / OUVERTURE VERS L'INTERIEUR POUR LA PORTE EN BOIS */}
                     <div className="absolute inset-0 z-50 w-full h-full flex" style={{ perspective: '2000px' }}>
                       {invitation.container_open === 'metal_door' ? (
                         <motion.div 
