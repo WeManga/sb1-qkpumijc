@@ -455,7 +455,7 @@ export function InvitationPreview({ invitation }: any) {
                           animate={isOpened ? { x: "100%" } : { x: "0%" }}
                           transition={{ duration: 1.6, ease: "easeInOut" }}
                           className="absolute inset-0 w-full h-full bg-cover bg-center shadow-2xl"
-                          style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20metal.png")` }}
+                          style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20metali.png")` }}
                         />
                       ) : (
                         <AnimatePresence>
