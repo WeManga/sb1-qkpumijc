@@ -23,7 +23,7 @@ export function GuestView({ invitation }: any) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   
-  // États mis à jour pour l'animation du boîtier à code digital (6 chiffres)
+  // États pour l'animation du boîtier à code digital (6 chiffres)
   const [isVaultClicked, setIsVaultClicked] = useState(false);
   const [displayedCode, setDisplayedCode] = useState(['*', '*', '*', '*', '*', '*']);
   const [activeKey, setActiveKey] = useState<string | null>(null);
@@ -47,13 +47,27 @@ export function GuestView({ invitation }: any) {
     }
   };
 
-  // Synthétiseur audio natif (Pas besoin d'importer de fichier externe)
-  const playSyntheticSound = (type: 'beep' | 'lock' | 'knock' | 'key') => {
+  // Système audio natif et hybride (fichiers locaux .wav + synthétiseur)
+  const playSyntheticSound = (type: 'beep' | 'lock' | 'key' | 'open_door') => {
     if (isMuted) return;
     try {
       const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
       if (!AudioContext) return;
       const ctx = new AudioContext();
+
+      const playWavFile = async (path: string) => {
+        try {
+          const response = await fetch(path);
+          const arrayBuffer = await response.arrayBuffer();
+          const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
+          const source = ctx.createBufferSource();
+          source.buffer = audioBuffer;
+          source.connect(ctx.destination);
+          source.start();
+        } catch (err) {
+          console.error("Impossible de lire le fichier .wav :", path, err);
+        }
+      };
       
       if (type === 'beep') {
         const osc = ctx.createOscillator();
@@ -77,39 +91,34 @@ export function GuestView({ invitation }: any) {
         gain.connect(ctx.destination);
         osc.start();
         osc.stop(ctx.currentTime + 0.15);
-      } else if (type === 'knock') {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(110, ctx.currentTime);
-        gain.gain.setValueAtTime(0.25, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.12);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.12);
       } else if (type === 'key') {
-        const osc1 = ctx.createOscillator();
-        const osc2 = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc1.type = 'sine';
-        osc2.type = 'triangle';
-        osc1.frequency.setValueAtTime(1500, ctx.currentTime);
-        osc2.frequency.setValueAtTime(2000, ctx.currentTime + 0.05);
-        gain.gain.setValueAtTime(0.06, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
-        osc1.connect(gain);
-        osc2.connect(gain);
-        gain.connect(ctx.destination);
-        osc1.start();
-        osc2.start();
-        osc1.stop(ctx.currentTime + 0.2);
-        osc2.stop(ctx.currentTime + 0.2);
+        playWavFile('/sounds/key-turn.wav');
+      } else if (type === 'open_door') {
+        playWavFile('/sounds/door-open.wav');
       }
     } catch (e) {
-      console.error("Audio system blocked or unsupported", e);
+      console.error("Le système audio n'a pas pu s'initialiser", e);
     }
   };
+
+  // Synchronisation du son réel uniquement sur le début exact de la boucle de la Clé
+  useEffect(() => {
+    if (isOpened || isCodeFading) return;
+
+    let loopInterval: NodeJS.Timeout;
+
+    if (invitation.opening_style === 'key') {
+      playSyntheticSound('key');
+      
+      loopInterval = setInterval(() => {
+        playSyntheticSound('key');
+      }, 2500);
+    }
+
+    return () => {
+      if (loopInterval) clearInterval(loopInterval);
+    };
+  }, [isOpened, isCodeFading, invitation.opening_style, isMuted]);
 
   useEffect(() => {
     const newGuests = Array.from({ length: guestCount }, (_, i) => 
@@ -178,8 +187,7 @@ export function GuestView({ invitation }: any) {
           setIsCodeFading(true);
           
           setTimeout(() => {
-            setIsOpened(true);
-            audioRef.current?.play().catch(() => {});
+            triggerContainerOpening();
           }, 600);
         }, 4000);
       }
@@ -190,25 +198,27 @@ export function GuestView({ invitation }: any) {
         if (endTimer) clearTimeout(endTimer);
       };
     }
-  }, [isOpened, invitation.opening_style, isVaultClicked, targetCode]);
+  }, [isOpened, invitation.opening_style, isVaultClicked, targetCode, invitation.container_open]);
 
-  // Déclencheur interactif unifié (Exécute les sons directement sur l'interaction utilisateur)
+  // Centralisation et exécution de l'ouverture
+  const triggerContainerOpening = () => {
+    if (invitation.container_open === 'wooden_door') {
+      playSyntheticSound('open_door');
+    }
+    setIsOpened(true);
+    audioRef.current?.play().catch(() => {});
+  };
+
+  // Déclencheur interactif unifié
   const handleTriggerClick = () => {
     if (invitation.opening_style === 'vault') {
       if (!isVaultClicked) {
         setIsVaultClicked(true);
       }
     } else {
-      if (invitation.opening_style === 'knock') {
-        playSyntheticSound('knock');
-        setTimeout(() => playSyntheticSound('knock'), 140); // Double impact synchrone
-      } else if (invitation.opening_style === 'key') {
-        playSyntheticSound('key'); // Mécanisme métallique synchrone
-      }
       setIsCodeFading(true);
       setTimeout(() => {
-        setIsOpened(true);
-        audioRef.current?.play().catch(() => {});
+        triggerContainerOpening();
       }, 400);
     }
   };
@@ -232,7 +242,7 @@ export function GuestView({ invitation }: any) {
 
   const openMaps = () => {
     const address = encodeURIComponent(invitation.event_address);
-    window.open(`https://www.google.com/maps/search/?api=1&query=${address}`, '_blank');
+    window.open(`https://maps.google.com/?q=${address}`, '_blank');
   };
 
   const handleRSVP = async (e: React.FormEvent) => {
@@ -272,7 +282,7 @@ export function GuestView({ invitation }: any) {
     );
   };
 
-  const isDoorBackground = invitation.container_open === 'wooden_door' || invitation.container_open === 'metal_door';
+  const isDoorType = invitation.container_open === 'wooden_door' || invitation.container_open === 'metal_door';
 
   return (
     <div className="fixed inset-0 flex items-center justify-center overflow-hidden touch-none bg-white" style={{ fontFamily: invitation.font_style || 'inherit' }}>
@@ -281,7 +291,7 @@ export function GuestView({ invitation }: any) {
       
       <AnimatePresence mode="wait">
         {view === 'envelope' ? (
-          <motion.div key="env" className="relative w-full h-full flex items-center justify-center">
+          <motion.div key="env" className="relative w-full h-full flex items-center justify-center" style={{ perspective: '1200px' }}>
             {isOpened && invitation?.music_url && (
               <button onClick={toggleMute} className="absolute top-6 right-6 z-[70] w-10 h-10 bg-white/80 rounded-full flex items-center justify-center shadow-lg">
                 {isMuted ? <VolumeX size={18}/> : <Volume2 size={18} className="animate-pulse"/>}
@@ -378,7 +388,10 @@ export function GuestView({ invitation }: any) {
                         <motion.div 
                           key="visual-trigger"
                           initial={{ opacity: 1 }}
-                          exit={{ opacity: 0, transition: { duration: 0.4, ease: "easeInOut" } }}
+                          exit={invitation.container_open === 'metal_door' ? {} : { 
+                            opacity: 0, 
+                            transition: { duration: 0.4, ease: "easeInOut" } 
+                          }}
                           className="absolute inset-0 z-[70] flex flex-col items-center justify-center cursor-pointer"
                           onClick={handleTriggerClick}
                         >
@@ -386,9 +399,9 @@ export function GuestView({ invitation }: any) {
                             {invitation.opening_style === 'knock' ? (
                               <motion.div
                                 animate={{ 
-                                  x: [0, -12, 4, -12, 4, 0], 
+                                  x: [0, -12, 4, -12, 4, 0],
                                   y: [0, -6, 2, -6, 2, 0],
-                                  scale: [1, 1.05, 0.98, 1.05, 0.98, 1] 
+                                  scale: [1, 1.05, 0.98, 1.05, 0.98, 1]
                                 }}
                                 transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 1.5, ease: "easeInOut" }}
                                 className="w-56 h-56 select-none flex items-center justify-center"
@@ -408,14 +421,13 @@ export function GuestView({ invitation }: any) {
                                   />
                                   <motion.img
                                     src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/cleserrure.png" 
-                                    animate={{ rotate: [0, 45, 0, 45, 0] }}
-                                    transition={{ duration: 1.8, repeat: Infinity, repeatDelay: 0.5, ease: "easeInOut" }}
+                                    animate={{ rotate: [0, 45, 0] }} 
+                                    transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1.0, ease: "easeInOut" }} 
                                     className="absolute w-full h-full object-contain origin-center"
                                     alt="Clé"
                                   />
                                 </div>
                             ) : invitation.opening_style === 'vault' ? (
-                              /* --- BOITIER DIGITAL TACTILE ULTRA-COMPACT APPLIQUÉ --- */
                               <div className="relative w-[220px] h-[330px] flex flex-col items-center justify-start bg-neutral-950 border-[4px] border-neutral-800 rounded-[1.75rem] shadow-[0_20px_40px_rgba(0,0,0,0.8)] overflow-hidden p-4">
                                 <img 
                                   src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/dgital.png" 
@@ -476,7 +488,6 @@ export function GuestView({ invitation }: any) {
                             )}
                           </div>
                           
-                          {/* Phrase d'indication textuelle en bas */}
                           <p className="absolute bottom-12 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse text-center w-full px-4">
                             {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? "Tap to open invitation" : "Nhấn de mở lời mời"}
                           </p>
@@ -484,36 +495,38 @@ export function GuestView({ invitation }: any) {
                       )}
                     </AnimatePresence>
 
-                    {/* RENDU DES PORTES ET ENVELOPPES SÉPARÉES */}
-                    {isDoorBackground ? (
-                      <div className="absolute inset-0 z-50 flex w-full h-full" style={{ perspective: '2000px' }}>
+                    {/* ANIMATION DES CONTENANTS DÉCOUPLÉS - COULISSEMENT REALISTE OPAQUE VERS LA DROITE POUR LA PORTE EN METAL */}
+                    <div className="absolute inset-0 z-50 w-full h-full flex" style={{ perspective: '2000px' }}>
+                      {invitation.container_open === 'metal_door' ? (
                         <motion.div 
-                          exit={{ rotateY: -100, x: '-20%', opacity: 0 }} 
-                          transition={{ duration: 1.2, ease: "easeInOut" }} 
-                          className="w-1/2 h-full origin-left bg-cover bg-center shadow-2xl border-r border-black/10" 
-                          style={{ 
-                            backgroundImage: invitation.container_open === 'metal_door' ? 'none' : `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20gauche.png")`, 
-                            backgroundColor: invitation?.envelope_color || '#F3F4F6' 
-                          }} 
+                          animate={isOpened ? { x: "100%" } : { x: "0%" }}
+                          transition={{ duration: 1.6, ease: "easeInOut" }}
+                          className="absolute inset-0 w-full h-full bg-cover bg-center shadow-2xl"
+                          style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20en%20metal.png")` }}
                         />
-                        <motion.div 
-                          exit={{ rotateY: 100, x: '20%', opacity: 0 }} 
-                          transition={{ duration: 1.2, ease: "easeInOut" }} 
-                          className="w-1/2 h-full origin-right bg-cover bg-center shadow-2xl border-l border-black/10" 
-                          style={{ 
-                            backgroundImage: invitation.container_open === 'metal_door' ? 'none' : `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20droite.png")`, 
-                            backgroundColor: invitation?.envelope_color || '#F3F4F6' 
-                          }} 
-                        />
-                      </div>
-                    ) : (
-                      <motion.div 
-                        exit={{ y: "-100%" }} 
-                        transition={{ duration: 0.8, ease: "easeInOut", delay: 0.1 }} 
-                        className="absolute inset-0 z-50 shadow-2xl"
-                        style={{ background: invitation?.envelope_color || '#F3F4F6' }}
-                      />
-                    )}
+                      ) : (
+                        <>
+                          <motion.div 
+                            exit={{ rotateY: -100, x: '-20%', opacity: 0 }} 
+                            transition={{ duration: 1.2, ease: "easeInOut" }} 
+                            className="w-1/2 h-full origin-left bg-cover bg-center shadow-2xl border-r border-black/10" 
+                            style={{ 
+                              backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20gauche.png")`, 
+                              backgroundColor: invitation?.envelope_color || '#FEE2E2'
+                            }} 
+                          />
+                          <motion.div 
+                            exit={{ rotateY: 100, x: '20%', opacity: 0 }} 
+                            transition={{ duration: 1.2, ease: "easeInOut" }} 
+                            className="w-1/2 h-full origin-right bg-cover bg-center shadow-2xl border-l border-black/10" 
+                            style={{ 
+                              backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20droite.png")`, 
+                              backgroundColor: invitation?.envelope_color || '#FEE2E2'
+                            }} 
+                          />
+                        </>
+                      )}
+                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -548,6 +561,7 @@ export function GuestView({ invitation }: any) {
               {invitation.description && (
                 <div className="text-center italic opacity-80" style={{ fontFamily: invitation.font_style }}>
                   <p className="text-[13px] leading-relaxed px-4 whitespace-pre-wrap">{invitation.description}</p>
+                  <div className="w-12 h-[1px] bg-amber-200 mx-auto mt-6" />
                 </div>
               )}
 
@@ -563,11 +577,11 @@ export function GuestView({ invitation }: any) {
                       return (
                         <motion.div key={i} initial={{ opacity: 0, x: isEven ? -30 : 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 1.2 }} className={`flex items-center w-full relative ${isEven ? 'flex-row' : 'flex-row-reverse'}`}>
                           <div className="w-[45%]">
-                            <div className={`overflow-hidden bg-white/80 rounded-2xl border border-amber-50 shadow-lg ${isEven ? 'text-right' : 'text-left'}`}>
+                            <div className={`overflow-hidden bg-white/60 rounded-2xl border border-amber-50 shadow-lg ${isEven ? 'text-right' : 'text-left'}`}>
                               {step.image_url && <img src={step.image_url} className="w-full aspect-video object-cover" alt="" />}
                               <div className="p-4">
                                 <div className={`text-[9px] font-black text-amber-600 mb-1 flex items-center gap-1 ${isEven ? 'justify-start' : 'justify-end'}`}><Clock size={8}/> {step.time}</div>
-                                <div className="text-[11px] font-bold uppercase leading-tight" style={{ fontFamily: invitation.font_style }}>{step.activity}</div>
+                                <div className="text-[11px] font-bold uppercase tracking-tight leading-tight" style={{ fontFamily: invitation.font_style }}>{step.activity}</div>
                               </div>
                             </div>
                           </div>
