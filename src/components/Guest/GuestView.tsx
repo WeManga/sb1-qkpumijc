@@ -122,7 +122,8 @@ export function GuestView({ invitation }: any) {
     );
   };
 
-  const isDoorType = invitation.opening_style === 'key' || invitation.opening_style === 'vault';
+  // LOGIQUE CORRIGÉE ET STRUCTURÉE : Seul l'état de container_open décide si le fond est une porte ou une enveloppe
+  const isDoorBackground = invitation.container_open === 'wooden_door' || invitation.container_open === 'metal_door';
 
   return (
     <div className="fixed inset-0 flex items-center justify-center overflow-hidden touch-none bg-white" style={{ fontFamily: invitation.font_style || 'inherit' }}>
@@ -185,7 +186,7 @@ export function GuestView({ invitation }: any) {
                         <img 
                           src={invitation.main_photo_url} 
                           className="w-full h-full object-cover" 
-                          style={{ transform: `translate(${invitation.main_photo_url_pos_x || 0}px, ${invitation.main_photo_url_pos_y || 0}px) scale(${invitation.main_photo_url_scale || 1})` }} 
+                          style={{ transform: `translate(${invitation.main_photo_url_pos_x || 0}px, ${invitation.main_photo_url_pos_y || 0}px) scale(${invitation.main_photo_url_scale || 1})` }} alt="" 
                         />
                       )}
                     </div>
@@ -247,15 +248,19 @@ export function GuestView({ invitation }: any) {
                             />
                           </motion.div>
                         ) : invitation.opening_style === 'key' ? (
-                            <div className="flex flex-col items-center relative">
-                              <div className="w-2.5 h-10 bg-black/80 rounded-full shadow-sm" />
-                              <div className="w-6 h-6 bg-black/80 rounded-full -mt-1.5 shadow-sm" />
-                              <motion.div
-                                animate={{ rotate: [0, 30, 0, 30, 0] }}
-                                transition={{ duration: 2.2, repeat: Infinity, repeatDelay: 0.5 }}
-                                className="absolute text-[110px] z-10"
-                                style={{ top: '-25%', transformOrigin: "center 65%" }}
-                              >🗝️</motion.div>
+                            <div className="select-none flex items-center justify-center relative w-[260px] h-[260px]">
+                              <img 
+                                src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/cleserrure.png" 
+                                className="absolute w-full h-full object-contain" 
+                                alt="Serrure" 
+                              />
+                              <motion.img
+                                src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/cleserrure.png" 
+                                animate={{ rotate: [0, 45, 0, 45, 0] }}
+                                transition={{ duration: 1.8, repeat: Infinity, repeatDelay: 0.5, ease: "easeInOut" }}
+                                className="absolute w-full h-full object-contain origin-center"
+                                alt="Clé"
+                              />
                             </div>
                         ) : invitation.opening_style === 'vault' ? (
                           <div className="relative w-60 h-60 flex flex-col items-center justify-center">
@@ -285,25 +290,34 @@ export function GuestView({ invitation }: any) {
                       </p>
                     </motion.div>
 
-                    {isDoorType ? (
-                      <>
+                    {/* RENDU HISTORIQUE CONVERTI : L'affichage 3D écoute container_open au lieu du déclencheur mécanique */}
+                    {isDoorBackground ? (
+                      <div className="absolute inset-0 z-50 flex w-full h-full" style={{ perspective: '2000px' }}>
+                        {/* PORTE GAUCHE COULISSANTE ET PIVOTANTE */}
                         <motion.div 
-                          exit={{ rotateY: -110, originX: 0, opacity: 0 }} 
-                          transition={{ duration: 1.2, ease: "easeInOut", delay: 0.1 }}
-                          className="absolute inset-y-0 left-0 w-1/2 z-50 border-r border-white/10 shadow-2xl"
-                          style={{ background: invitation?.envelope_color || '#F3F4F6' }}
+                          exit={{ rotateY: -100, x: '-20%', opacity: 0 }} 
+                          transition={{ duration: 1.2, ease: "easeInOut" }} 
+                          className="w-1/2 h-full origin-left bg-cover bg-center shadow-2xl border-r border-black/10" 
+                          style={{ 
+                            backgroundImage: invitation.container_open === 'metal_door' ? 'none' : `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20gauche.png")`, 
+                            backgroundColor: invitation?.envelope_color || '#F3F4F6' 
+                          }} 
                         />
+                        {/* PORTE DROITE COULISSANTE ET PIVOTANTE */}
                         <motion.div 
-                          exit={{ rotateY: 110, originX: 1, opacity: 0 }} 
-                          transition={{ duration: 1.2, ease: "easeInOut", delay: 0.1 }}
-                          className="absolute inset-y-0 right-0 w-1/2 z-50 border-l border-white/10 shadow-2xl"
-                          style={{ background: invitation?.envelope_color || '#F3F4F6' }}
+                          exit={{ rotateY: 100, x: '20%', opacity: 0 }} 
+                          transition={{ duration: 1.2, ease: "easeInOut" }} 
+                          className="w-1/2 h-full origin-right bg-cover bg-center shadow-2xl border-l border-black/10" 
+                          style={{ 
+                            backgroundImage: invitation.container_open === 'metal_door' ? 'none' : `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20droite.png")`, 
+                            backgroundColor: invitation?.envelope_color || '#F3F4F6' 
+                          }} 
                         />
-                      </>
+                      </div>
                     ) : (
                       <motion.div 
                         exit={{ y: "-100%" }} 
-                        transition={{ duration: 0.8, ease: "easeInOut", delay: 0.1 }}
+                        transition={{ duration: 0.8, ease: "easeInOut", delay: 0.1 }} 
                         className="absolute inset-0 z-50 shadow-2xl"
                         style={{ background: invitation?.envelope_color || '#F3F4F6' }}
                       />
