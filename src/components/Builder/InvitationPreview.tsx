@@ -289,7 +289,7 @@ export function InvitationPreview({ invitation }: any) {
       const r = Math.floor(i / cols);
       const c = i % cols;
       const angle = Math.random() * Math.PI * 2;
-      const force = 180 + Math.random() * 200; // Force d'expulsion modulée lente
+      const force = 180 + Math.random() * 210; 
       return {
         id: i,
         w: `${100 / cols}%`,
@@ -299,7 +299,7 @@ export function InvitationPreview({ invitation }: any) {
         bgX: `${(c * 100) / (cols - 1)}%`,
         bgY: `${(r * 100) / (rows - 1)}%`,
         targetX: Math.cos(angle) * force,
-        targetY: Math.sin(angle) * force + 240, // Gravité descendante réaliste
+        targetY: Math.sin(angle) * force + 240, 
         rotate: (Math.random() - 0.5) * 800 
       };
     });
@@ -325,18 +325,18 @@ export function InvitationPreview({ invitation }: any) {
         )}
       </AnimatePresence>
 
-      {/* --- VISUEL DE L'EXPLOSION REELLE PNG (S'APPLIQUE EN PREMIER PLAN DIRECT SUR LE CLIC) --- */}
+      {/* --- VISUEL DE L'EXPLOSION REELLE PNG (S'EXPANSE DE MANIERE CONTINUE SANS REBOND ET S'ESTOMPE RAPIDEMENT) --- */}
       <AnimatePresence>
         {isExploding && (
           <motion.div 
             initial={{ scale: 0.1, opacity: 0, rotate: 0 }}
             animate={{ 
-              scale: [0.2, 1.4, 1.1, 0.9], 
-              opacity: [0, 1, 0.9, 0],
-              rotate: [0, 10, -5]
+              scale: [0.1, 1.45], 
+              opacity: [0, 1, 0.7, 0],
+              rotate: [0, 12]
             }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 1.4, times: [0, 0.15, 0.6, 1], ease: "easeOut" }}
+            transition={{ duration: 0.95, times: [0, 0.15, 0.55, 1], ease: "linear" }}
             className="absolute inset-0 z-[95] pointer-events-none bg-contain bg-center bg-no-repeat"
             style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/explosion.png")` }}
           />
@@ -360,7 +360,7 @@ export function InvitationPreview({ invitation }: any) {
                 }}
                 transition={{ 
                   duration: 2.5, 
-                  delay: 0.1, // Léger décalage pour laisser l'explosion se déployer en premier
+                  delay: 0.05, 
                   ease: [0.05, 0.7, 0.1, 1] 
                 }} 
                 className="absolute shadow-2xl border border-black/30"
@@ -370,7 +370,7 @@ export function InvitationPreview({ invitation }: any) {
                   top: f.top,
                   left: f.left,
                   backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20en%20metal.png")`,
-                  backgroundSize: '600% 600%', // Subdivision 6x6
+                  backgroundSize: '600% 600%', 
                   backgroundPosition: `${f.bgX} ${f.bgY}`,
                   backgroundRepeat: 'no-repeat'
                 }}
@@ -475,7 +475,7 @@ export function InvitationPreview({ invitation }: any) {
                           exit={invitation.container_open === 'metal_door' ? {
                             scale: 1.05,
                             opacity: 0,
-                            transition: { duration: 0.1 } // Se retire instantanément sous le blast
+                            transition: { duration: 0.1 }
                           } : { 
                             opacity: 0, 
                             transition: { duration: 0.4, ease: "easeInOut" } 
@@ -585,7 +585,7 @@ export function InvitationPreview({ invitation }: any) {
                       )}
                     </AnimatePresence>
 
-                    {/* ANIMATION DES CONTENANTS DÉCOUPLÉS - LA PORTE METAL DU FOND EST MASQUÉE DIRECTEMENT SUR L'EXPLOSION */}
+                    {/* ANIMATION DES CONTENANTS DÉCOUPLÉS - PLEIN ÉCRAN TOTAL POUR LA PORTE MÉTAL */}
                     <div className="absolute inset-0 z-50 w-full h-full flex" style={{ perspective: '2000px' }}>
                       {invitation.container_open === 'metal_door' ? (
                         <div 
