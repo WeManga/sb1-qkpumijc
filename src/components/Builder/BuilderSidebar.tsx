@@ -66,6 +66,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       type_vinyl: "Enveloppe classique",
       type_filmstrip: "Porte en Bois",
       type_metal: "Porte en Métal",
+      vault_date_label: "Date du code secret (6 chiffres animés)",
       alert_msg: "Vous possédez un compte FREE, veuillez passer en PREMIUM pour débloquer cette fonctionnalité."
     },
     en: {
@@ -80,6 +81,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       type_vinyl: "Classic Envelope",
       type_filmstrip: "Wooden Door",
       type_metal: "Metal Door",
+      vault_date_label: "Secret Code Date (6 animated digits)",
       alert_msg: "You have a FREE account, please upgrade to PREMIUM to unlock this feature."
     },
     vi: {
@@ -94,6 +96,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       type_vinyl: "Phong bì cổ điển",
       type_filmstrip: "Cửa gỗ",
       type_metal: "Cửa kim loại",
+      vault_date_label: "Ngày mã bí mật (6 chữ số hoạt hình)",
       alert_msg: "Bạn đang sử dụng tài khoản MIỄN PHÍ, vui lòng nâng cấp lên PREMIUM để mở khóa tính năng này."
     }
   }[lang];
@@ -420,6 +423,22 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 {!isPremium && <Lock size={12} className="absolute right-2 top-2 text-gray-400" />}
               </button>
             </div>
+
+            {/* CAS DE CALENDRIER CONDITIONNEL INTÉGRÉ POUR LE CODE DIGITAL (VAULT) */}
+            {invitation.opening_style === 'vault' && (
+              <div className="mt-4 p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-2 animate-fade-in">
+                <label className="text-[10px] font-black uppercase text-gray-500 flex items-center gap-2">
+                  <Calendar size={14} className="text-amber-500" />
+                  {localLabels.vault_date_label}
+                </label>
+                <input 
+                  type="date" 
+                  value={invitation.vault_date || ''} 
+                  onChange={e => onInvitationChange({...invitation, vault_date: e.target.value})} 
+                  className="w-full bg-white border border-gray-200 h-12 px-4 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-400 transition-all" 
+                />
+              </div>
+            )}
           </div>
 
           {/* SECTION 3 : TYPE D'OUVERTURE (LE FOND / CONTENANT DE L'ACTION) */}
@@ -488,7 +507,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </div>
 
-          {/* SÉLECTEUR COULEUR CONDITIONNEL ENVELOPPE CLASSIQUE ACCROCHÉ À CONTAINER_OPEN */}
+          {/* SÉLECTEUR COULEUR CONDITIONNEL ENVELOPPE CLASSIQUE */}
           {(invitation.container_open === 'envelope' || !invitation.container_open) && (
             <div>
               <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">{t.envelope_color}</label>
