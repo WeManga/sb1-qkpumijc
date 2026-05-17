@@ -43,7 +43,7 @@ export function InvitationPreview({ invitation }: any) {
   };
 
   // Système audio natif et hybride (fichiers locaux .wav + synthétiseur)
-  const playSyntheticSound = (type: 'beep' | 'lock' | 'knock' | 'key' | 'open') => {
+  const playSyntheticSound = (type: 'beep' | 'lock' | 'knock' | 'key' | 'open_door') => {
     if (isMuted) return;
     try {
       const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
@@ -90,7 +90,7 @@ export function InvitationPreview({ invitation }: any) {
         playWavFile('/sounds/door-knock.wav');
       } else if (type === 'key') {
         playWavFile('/sounds/key-turn.wav');
-      } else if (type === 'open') {
+      } else if (type === 'open_door') {
         playWavFile('/sounds/door-open.wav');
       }
     } catch (e) {
@@ -105,18 +105,14 @@ export function InvitationPreview({ invitation }: any) {
     let loopInterval: NodeJS.Timeout;
 
     if (invitation.opening_style === 'knock') {
-      // Joue le premier impact immédiatement au chargement
       playSyntheticSound('knock');
       
-      // La boucle d'animation CSS prend 2000ms au total (0.5s de mouvement + 1.5s d'attente)
       loopInterval = setInterval(() => {
         playSyntheticSound('knock');
       }, 2000);
     } else if (invitation.opening_style === 'key') {
-      // Joue le premier bruit de clé immédiatement au chargement
       playSyntheticSound('key');
       
-      // La boucle de rotation CSS prend 2300ms au total (1.8s de mouvement + 0.5s d'attente)
       loopInterval = setInterval(() => {
         playSyntheticSound('key');
       }, 2300);
@@ -184,9 +180,12 @@ export function InvitationPreview({ invitation }: any) {
           clearInterval(interval);
           setActiveKey(null);
           playSyntheticSound('lock');
-          setIsCodeFading(true);
+          setIsCodeFading(true); // Lance le fondu sortant du boîtier numérique
           
           setTimeout(() => {
+            if (invitation.container_open === 'wooden_door') {
+              playSyntheticSound('open_door'); // Son de porte en bois synchronisé !
+            }
             setIsOpened(true);
             audioRef.current?.play().catch(() => {});
           }, 600);
@@ -199,7 +198,7 @@ export function InvitationPreview({ invitation }: any) {
         if (endTimer) clearTimeout(endTimer);
       };
     }
-  }, [isOpened, invitation.opening_style, isVaultClicked, targetCode]);
+  }, [isOpened, invitation.opening_style, isVaultClicked, targetCode, invitation.container_open]);
 
   // Déclencheur au clic/toucher de l'interface
   const handleTriggerClick = () => {
@@ -210,6 +209,9 @@ export function InvitationPreview({ invitation }: any) {
     } else {
       setIsCodeFading(true);
       setTimeout(() => {
+        if (invitation.container_open === 'wooden_door') {
+          playSyntheticSound('open_door'); // Son de porte en bois synchronisé au clic !
+        }
         setIsOpened(true);
         audioRef.current?.play().catch(() => {});
       }, 400);
@@ -296,7 +298,7 @@ export function InvitationPreview({ invitation }: any) {
               ) : (
                 <div className={`w-[270px] h-[270px] relative ${isOpened ? 'animate-disk-spin' : ''}`}>
                   <div className="absolute inset-0 rounded-full bg-[#111] overflow-hidden">
-                    <div className="absolute inset-0 opacity-30" style={{ background: 'repeating-radial-gradient(circle, #444 0, #000 2px, #111 4px)' }} />
+                    <div className="absolute inset-0 opacity-30" style={{ background: 'repeating-radial-gradient(circle, #444 0, #000(2px, #111 4px)' }} />
                   </div>
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="w-24 h-24 bg-white rounded-full border-[5px] border-[#111] overflow-hidden">
@@ -381,6 +383,7 @@ export function InvitationPreview({ invitation }: any) {
                                   />
                                 </div>
                             ) : invitation.opening_style === 'vault' ? (
+                              /* --- BOITIER DIGITAL TACTILE RÉDUIT --- */
                               <div className="relative w-[220px] h-[330px] flex flex-col items-center justify-start bg-neutral-950 border-[4px] border-neutral-800 rounded-[1.75rem] shadow-[0_20px_40px_rgba(0,0,0,0.8)] overflow-hidden p-4">
                                 <img 
                                   src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/dgital.png" 
@@ -437,6 +440,7 @@ export function InvitationPreview({ invitation }: any) {
                                 </div>
                               </div>
                             ) : (
+                              /* --- RENDU DU SCEAU COMMUNE AVEC FONDU ACTIVÉ --- */
                               <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-[32rem] h-[32rem] object-contain" alt="Sceau" />
                             )}
                           </div>
