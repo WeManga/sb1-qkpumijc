@@ -98,23 +98,27 @@ export function InvitationPreview({ invitation }: any) {
     }
   };
 
-  // Synchronisation des sons réels sur les boucles d'animations automatiques (Main et Clé)
+  // Synchronisation des sons réels sur le début exact des boucles d'animations (Main et Clé)
   useEffect(() => {
     if (isOpened || isCodeFading) return;
 
     let loopInterval: NodeJS.Timeout;
 
     if (invitation.opening_style === 'knock') {
-      // Synchronisé sur les répétitions de la Main (duration 0.5 + repeatDelay 1.5 = 2000ms)
+      // Joue le premier impact immédiatement au chargement
+      playSyntheticSound('knock');
+      
+      // La boucle d'animation CSS prend 2000ms au total (0.5s de mouvement + 1.5s d'attente)
       loopInterval = setInterval(() => {
         playSyntheticSound('knock');
-        setTimeout(() => playSyntheticSound('knock'), 140);
       }, 2000);
     } else if (invitation.opening_style === 'key') {
-      // Synchronisé sur les rotations de la Clé (duration 1.8 + repeatDelay 0.5 = 2300ms)
+      // Joue le premier bruit de clé immédiatement au chargement
+      playSyntheticSound('key');
+      
+      // La boucle de rotation CSS prend 2300ms au total (1.8s de mouvement + 0.5s d'attente)
       loopInterval = setInterval(() => {
         playSyntheticSound('key');
-        setTimeout(() => playSyntheticSound('key'), 250);
       }, 2300);
     }
 
@@ -183,7 +187,6 @@ export function InvitationPreview({ invitation }: any) {
           setIsCodeFading(true);
           
           setTimeout(() => {
-            playSyntheticSound('open');
             setIsOpened(true);
             audioRef.current?.play().catch(() => {});
           }, 600);
@@ -207,7 +210,6 @@ export function InvitationPreview({ invitation }: any) {
     } else {
       setIsCodeFading(true);
       setTimeout(() => {
-        playSyntheticSound('open');
         setIsOpened(true);
         audioRef.current?.play().catch(() => {});
       }, 400);
@@ -379,7 +381,6 @@ export function InvitationPreview({ invitation }: any) {
                                   />
                                 </div>
                             ) : invitation.opening_style === 'vault' ? (
-                              /* --- BOITIER DIGITAL TACTILE RÉDUIT --- */
                               <div className="relative w-[220px] h-[330px] flex flex-col items-center justify-start bg-neutral-950 border-[4px] border-neutral-800 rounded-[1.75rem] shadow-[0_20px_40px_rgba(0,0,0,0.8)] overflow-hidden p-4">
                                 <img 
                                   src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/dgital.png" 
@@ -436,7 +437,6 @@ export function InvitationPreview({ invitation }: any) {
                                 </div>
                               </div>
                             ) : (
-                              /* --- RENDU DU SCEAU COMMUNE AVEC FONDU ACTIVÉ --- */
                               <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-[32rem] h-[32rem] object-contain" alt="Sceau" />
                             )}
                           </div>
