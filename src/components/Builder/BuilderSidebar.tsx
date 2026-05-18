@@ -77,8 +77,8 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       paper_premium_colors: "Couleurs de carte PREMIUM",
       trigger_mode_emoji: "Pluie d'émojis",
       trigger_mode_decor: "Décor Animé",
-      bg_color_label: "Couleur de fond de l'ambiance (Derrière)",
-      bg_premium_colors: "Couleurs de fond PREMIUM",
+      bg_color_label: "Couleur de fond de l'ambiance",
+      bg_premium_colors: "Couleurs de fond spéciales",
       bg_balloons: "Ballons Fête",
       bg_flowers: "Fleurs Élégantes",
       bg_butterflies: "Papillons Magiques",
@@ -105,8 +105,8 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       paper_premium_colors: "PREMIUM Card Colors",
       trigger_mode_emoji: "Emoji Rain",
       trigger_mode_decor: "Animated Decor",
-      bg_color_label: "Ambiance Background Color (Behind)",
-      bg_premium_colors: "PREMIUM Background Colors",
+      bg_color_label: "Ambiance Background Color",
+      bg_premium_colors: "Special Background Colors",
       bg_balloons: "Celebration Balloons",
       bg_flowers: "Elegant Flowers",
       bg_butterflies: "Magical Butterflies",
@@ -133,8 +133,8 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       paper_premium_colors: "Màu thẻ PREMIUM",
       trigger_mode_emoji: "Mưa émoji",
       trigger_mode_decor: "Trang trí Động",
-      bg_color_label: "Màu nền không gian (Phía sau)",
-      bg_premium_colors: "Màu nền PREMIUM",
+      bg_color_label: "Màu nền không gian",
+      bg_premium_colors: "Màu nền đặc biệt",
       bg_balloons: "Bóng bay tiệc",
       bg_flowers: "Hoa sang trọng",
       bg_butterflies: "Bướm thần tiên",
@@ -633,7 +633,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             )}
           </div>
 
-          {/* SÉLECTEUR VISUEL MULTI-ONGLETS POUR LE THÈME ET L'AMBIANCE VISUELLE (EMOJIS / DÉCORS) */}
+          {/* SÉLECTEUR MULTI-ONGLETS POUR LE THÈME ET L'AMBIANCE VISUELLE (EMOJIS / DÉCORS) */}
           <div className="space-y-4 bg-gray-50/60 p-4 rounded-3xl border border-gray-100">
             <div className="flex items-center justify-between ml-1 mb-2">
               <label className="text-[10px] font-black uppercase text-gray-500">{t.theme_label}</label>
@@ -648,7 +648,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
               </div>
             </div>
 
-            {/* SELECTION DU DECOR DE PREMIER PLAN (OBLIGATOIREMENT LIE AU MODE DECOR SWITCHÉ) */}
+            {/* SELECTION DU DECOR EN PREMIER PLAN (LIE AU MODE DECOR SWITCHÉ) */}
             {triggerMode === 'decor' ? (
               <div className="grid grid-cols-2 gap-3 animate-fade-in pt-1 pb-2">
                 <button type="button" onClick={() => handleBackgroundThemeClick('balloons', true)} className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-all ${invitation.background_theme === 'balloons' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}>
@@ -669,7 +669,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 </button>
               </div>
             ) : (
-              /* LES SELECTIONS DE PROJECTION DES THEMES CLASSIQUES D'EMOJIS */
+              /* THEMES CLASSIQUES D'EMOJIS COUPLÉS AU MODE EMOJI */
               <div className="grid grid-cols-2 gap-3 animate-fade-in pt-1">
                 {EVENT_TYPES.map(type => (
                   <button type="button" key={type.id} onClick={() => handleThemeClick(type.id, type.premium)} className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all relative ${invitation.event_type === type.id ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'} ${type.premium && !isPremium ? 'opacity-40 grayscale' : ''}`}>
@@ -681,7 +681,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
               </div>
             )}
 
-            {/* SELECTION EXCLUSIVE DE LA COULEUR DE FOND DU SIMULATEUR POUR VALORISER LE RENDU VISUEL DES DECORATIONS */}
+            {/* SELECTION DE LA COULEUR DE FOND DU SIMULATEUR */}
             <div className="border-t border-gray-200/60 mt-3 pt-3">
               <label className="text-[10px] font-black uppercase text-gray-400 mb-3 block ml-1">{localLabels.bg_color_label}</label>
               <div className="flex gap-3 overflow-x-auto pb-2 px-1 scrollbar-hide">
