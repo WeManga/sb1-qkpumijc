@@ -168,7 +168,6 @@ export function GuestView({ invitation }: any) {
       }, 75);
 
       if (isVaultClicked) {
-        // Nettoyage préalable par sécurité pour éviter les accumulations
         vaultTimersRef.current.forEach(clearTimeout);
         vaultTimersRef.current = [];
 
@@ -504,7 +503,7 @@ export function GuestView({ invitation }: any) {
                   )}
                 </AnimatePresence>
 
-                {/* ANIMATION DES CONTENANTS DÉCOUPLÉS - COULISSEMENT REALISTE OPAQUE VERS LA DROITE POUR LA PORTE EN METAL */}
+                {/* ANIMATION DES CONTENANTS DÉCOUPLÉS - PORTES PREMIUM OU VOLET COLORÉ FREE QUI SE LÈVE */}
                 <div className="absolute inset-0 z-50 w-full h-full flex" style={{ perspective: '2000px' }}>
                   {invitation.container_open === 'metal_door' ? (
                     <motion.div 
@@ -513,7 +512,7 @@ export function GuestView({ invitation }: any) {
                       className="absolute inset-0 w-full h-full bg-cover bg-center shadow-2xl"
                       style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20noir.png")` }}
                     />
-                  ) : (
+                  ) : invitation.container_open === 'wooden_door' ? (
                     <AnimatePresence>
                       {!isOpened && (
                         <>
@@ -522,8 +521,7 @@ export function GuestView({ invitation }: any) {
                             transition={{ duration: 1.2, ease: "easeInOut" }} 
                             className="w-1/2 h-full origin-left bg-cover bg-center shadow-2xl border-r border-black/10" 
                             style={{ 
-                              backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20gauche.png")`, 
-                              backgroundColor: invitation?.envelope_color || '#FEE2E2'
+                              backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20gauche.png")`
                             }} 
                           />
                           <motion.div 
@@ -531,13 +529,22 @@ export function GuestView({ invitation }: any) {
                             transition={{ duration: 1.2, ease: "easeInOut" }} 
                             className="w-1/2 h-full origin-right bg-cover bg-center shadow-2xl border-l border-black/10" 
                             style={{ 
-                              backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20droite.png")`, 
-                              backgroundColor: invitation?.envelope_color || '#FEE2E2'
+                              backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20droite.png")`
                             }} 
                           />
                         </>
                       )}
                     </AnimatePresence>
+                  ) : (
+                    /* --- ZONE CORRIGÉE : VOLET CLASSIQUE FREE QUI SE LÈVE --- */
+                    <motion.div
+                      animate={isOpened ? { y: "-100%" } : { y: "0%" }}
+                      transition={{ duration: 1.2, ease: "easeInOut" }}
+                      className="absolute inset-0 w-full h-full shadow-2xl z-40"
+                      style={{ 
+                        background: invitation?.envelope_color || '#FEE2E2'
+                      }}
+                    />
                   )}
                 </div>
               </div>
