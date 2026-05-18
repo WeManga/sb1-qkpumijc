@@ -256,9 +256,10 @@ export function InvitationPreview({ invitation }: any) {
               </button>
             )}
 
-            {/* CONTENEUR DU FOND INTERCHANGEABLE ET DU SYSTÈME D'ENVELOPPE FIXE */}
+            {/* CONTENEUR DU FOND INTERCHANGEABLE ET DU SYSTÈME D'ENVELOPPE UNIQUE FIXE */}
             <div className="absolute inset-0 z-10 pointer-events-none overflow-hidden">
-              {/* DÉCORS DE FOND */}
+              
+              {/* DÉCORS DE FOND INTERCHANGEABLES */}
               {isEnvelopeContainer && invitation.envelope_decor === 'balloons' && (
                 <div className="absolute inset-x-0 top-2 flex justify-center">
                   <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/ballons.png" className="w-[275px] h-auto object-contain select-none" alt="Ballons" />
@@ -271,7 +272,7 @@ export function InvitationPreview({ invitation }: any) {
                 </div>
               )}
 
-              {/* L'ENVELOPPE FIXE EN BAS DE L'ÉCRAN */}
+              {/* L'ENVELOPPE FIXE UNIQUE : POSITIONNÉE SUR LE BAS ET PREND TOUTE LA LARGEUR */}
               <div 
                 className="absolute inset-x-0 bottom-0 h-[280px] bg-bottom bg-no-repeat bg-contain z-10"
                 style={{ 
@@ -282,61 +283,7 @@ export function InvitationPreview({ invitation }: any) {
               />
             </div>
 
-            {/* LE FAIRE-PART QUI GLISSE VERS LE HAUT (ACCESSIBLE AU CLIC APRÈS OUVERTURE) */}
-            <div className="relative w-[340px] h-[560px] flex flex-col justify-end pb-4 items-center">
-              {isEnvelopeContainer && (
-                <motion.div 
-                  initial={{ y: 220, opacity: 0, scale: 0.95 }} 
-                  animate={isOpened ? { y: -160, opacity: 1, scale: 1 } : { y: 220, opacity: 0 }} 
-                  transition={{ type: "spring", damping: 18, delay: 0.2 }} 
-                  onClick={() => isOpened && setView('content')} 
-                  style={{ 
-                    backgroundColor: invitation.paper_color || '#FFFFFF',
-                    fontFamily: invitation.font_style 
-                  }}
-                  className={`z-25 w-[285px] h-[330px] rounded-[2.5rem] shadow-2xl p-7 flex flex-col items-center justify-between border border-gray-100/80 cursor-pointer ${getPaperClass()}`}
-                >
-                  <div className="text-center pt-8 w-full">
-                    <h2 className="text-lg font-black uppercase tracking-tighter mb-2 block text-gray-900 line-clamp-2" style={{ fontFamily: invitation.font_style }}>
-                      {invitation?.title || tBuilder.title_placeholder}
-                    </h2>
-                    <div className="w-8 h-1 bg-amber-400 mx-auto mb-2" />
-                    <p className="opacity-60 text-[7.5px] font-black uppercase tracking-[0.3em] text-gray-500">{t.tap_open}</p>
-                  </div>
-                  <div className="w-full py-3 bg-gray-900 text-white rounded-xl text-[8.5px] font-black uppercase text-center tracking-widest hover:bg-amber-500 transition-colors shadow-md">
-                    {lang === 'vi' ? 'Xem chi tiết' : lang === 'en' ? 'See details' : 'Voir les détails'}
-                  </div>
-                </motion.div>
-              )}
-
-              {/* COMPATIBILITÉ PORTES INITIALES (CONSERVÉE SANS MODIFICATION) */}
-              {!isEnvelopeContainer && (
-                <motion.div 
-                  initial={{ scale: 0.8, y: 200 }} 
-                  animate={isOpened ? { scale: 1, y: 135 } : {}} 
-                  transition={{ type: "spring", damping: 20, delay: 0.4 }} 
-                  onClick={() => isOpened && setView('content')} 
-                  style={{ 
-                    backgroundColor: invitation.paper_color || '#FFFFFF',
-                    fontFamily: invitation.font_style 
-                  }}
-                  className={`z-30 w-[310px] h-[370px] rounded-[3rem] shadow-xl p-10 flex flex-col items-center justify-between border border-gray-100 cursor-pointer ${getPaperClass()}`}
-                >
-                  <div className="text-center pt-14 w-full">
-                    <h2 className="text-2xl font-black uppercase tracking-tighter mb-4 break-words" style={{ fontFamily: invitation.font_style }}>
-                      {invitation?.title || tBuilder.title_placeholder}
-                    </h2>
-                    <div className="w-8 h-1 bg-amber-400 mx-auto mb-4" />
-                    <p className="opacity-60 text-[9px] font-bold uppercase tracking-[0.3em]">{t.tap_open}</p>
-                  </div>
-                  <div className="w-full py-4 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase text-center tracking-widest">
-                    {lang === 'vi' ? 'Xem chi tiết' : lang === 'en' ? 'See details' : 'Voir les détails'}
-                  </div>
-                </motion.div>
-              )}
-            </div>
-
-            {/* SÉCURISATION DU CLQUE SUR LE DECLENCHEUR EN AMONT (SCEAU / BOÎTIER TACTILE) */}
+            {/* CADRE ABSOLU DES COUCHES ACTIONS INTERACTIVES INITIALES TACTILES (INSET-0) */}
             <div className="absolute inset-0 z-50 overflow-hidden rounded-[2.5rem]" style={{ pointerEvents: isOpened ? 'none' : 'auto' }}>
               <div className="w-full h-full relative flex items-center justify-center">
                 <AnimatePresence>
@@ -445,7 +392,7 @@ export function InvitationPreview({ invitation }: any) {
               </div>
             </div>
 
-            {/* SYSTÈME DE PORTES EN PLEIN ÉCRAN ASSORTI (z-index ÉLEVÉ 55 POUR PRENDRE LE DESSUS AU DÉPART) */}
+            {/* SYSTÈME DE PORTES ET DE GRAND VOLET EN PLEIN ÉCRAN ASSORTIS (z-index MAXIMUM z-[55]) */}
             <div className="absolute inset-0 z-[55] w-full h-full flex pointer-events-none" style={{ perspective: '2000px' }}>
               {invitation.container_open === 'metal_door' ? (
                 <motion.div 
@@ -474,7 +421,7 @@ export function InvitationPreview({ invitation }: any) {
                   )}
                 </AnimatePresence>
               ) : (
-                /* LE GRAND VOLET PRÉCÉDENT PREND 100% DE L'ÉCRAN, S'ÉJECTE VERS LE HAUT */
+                /* LE GRAND VOLET INITIAL EN PLEIN ÉCRAN S'ÉJECTE VERS LE HAUT AU CLIC POUR RÉVÉLER L'ENVELOPPE */
                 <AnimatePresence>
                   {!isOpened && (
                     <motion.div 
