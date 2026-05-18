@@ -358,15 +358,15 @@ export function GuestView({ invitation }: any) {
               )}
             </motion.div>
 
-            {/* --- CARTE D'INVITATION (AU CENTRE) AVEC LIAISON DYNAMIQUE DE LA COULEUR --- */}
+            {/* --- CARTE D'INVITATION AVEC INTEGRATION DE LA COULEUR DE FOND DU PAPIER SIDEBAR --- */}
             <motion.div 
               initial={{ scale: 0.8, y: 0 }} 
               animate={isOpened ? { scale: 1, y: 80 } : { y: 0 }} 
               transition={{ type: "spring", damping: 20, delay: 0.4 }} 
               onClick={() => isOpened && setView('content')} 
-              style={{
+              style={{ 
                 backgroundColor: invitation.paper_color || '#FFFFFF',
-                fontFamily: invitation.font_style
+                fontFamily: invitation.font_style 
               }}
               className={`z-30 w-[310px] h-[370px] rounded-[3rem] shadow-xl p-10 flex flex-col items-center justify-between border border-gray-100 cursor-pointer ${getPaperClass()}`}
             >
@@ -504,7 +504,7 @@ export function GuestView({ invitation }: any) {
                       animate={isOpened ? { x: "100%" } : { x: "0%" }}
                       transition={{ duration: 1.6, ease: "easeInOut" }}
                       className="absolute inset-0 w-full h-full bg-cover bg-center shadow-2xl"
-                      style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20noir.png")` }}
+                      style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20en%20metal.png")` }}
                     />
                   ) : (
                     <AnimatePresence>
@@ -537,14 +537,8 @@ export function GuestView({ invitation }: any) {
             </div>
           </motion.div>
         ) : (
-          /* --- CONTENU --- WITH DYNAMIC PAPER COLOR LINKED TO SIDEBAR BACKGROUND SELECTION */
-          <motion.div 
-            key="content" 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            style={{ backgroundColor: invitation.paper_color || '#FFFFFF' }}
-            className={`w-full h-full z-[100] flex flex-col overflow-y-auto ${getPaperClass()}`}
-          >
+          /* --- CONTENU --- */
+          <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ backgroundColor: invitation.paper_color || '#FFFFFF' }} className={`w-full h-full z-[100] flex flex-col overflow-y-auto ${getPaperClass()}`}>
             <div className="h-[30%] relative overflow-hidden shrink-0">
                <img 
                  src={invitation.main_photo_url} 
