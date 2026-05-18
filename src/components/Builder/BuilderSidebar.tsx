@@ -57,6 +57,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
   const localLabels = {
     fr: {
+      opening_type_label: "Style d'animation (Arrière de la carte)",
       action_style: "Le Style d'action (Déclencheur)",
       opening_container: "Le Type d'ouverture (Contenant)",
       premium_colors: "Couleurs PREMIUM",
@@ -74,20 +75,17 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       paper_mode_color: "Couleur",
       paper_color_label: "Couleur de la carte",
       paper_premium_colors: "Couleurs de carte PREMIUM",
-      filmstrip_photo_2: "Photo Pellicule 2 (PREMIUM)",
-      filmstrip_photo_3: "Photo Pellicule 3 (PREMIUM)",
-      trigger_section_label: "Type d'Ambiance d'Ouverture",
       trigger_mode_emoji: "Pluie d'émojis",
       trigger_mode_decor: "Décor Animé",
-      bg_color_label: "Couleur de fond globale (Derrière)",
+      bg_color_label: "Couleur de fond de l'ambiance (Derrière)",
       bg_premium_colors: "Couleurs de fond PREMIUM",
-      decor_select_label: "Choix du Décor de Premier Plan",
       bg_balloons: "Ballons Fête",
       bg_flowers: "Fleurs Élégantes",
       bg_butterflies: "Papillons Magiques",
       bg_stars: "Pluie d'Étoiles"
     },
     en: {
+      opening_type_label: "Animation Style (Behind the Card)",
       action_style: "Action Style (Trigger)",
       opening_container: "Opening Type (Container)",
       premium_colors: "PREMIUM Colors",
@@ -105,20 +103,17 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       paper_mode_color: "Color",
       paper_color_label: "Card Color",
       paper_premium_colors: "PREMIUM Card Colors",
-      filmstrip_photo_2: "Filmstrip Photo 2 (PREMIUM)",
-      filmstrip_photo_3: "Filmstrip Photo 3 (PREMIUM)",
-      trigger_section_label: "Opening Ambiance Type",
       trigger_mode_emoji: "Emoji Rain",
       trigger_mode_decor: "Animated Decor",
-      bg_color_label: "Global Background Color (Behind)",
+      bg_color_label: "Ambiance Background Color (Behind)",
       bg_premium_colors: "PREMIUM Background Colors",
-      decor_select_label: "Foreground Decor Selection",
       bg_balloons: "Celebration Balloons",
       bg_flowers: "Elegant Flowers",
       bg_butterflies: "Magical Butterflies",
       bg_stars: "Star Rain"
     },
     vi: {
+      opening_type_label: "Kiểu hoạt ảnh (Phía sau thẻ)",
       action_style: "Kiểu hành động (Kích hoạt)",
       opening_container: "Loại mở rộng (Hộp chứa)",
       premium_colors: "Màu sắc PREMIUM",
@@ -136,14 +131,10 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       paper_mode_color: "Màu sắc",
       paper_color_label: "Màu thẻ",
       paper_premium_colors: "Màu thẻ PREMIUM",
-      filmstrip_photo_2: "Ảnh phim 2 (PREMIUM)",
-      filmstrip_photo_3: "Ảnh phim 3 (PREMIUM)",
-      trigger_section_label: "Loại Không Gian Mở Đầu",
       trigger_mode_emoji: "Mưa émoji",
       trigger_mode_decor: "Trang trí Động",
-      bg_color_label: "Màu nền tổng thể (Phía sau)",
+      bg_color_label: "Màu nền không gian (Phía sau)",
       bg_premium_colors: "Màu nền PREMIUM",
-      decor_select_label: "Lựa chọn Trang trí Tiền cảnh",
       bg_balloons: "Bóng bay tiệc",
       bg_flowers: "Hoa sang trọng",
       bg_butterflies: "Bướm thần tiên",
@@ -183,6 +174,11 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
   const handleBackgroundThemeClick = (themeId: string, premium: boolean) => {
     if (!checkPremiumAccess(!premium)) return;
     onInvitationChange({...invitation, background_theme: themeId});
+  };
+
+  const handleOpeningTypeClick = (typeId: string, premium: boolean) => {
+    if (!checkPremiumAccess(!premium)) return;
+    onInvitationChange({...invitation, opening_type: typeId});
   };
 
   const handleOpeningStyleClick = (styleId: string, premium: boolean) => {
@@ -434,84 +430,32 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
       {activeTab === 'style' && (
         <div className="space-y-8">
-          {/* SECTION : SÉLECTEUR VISUEL MULTI-ONGLETS POUR L'AMBIANCE D'OUVERTURE (PREMIUM) */}
-          <div className="space-y-4 bg-gray-50/80 p-4 rounded-3xl border border-gray-100">
-            <div className="flex items-center justify-between ml-1 mb-2">
-              <label className="text-[10px] font-black uppercase text-gray-500">{localLabels.trigger_section_label}</label>
-              <div className="flex bg-gray-200/60 p-1 rounded-xl">
-                <button type="button" onClick={() => handleTriggerModeSwitch('emoji')} className={`px-3 py-1.5 text-[9px] font-black uppercase rounded-lg transition-all ${triggerMode === 'emoji' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'}`}>
-                  {localLabels.trigger_mode_emoji}
-                </button>
-                <button type="button" onClick={() => handleTriggerModeSwitch('decor')} className={`px-3 py-1.5 text-[9px] font-black uppercase rounded-lg transition-all relative flex items-center gap-1 ${triggerMode === 'decor' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'} ${!isPremium ? 'opacity-50' : ''}`}>
-                  {localLabels.trigger_mode_decor}
-                  {!isPremium && <Lock size={10} />}
-                </button>
-              </div>
-            </div>
+          {/* SECTION 1 : STYLE D'ANIMATION DE FOND (INDÉPENDANT) */}
+          <div>
+            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">
+              {localLabels.opening_type_label}
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              {/* FREE : VINYLE */}
+              <button 
+                type="button"
+                onClick={() => handleOpeningTypeClick('vinyl', false)} 
+                className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all ${invitation.opening_type === 'vinyl' || !invitation.opening_type ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}
+              >
+                <Disc size={18} className={invitation.opening_type === 'vinyl' || !invitation.opening_type ? 'text-amber-500' : 'text-gray-400'} />
+                <span className="text-[10px] font-bold uppercase">{translations[lang].opening_types.vinyl}</span>
+              </button>
 
-            {/* SI LE MODE DECOR EST SELECTIONNE : SÉLECTEUR DES THÉMATIQUES IMAGE AU PREMIER PLAN */}
-            {triggerMode === 'decor' && (
-              <div className="grid grid-cols-2 gap-3 animate-fade-in pt-1">
-                {/* PREMIUM : BALLONS */}
-                <button 
-                  type="button"
-                  onClick={() => handleBackgroundThemeClick('balloons', true)} 
-                  className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-all ${invitation.background_theme === 'balloons' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}
-                >
-                  <PartyPopper size={16} className={invitation.background_theme === 'balloons' ? 'text-amber-500' : 'text-gray-400'} />
-                  <span className="text-[10px] font-bold uppercase">{localLabels.bg_balloons}</span>
-                </button>
-
-                {/* PREMIUM : FLEURS */}
-                <button 
-                  type="button"
-                  onClick={() => handleBackgroundThemeClick('flowers', true)} 
-                  className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-all ${invitation.background_theme === 'flowers' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}
-                >
-                  <Heart size={16} className={invitation.background_theme === 'flowers' ? 'text-amber-500' : 'text-gray-400'} />
-                  <span className="text-[10px] font-bold uppercase">{localLabels.bg_flowers}</span>
-                </button>
-
-                {/* PREMIUM : PAPILLONS */}
-                <button 
-                  type="button"
-                  onClick={() => handleBackgroundThemeClick('butterflies', true)} 
-                  className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-all ${invitation.background_theme === 'butterflies' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}
-                >
-                  <Sparkles size={16} className={invitation.background_theme === 'butterflies' ? 'text-amber-500' : 'text-gray-400'} />
-                  <span className="text-[10px] font-bold uppercase">{localLabels.bg_butterflies}</span>
-                </button>
-
-                {/* PREMIUM : ÉTOILES */}
-                <button 
-                  type="button"
-                  onClick={() => handleBackgroundThemeClick('stars', true)} 
-                  className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-all ${invitation.background_theme === 'stars' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}
-                >
-                  <Sparkles size={16} className={invitation.background_theme === 'stars' ? 'text-amber-500' : 'text-gray-400'} />
-                  <span className="text-[10px] font-bold uppercase">{localLabels.bg_stars}</span>
-                </button>
-              </div>
-            )}
-
-            {/* SÉLECTEUR DE COULEUR DE FOND INTÉGRALEMENT RÉSERVÉ AUX MEMBRES PREMIUM */}
-            <div className="border-t border-gray-200/60 mt-3 pt-3">
-              <label className="text-[10px] font-black uppercase text-gray-400 mb-3 block ml-1">{localLabels.bg_color_label}</label>
-              <div className="flex gap-3 overflow-x-auto pb-2 px-1 scrollbar-hide">
-                {COLOR_PALETTES.map(p => (
-                  <button type="button" key={p.color} onClick={() => handleBackgroundPremiumClick(p.color)} style={{backgroundColor: p.color}} className={`h-10 w-10 shrink-0 rounded-full border-4 relative transition-all ${invitation.background_color === p.color ? 'border-amber-400 scale-110 shadow-md' : 'border-white shadow-sm'} ${!isPremium ? 'opacity-40 grayscale pointer-events-none' : ''}`} />
-                ))}
-              </div>
-              <div className="mt-2">
-                <label className="text-[10px] font-black uppercase text-gray-400 mb-3 block ml-1">{localLabels.bg_premium_colors}</label>
-                <div className="flex gap-3 overflow-x-auto pt-1 pb-2 px-1 scrollbar-hide">
-                  {PREMIUM_PALETTES.map(p => (
-                    <button type="button" key={p.id} onClick={() => handleBackgroundPremiumClick(p.gradient)} style={{ background: p.gradient }} className={`h-11 w-11 shrink-0 rounded-xl border-4 relative flex items-center justify-center transition-all ${invitation.background_color === p.gradient ? 'border-amber-400 scale-110 shadow-md' : 'border-white shadow-sm'} ${!isPremium ? 'opacity-40 grayscale' : ''}`}>
-                      {!isPremium && <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-lg"><Lock size={12} className="text-white drop-shadow-md" /></div>}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              {/* PREMIUM : PELLICULE */}
+              <button 
+                type="button"
+                onClick={() => handleOpeningTypeClick('filmstrip', true)} 
+                className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all relative ${invitation.opening_type === 'filmstrip' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'} ${!isPremium ? 'opacity-40 grayscale' : ''}`}
+              >
+                <Film size={18} className={invitation.opening_type === 'filmstrip' ? 'text-amber-500' : 'text-gray-400'} />
+                <span className="text-[10px] font-bold uppercase">{translations[lang].opening_types.filmstrip}</span>
+                {!isPremium && <Lock size={12} className="absolute right-2 top-2 text-gray-400" />}
+              </button>
             </div>
           </div>
 
@@ -689,17 +633,72 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             )}
           </div>
 
-          {/* PLUIE D'EMOJIS */}
-          <div>
-            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">{t.theme_label}</label>
-            <div className="grid grid-cols-2 gap-3">
-              {EVENT_TYPES.map(type => (
-                <button type="button" key={type.id} onClick={() => handleThemeClick(type.id, type.premium)} className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all relative ${invitation.event_type === type.id ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'} ${type.premium && !isPremium ? 'opacity-40 grayscale' : ''}`}>
-                  <type.icon size={18} className={invitation.event_type === type.id ? 'text-amber-500' : 'text-gray-400'} />
-                  <span className="text-[10px] font-bold uppercase">{type.name}</span>
-                  {type.premium && !isPremium && <Lock size={12} className="absolute right-2 top-2 text-gray-400" />}
+          {/* SÉLECTEUR VISUEL MULTI-ONGLETS POUR LE THÈME ET L'AMBIANCE VISUELLE (EMOJIS / DÉCORS) */}
+          <div className="space-y-4 bg-gray-50/60 p-4 rounded-3xl border border-gray-100">
+            <div className="flex items-center justify-between ml-1 mb-2">
+              <label className="text-[10px] font-black uppercase text-gray-500">{t.theme_label}</label>
+              <div className="flex bg-gray-200/60 p-1 rounded-xl">
+                <button type="button" onClick={() => handleTriggerModeSwitch('emoji')} className={`px-3 py-1.5 text-[9px] font-black uppercase rounded-lg transition-all ${triggerMode === 'emoji' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'}`}>
+                  {localLabels.trigger_mode_emoji}
                 </button>
-              ))}
+                <button type="button" onClick={() => handleTriggerModeSwitch('decor')} className={`px-3 py-1.5 text-[9px] font-black uppercase rounded-lg transition-all relative flex items-center gap-1 ${triggerMode === 'decor' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'} ${!isPremium ? 'opacity-50' : ''}`}>
+                  {localLabels.trigger_mode_decor}
+                  {!isPremium && <Lock size={10} />}
+                </button>
+              </div>
+            </div>
+
+            {/* SELECTION DU DECOR DE PREMIER PLAN (OBLIGATOIREMENT LIE AU MODE DECOR SWITCHÉ) */}
+            {triggerMode === 'decor' ? (
+              <div className="grid grid-cols-2 gap-3 animate-fade-in pt-1 pb-2">
+                <button type="button" onClick={() => handleBackgroundThemeClick('balloons', true)} className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-all ${invitation.background_theme === 'balloons' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}>
+                  <PartyPopper size={16} className={invitation.background_theme === 'balloons' ? 'text-amber-500' : 'text-gray-400'} />
+                  <span className="text-[10px] font-bold uppercase">{localLabels.bg_balloons}</span>
+                </button>
+                <button type="button" onClick={() => handleBackgroundThemeClick('flowers', true)} className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-all ${invitation.background_theme === 'flowers' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}>
+                  <Heart size={16} className={invitation.background_theme === 'flowers' ? 'text-amber-500' : 'text-gray-400'} />
+                  <span className="text-[10px] font-bold uppercase">{localLabels.bg_flowers}</span>
+                </button>
+                <button type="button" onClick={() => handleBackgroundThemeClick('butterflies', true)} className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-all ${invitation.background_theme === 'butterflies' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}>
+                  <Sparkles size={16} className={invitation.background_theme === 'butterflies' ? 'text-amber-500' : 'text-gray-400'} />
+                  <span className="text-[10px] font-bold uppercase">{localLabels.bg_butterflies}</span>
+                </button>
+                <button type="button" onClick={() => handleBackgroundThemeClick('stars', true)} className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-all ${invitation.background_theme === 'stars' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}>
+                  <Sparkles size={16} className={invitation.background_theme === 'stars' ? 'text-amber-500' : 'text-gray-400'} />
+                  <span className="text-[10px] font-bold uppercase">{localLabels.bg_stars}</span>
+                </button>
+              </div>
+            ) : (
+              /* LES SELECTIONS DE PROJECTION DES THEMES CLASSIQUES D'EMOJIS */
+              <div className="grid grid-cols-2 gap-3 animate-fade-in pt-1">
+                {EVENT_TYPES.map(type => (
+                  <button type="button" key={type.id} onClick={() => handleThemeClick(type.id, type.premium)} className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all relative ${invitation.event_type === type.id ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'} ${type.premium && !isPremium ? 'opacity-40 grayscale' : ''}`}>
+                    <type.icon size={18} className={invitation.event_type === type.id ? 'text-amber-500' : 'text-gray-400'} />
+                    <span className="text-[10px] font-bold uppercase">{type.name}</span>
+                    {type.premium && !isPremium && <Lock size={12} className="absolute right-2 top-2 text-gray-400" />}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* SELECTION EXCLUSIVE DE LA COULEUR DE FOND DU SIMULATEUR POUR VALORISER LE RENDU VISUEL DES DECORATIONS */}
+            <div className="border-t border-gray-200/60 mt-3 pt-3">
+              <label className="text-[10px] font-black uppercase text-gray-400 mb-3 block ml-1">{localLabels.bg_color_label}</label>
+              <div className="flex gap-3 overflow-x-auto pb-2 px-1 scrollbar-hide">
+                {COLOR_PALETTES.map(p => (
+                  <button type="button" key={p.color} onClick={() => handleBackgroundPremiumClick(p.color)} style={{backgroundColor: p.color}} className={`h-10 w-10 shrink-0 rounded-full border-4 relative transition-all ${invitation.background_color === p.color ? 'border-amber-400 scale-110 shadow-md' : 'border-white shadow-sm'} ${!isPremium ? 'opacity-40 grayscale pointer-events-none' : ''}`} />
+                ))}
+              </div>
+              <div className="mt-2">
+                <label className="text-[10px] font-black uppercase text-gray-400 mb-3 block ml-1">{localLabels.bg_premium_colors}</label>
+                <div className="flex gap-3 overflow-x-auto pt-1 pb-2 px-1 scrollbar-hide">
+                  {PREMIUM_PALETTES.map(p => (
+                    <button type="button" key={p.id} onClick={() => handleBackgroundPremiumClick(p.gradient)} style={{ background: p.gradient }} className={`h-11 w-11 shrink-0 rounded-xl border-4 relative flex items-center justify-center transition-all ${invitation.background_color === p.gradient ? 'border-amber-400 scale-110 shadow-md' : 'border-white shadow-sm'} ${!isPremium ? 'opacity-40 grayscale' : ''}`}>
+                      {!isPremium && <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-lg"><Lock size={12} className="text-white drop-shadow-md" /></div>}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 
