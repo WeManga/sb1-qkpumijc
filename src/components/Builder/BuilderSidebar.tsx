@@ -75,7 +75,13 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       paper_color_label: "Couleur de la carte",
       paper_premium_colors: "Couleurs de carte PREMIUM",
       filmstrip_photo_2: "Photo Pellicule 2 (PREMIUM)",
-      filmstrip_photo_3: "Photo Pellicule 3 (PREMIUM)"
+      filmstrip_photo_3: "Photo Pellicule 3 (PREMIUM)",
+      bg_section_label: "Ambiance d'Arrière-Plan (PREMIUM)",
+      bg_none: "Aucun décor",
+      bg_balloons: "Ballons Fête",
+      bg_flowers: "Fleurs Élégantes",
+      bg_butterflies: "Papillons Magiques",
+      bg_stars: "Pluie d'Étoiles"
     },
     en: {
       opening_type_label: "Animation Style (Behind the Card)",
@@ -97,7 +103,13 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       paper_color_label: "Card Color",
       paper_premium_colors: "PREMIUM Card Colors",
       filmstrip_photo_2: "Filmstrip Photo 2 (PREMIUM)",
-      filmstrip_photo_3: "Filmstrip Photo 3 (PREMIUM)"
+      filmstrip_photo_3: "Filmstrip Photo 3 (PREMIUM)",
+      bg_section_label: "Background Ambiance (PREMIUM)",
+      bg_none: "No Decor",
+      bg_balloons: "Celebration Balloons",
+      bg_flowers: "Elegant Flowers",
+      bg_butterflies: "Magical Butterflies",
+      bg_stars: "Star Rain"
     },
     vi: {
       opening_type_label: "Kiểu hoạt ảnh (Phía sau thẻ)",
@@ -119,7 +131,13 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       paper_color_label: "Màu thẻ",
       paper_premium_colors: "Màu thẻ PREMIUM",
       filmstrip_photo_2: "Ảnh phim 2 (PREMIUM)",
-      filmstrip_photo_3: "Ảnh phim 3 (PREMIUM)"
+      filmstrip_photo_3: "Ảnh phim 3 (PREMIUM)",
+      bg_section_label: "Không Gian Nền (PREMIUM)",
+      bg_none: "Không trang trí",
+      bg_balloons: "Bóng bay tiệc",
+      bg_flowers: "Hoa sang trọng",
+      bg_butterflies: "Bướm thần tiên",
+      bg_stars: "Mưa sao lấp lánh"
     }
   }[lang];
 
@@ -154,6 +172,11 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
   const handleContainerOpenClick = (containerOpenId: string, premium: boolean) => {
     if (!checkPremiumAccess(!premium)) return;
     onInvitationChange({...invitation, container_open: containerOpenId});
+  };
+
+  const handleBackgroundThemeClick = (themeId: string, premium: boolean) => {
+    if (!checkPremiumAccess(!premium)) return;
+    onInvitationChange({...invitation, background_theme: themeId});
   };
 
   const handleThemeClick = (themeId: string, premium: boolean) => {
@@ -419,6 +442,68 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
               >
                 <Film size={18} className={invitation.opening_type === 'filmstrip' ? 'text-amber-500' : 'text-gray-400'} />
                 <span className="text-[10px] font-bold uppercase">{translations[lang].opening_types.filmstrip}</span>
+                {!isPremium && <Lock size={12} className="absolute right-2 top-2 text-gray-400" />}
+              </button>
+            </div>
+          </div>
+
+          {/* SECTION DÉCORS D'ARRIÈRE-PLAN (PREMIUM) */}
+          <div>
+            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">
+              {localLabels.bg_section_label}
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              {/* GRATUIT : AUCUN */}
+              <button 
+                type="button"
+                onClick={() => handleBackgroundThemeClick('none', false)} 
+                className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all ${invitation.background_theme === 'none' || !invitation.background_theme ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}
+              >
+                <ImageIcon size={18} className={invitation.background_theme === 'none' || !invitation.background_theme ? 'text-amber-500' : 'text-gray-400'} />
+                <span className="text-[10px] font-bold uppercase">{localLabels.bg_none}</span>
+              </button>
+
+              {/* PREMIUM : BALLONS */}
+              <button 
+                type="button"
+                onClick={() => handleBackgroundThemeClick('balloons', true)} 
+                className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all relative ${invitation.background_theme === 'balloons' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'} ${!isPremium ? 'opacity-40 grayscale' : ''}`}
+              >
+                <PartyPopper size={18} className={invitation.background_theme === 'balloons' ? 'text-amber-500' : 'text-gray-400'} />
+                <span className="text-[10px] font-bold uppercase">{localLabels.bg_balloons}</span>
+                {!isPremium && <Lock size={12} className="absolute right-2 top-2 text-gray-400" />}
+              </button>
+
+              {/* PREMIUM : FLEURS */}
+              <button 
+                type="button"
+                onClick={() => handleBackgroundThemeClick('flowers', true)} 
+                className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all relative ${invitation.background_theme === 'flowers' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'} ${!isPremium ? 'opacity-40 grayscale' : ''}`}
+              >
+                <Heart size={18} className={invitation.background_theme === 'flowers' ? 'text-amber-500' : 'text-gray-400'} />
+                <span className="text-[10px] font-bold uppercase">{localLabels.bg_flowers}</span>
+                {!isPremium && <Lock size={12} className="absolute right-2 top-2 text-gray-400" />}
+              </button>
+
+              {/* PREMIUM : PAPILLONS */}
+              <button 
+                type="button"
+                onClick={() => handleBackgroundThemeClick('butterflies', true)} 
+                className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all relative ${invitation.background_theme === 'butterflies' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'} ${!isPremium ? 'opacity-40 grayscale' : ''}`}
+              >
+                <Sparkles size={18} className={invitation.background_theme === 'butterflies' ? 'text-amber-500' : 'text-gray-400'} />
+                <span className="text-[10px] font-bold uppercase">{localLabels.bg_butterflies}</span>
+                {!isPremium && <Lock size={12} className="absolute right-2 top-2 text-gray-400" />}
+              </button>
+
+              {/* PREMIUM : ÉTOILES */}
+              <button 
+                type="button"
+                onClick={() => handleBackgroundThemeClick('stars', true)} 
+                className={`col-span-2 flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all relative ${invitation.background_theme === 'stars' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'} ${!isPremium ? 'opacity-40 grayscale' : ''}`}
+              >
+                <Sparkles size={18} className={invitation.background_theme === 'stars' ? 'text-amber-500' : 'text-gray-400'} />
+                <span className="text-[10px] font-bold uppercase">{localLabels.bg_stars}</span>
                 {!isPremium && <Lock size={12} className="absolute right-2 top-2 text-gray-400" />}
               </button>
             </div>
