@@ -56,7 +56,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
   const localLabels = {
     fr: {
-      opening_type_label: "Style d'animation (Sortie de la carte)",
+      opening_type_label: "Style d'animation (Arrière de la carte)",
       action_style: "Le Style d'action (Déclencheur)",
       opening_container: "Le Type d'ouverture (Contenant)",
       premium_colors: "Couleurs PREMIUM",
@@ -78,7 +78,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       filmstrip_photo_3: "Photo Pellicule 3 (PREMIUM)"
     },
     en: {
-      opening_type_label: "Animation Style (Card Reveal)",
+      opening_type_label: "Animation Style (Behind the Card)",
       action_style: "Action Style (Trigger)",
       opening_container: "Opening Type (Container)",
       premium_colors: "PREMIUM Colors",
@@ -100,7 +100,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       filmstrip_photo_3: "Filmstrip Photo 3 (PREMIUM)"
     },
     vi: {
-      opening_type_label: "Kiểu hoạt ảnh (Lộ thẻ)",
+      opening_type_label: "Kiểu hoạt ảnh (Phía sau thẻ)",
       action_style: "Kiểu hành động (Kích hoạt)",
       opening_container: "Loại mở rộng (Hộp chứa)",
       premium_colors: "Màu sắc PREMIUM",
@@ -332,7 +332,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 <input type="file" className="hidden" accept="image/*" onChange={(e) => uploadFile(e, 'end_photo_url')} />
               </label>
 
-              {/* ZONE TECHNIQUE D'UPLOAD CONDITIONNEL POUR LES PHOTOS DE LA PELLICULE ANIMÉE */}
               {invitation.opening_type === 'filmstrip' && (
                 <>
                   <label className={`flex flex-col items-center justify-center aspect-square bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-200 cursor-pointer overflow-hidden relative ${!isPremium ? 'opacity-50 grayscale pointer-events-none' : ''}`}>
@@ -396,12 +395,13 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
       {activeTab === 'style' && (
         <div className="space-y-8">
-          {/* SECTION 1 : STYLE D'ANIMATION */}
+          {/* SECTION 1 : STYLE D'ANIMATION DE FOND (INDÉPENDANT) */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">
               {localLabels.opening_type_label}
             </label>
             <div className="grid grid-cols-2 gap-3">
+              {/* FREE : VINYLE */}
               <button 
                 type="button"
                 onClick={() => handleOpeningTypeClick('vinyl', false)} 
@@ -411,24 +411,25 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 <span className="text-[10px] font-bold uppercase">{translations[lang].opening_types.vinyl}</span>
               </button>
 
+              {/* PREMIUM : PELLICULE */}
               <button 
                 type="button"
-                onClick={() => handleOpeningTypeClick('filmstrip', false)} 
-                className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all ${invitation.opening_type === 'filmstrip' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}
+                onClick={() => handleOpeningTypeClick('filmstrip', true)} 
+                className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all relative ${invitation.opening_type === 'filmstrip' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'} ${!isPremium ? 'opacity-40 grayscale' : ''}`}
               >
                 <Film size={18} className={invitation.opening_type === 'filmstrip' ? 'text-amber-500' : 'text-gray-400'} />
                 <span className="text-[10px] font-bold uppercase">{translations[lang].opening_types.filmstrip}</span>
+                {!isPremium && <Lock size={12} className="absolute right-2 top-2 text-gray-400" />}
               </button>
             </div>
           </div>
 
-          {/* SECTION 2 : STYLE D'ACTION (L'ANIMATION SEULE) */}
+          {/* SECTION 2 : STYLE D'ACTION (L'ANIMATION INTERACTIVE SEULE) */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">
               {localLabels.action_style}
             </label>
             <div className="grid grid-cols-2 gap-3">
-              {/* GRATUIT : SCEAU */}
               <button 
                 type="button"
                 onClick={() => handleOpeningStyleClick('default', false)} 
@@ -438,7 +439,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 <span className="text-[10px] font-bold uppercase">{localLabels.style_default}</span>
               </button>
 
-              {/* PREMIUM : MAIN QUI TOQUE */}
               <button 
                 type="button"
                 onClick={() => handleOpeningStyleClick('knock', true)} 
@@ -449,7 +449,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 {!isPremium && <Lock size={12} className="absolute right-2 top-2 text-gray-400" />}
               </button>
 
-              {/* PREMIUM : CLÉ CLASSIQUE */}
               <button 
                 type="button"
                 onClick={() => handleOpeningStyleClick('key', true)} 
@@ -460,7 +459,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 {!isPremium && <Lock size={12} className="absolute right-2 top-2 text-gray-400" />}
               </button>
 
-              {/* PREMIUM : CODE DIGITAL (VAULT) */}
               <button 
                 type="button"
                 onClick={() => handleOpeningStyleClick('vault', true)} 
@@ -472,7 +470,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
               </button>
             </div>
 
-            {/* CAS DE CALENDRIER CONDITIONNEL INTÉGRÉ POUR LE CODE DIGITAL (VAULT) */}
             {invitation.opening_style === 'vault' && (
               <div className="mt-4 p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-2 animate-fade-in">
                 <label className="text-[10px] font-black uppercase text-gray-500 flex items-center gap-2">
@@ -529,7 +526,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </div>
 
-          {/* SÉLECTEUR VISUEL AUTONOME : CONFIGURATION DU VOLET */}
+          {/* SÉLECTEUR VISUEL AUTONOME : CONFIGURATION DES COULEURS DU VOLET */}
           {(invitation.container_open === 'envelope' || !invitation.container_open) && (
             <div className="space-y-4 bg-gray-50/50 p-4 rounded-3xl border border-gray-100">
               <div>
@@ -591,7 +588,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                   <label className="text-[10px] font-black uppercase text-gray-400 mb-3 block ml-1">{localLabels.paper_premium_colors}</label>
                   <div className="flex gap-3 overflow-x-auto pt-1 pb-2 px-1 scrollbar-hide">
                     {PREMIUM_PALETTES.map(p => (
-                      <button type="button" key={p.id} onClick={() => handlePaperPremiumClick(p.gradient)} style={{ background: p.gradient }} className={`h-12 w-12 shrink-0 rounded-xl border-4 relative flex items-center justify-center transition-all ${invitation.paper_color === p.gradient ? 'border-amber-400 scale-110 shadow-lg' : 'border-white shadow-sm'} ${!isPremium ? 'opacity-40 grayscale' : ''}`}>
+                      <button type="button" key={p.id} onClick={{/* S'appuie sur le trigger global */} handlePaperPremiumClick(p.gradient)} style={{ background: p.gradient }} className={`h-12 w-12 shrink-0 rounded-xl border-4 relative flex items-center justify-center transition-all ${invitation.paper_color === p.gradient ? 'border-amber-400 scale-110 shadow-lg' : 'border-white shadow-sm'} ${!isPremium ? 'opacity-40 grayscale' : ''}`}>
                         {!isPremium && <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-lg"><Lock size={12} className="text-white drop-shadow-md" /></div>}
                       </button>
                     ))}
