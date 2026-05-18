@@ -26,13 +26,13 @@ const PREMIUM_PALETTES = [
 
 const FONTS = [
   { id: 'font-sans', name: 'Moderne Pur', family: "ui-sans-serif, system-ui, sans-serif", premium: false },
-  { id: 'font-serif', name: 'Classique Chic', family: "ui-serif, Georgia, serif", premium: false },
-  { id: 'font-elegant', name: 'Élégance Riviera', family: "'Times New Roman', serif", premium: true },
-  { id: 'font-script', name: 'Plume Douce', family: "cursive", premium: true },
-  { id: 'font-royal', name: 'Royal Majesty', family: "'Apple Chancery', 'Zapfino', cursive", premium: true },
-  { id: 'font-vintage', name: 'Héritage Ancien', family: "'Copperplate', 'Papyrus', serif", premium: true },
-  { id: 'font-boho', name: 'Bohème Spirit', family: "'Bradley Hand', cursive", premium: true },
-  { id: 'font-luxury', name: 'Luxe Minimal', family: "'Didot', 'Bodoni MT', serif", premium: true }
+  { id: 'font-serif', name: 'Classique Chic', family: "'Playfair Display', serif", premium: false },
+  { id: 'font-elegant', name: 'Élégance Riviera', family: "'Cinzel', serif", premium: true },
+  { id: 'font-script', name: 'Plume Douce', family: "'Great Vibes', cursive", premium: true },
+  { id: 'font-royal', name: 'Royal Majesty', family: "'Monsieur La Doulaise', cursive", premium: true },
+  { id: 'font-vintage', name: 'Héritage Ancien', family: "'Cinzel Decorative', serif", premium: true },
+  { id: 'font-boho', name: 'Bohème Spirit', family: "'Caveat', cursive", premium: true },
+  { id: 'font-luxury', name: 'Luxe Minimal', family: "'Bodoni Moda', serif", premium: true }
 ];
 
 const TEXTURES = [
@@ -73,7 +73,9 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       paper_mode_texture: "Texture",
       paper_mode_color: "Couleur",
       paper_color_label: "Couleur de la carte",
-      paper_premium_colors: "Couleurs de carte PREMIUM"
+      paper_premium_colors: "Couleurs de carte PREMIUM",
+      filmstrip_photo_2: "Photo Pellicule 2 (PREMIUM)",
+      filmstrip_photo_3: "Photo Pellicule 3 (PREMIUM)"
     },
     en: {
       opening_type_label: "Animation Style (Card Reveal)",
@@ -93,7 +95,9 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       paper_mode_texture: "Texture",
       paper_mode_color: "Color",
       paper_color_label: "Card Color",
-      paper_premium_colors: "PREMIUM Card Colors"
+      paper_premium_colors: "PREMIUM Card Colors",
+      filmstrip_photo_2: "Filmstrip Photo 2 (PREMIUM)",
+      filmstrip_photo_3: "Filmstrip Photo 3 (PREMIUM)"
     },
     vi: {
       opening_type_label: "Kiểu hoạt ảnh (Lộ thẻ)",
@@ -113,7 +117,9 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       paper_mode_texture: "Kết cấu",
       paper_mode_color: "Màu sắc",
       paper_color_label: "Màu thẻ",
-      paper_premium_colors: "Màu thẻ PREMIUM"
+      paper_premium_colors: "Màu thẻ PREMIUM",
+      filmstrip_photo_2: "Ảnh phim 2 (PREMIUM)",
+      filmstrip_photo_3: "Ảnh phim 3 (PREMIUM)"
     }
   }[lang];
 
@@ -189,7 +195,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
         [field]: data.publicUrl 
       };
 
-      if (field === 'main_photo_url' || field === 'end_photo_url') {
+      if (field === 'main_photo_url' || field === 'end_photo_url' || field === 'photo_url_2' || field === 'photo_url_3') {
         updates[`${field}_pos_x`] = 0;
         updates[`${field}_pos_y`] = 0;
         updates[`${field}_scale`] = 1;
@@ -319,11 +325,30 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-gray-600 uppercase bg-white/40 text-center px-2">{t.start_photo}</span>
                 <input type="file" className="hidden" accept="image/*" onChange={(e) => uploadFile(e, 'main_photo_url')} />
               </label>
+              
               <label className={`flex flex-col items-center justify-center aspect-square bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-200 cursor-pointer overflow-hidden relative ${!isPremium ? 'opacity-50 grayscale pointer-events-none' : ''}`}>
                 {invitation.end_photo_url ? <img src={invitation.end_photo_url} className="w-full h-full object-cover opacity-30" /> : <ImageIcon className="text-gray-400 mb-2" />}
                 <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-gray-600 uppercase bg-white/40 text-center px-2 flex flex-col items-center gap-1">{t.end_photo} {!isPremium && <Lock size={16} />}</span>
                 <input type="file" className="hidden" accept="image/*" onChange={(e) => uploadFile(e, 'end_photo_url')} />
               </label>
+
+              {/* ZONE TECHNIQUE D'UPLOAD CONDITIONNEL POUR LES PHOTOS DE LA PELLICULE ANIMÉE */}
+              {invitation.opening_type === 'filmstrip' && (
+                <>
+                  <label className={`flex flex-col items-center justify-center aspect-square bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-200 cursor-pointer overflow-hidden relative ${!isPremium ? 'opacity-50 grayscale pointer-events-none' : ''}`}>
+                    {invitation.photo_url_2 ? <img src={invitation.photo_url_2} className="w-full h-full object-cover opacity-30" /> : <ImageIcon className="text-gray-400 mb-2" />}
+                    <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-gray-600 uppercase bg-white/40 text-center px-2 flex flex-col items-center gap-1">{localLabels.filmstrip_photo_2} {!isPremium && <Lock size={16} />}</span>
+                    <input type="file" className="hidden" accept="image/*" onChange={(e) => uploadFile(e, 'photo_url_2')} />
+                  </label>
+
+                  <label className={`flex flex-col items-center justify-center aspect-square bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-200 cursor-pointer overflow-hidden relative ${!isPremium ? 'opacity-50 grayscale pointer-events-none' : ''}`}>
+                    {invitation.photo_url_3 ? <img src={invitation.photo_url_3} className="w-full h-full object-cover opacity-30" /> : <ImageIcon className="text-gray-400 mb-2" />}
+                    <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-gray-600 uppercase bg-white/40 text-center px-2 flex flex-col items-center gap-1">{localLabels.filmstrip_photo_3} {!isPremium && <Lock size={16} />}</span>
+                    <input type="file" className="hidden" accept="image/*" onChange={(e) => uploadFile(e, 'photo_url_3')} />
+                  </label>
+                </>
+              )}
+
               <label className="col-span-2 flex items-center gap-3 p-4 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
                 <Music className="text-gray-400 shrink-0" size={20} />
                 <span className="text-[10px] font-bold text-gray-500 uppercase truncate">{invitation.music_url ? t.music_loaded : t.upload_music}</span>
@@ -331,10 +356,12 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
               </label>
             </div>
           </div>
-          {(invitation.main_photo_url || invitation.end_photo_url) && (
+          {(invitation.main_photo_url || invitation.end_photo_url || invitation.photo_url_2 || invitation.photo_url_3) && (
             <div className="bg-amber-50/50 p-6 rounded-[2rem] border border-amber-100 space-y-4">
               <div className="flex flex-wrap gap-2">
                 <button onClick={() => setSelectedPhotoKey('main_photo_url')} className={`px-3 py-1 rounded-full text-[9px] font-black uppercase transition-all ${selectedPhotoKey === 'main_photo_url' ? 'bg-amber-500 text-white shadow-sm' : 'bg-white text-amber-800 border border-amber-200'}`}>{t.back_btn}</button>
+                {invitation.photo_url_2 && <button onClick={() => setSelectedPhotoKey('photo_url_2')} className={`px-3 py-1 rounded-full text-[9px] font-black uppercase transition-all ${selectedPhotoKey === 'photo_url_2' ? 'bg-amber-500 text-white shadow-sm' : 'bg-white text-amber-800 border border-amber-200'}`}>Pellicule 2</button>}
+                {invitation.photo_url_3 && <button onClick={() => setSelectedPhotoKey('photo_url_3')} className={`px-3 py-1 rounded-full text-[9px] font-black uppercase transition-all ${selectedPhotoKey === 'photo_url_3' ? 'bg-amber-500 text-white shadow-sm' : 'bg-white text-amber-800 border border-amber-200'}`}>Pellicule 3</button>}
                 {invitation.end_photo_url && <button onClick={() => setSelectedPhotoKey('end_photo_url')} className={`px-3 py-1 rounded-full text-[9px] font-black uppercase transition-all ${selectedPhotoKey === 'end_photo_url' ? 'bg-amber-500 text-white shadow-sm' : 'bg-white text-amber-800 border border-amber-200'}`}>{t.end_photo}</button>}
               </div>
               <span className="text-[10px] font-black uppercase text-amber-800 flex items-center gap-2"><Move size={12}/> {t.adjust_label}</span>
