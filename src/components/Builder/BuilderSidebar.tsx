@@ -64,7 +64,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       style_knock: "Main qui toque",
       style_key: "Clé classique",
       style_vault: "Code digital (Vault)",
-      type_vinyl: "Enveloppe classique",
+      type_vinyl: "Volet classique",
       type_filmstrip: "Porte en Bois",
       type_metal: "Porte en Métal",
       vault_date_label: "Date du code secret (6 chiffres animés)",
@@ -84,7 +84,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       style_knock: "Knocking Hand",
       style_key: "Classic Key",
       style_vault: "Digital Code (Vault)",
-      type_vinyl: "Classic Envelope",
+      type_vinyl: "Classic Panel",
       type_filmstrip: "Wooden Door",
       type_metal: "Metal Door",
       vault_date_label: "Secret Code Date (6 animated digits)",
@@ -104,7 +104,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       style_knock: "Tay gõ cửa",
       style_key: "Chìa khóa cổ điển",
       style_vault: "Mã kỹ thuật số (Vault)",
-      type_vinyl: "Phong bì cổ điển",
+      type_vinyl: "Bảng cổ điển",
       type_filmstrip: "Cửa gỗ",
       type_metal: "Cửa kim loại",
       vault_date_label: "Ngày mã bí mật (6 chữ số hoạt hình)",
@@ -468,7 +468,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
               {localLabels.opening_container}
             </label>
             <div className="grid grid-cols-2 gap-3">
-              {/* GRATUIT : ENVELOPPE CLASSIQUE */}
+              {/* GRATUIT : VOLET CLASSIQUE */}
               <button 
                 type="button"
                 onClick={() => handleContainerOpenClick('envelope', false)} 
@@ -502,7 +502,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </div>
 
-          {/* SÉLECTEUR VISUEL AUTONOME : CONFIGURATION DE L'ENVELOPPE */}
+          {/* SÉLECTEUR VISUEL AUTONOME : CONFIGURATION DU VOLET */}
           {(invitation.container_open === 'envelope' || !invitation.container_open) && (
             <div className="space-y-4 bg-gray-50/50 p-4 rounded-3xl border border-gray-100">
               <div>
