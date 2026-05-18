@@ -274,82 +274,93 @@ export function InvitationPreview({ invitation }: any) {
       );
     }
 
-    // RENDU DÉCOR : PAPILLONS REALS (VOL ET BATTEMENT 3D EN PREMIER PLAN)
+    // RENDU DÉCOR : PAPILLONS REALS (VOL ALTERNÉ GAUCHE/DROITE EN PREMIER PLAN)
     if (invitation.background_theme === 'butterflies') {
       return (
         <div className="absolute inset-0 z-50 pointer-events-none w-full h-full rounded-[3.5rem] overflow-hidden">
-          {[...Array(3)].map((_, idx) => (
-            <motion.div
-              key={idx}
-              initial={{ x: -60, y: 500 - idx * 120, scale: 0.38 + idx * 0.08 }}
-              animate={{ 
-                x: 360, 
-                y: [500 - idx * 120, 260 - idx * 90, 40 - idx * 120] 
-              }}
-              transition={{ duration: 8.5 + idx * 2, repeat: Infinity, ease: "easeInOut", delay: idx * 2.2 }}
-              className="absolute w-20 h-20 origin-center"
-            >
-              <motion.img
-                src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/papillions.png"
-                animate={{ rotateY: [0, 70, 0] }}
-                transition={{ duration: 0.22, repeat: Infinity, ease: "linear" }}
-                className="w-full h-full object-contain select-none drop-shadow-lg"
-              />
-            </motion.div>
-          ))}
+          {[...Array(4)].map((_, idx) => {
+            const isFromRight = idx % 2 === 1; // Un coup à gauche, un coup à droite !
+            return (
+              <motion.div
+                key={idx}
+                initial={{ 
+                  x: isFromRight ? 360 : -60, 
+                  y: 480 - idx * 110, 
+                  scale: 0.35 + idx * 0.08,
+                  scaleX: isFromRight ? -1 : 1 // Aligne le regard du papillon vers sa direction de vol
+                }}
+                animate={{ 
+                  x: isFromRight ? -60 : 360, 
+                  y: [480 - idx * 110, 240 - idx * 80, 30 - idx * 110] 
+                }}
+                transition={{ duration: 8 + idx * 2, repeat: Infinity, ease: "easeInOut", delay: idx * 2.0 }}
+                className="absolute w-20 h-20 origin-center"
+              >
+                <motion.img
+                  src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/papillions.png"
+                  animate={{ rotateY: [0, 70, 0] }}
+                  transition={{ duration: 0.22, repeat: Infinity, ease: "linear" }}
+                  className="w-full h-full object-contain select-none drop-shadow-lg"
+                />
+              </motion.div>
+            );
+          })}
         </div>
       );
     }
 
-    // RENDU DÉCOR : FLEURS STRUCTURÉES ET INCORPORÉES DEVANT LES COUPE-FLUX
+    // RENDU DÉCOR : FLEURS REPOSITIONNÉES EN TOUT COIN DE L'ÉCRAN
     if (invitation.background_theme === 'flowers') {
       return (
         <div className="absolute inset-0 z-50 pointer-events-none w-full h-full rounded-[3.5rem] overflow-hidden">
+          {/* Fleurs Top - Ajusté plus haut */}
           <motion.img 
             src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleurs%20top.png"
             animate={{ rotate: [-0.6, 0.6, -0.6] }}
             transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute top-0 left-0 w-full object-contain origin-top select-none drop-shadow-md"
+            className="absolute top-[-10px] left-0 w-full object-contain origin-top select-none drop-shadow-md"
           />
+          {/* Fleurs Coin Gauche - Ajusté plus profondément dans le coin gauche */}
           <motion.img 
             src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleus%20coin%20gauche.png"
             animate={{ rotate: [0.4, -0.4, 0.4], scale: [1, 1.01, 1] }}
             transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute bottom-0 left-0 w-[55%] object-contain origin-bottom-left select-none drop-shadow-lg"
+            className="absolute bottom-[-15px] left-[-15px] w-[55%] object-contain origin-bottom-left select-none drop-shadow-lg"
           />
         </div>
       );
     }
 
-    // RENDU DÉCOR : MATRIX ET ENCEINTE DE SCINTILLEMENT ÉTOILÉE FINIE DEVANT LA CARTE
+    // RENDU DÉCOR : VÉRITABLE PLUIE D'ÉTOILES SANS FILTRE SOMBRE PAS BEAU
     if (invitation.background_theme === 'stars') {
       const starColor = invitation.envelope_color && invitation.envelope_color.startsWith('#') ? invitation.envelope_color : '#FFFFFF';
       return (
-        <div className="absolute inset-0 z-50 pointer-events-none w-full h-full rounded-[3.5rem] overflow-hidden bg-black/60 backdrop-blur-[0.5px]">
-          <motion.div 
-            className="absolute inset-0 opacity-45 mix-blend-screen bg-cover bg-center" 
-            style={{ backgroundImage: 'url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/etoile%201.png")' }}
-            animate={{ opacity: [0.35, 0.7, 0.35] }}
-            transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+        <div className="absolute inset-0 z-50 pointer-events-none w-full h-full rounded-[3.5rem] overflow-hidden">
+          {/* Texture d'étoiles de fond subtile et claire */}
+          <div 
+            className="absolute inset-0 opacity-20 mix-blend-screen bg-cover bg-center" 
+            style={{ backgroundImage: 'url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/etoile%201.png")"' }}
           />
+          {/* Véritable pluie vectorielle descendante et clignotante */}
           <svg className="absolute inset-0 w-full h-full">
-            {[...Array(18)].map((_, idx) => (
+            {[...Array(20)].map((_, idx) => (
               <motion.circle
                 key={idx}
-                cx={`${4 + Math.random() * 92}%`}
-                cy={`${Math.random() * 100}%`}
-                r={1.2 + Math.random() * 2.2}
-                fill={starColor}
+                cx={`${2 + Math.random() * 96}%`}
+                initial={{ cy: -20, opacity: 0 }}
                 animate={{ 
-                  opacity: [0.15, 1, 0.15], 
-                  scale: [0.75, 1.35, 0.75] 
+                  cy: 670, 
+                  opacity: [0, 1, 1, 0],
+                  scale: [0.8, 1.3, 0.8]
                 }}
                 transition={{ 
-                  duration: 1.8 + Math.random() * 1.8, 
+                  duration: 2.5 + Math.random() * 2, 
                   repeat: Infinity, 
-                  ease: "easeInOut", 
-                  delay: Math.random() * 2 
+                  ease: "linear", 
+                  delay: Math.random() * 3 
                 }}
+                r={1.2 + Math.random() * 2}
+                fill={starColor}
               />
             ))}
           </svg>
@@ -457,7 +468,7 @@ export function InvitationPreview({ invitation }: any) {
               </div>
             </motion.div>
 
-            {/* --- EXTRACTION ET PROJECTION DES COMPOSANTS ANIMÉS PREMIUM AU PREMIER PLAN --- */}
+            {/* --- COMPOSANTS DE DÉCORS PREMIUM PLACÉS AU PREMIER PLAN --- */}
             <PremiumForegroundDecor />
 
             {/* --- COUCHE DECLENCHEURS MECANIQUES ET FOND --- */}
@@ -511,7 +522,7 @@ export function InvitationPreview({ invitation }: any) {
                           /* --- BOITIER DIGITAL TACTILE RÉDUIT --- */
                           <div className="relative w-[220px] h-[330px] flex flex-col items-center justify-start bg-neutral-950 border-[4px] border-neutral-800 rounded-[1.75rem] shadow-[0_20px_40px_rgba(0,0,0,0.8)] overflow-hidden p-4">
                             <img 
-                              src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/dgital.png" 
+                              src="https://njvnmribopknrqvtjkup.supabase.co/storage/ v1/object/public/invitations/dgital.png" 
                               className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-30 pointer-events-none" 
                               alt="" 
                             />
@@ -610,7 +621,7 @@ export function InvitationPreview({ invitation }: any) {
                       )}
                     </AnimatePresence>
                   ) : (
-                    /* --- ZONE FIXÉE : VOLET CLASSIQUE FREE QUI SE LÈVE --- */
+                    /* --- ZONE REPARÉE : VOLET CLASSIQUE FREE QUI SE LÈVE --- */
                     <motion.div
                       animate={isOpened ? { y: "-100%" } : { y: "0%" }}
                       transition={{ duration: 1.2, ease: "easeInOut" }}
