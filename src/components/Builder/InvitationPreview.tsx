@@ -47,6 +47,7 @@ export function InvitationPreview({ invitation }: any) {
     }
   };
 
+  // Système audio natif et hybride (fichiers locaux .wav + synthétiseur)
   const playSyntheticSound = (type: 'beep' | 'lock' | 'key' | 'open_door' | 'open_metal_door') => {
     if (isMuted) return;
     try {
@@ -102,6 +103,7 @@ export function InvitationPreview({ invitation }: any) {
     }
   };
 
+  // Synchronisation du son réel uniquement sur le début exact de la boucle de la Clé
   useEffect(() => {
     if (isOpened || isCodeFading) return;
 
@@ -133,6 +135,7 @@ export function InvitationPreview({ invitation }: any) {
     }
   }, [isOpened, invitation?.music_url]);
 
+  // Extraction et formatage de la date choisie pour le code secret (Ex: 24 Juin = "2406")
   const targetCode = useMemo(() => {
     const dateSource = invitation?.vault_date || invitation?.event_date;
     if (!dateSource) return "123456";
@@ -143,6 +146,7 @@ export function InvitationPreview({ invitation }: any) {
     return `${day}${month}${year}`;
   }, [invitation?.vault_date, invitation?.event_date]);
 
+  // LOGIQUE DE DÉFILEMENT DE 6 CHIFFRES : Gère l'attente infinie ET la fixation après action
   useEffect(() => {
     if (!isOpened && invitation.opening_style === 'vault') {
       let currentDigitIndex = 0;
@@ -182,7 +186,7 @@ export function InvitationPreview({ invitation }: any) {
           clearInterval(interval);
           setActiveKey(null);
           playSyntheticSound('lock');
-          setIsCodeFading(true);
+          setIsCodeFading(true); // Lance le fondu sortant du boîtier numérique
           
           setTimeout(() => {
             triggerContainerOpening();
@@ -198,6 +202,7 @@ export function InvitationPreview({ invitation }: any) {
     }
   }, [isOpened, invitation.opening_style, isVaultClicked, targetCode, invitation.container_open]);
 
+  // Centralisation et exécution de l'ouverture
   const triggerContainerOpening = () => {
     if (invitation.container_open === 'wooden_door') {
       playSyntheticSound('open_door');
@@ -210,6 +215,7 @@ export function InvitationPreview({ invitation }: any) {
     audioRef.current?.play().catch(() => {});
   };
 
+  // Déclencheur au clic/toucher de l'interface
   const handleTriggerClick = () => {
     if (invitation.opening_style === 'vault') {
       if (!isVaultClicked) {
@@ -291,23 +297,32 @@ export function InvitationPreview({ invitation }: any) {
       
       <AnimatePresence mode="wait">
         {view === 'envelope' ? (
-          <motion.div key="env" className="absolute inset-0 w-full h-full flex items-center justify-center bg-gray-50/20" style={{ perspective: '1200px' }}>
+          <motion.div key="env" className="relative w-full h-full flex items-center justify-center" style={{ perspective: '1200px' }}>
             {isOpened && invitation?.music_url && (
               <button onClick={toggleMute} className="absolute top-6 right-6 z-[70] w-10 h-10 bg-white/80 rounded-full flex items-center justify-center shadow-lg">
                 {isMuted ? <VolumeX size={18}/> : <Volume2 size={18} className="animate-pulse"/>}
               </button>
             )}
 
-            {/* --- ARRIÈRE-PLAN : DÉCORS PREMIUM INDÉPENDANTS --- */}
+            {/* --- THÈME DE DÉCORS PREMIUM : BALLONS --- */}
             {isEnvelopeContainer && invitation.envelope_decor === 'balloons' && (
               <div className="absolute inset-0 z-10 pointer-events-none flex items-center justify-center">
-                <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/ballons.png" className="w-full h-full object-contain transform -translate-y-12 select-none" alt="Ballons" />
+                <img 
+                  src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/ballons.png" 
+                  className="w-full h-full object-contain transform -translate-y-12 select-none" 
+                  alt="Ballons" 
+                />
               </div>
             )}
 
+            {/* --- THÈME DE DÉCORS PREMIUM : FLEURS REALISTES --- */}
             {isEnvelopeContainer && invitation.envelope_decor === 'floral' && (
               <div className="absolute inset-0 z-40 pointer-events-none overflow-hidden mix-blend-screen">
-                <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/flower.png" className="w-full h-full object-cover scale-105 pointer-events-none select-none" alt="Fleurs" />
+                <img 
+                  src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/flower.png" 
+                  className="w-full h-full object-cover scale-105 pointer-events-none select-none" 
+                  alt="Fleurs" 
+                />
               </div>
             )}
 
@@ -322,7 +337,7 @@ export function InvitationPreview({ invitation }: any) {
                     mixBlendMode: 'multiply'
                   }}
                 >
-                  {/* RABAT DE L'ENVELOPPE (VUE STATIQUE) */}
+                  {/* VOLET INTERACTIF (RABAT DE L'ENVELOPPE) */}
                   <motion.div 
                     initial={{ rotateX: 0 }}
                     animate={isOpened ? { rotateX: -180, z: 10 } : { rotateX: 0 }}
@@ -338,7 +353,7 @@ export function InvitationPreview({ invitation }: any) {
               </div>
             )}
 
-            {/* --- CONTENU ANIMÉ MULTIMÉDIA DU PROJET --- */}
+            {/* --- CONTENU ANIMÉ MULTIMÉDIA (VINYLE OU PELLICULE) --- */}
             {isEnvelopeContainer && (
               <motion.div 
                 initial={{ y: 200 }} 
@@ -389,7 +404,7 @@ export function InvitationPreview({ invitation }: any) {
               </motion.div>
             )}
 
-            {/* --- CARTE DU FAIRE-PART TRADITIONNEL --- */}
+            {/* --- CARTE PRINCIPALE DU FAIRE-PART (L'ANCIEN AFFICHAGE) --- */}
             <motion.div 
               initial={{ scale: 0.8, y: isEnvelopeContainer ? 220 : 0 }} 
               animate={isOpened ? { scale: 1, y: isEnvelopeContainer ? 135 : 80 } : { y: isEnvelopeContainer ? 220 : 0 }} 
@@ -413,7 +428,7 @@ export function InvitationPreview({ invitation }: any) {
               </div>
             </motion.div>
 
-            {/* --- INTERFACE TACTILE DE SURFACE INITIALE POUR LE CODE OU LE SCEAU --- */}
+            {/* --- COUCHE COUVERTURE DES DECLENCHEURS TACTILES EN AMONT --- */}
             <div className="absolute inset-0 z-40 overflow-hidden" style={{ perspective: '2000px', pointerEvents: isOpened ? 'none' : 'auto' }}>
               <div className="w-full h-full relative flex items-center justify-center">
                 <AnimatePresence>
@@ -422,7 +437,7 @@ export function InvitationPreview({ invitation }: any) {
                       key="visual-trigger"
                       initial={{ opacity: 1 }}
                       exit={{ opacity: 0, transition: { duration: 0.4, ease: "easeInOut" } }}
-                      className="absolute inset-0 z-[42] flex flex-col items-center justify-center cursor-pointer" 
+                      className="absolute inset-0 z-[70] flex flex-col items-center justify-center cursor-pointer" 
                       onClick={handleTriggerClick}
                     >
                       <div className="relative w-full flex items-center justify-center">
@@ -482,7 +497,7 @@ export function InvitationPreview({ invitation }: any) {
             </div>
 
             {/* ========================================================================= */}
-            {/* COUCHE 5 : LES SYSTEMES D'OUVERTURE PLEIN ÉCRAN (PORTES EN BOIS / PORTE MÉTAL / GRAND VOLET) */}
+            {/* COUCHE 5 : LES ANIMATIONS D'OUVERTURE PLEIN ÉCRAN (PORTES ET GRAND VOLET RESTAURÉS) */}
             {/* ========================================================================= */}
             <div className="absolute inset-0 z-50 w-full h-full flex pointer-events-none" style={{ perspective: '2000px' }}>
               <AnimatePresence>
