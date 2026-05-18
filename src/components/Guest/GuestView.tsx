@@ -30,6 +30,8 @@ export function GuestView({ invitation }: any) {
   const [isCodeFading, setIsCodeFading] = useState(false);
   
   const audioRef = useRef<HTMLAudioElement>(null);
+  // Références pour capturer et détruire les minuteurs du coffre-fort à la volée
+  const vaultTimersRef = useRef<NodeJS.Timeout[]>([]);
 
   const lang = (invitation.language as Language) || (localStorage.getItem('invite_lang') as Language) || 'fr';
   const t = translations[lang].guest;
@@ -165,11 +167,12 @@ export function GuestView({ invitation }: any) {
         setActiveKey(randomKey);
       }, 75);
 
-      let digitLockTimers: NodeJS.Timeout[] = [];
-      let endTimer: NodeJS.Timeout;
-
       if (isVaultClicked) {
-        digitLockTimers = Array.from({ length: 6 }).map((_, index) => {
+        // Nettoyage préalable par sécurité pour éviter les accumulations
+        vaultTimersRef.current.forEach(clearTimeout);
+        vaultTimersRef.current = [];
+
+        const timers = Array.from({ length: 6 }).map((_, index) => {
           return setTimeout(() => {
             currentDigitIndex = index + 1;
             setDisplayedCode((prev) => {
@@ -182,22 +185,26 @@ export function GuestView({ invitation }: any) {
           }, (index + 1) * 550);
         });
 
-        endTimer = setTimeout(() => {
+        const endTimer = setTimeout(() => {
           clearInterval(interval);
           setActiveKey(null);
           playSyntheticSound('lock');
           setIsCodeFading(true);
           
-          setTimeout(() => {
+          const openTimer = setTimeout(() => {
             triggerContainerOpening();
           }, 600);
+          
+          vaultTimersRef.current.push(openTimer);
         }, 4000);
+
+        vaultTimersRef.current = [...timers, endTimer];
       }
 
       return () => {
         clearInterval(interval);
-        digitLockTimers.forEach(clearTimeout);
-        if (endTimer) clearTimeout(endTimer);
+        vaultTimersRef.current.forEach(clearTimeout);
+        vaultTimersRef.current = [];
       };
     }
   }, [isOpened, invitation.opening_style, isVaultClicked, targetCode, invitation.container_open]);
