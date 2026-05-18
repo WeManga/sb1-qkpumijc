@@ -246,16 +246,19 @@ export function InvitationPreview({ invitation }: any) {
 
   const isDoorType = invitation.container_open === 'wooden_door' || invitation.container_open === 'metal_door';
 
-  // GÉNÉRATEURS DE COMPOSANTS ANIMÉS ÉLÉGANTS POUR LES DÉCORS PREMIUM
-  const PremiumBackgroundDecor = () => {
+  // LOGIQUE DE SÉCURITÉ ET RENDU DU PREMIER PLAN GLOBAL PREMIUM (z-50)
+  const PremiumForegroundDecor = () => {
+    if (invitation.premium_trigger_type !== 'decor') return null;
+
+    // RENDU DÉCOR : BALLONS
     if (invitation.background_theme === 'balloons') {
       return (
-        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden rounded-[3rem]">
+        <div className="absolute inset-0 z-50 pointer-events-none overflow-hidden rounded-[3.5rem]">
           {[...Array(5)].map((_, idx) => (
             <motion.img
               key={idx}
               src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/ballons.png"
-              initial={{ y: 650, x: 20 + idx * 55, opacity: 0.85 }}
+              initial={{ y: 650, x: 20 + idx * 55, opacity: 0.95 }}
               animate={{ 
                 y: -400, 
                 x: [20 + idx * 55, (20 + idx * 55) + (idx % 2 === 0 ? 15 : -15), 20 + idx * 55]
@@ -264,94 +267,113 @@ export function InvitationPreview({ invitation }: any) {
                 y: { duration: 7 + idx * 1.5, repeat: Infinity, ease: "linear", delay: idx * 0.8 },
                 x: { duration: 3, repeat: Infinity, ease: "easeInOut" }
               }}
-              className="absolute w-28 h-auto object-contain select-none"
+              className="absolute w-28 h-auto object-contain select-none drop-shadow-xl"
             />
           ))}
         </div>
       );
     }
 
-    if (invitation.background_theme === 'stars') {
-      return (
-        <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden rounded-[3rem] bg-neutral-950">
-          <div 
-            className="absolute inset-0 opacity-40 mix-blend-screen bg-cover bg-center" 
-            style={{ backgroundImage: 'url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/etoile%201.png")' }}
-          />
-          <svg className="absolute inset-0 w-full h-full">
-            {[...Array(15)].map((_, idx) => (
-              <motion.circle
-                key={idx}
-                cx={`${5 + Math.random() * 90}%`}
-                cy={`${Math.random() * 100}%`}
-                r={1.5 + Math.random() * 2}
-                fill={invitation.envelope_color && invitation.envelope_color.startsWith('#') ? invitation.envelope_color : '#FFFFFF'}
-                animate={{ opacity: [0.2, 1, 0.2], scale: [0.8, 1.2, 0.8] }}
-                transition={{ duration: 2 + Math.random() * 2, repeat: Infinity, ease: "easeInOut", delay: Math.random() * 2 }}
-              />
-            ))}
-          </svg>
-        </div>
-      );
-    }
-    return null;
-  };
-
-  const PremiumForegroundDecor = () => {
-    if (invitation.background_theme === 'flowers') {
-      return (
-        <div className="absolute inset-0 z-45 pointer-events-none w-full h-full rounded-[3.5rem] overflow-hidden">
-          {/* Fleurs Top - Se balance discrètement */}
-          <motion.img 
-            src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleurs%20top.png"
-            animate={{ rotate: [-0.5, 0.5, -0.5] }}
-            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute top-0 left-0 w-full object-contain origin-top select-none drop-shadow-md"
-          />
-          {/* Fleurs Coin Gauche */}
-          <motion.img 
-            src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleus%20coin%20gauche.png"
-            animate={{ rotate: [0.5, -0.5, 0.5], scale: [1, 1.01, 1] }}
-            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute bottom-0 left-0 w-[55%] object-contain origin-bottom-left select-none drop-shadow-lg"
-          />
-        </div>
-      );
-    }
-
+    // RENDU DÉCOR : PAPILLONS REALS (VOL ET BATTEMENT 3D EN PREMIER PLAN)
     if (invitation.background_theme === 'butterflies') {
       return (
-        <div className="absolute inset-0 z-48 pointer-events-none w-full h-full rounded-[3.5rem] overflow-hidden">
+        <div className="absolute inset-0 z-50 pointer-events-none w-full h-full rounded-[3.5rem] overflow-hidden">
           {[...Array(3)].map((_, idx) => (
             <motion.div
               key={idx}
-              initial={{ x: -60, y: 500 - idx * 120, scale: 0.35 + idx * 0.1 }}
+              initial={{ x: -60, y: 500 - idx * 120, scale: 0.38 + idx * 0.08 }}
               animate={{ 
                 x: 360, 
-                y: [500 - idx * 120, 250 - idx * 100, 50 - idx * 120] 
+                y: [500 - idx * 120, 260 - idx * 90, 40 - idx * 120] 
               }}
-              transition={{ duration: 9 + idx * 2, repeat: Infinity, ease: "easeInOut", delay: idx * 2.5 }}
+              transition={{ duration: 8.5 + idx * 2, repeat: Infinity, ease: "easeInOut", delay: idx * 2.2 }}
               className="absolute w-20 h-20 origin-center"
             >
-              {/* Le battement d'aile 3D appliqué sur l'image interne */}
               <motion.img
                 src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/papillions.png"
-                animate={{ rotateY: [0, 65, 0] }}
-                transition={{ duration: 0.25, repeat: Infinity, ease: "linear" }}
-                className="w-full h-full object-contain select-none"
+                animate={{ rotateY: [0, 70, 0] }}
+                transition={{ duration: 0.22, repeat: Infinity, ease: "linear" }}
+                className="w-full h-full object-contain select-none drop-shadow-lg"
               />
             </motion.div>
           ))}
         </div>
       );
     }
+
+    // RENDU DÉCOR : FLEURS STRUCTURÉES ET INCORPORÉES DEVANT LES COUPE-FLUX
+    if (invitation.background_theme === 'flowers') {
+      return (
+        <div className="absolute inset-0 z-50 pointer-events-none w-full h-full rounded-[3.5rem] overflow-hidden">
+          <motion.img 
+            src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleurs%20top.png"
+            animate={{ rotate: [-0.6, 0.6, -0.6] }}
+            transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute top-0 left-0 w-full object-contain origin-top select-none drop-shadow-md"
+          />
+          <motion.img 
+            src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleus%20coin%20gauche.png"
+            animate={{ rotate: [0.4, -0.4, 0.4], scale: [1, 1.01, 1] }}
+            transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute bottom-0 left-0 w-[55%] object-contain origin-bottom-left select-none drop-shadow-lg"
+          />
+        </div>
+      );
+    }
+
+    // RENDU DÉCOR : MATRIX ET ENCEINTE DE SCINTILLEMENT ÉTOILÉE FINIE DEVANT LA CARTE
+    if (invitation.background_theme === 'stars') {
+      const starColor = invitation.envelope_color && invitation.envelope_color.startsWith('#') ? invitation.envelope_color : '#FFFFFF';
+      return (
+        <div className="absolute inset-0 z-50 pointer-events-none w-full h-full rounded-[3.5rem] overflow-hidden bg-black/60 backdrop-blur-[0.5px]">
+          <motion.div 
+            className="absolute inset-0 opacity-45 mix-blend-screen bg-cover bg-center" 
+            style={{ backgroundImage: 'url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/etoile%201.png")' }}
+            animate={{ opacity: [0.35, 0.7, 0.35] }}
+            transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <svg className="absolute inset-0 w-full h-full">
+            {[...Array(18)].map((_, idx) => (
+              <motion.circle
+                key={idx}
+                cx={`${4 + Math.random() * 92}%`}
+                cy={`${Math.random() * 100}%`}
+                r={1.2 + Math.random() * 2.2}
+                fill={starColor}
+                animate={{ 
+                  opacity: [0.15, 1, 0.15], 
+                  scale: [0.75, 1.35, 0.75] 
+                }}
+                transition={{ 
+                  duration: 1.8 + Math.random() * 1.8, 
+                  repeat: Infinity, 
+                  ease: "easeInOut", 
+                  delay: Math.random() * 2 
+                }}
+              />
+            ))}
+          </svg>
+        </div>
+      );
+    }
+
     return null;
   };
 
+  const isDecorActive = invitation.premium_trigger_type === 'decor';
+  const hasBackgroundGradient = invitation.background_color && invitation.background_color.includes('linear-gradient');
+
   return (
-    <div className="relative w-full h-full max-h-[650px] flex items-center justify-center overflow-hidden bg-white rounded-[3.5rem] shadow-2xl border-[12px] border-gray-50/50" style={{ fontFamily: invitation.font_style || 'inherit' }}>
+    <div 
+      className="relative w-full h-full max-h-[650px] flex items-center justify-center overflow-hidden rounded-[3.5rem] shadow-2xl border-[12px] border-gray-50/50" 
+      style={{ 
+        fontFamily: invitation.font_style || 'inherit',
+        background: invitation.background_color || '#FFFFFF',
+        backgroundColor: hasBackgroundGradient ? undefined : (invitation.background_color || '#FFFFFF')
+      }}
+    >
       {invitation?.music_url && <audio ref={audioRef} src={invitation.music_url} loop />}
-      {isOpened && <EmojiRain />}
+      {isOpened && !isDecorActive && <EmojiRain />}
       
       <AnimatePresence mode="wait">
         {view === 'envelope' ? (
@@ -361,9 +383,6 @@ export function InvitationPreview({ invitation }: any) {
                 {isMuted ? <VolumeX size={18}/> : <Volume2 size={18} className="animate-pulse"/>}
               </button>
             )}
-
-            {/* --- INCORPORATION DE L'AMBIANCE D'ARRIÈRE-PLAN PREMIUM --- */}
-            <PremiumBackgroundDecor />
 
             {/* --- VINYLE OU PELLICULE --- */}
             <motion.div 
@@ -438,7 +457,7 @@ export function InvitationPreview({ invitation }: any) {
               </div>
             </motion.div>
 
-            {/* --- INCORPORATION DE L'AMBIANCE DE PREMIER PLAN (DEVANT LA CARTE) --- */}
+            {/* --- EXTRACTION ET PROJECTION DES COMPOSANTS ANIMÉS PREMIUM AU PREMIER PLAN --- */}
             <PremiumForegroundDecor />
 
             {/* --- COUCHE DECLENCHEURS MECANIQUES ET FOND --- */}
@@ -558,7 +577,7 @@ export function InvitationPreview({ invitation }: any) {
                   )}
                 </AnimatePresence>
 
-                {/* ANIMATION DES CONTENANTS DÉCOUPLÉS */}
+                {/* ANIMATION DES CONTENANTS DÉCOUPLÉS - PORTES PREMIUM OU VOLET COLORÉ FREE QUI SE LÈVE */}
                 <div className="absolute inset-0 z-50 w-full h-full flex" style={{ perspective: '2000px' }}>
                   {invitation.container_open === 'metal_door' ? (
                     <motion.div 
@@ -591,7 +610,7 @@ export function InvitationPreview({ invitation }: any) {
                       )}
                     </AnimatePresence>
                   ) : (
-                    /* --- ZONE REPARÉE : VOLET CLASSIQUE FREE QUI SE LÈVE --- */
+                    /* --- ZONE FIXÉE : VOLET CLASSIQUE FREE QUI SE LÈVE --- */
                     <motion.div
                       animate={isOpened ? { y: "-100%" } : { y: "0%" }}
                       transition={{ duration: 1.2, ease: "easeInOut" }}
