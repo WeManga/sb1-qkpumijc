@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, MapPin, CheckCircle2, Plus, Clock, Sparkles, Film, Volume2, VolumeX } from 'lucide-react'; 
-import { supabase } from '../../lib/supabase';
+import { X, Calendar, Volume2, VolumeX, MapPin, Clock, Sparkles, Film } from 'lucide-react';
 import { translations, Language } from '../../lib/i18n';
 
 const THEME_EMOJIS: Record<string, string[]> = {
@@ -14,14 +13,10 @@ const THEME_EMOJIS: Record<string, string[]> = {
   default: ['✨', '🌟', '🤍']
 };
 
-export function GuestView({ invitation }: any) {
+export function InvitationPreview({ invitation }: any) {
   const [isOpened, setIsOpened] = useState(false);
   const [view, setView] = useState<'envelope' | 'content'>('envelope');
   const [isMuted, setIsMuted] = useState(false);
-  const [guestCount, setGuestCount] = useState(1);
-  const [guests, setGuests] = useState([{ firstName: '', lastName: '' }]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
   
   // États pour l'animation du boîtier à code digital (6 chiffres)
   const [isVaultClicked, setIsVaultClicked] = useState(false);
@@ -35,7 +30,7 @@ export function GuestView({ invitation }: any) {
   const t = translations[lang].guest;
   const tBuilder = translations[lang].builder;
   const emojis = THEME_EMOJIS[invitation?.event_type] || THEME_EMOJIS.default;
-
+  
   const getPaperClass = () => {
     switch(invitation.paper_type) {
       case 'parchment': return 'paper-parchment';
@@ -122,20 +117,7 @@ export function GuestView({ invitation }: any) {
     };
   }, [isOpened, isCodeFading, invitation.opening_style, isMuted]);
 
-  useEffect(() => {
-    const newGuests = Array.from({ length: guestCount }, (_, i) => 
-      guests[i] || { firstName: '', lastName: '' }
-    );
-    setGuests(newGuests);
-  }, [guestCount]);
-
-  useEffect(() => {
-    if (isOpened && invitation?.music_url && audioRef.current) {
-      audioRef.current.play().catch(() => {});
-    }
-  }, [isOpened, invitation?.music_url]);
-
-  // Extraction au format JJMMAA (6 chiffres) basé sur la date configurée
+  // Extraction et formatage de la date choisie pour le code secret (Ex: 24 Juin = "2406")
   const targetCode = useMemo(() => {
     const dateSource = invitation?.vault_date || invitation?.event_date;
     if (!dateSource) return "123456";
@@ -146,7 +128,13 @@ export function GuestView({ invitation }: any) {
     return `${day}${month}${year}`;
   }, [invitation?.vault_date, invitation?.event_date]);
 
-  // LOGIQUE DE DÉFILEMENT DE 6 CHIFFRES : Gère l'attente infinie ET la fixation après action
+  useEffect(() => {
+    if (isOpened && invitation?.music_url && audioRef.current) {
+      audioRef.current.play().catch(() => {});
+    }
+  }, [isOpened, invitation?.music_url]);
+
+  // LOGIQUE DE DÉFILEMENT DE 6 CHIFFRES : Gère l'attente infinie ET la fixation après clic
   useEffect(() => {
     if (!isOpened && invitation.opening_style === 'vault') {
       let currentDigitIndex = 0;
@@ -186,7 +174,7 @@ export function GuestView({ invitation }: any) {
           clearInterval(interval);
           setActiveKey(null);
           playSyntheticSound('lock');
-          setIsCodeFading(true);
+          setIsCodeFading(true); // Lance le fondu sortant du boîtier numérique
           
           setTimeout(() => {
             triggerContainerOpening();
@@ -213,7 +201,7 @@ export function GuestView({ invitation }: any) {
     audioRef.current?.play().catch(() => {});
   };
 
-  // Déclencheur interactif unifié
+  // Déclencheur au clic/toucher de l'interface
   const handleTriggerClick = () => {
     if (invitation.opening_style === 'vault') {
       if (!isVaultClicked) {
@@ -235,36 +223,6 @@ export function GuestView({ invitation }: any) {
     }
   };
 
-  const addToCalendar = () => {
-    const eventDate = new Date(invitation.event_date);
-    const formatDate = (date: Date) => date.toISOString().replace(/-|:|\.\d\d\d/g, "");
-    const startDate = formatDate(eventDate);
-    const endDate = formatDate(new Date(eventDate.getTime() + 2 * 60 * 60 * 1000));
-    const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(invitation.title)}&dates=${startDate}/${endDate}&location=${encodeURIComponent(invitation.event_address)}&details=${encodeURIComponent(invitation.description || "")}`;
-    window.open(googleUrl, '_blank');
-  };
-
-  const openMaps = () => {
-    const address = encodeURIComponent(invitation.event_address);
-    window.open(`https://maps.google.com/?q=${address}`, '_blank');
-  };
-
-  const handleRSVP = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    try {
-      const { error } = await supabase.from('responses').insert([{
-          invitation_id: invitation.id,
-          group_leader_name: `${guests[0].firstName} ${guests[0].lastName}`,
-          guest_details: guests,
-          total_guests: guestCount
-      }]);
-      if (error) throw error;
-      setIsSubmitted(true);
-    } catch (err) { console.error(err); } 
-    finally { setIsSubmitting(false); }
-  };
-
   const EmojiRain = () => {
     const particles = useMemo(() => Array.from({ length: 25 }).map((_, i) => ({
       id: i,
@@ -277,7 +235,7 @@ export function GuestView({ invitation }: any) {
     return (
       <div className="absolute inset-0 z-[60] pointer-events-none overflow-hidden">
         {particles.map((p) => (
-          <motion.span key={p.id} initial={{ y: -50, opacity: 0 }} animate={{ y: 1000, opacity: [0, 1, 1, 0] }}
+          <motion.span key={p.id} initial={{ y: -50, opacity: 0 }} animate={{ y: 800, opacity: [0, 1, 1, 0] }}
             transition={{ duration: p.duration, repeat: Infinity, delay: p.delay, ease: "linear" }}
             className="absolute text-3xl" style={{ left: p.left }}>{p.emoji}
           </motion.span>
@@ -289,7 +247,7 @@ export function GuestView({ invitation }: any) {
   const isDoorType = invitation.container_open === 'wooden_door' || invitation.container_open === 'metal_door';
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center overflow-hidden touch-none bg-white" style={{ fontFamily: invitation.font_style || 'inherit' }}>
+    <div className="relative w-full h-full max-h-[650px] flex items-center justify-center overflow-hidden bg-white rounded-[3.5rem] shadow-2xl border-[12px] border-gray-50/50" style={{ fontFamily: invitation.font_style || 'inherit' }}>
       {invitation?.music_url && <audio ref={audioRef} src={invitation.music_url} loop />}
       {isOpened && <EmojiRain />}
       
@@ -302,12 +260,61 @@ export function GuestView({ invitation }: any) {
               </button>
             )}
 
-            {/* --- ANIMATION DERRIÈRE LA CARTE (VINYLE OU PELLICULE) --- */}
+            {/* --- THÈME DE DÉCORS PREMIUM : BALLONS (EN ARRIÈRE-PLAN DES ENVELOPPES) --- */}
+            {invitation.envelope_decor === 'balloons' && (
+              <div className="absolute inset-0 z-10 pointer-events-none flex items-center justify-center">
+                <img 
+                  src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/ballons.png" 
+                  className="w-full h-full object-contain transform -translate-y-12 select-none" 
+                  alt="Ballons" 
+                />
+              </div>
+            )}
+
+            {/* --- THÈME DE DÉCORS PREMIUM : FLEURS REALISTES (AVEC INTEGRATION DE MIX-BLEND-MODE EN SURFACE COULOIR) --- */}
+            {invitation.envelope_decor === 'floral' && (
+              <div className="absolute inset-0 z-40 pointer-events-none overflow-hidden mix-blend-screen">
+                <img 
+                  src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/flower.png" 
+                  className="w-full h-full object-cover scale-105 pointer-events-none select-none" 
+                  alt="Fleurs" 
+                />
+              </div>
+            )}
+
+            {/* --- CORPS DE L'ENVELOPPE PREMIUM OU CLASSIQUE --- */}
+            {(!invitation.container_open || invitation.container_open === 'envelope') && (
+              <div className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center">
+                <div 
+                  className="w-full h-full bg-contain bg-center bg-no-repeat relative"
+                  style={{ 
+                    backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/enveloppe.png")`,
+                    backgroundColor: invitation.envelope_color || '#FFFFFF',
+                    mixBlendMode: 'multiply'
+                  }}
+                >
+                  {/* VOLET INTERACTIF (RABAT DE L'ENVELOPPE QUI PIVOTE AU CLIC) */}
+                  <motion.div 
+                    initial={{ rotateX: 0 }}
+                    animate={isOpened ? { rotateX: -180, z: 10 } : { rotateX: 0 }}
+                    transition={{ duration: 1.0, ease: "easeInOut" }}
+                    style={{ 
+                      originY: 0,
+                      backgroundColor: invitation.envelope_color || '#FFFFFF',
+                      clipPath: 'polygon(0% 0%, 100% 0%, 50% 50%)'
+                    }}
+                    className="absolute inset-x-0 top-0 h-full bg-cover shadow-inner pointer-events-auto"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* --- MULTIMÉDIA : VINYLE OU PELLICULE (GLISSEMENT ET EXTRACTION) --- */}
             <motion.div 
-              initial={{ y: 0, opacity: 0 }} 
-              animate={isOpened ? { y: invitation.opening_type === 'filmstrip' ? -160 : -140, opacity: 1 } : { y: 0, opacity: 0 }} 
+              initial={{ y: 200 }} 
+              animate={isOpened ? { y: invitation.opening_type === 'filmstrip' ? -35 : 25 } : { y: 200 }} 
               transition={{ type: "spring", damping: 25, delay: 0.2 }} 
-              className="absolute z-20"
+              className="absolute top-0 z-20"
             >
               {invitation.opening_type === 'filmstrip' ? (
                 <div className="relative w-44 h-72 bg-[#1a1a1a] rounded-xl shadow-2xl rotate-[-2deg] overflow-hidden p-2 border-y-4 border-[#1a1a1a]">
@@ -324,12 +331,8 @@ export function GuestView({ invitation }: any) {
                     ].map((imgObj, idx) => (
                       <div key={idx} className="w-full h-28 bg-[#222] rounded-sm overflow-hidden relative shrink-0">
                         {imgObj.url ? (
-                          <img 
-                            src={imgObj.url} 
-                            className="w-full h-full object-cover grayscale-[0.2] contrast-125" 
-                            style={{ transform: `translate(${invitation[`${imgObj.key}_pos_x`] || 0}px, ${invitation[`${imgObj.key}_pos_y`] || 0}px) scale(${invitation[`${imgObj.key}_scale`] || 1})` }}
-                            alt="" 
-                          />
+                          <img src={imgObj.url} className="w-full h-full object-cover grayscale-[0.2] contrast-125" 
+                            style={{ transform: `translate(${invitation[`${imgObj.key}_pos_x`] || 0}px, ${invitation[`${imgObj.key}_pos_y`] || 0}px) scale(${invitation[`${imgObj.key}_scale`] || 1})` }} alt="" />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-gray-800"><Film className="text-gray-600" size={20}/></div>
                         )}
@@ -341,16 +344,13 @@ export function GuestView({ invitation }: any) {
               ) : (
                 <div className={`w-[270px] h-[270px] relative ${isOpened ? 'animate-disk-spin' : ''}`}>
                   <div className="absolute inset-0 rounded-full bg-[#111] overflow-hidden">
-                      <div className="absolute inset-0 opacity-30" style={{ background: 'repeating-radial-gradient(circle, #444 0, #000 2px, #111 4px)' }} />
+                    <div className="absolute inset-0 opacity-30" style={{ background: 'repeating-radial-gradient(circle, #444 0, #000 2px, #111 4px)' }} />
                   </div>
                   <div className="absolute inset-0 flex items-center justify-center">
                     <div className="w-24 h-24 bg-white rounded-full border-[5px] border-[#111] overflow-hidden">
                       {invitation.main_photo_url && (
-                        <img 
-                          src={invitation.main_photo_url} 
-                          className="w-full h-full object-cover" 
-                          style={{ transform: `translate(${invitation.main_photo_url_pos_x || 0}px, ${invitation.main_photo_url_pos_y || 0}px) scale(${invitation.main_photo_url_scale || 1})` }} alt="" 
-                        />
+                        <img src={invitation.main_photo_url} className="w-full h-full object-cover" 
+                          style={{ transform: `translate(${invitation.main_photo_url_pos_x || 0}px, ${invitation.main_photo_url_pos_y || 0}px) scale(${invitation.main_photo_url_scale || 1})` }} alt="" />
                       )}
                     </div>
                   </div>
@@ -358,15 +358,15 @@ export function GuestView({ invitation }: any) {
               )}
             </motion.div>
 
-            {/* --- CARTE D'INVITATION (AU CENTRE) AVEC LIAISON DYNAMIQUE DE LA COULEUR --- */}
+            {/* --- CARTE COMMUNE CENTRALE (FAIRE-PART QUI SORT DE L'ENVELOPPE) --- */}
             <motion.div 
-              initial={{ scale: 0.8, y: 0 }} 
-              animate={isOpened ? { scale: 1, y: 80 } : { y: 0 }} 
+              initial={{ scale: 0.8, y: 220 }} 
+              animate={isOpened ? { scale: 1, y: 135 } : { y: 220 }} 
               transition={{ type: "spring", damping: 20, delay: 0.4 }} 
               onClick={() => isOpened && setView('content')} 
-              style={{
+              style={{ 
                 backgroundColor: invitation.paper_color || '#FFFFFF',
-                fontFamily: invitation.font_style
+                fontFamily: invitation.font_style 
               }}
               className={`z-30 w-[310px] h-[370px] rounded-[3rem] shadow-xl p-10 flex flex-col items-center justify-between border border-gray-100 cursor-pointer ${getPaperClass()}`}
             >
@@ -394,17 +394,17 @@ export function GuestView({ invitation }: any) {
                         opacity: 0, 
                         transition: { duration: 0.4, ease: "easeInOut" } 
                       }}
-                      className="absolute inset-0 z-[70] flex flex-col items-center justify-center cursor-pointer"
+                      className="absolute inset-0 z-[70] flex flex-col items-center justify-center cursor-pointer" 
                       onClick={handleTriggerClick}
                     >
                       <div className="relative w-full flex items-center justify-center">
                         {invitation.opening_style === 'knock' ? (
-                          <motion.div
+                          <motion.div 
                             animate={{ 
                               x: [0, -12, 4, -12, 4, 0],
                               y: [0, -6, 2, -6, 2, 0],
                               scale: [1, 1.05, 0.98, 1.05, 0.98, 1]
-                            }}
+                            }} 
                             transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 1.5, ease: "easeInOut" }}
                             className="w-56 h-56 select-none flex items-center justify-center"
                           >
@@ -423,13 +423,14 @@ export function GuestView({ invitation }: any) {
                               />
                               <motion.img
                                 src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/cleserrure.png" 
-                                animate={{ rotate: [0, 45, 0] }} 
-                                transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1.0, ease: "easeInOut" }} 
+                                animate={{ rotate: [0, 45, 0, 45, 0] }}
+                                transition={{ duration: 1.8, repeat: Infinity, repeatDelay: 0.5, ease: "easeInOut" }}
                                 className="absolute w-full h-full object-contain origin-center"
                                 alt="Clé"
                               />
                             </div>
                         ) : invitation.opening_style === 'vault' ? (
+                          /* --- BOITIER DIGITAL TACTILE RÉDUIT --- */
                           <div className="relative w-[220px] h-[330px] flex flex-col items-center justify-start bg-neutral-950 border-[4px] border-neutral-800 rounded-[1.75rem] shadow-[0_20px_40px_rgba(0,0,0,0.8)] overflow-hidden p-4">
                             <img 
                               src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/dgital.png" 
@@ -486,6 +487,7 @@ export function GuestView({ invitation }: any) {
                             </div>
                           </div>
                         ) : (
+                          /* --- RENDU DU SCEAU COMMUNE AVEC LOGO SUPABASE --- */
                           <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-[32rem] h-[32rem] object-contain" alt="Sceau" />
                         )}
                       </div>
@@ -497,14 +499,14 @@ export function GuestView({ invitation }: any) {
                   )}
                 </AnimatePresence>
 
-                {/* ANIMATION DES CONTENANTS DÉCOUPLÉS - COULISSEMENT REALISTE OPAQUE VERS LA DROITE POUR LA PORTE EN METAL */}
+                {/* ANIMATION DES CONTENANTS DÉCOUPLÉS - COULISSEMENT POUR LA PORTE METAL / OUVERTURE VERS L'INTERIEUR POUR LA PORTE EN BOIS */}
                 <div className="absolute inset-0 z-50 w-full h-full flex" style={{ perspective: '2000px' }}>
                   {invitation.container_open === 'metal_door' ? (
                     <motion.div 
                       animate={isOpened ? { x: "100%" } : { x: "0%" }}
                       transition={{ duration: 1.6, ease: "easeInOut" }}
                       className="absolute inset-0 w-full h-full bg-cover bg-center shadow-2xl"
-                      style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20noir.png")` }}
+                      style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20en%20metal.png")` }}
                     />
                   ) : (
                     <AnimatePresence>
@@ -537,108 +539,60 @@ export function GuestView({ invitation }: any) {
             </div>
           </motion.div>
         ) : (
-          /* --- CONTENU --- WITH DYNAMIC PAPER COLOR LINKED TO SIDEBAR BACKGROUND SELECTION */
-          <motion.div 
-            key="content" 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            style={{ backgroundColor: invitation.paper_color || '#FFFFFF' }}
-            className={`w-full h-full z-[100] flex flex-col overflow-y-auto ${getPaperClass()}`}
-          >
+          <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ backgroundColor: invitation.paper_color || '#FFFFFF' }} className={`w-full h-full z-[100] flex flex-col overflow-y-auto ${getPaperClass()}`}>
             <div className="h-[30%] relative overflow-hidden shrink-0">
-               <img 
-                 src={invitation.main_photo_url} 
-                 className="w-full h-full object-cover" 
-                 style={{ transform: `translate(${invitation.main_photo_url_pos_x || 0}px, ${invitation.main_photo_url_pos_y || 0}px) scale(${invitation.main_photo_url_scale || 1})` }} 
-               />
+               <img src={invitation.main_photo_url} className="w-full h-full object-cover" style={{ transform: `translate(${invitation.main_photo_url_pos_x || 0}px, ${invitation.main_photo_url_pos_y || 0}px) scale(${invitation.main_photo_url_scale || 1})` }} />
                <div className="absolute inset-0 bg-gradient-to-t from-white/80 to-transparent pointer-events-none" />
                <button onClick={() => setView('envelope')} className="absolute top-6 left-6 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-md"><X size={20}/></button>
             </div>
-
-            <div className="flex-1 p-8 space-y-12">
-              <div className="text-center">
+            <div className="flex-1 p-8">
+              <div className="text-center mb-10">
                 <h2 className="text-3xl font-black mb-4 leading-tight" style={{ fontFamily: invitation.font_style }}>{invitation?.host_names || tBuilder.hosts_placeholder}</h2>
-                <div className="flex flex-col items-center gap-2 opacity-60 font-bold text-[10px] uppercase tracking-widest text-gray-700">
+                <div className="flex flex-col items-center gap-2 opacity-60 font-bold text-[10px] uppercase tracking-widest">
                   <div className="flex items-center gap-2"><Calendar size={14} className="text-amber-500"/> {invitation.event_date ? new Date(invitation.event_date).toLocaleDateString(lang === 'vi' ? 'vi-VN' : lang === 'en' ? 'en-US' : 'fr-FR', {day:'numeric', month:'long', year:'numeric'}) : t.save_date}</div>
                   <div className="flex items-center gap-2"><MapPin size={14} className="text-amber-500"/> {invitation.event_address || tBuilder.address_placeholder}</div>
                 </div>
-                <div className="mt-6 flex justify-center gap-4">
-                   <button onClick={addToCalendar} className="p-3 bg-amber-50 rounded-full shadow-sm"><Calendar size={18} className="text-amber-600" /></button>
-                   <button onClick={openMaps} className="p-3 bg-amber-50 rounded-full shadow-sm"><MapPin size={18} className="text-amber-600" /></button>
-                </div>
               </div>
-
               {invitation.description && (
-                <div className="text-center italic opacity-80" style={{ fontFamily: invitation.font_style }}>
-                  <p className="text-[13px] leading-relaxed px-4 whitespace-pre-wrap">{invitation.description}</p>
+                <div className="mb-14 text-center">
+                  <p className="text-[13px] leading-relaxed opacity-80 whitespace-pre-wrap italic" style={{ fontFamily: invitation.font_style }}>{invitation.description}</p>
                   <div className="w-12 h-[1px] bg-amber-200 mx-auto mt-6" />
                 </div>
               )}
-
-              <div className="space-y-12">
-                <h3 className="text-[10px] font-black text-amber-600 uppercase tracking-[0.3em] text-center flex items-center justify-center gap-2">
-                   <Sparkles size={12}/> {tBuilder.program_title} <Sparkles size={12}/>
+              <div className="space-y-12 pb-10">
+                <h3 className="text-[10px] font-black text-amber-600 uppercase tracking-[0.3em] text-center mb-8 flex items-center justify-center gap-2">
+                  <Sparkles size={12}/> {tBuilder.program_title} <Sparkles size={12}/>
                 </h3>
                 <div className="relative flex flex-col items-center">
-                  <motion.div initial={{ scaleY: 0 }} whileInView={{ scaleY: 1 }} viewport={{ once: true }} transition={{ duration: 3.0 }} className="absolute top-0 w-[2px] h-full bg-gradient-to-b from-amber-100 via-amber-500 to-amber-100 origin-top" />
-                  <div className="relative space-y-12 w-full">
+                  <motion.div initial={{ scaleY: 0 }} whileInView={{ scaleY: 1 }} viewport={{ once: true }} transition={{ duration: 3.0, ease: "easeInOut" }} className="absolute top-0 w-[2px] h-full bg-gradient-to-b from-amber-200 via-amber-500 to-amber-200 rounded-full origin-top" />
+                  <div className="relative space-y-12 w-full pt-4">
                     {(invitation.event_program || []).map((step: any, i: number) => {
                       const isEven = i % 2 === 0;
                       return (
-                        <motion.div key={i} initial={{ opacity: 0, x: isEven ? -30 : 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ duration: 1.2 }} className={`flex items-center w-full relative ${isEven ? 'flex-row' : 'flex-row-reverse'}`}>
-                          <div className="w-[45%]">
-                            <div className={`overflow-hidden bg-white/60 rounded-2xl border border-amber-50 shadow-lg ${isEven ? 'text-right' : 'text-left'}`}>
-                              {step.image_url && <img src={step.image_url} className="w-full aspect-video object-cover" alt="" />}
-                              <div className="p-4">
-                                <div className={`text-[9px] font-black text-amber-600 mb-1 flex items-center gap-1 ${isEven ? 'justify-start' : 'justify-end'}`}><Clock size={8}/> {step.time}</div>
-                                <div className="text-[11px] font-bold uppercase tracking-tight leading-tight" style={{ fontFamily: invitation.font_style }}>{step.activity}</div>
-                              </div>
+                        <motion.div key={i} initial={{ opacity: 0, x: isEven ? -30 : 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, margin: "-50px" }} transition={{ duration: 1.2, delay: 0.1 }} className={`flex items-center w-full relative ${isEven ? 'justify-start pl-6' : 'justify-end pr-6'}`}>
+                          <motion.div initial={{ scale: 0, rotate: 45 }} whileInView={{ scale: 1, rotate: 45 }} viewport={{ once: true }} className={`absolute top-1/2 -translate-y-1/2 z-20 w-3 h-3 bg-amber-500 border border-white shadow-md ${isEven ? 'right-[50%] translate-x-1/2' : 'left-[50%] -translate-x-1/2'}`}>
+                            <motion.div animate={{ opacity: [1, 0.4, 1], scale: [1, 1.2, 1] }} transition={{ duration: 2.5, repeat: Infinity }} className="absolute inset-0 bg-amber-300 rounded-sm" />
+                          </motion.div>
+                          <div className={`w-[45%] overflow-hidden bg-white/60 rounded-2xl border border-amber-50 backdrop-blur-sm shadow-lg ${isEven ? 'text-left' : 'text-right'}`}>
+                            {step.image_url && <div className="w-full aspect-video overflow-hidden"><img src={step.image_url} className="w-full h-full object-cover" alt="" /></div>}
+                            <div className="p-4">
+                              <div className={`text-[9px] font-black text-amber-600 mb-1 flex items-center gap-1 ${isEven ? 'justify-start' : 'justify-end'}`}><Clock size={8}/> {step.time}</div>
+                              <div className="text-[11px] font-bold uppercase tracking-tight leading-tight" style={{ fontFamily: invitation.font_style }}>{step.activity}</div>
                             </div>
                           </div>
-                          <div className="w-[10%] flex justify-center"><div className="w-3 h-3 bg-amber-500 rounded-full ring-4 ring-white shadow-sm z-10" /></div>
-                          <div className="w-[45%]" />
                         </motion.div>
                       );
                     })}
                   </div>
                 </div>
               </div>
-
               {invitation.plan_type === 'PREMIUM' && invitation.end_photo_url && (
-                <div className="px-2">
-                  <div className="rounded-[3rem] overflow-hidden shadow-2xl border-4 border-white rotate-1">
-                    <img src={invitation.end_photo_url} className="w-full h-auto" 
-                         style={{ transform: `translate(${invitation.end_photo_url_pos_x || 0}px, ${invitation.end_photo_url_pos_y || 0}px) scale(${invitation.end_photo_url_scale || 1})` }} />
+                <motion.div initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} className="mt-20 px-2 pb-10">
+                  <div className="rounded-[2.5rem] overflow-hidden shadow-2xl border-4 border-white rotate-2">
+                    <img src={invitation.end_photo_url} className="w-full h-auto" style={{ transform: `translate(${invitation.end_photo_url_pos_x || 0}px, ${invitation.end_photo_url_pos_y || 0}px) scale(${invitation.end_photo_url_scale || 1})` }} alt="Final" />
                   </div>
-                </div>
+                </motion.div>
               )}
-
-              <div className="bg-gray-900 rounded-[3rem] p-8 shadow-2xl">
-                {!isSubmitted ? (
-                  <form onSubmit={handleRSVP} className="space-y-6">
-                    <h3 className="font-black uppercase tracking-widest text-xs text-white text-center">{t.confirm_rsvp}</h3>
-                    <div className="flex items-center justify-between bg-white/5 p-2 rounded-2xl">
-                      <button type="button" onClick={() => setGuestCount(Math.max(1, guestCount - 1))} className="w-12 h-12 bg-white/10 text-white rounded-xl font-black">-</button>
-                      <span className="text-white font-black text-2xl">{guestCount}</span>
-                      <button type="button" onClick={() => setGuestCount(guestCount + 1)} className="w-12 h-12 bg-white/10 text-white rounded-xl font-black">+</button>
-                    </div>
-                    {guests.map((guest, i) => (
-                      <div key={i} className="grid grid-cols-2 gap-3">
-                        <input required placeholder={t.first_name} className="bg-white/10 h-12 px-4 rounded-xl text-sm text-white focus:ring-1 ring-amber-400 outline-none" value={guest.firstName} onChange={e => { const n = [...guests]; n[i].firstName = e.target.value; setGuests(n); }} />
-                        <input required placeholder={t.last_name} className="bg-white/10 h-12 px-4 rounded-xl text-sm text-white focus:ring-1 ring-amber-400 outline-none" value={guest.lastName} onChange={e => { const n = [...guests]; n[i].lastName = e.target.value; setGuests(n); }} />
-                      </div>
-                    ))}
-                    <button type="submit" disabled={isSubmitting} className="w-full h-14 bg-white text-gray-900 rounded-2xl font-black uppercase text-xs shadow-xl active:scale-95 transition-all">
-                      {isSubmitting ? "..." : t.send}
-                    </button>
-                  </form>
-                ) : (
-                  <div className="py-6 text-center space-y-4">
-                    <CheckCircle2 size={40} className="text-amber-400 mx-auto" />
-                    <p className="text-white font-black uppercase text-sm">{t.thank_you}</p>
-                  </div>
-                )}
-              </div>
             </div>
           </motion.div>
         )}
