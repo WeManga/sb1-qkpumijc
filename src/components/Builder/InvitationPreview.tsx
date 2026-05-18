@@ -11,7 +11,7 @@ const THEME_EMOJIS: Record<string, string[]> = {
   babyshower: ['🍼', '🤍', '👶', '💖', '💙'],
   funeral: ['🙏', '🕊️', '🥀', '⚰️', '🤍'],
   default: ['✨', '🌟', '🤍']
-};
+}; 
 
 export function InvitationPreview({ invitation }: any) {
   const [isOpened, setIsOpened] = useState(false);
