@@ -618,8 +618,30 @@ export function GuestView({ invitation }: any) {
                     </div>
                     {guests.map((guest, i) => (
                       <div key={i} className="grid grid-cols-2 gap-3">
-                        <input required placeholder={t.first_name} className="bg-white/10 h-12 px-4 rounded-xl text-sm text-white focus:ring-1 ring-amber-400 outline-none" value={guest.firstName} onChange={e => { const n = [...guests]; n[i].firstName = e.target.value; setGuests(n); }} />
-                        <input required placeholder={t.last_name} className="bg-white/10 h-12 px-4 rounded-xl text-sm text-white focus:ring-1 ring-amber-400 outline-none" value={guest.lastName} onChange={e => { const n = [...guests]; n[i].lastName = e.target.value; setGuests(n); }} />
+                        <input 
+                          required 
+                          placeholder={t.first_name} 
+                          className="bg-white/10 h-12 px-4 rounded-xl text-sm text-white focus:ring-1 ring-amber-400 outline-none" 
+                          value={guest.firstName} 
+                          onChange={e => {
+                            const updatedGuests = guests.map((g, index) => 
+                              index === i ? { ...g, firstName: e.target.value } : g
+                            );
+                            setGuests(updatedGuests);
+                          }} 
+                        />
+                        <input 
+                          required 
+                          placeholder={t.last_name} 
+                          className="bg-white/10 h-12 px-4 rounded-xl text-sm text-white focus:ring-1 ring-amber-400 outline-none" 
+                          value={guest.lastName} 
+                          onChange={e => {
+                            const updatedGuests = guests.map((g, index) => 
+                              index === i ? { ...g, lastName: e.target.value } : g
+                            );
+                            setGuests(updatedGuests);
+                          }} 
+                        />
                       </div>
                     ))}
                     <button type="submit" disabled={isSubmitting} className="w-full h-14 bg-white text-gray-900 rounded-2xl font-black uppercase text-xs shadow-xl active:scale-95 transition-all">
