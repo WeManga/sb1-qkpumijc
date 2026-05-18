@@ -229,7 +229,7 @@ export function InvitationPreview({ invitation }: any) {
 
   const addToCalendar = () => {
     const eventDate = new Date(invitation.event_date);
-    const formatDate = (date: Date) => date.toISOString().replace(/-|:|\\.\\d\\d\\d/g, "");
+    const formatDate = (date: Date) => date.toISOString().replace(/-|:|\\\\.\\\\d\\\\d\\\\d/g, "");
     const startDate = formatDate(eventDate);
     const endDate = formatDate(new Date(eventDate.getTime() + 2 * 60 * 60 * 1000));
     const googleUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(invitation.title)}&dates=${startDate}/${endDate}&location=${encodeURIComponent(invitation.event_address)}&details=${encodeURIComponent(invitation.description || "")}`;
@@ -544,48 +544,55 @@ export function InvitationPreview({ invitation }: any) {
               </div>
             )}
 
-            {isEnvelopeContainer && (
-              <div className="absolute inset-0 z-50 w-full h-full flex pointer-events-none" style={{ perspective: '2000px' }}>
-                <AnimatePresence>
-                  {!isOpened && (
-                    <>
-                      {invitation.container_open === 'metal_door' ? (
-                        <motion.div
-                          key="metal-door"
-                          exit={{ x: "100%" }}
-                          transition={{ duration: 1.6, ease: "easeInOut" }}
-                          className="absolute inset-0 w-full h-full bg-cover bg-center shadow-2xl pointer-events-auto"
-                          style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20en%20metal.png")` }}
-                        />
-                      ) : invitation.container_open === 'wooden_door' ? (
-                        <div key="wooden-door" className="absolute inset-0 w-full h-full flex pointer-events-auto">
-                          <motion.div
-                            exit={{ rotateY: -100, x: '-20%', opacity: 0 }}
-                            transition={{ duration: 1.2, ease: "easeInOut" }}
-                            className="w-1/2 h-full origin-left bg-cover bg-center shadow-2xl border-r border-black/10 pointer-events-auto"
-                            style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20gauche.png")` }}
-                          />
-                          <motion.div
-                            exit={{ rotateY: 100, x: '20%', opacity: 0 }}
-                            transition={{ duration: 1.2, ease: "easeInOut" }}
-                            className="w-1/2 h-full origin-right bg-cover bg-center shadow-2xl border-l border-black/10 pointer-events-auto"
-                            style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20droite.png")` }}
-                          />
-                        </div>
-                      ) : (
-                        <motion.div
-                          key="shutter-shutter"
-                          exit={{ y: "-100%", opacity: 0 }}
-                          transition={{ duration: 0.85, ease: "easeIn" }}
-                          style={{ backgroundColor: invitation?.envelope_color || '#FFFFFF' }}
-                          className="absolute inset-0 w-full h-full shadow-2xl rounded-[3.5rem] pointer-events-auto"
-                        />
-                      )}
-                    </>
-                  )}
-                </AnimatePresence>
-              </div>
-            )}
+            {/* Animations des portes et volet – ne pas mettre dans un div pointerEvents: none */}
+            <AnimatePresence>
+              {isEnvelopeContainer && !isOpened && (
+                <>
+                  {/* Volet qui monte quand on ouvre */}
+                  {!invitation.container_open || invitation.container_open === 'envelope' || invitation.container_open === 'shutter' ? (
+                    <motion.div
+                      key="shutter"
+                      exit={{ y: "-100%", opacity: 0, transition: { duration: 0.85, ease: "easeIn" } }}
+                      className="absolute inset-0 w-full h-full rounded-[3.5rem] shadow-2xl pointer-events-auto"
+                      style={{ backgroundColor: invitation.envelope_color || '#FFFFFF' }}
+                    />
+                  ) : invitation.container_open === 'metal_door' ? (
+                    <motion.div
+                      key="metal-door"
+                      exit={{ x: "100%" }}
+                      transition={{ duration: 1.6, ease: "easeInOut" }}
+                      className="absolute inset-0 w-full h-full bg-cover bg-center shadow-2xl pointer-events-auto"
+                      style={{
+                        backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20noir.png")`,
+                      }}
+                    />
+                  ) : invitation.container_open === 'wooden_door' ? (
+                    <motion.div
+                      key="wooden-door"
+                      exit={{ opacity: 0, transition: { duration: 1.2, ease: "easeInOut" } }}
+                      className="absolute inset-0 w-full h-full flex pointer-events-auto"
+                    >
+                      <motion.div
+                        exit={{ rotateY: -90, x: '-20%', opacity: 0 }}
+                        transition={{ duration: 1.2, ease: "easeInOut" }}
+                        className="w-1/2 h-full origin-left bg-cover bg-center shadow-2xl border-r border-black/10 pointer-events-auto"
+                        style={{
+                          backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20gauche.png")`,
+                        }}
+                      />
+                      <motion.div
+                        exit={{ rotateY: 90, x: '20%', opacity: 0 }}
+                        transition={{ duration: 1.2, ease: "easeInOut" }}
+                        className="w-1/2 h-full origin-right bg-cover bg-center shadow-2xl border-l border-black/10 pointer-events-auto"
+                        style={{
+                          backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20droite.png")`,
+                        }}
+                      />
+                    </motion.div>
+                  ) : null}
+                </>
+              )}
+            </AnimatePresence>
           </motion.div>
         ) : (
           <motion.div
