@@ -319,13 +319,13 @@ export function InvitationPreview({ invitation }: any) {
     if (invitation.background_theme === 'flowers') {
       return (
         <div className="absolute inset-0 z-50 pointer-events-none w-full h-full rounded-[3.5rem] overflow-hidden">
-          {/* Fleurs Top - Ajusté plus haut */}
-          <motion.img 
-            src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleurs%20haut%20droite.png"
-            animate={{ rotate: [-0.6, 0.6, -0.6] }}
-            transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute top-[-10px] left-0 w-full object-contain origin-top select-none drop-shadow-md"
-          />
+         {/* Fleurs Top - Ajusté plus haut et plus à droite */}
+<motion.img 
+  src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleurs%20haut%20droite.png"
+  animate={{ rotate: [-0.6, 0.6, -0.6] }}
+  transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
+  className="absolute top-[-25px] right-[-20px] w-[75%] max-w-[320px] object-contain origin-top-right select-none drop-shadow-md z-10"
+/>
           {/* Fleurs Coin Gauche - Ajusté plus profondément dans le coin gauche */}
           <motion.img 
             src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleus%20coin%20gauche.png"
