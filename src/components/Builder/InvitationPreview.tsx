@@ -274,32 +274,38 @@ export function InvitationPreview({ invitation }: any) {
       );
     }
 
-    // RENDU DÉCOR : PAPILLONS REALS (VOL ALTERNÉ GAUCHE/DROITE EN PREMIER PLAN)
+    // RENDU DÉCOR : PAPILLONS REALS (GROSSIS, VOLS ET DIRECTIONS TOUT ÉCRAN ALTERNÉS)
     if (invitation.background_theme === 'butterflies') {
+      const butterflyImages = [
+        "https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/papillions.png",
+        "https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/papilions%202.png"
+      ];
+
       return (
         <div className="absolute inset-0 z-50 pointer-events-none w-full h-full rounded-[3.5rem] overflow-hidden">
           {[...Array(4)].map((_, idx) => {
-            const isFromRight = idx % 2 === 1; // Un coup à gauche, un coup à droite !
+            const isFromRight = idx % 2 === 1; 
+            const currentImg = butterflyImages[idx % butterflyImages.length];
             return (
               <motion.div
                 key={idx}
                 initial={{ 
-                  x: isFromRight ? 360 : -60, 
-                  y: 480 - idx * 110, 
-                  scale: 0.45 + idx * 0.1, // Grossis un peu les papillons
-                  scaleX: isFromRight ? -1 : 1 // Aligne le regard du papillon vers sa direction de vol
+                  x: isFromRight ? 360 : -70, 
+                  y: 460 - idx * 110, 
+                  scale: 0.65 + idx * 0.12, // Papillons plus grands et bien visibles
+                  scaleX: isFromRight ? -1 : 1 
                 }}
                 animate={{ 
-                  x: isFromRight ? -60 : 360, 
-                  y: [480 - idx * 110, 240 - idx * 80, 30 - idx * 110] 
+                  x: isFromRight ? -70 : 360, 
+                  y: [460 - idx * 110, 220 - idx * 80, 20 - idx * 110] 
                 }}
-                transition={{ duration: 8 + idx * 2, repeat: Infinity, ease: "easeInOut", delay: idx * 2.0 }}
+                transition={{ duration: 7.5 + idx * 1.8, repeat: Infinity, ease: "easeInOut", delay: idx * 1.8 }}
                 className="absolute w-20 h-20 origin-center"
               >
                 <motion.img
-                  src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/papillions.png"
+                  src={currentImg}
                   animate={{ rotateY: [0, 70, 0] }}
-                  transition={{ duration: 0.22, repeat: Infinity, ease: "linear" }}
+                  transition={{ duration: 0.20, repeat: Infinity, ease: "linear" }}
                   className="w-full h-full object-contain select-none drop-shadow-lg"
                 />
               </motion.div>
@@ -331,44 +337,48 @@ export function InvitationPreview({ invitation }: any) {
       );
     }
 
-    // RENDU DÉCOR : PLUIE D'ÉTOILES DUPLIQUÉES ET NOMBREUSES SANS VOILE SOMBRE
+    // RENDU DÉCOR : VÉRITABLE PLUIE D'ÉTOILES SUR TOUT L'ÉCRAN S'ENTASSANT ET S'EFFAÇANT AU BAS
     if (invitation.background_theme === 'stars') {
       const starColor = invitation.envelope_color && invitation.envelope_color.startsWith('#') ? invitation.envelope_color : '#FFFFFF';
-      const starParticles = useMemo(() => Array.from({ length: 60 }).map((_, i) => ({
-        id: i,
-        left: `${Math.random() * 100}%`,
-        initialY: -20,
-        delay: Math.random() * 5,
-        duration: 3 + Math.random() * 2,
-        scale: 0.1 + Math.random() * 0.1 // Toute petite
-      })), []);
+      
+      const starParticles = useMemo(() => Array.from({ length: 55 }).map((_, i) => {
+        const fallDuration = 2.0 + Math.random() * 1.5;
+        const totalDuration = fallDuration + 2.5; // Temps de chute + temps d'entassement au sol
+        
+        return {
+          id: i,
+          left: `${1 + Math.random() * 98}%`,
+          landX: `${Math.random() * 12 - 6}px`, // Micro-décalage horizontal au sol
+          landY: `${585 + Math.random() * 10}px`, // Entassement fluide sur la ligne du bas
+          delay: Math.random() * 6,
+          fallDuration: fallDuration,
+          totalDuration: totalDuration,
+          scale: 0.09 + Math.random() * 0.08
+        };
+      }), []);
 
       return (
         <div className="absolute inset-0 z-50 pointer-events-none w-full h-full rounded-[3.5rem] overflow-hidden">
-          {/* Texture d'étoiles de fond subtile et claire - Optionnelle, enlevée pour "vrai pluie" si demandée, ici gardée mais discrète */}
-          <div 
-            className="absolute inset-0 opacity-10 mix-blend-screen bg-cover bg-center" 
-            style={{ backgroundImage: 'url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/etoile%201.png")' }}
-          />
-          {/* Véritable averse d'étoiles dupliquées (etoile.png) */}
           {starParticles.map((p) => (
             <motion.img
               key={p.id}
               src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/etoile.png"
-              initial={{ x: p.left, y: p.initialY, scale: p.scale, opacity: 0 }}
+              initial={{ x: p.left, y: -20, scale: p.scale, opacity: 0 }}
               animate={{ 
-                y: 670, // Tombe jusqu'en bas
-                opacity: [0, 1, 1, 0],
-                rotate: [0, 360 * (Math.random() > 0.5 ? 1 : -1)] // Rotation aléatoire en tombant
+                y: [-20, parseFloat(p.landY), parseFloat(p.landY)],
+                x: [p.left, `calc(${p.left} + ${p.landX})`, `calc(${p.left} + ${p.landX})`],
+                opacity: [0, 1, 1, 0], // S'efface petit à petit après s'être entassée
+                rotate: [0, 180, 180]
               }}
               transition={{ 
-                duration: p.duration, 
+                duration: p.totalDuration, 
+                times: [0, p.fallDuration / p.totalDuration, 0.75, 1], // Timing précis de chute, d'entassement et disparition
                 repeat: Infinity, 
                 ease: "linear", 
                 delay: p.delay 
               }}
-              className="absolute w-10 h-10 origin-center select-none" // Base size, scale acts on top
-              style={{ filter: `drop-shadow(0 0 5px ${starColor})` }} // Teinte et lueur basées sur envelope_color
+              className="absolute w-10 h-10 origin-center select-none"
+              style={{ filter: `drop-shadow(0 0 4px ${starColor})` }}
             />
           ))}
         </div>
