@@ -366,7 +366,7 @@ export function GuestView({ invitation }: any) {
       const flowersImageUrl = "https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleurs%20haut%20droite.png";
       return (
         <div className="absolute inset-0 z-50 pointer-events-none w-full h-full rounded-[3.5rem] overflow-hidden">
-          {/* Fleurs Top - Ajusté plus haut et plus à droite */}
+           {/* Fleurs Top - Ajusté plus haut et plus à droite */}
 <motion.img 
   src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleurs%20haut%20droite.png"
   animate={{ rotate: [-0.6, 0.6, -0.6] }}
@@ -380,9 +380,6 @@ export function GuestView({ invitation }: any) {
             transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut" }}
             className="absolute bottom-[-15px] left-[-15px] w-[55%] object-contain origin-bottom-left select-none drop-shadow-lg"
           />
-        </div>
-      );
-    }
         </div>
       );
     }
