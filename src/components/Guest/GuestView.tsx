@@ -366,21 +366,23 @@ export function GuestView({ invitation }: any) {
       const flowersImageUrl = "https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleurs%20haut%20droite.png";
       return (
         <div className="absolute inset-0 z-50 pointer-events-none w-full h-full rounded-[3.5rem] overflow-hidden">
-          {/* Fleurs Top Droite Originales */}
+          {/* Fleurs Top - Ajusté plus haut et plus à droite */}
+<motion.img 
+  src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleurs%20haut%20droite.png"
+  animate={{ rotate: [-0.6, 0.6, -0.6] }}
+  transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
+  className="absolute top-[-25px] right-[-20px] w-[75%] max-w-[320px] object-contain origin-top-right select-none drop-shadow-md z-10"
+/>
+          {/* Fleurs Coin Gauche - Ajusté plus profondément dans le coin gauche */}
           <motion.img 
-            src={flowersImageUrl}
-            animate={{ rotate: [-0.6, 0.6, -0.6] }}
-            transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute top-[-25px] right-[-20px] w-[75%] max-w-[320px] object-contain origin-top-right select-none drop-shadow-md z-10"
-          />
-          {/* Fleurs Bas Gauche (Même image pivotée statiquement à 180° via style inline) */}
-          <motion.img 
-            src={flowersImageUrl}
-            animate={{ rotate: [0.4, -0.4, 0.4] }}
+            src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleurs%20bas%20gauche.png"
+            animate={{ rotate: [0.4, -0.4, 0.4], scale: [1, 1.01, 1] }}
             transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut" }}
-            style={{ transform: "rotate(180deg)" }}
-            className="absolute bottom-[-20px] left-[-30px] w-[60%] max-w-[280px] object-contain origin-bottom-left select-none drop-shadow-lg z-10"
+            className="absolute bottom-[-15px] left-[-15px] w-[55%] object-contain origin-bottom-left select-none drop-shadow-lg"
           />
+        </div>
+      );
+    }
         </div>
       );
     }
