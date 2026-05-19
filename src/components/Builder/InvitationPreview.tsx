@@ -192,7 +192,7 @@ export function InvitationPreview({ invitation }: any) {
 
   // Centralisation et exécution de l'ouverture
   const triggerContainerOpening = () => {
-    if (invitation.container_open === 'wooden_door') {
+    if (invitation.container_open === 'wooden_door' ? true : false) {
       playSyntheticSound('open_door');
     } else if (invitation.container_open === 'metal_door') {
       playSyntheticSound('open_metal_door');
@@ -315,7 +315,7 @@ export function InvitationPreview({ invitation }: any) {
       );
     }
 
-    // RENDU DÉCOR : FLEURS STRUCTURÉES AVEC RETOURNEMENT DE L'IMAGE UNIQUE POUR LE BAS
+    // RENDU DÉCOR : FLEURS STRUCTURÉES AVEC RETOURNEMENT DE L'IMAGE UNIQUE POUR LE BAS VIA LE STYLE EN DEGRES
     if (invitation.background_theme === 'flowers') {
       const flowersImageUrl = "https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleurs%20haut%20droite.png";
       return (
@@ -327,13 +327,14 @@ export function InvitationPreview({ invitation }: any) {
             transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
             className="absolute top-[-25px] right-[-20px] w-[75%] max-w-[320px] object-contain origin-top-right select-none drop-shadow-md z-10"
           />
-          {/* Fleurs Bas Gauche (Même image retournée à 180 degrés) */}
-<motion.img 
-  src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleurs%20haut%20droite.png"
-  animate={{ rotate: [0.4, -0.4, 0.4] }}
-  transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut" }}
-  className="absolute bottom-[-20px] left-[-30px] w-[60%] max-w-[280px] object-contain origin-bottom-left select-none drop-shadow-lg z-10 rotate-180"
-/>
+          {/* Fleurs Bas Gauche (Même image, pivotée statiquement à 180° via style inline pour forcer Framer Motion) */}
+          <motion.img 
+            src={flowersImageUrl}
+            animate={{ rotate: [0.4, -0.4, 0.4] }}
+            transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut" }}
+            style={{ transform: "rotate(180deg)" }}
+            className="absolute bottom-[-20px] left-[-30px] w-[60%] max-w-[280px] object-contain origin-bottom-left select-none drop-shadow-lg z-10"
+          />
         </div>
       );
     }
