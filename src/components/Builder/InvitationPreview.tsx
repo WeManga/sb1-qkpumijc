@@ -327,13 +327,13 @@ export function InvitationPreview({ invitation }: any) {
             transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
             className="absolute top-[-25px] right-[-20px] w-[75%] max-w-[320px] object-contain origin-top-right select-none drop-shadow-md z-10"
           />
-          {/* Fleurs Bas Gauche (Même image retournée à 180 degrés de façon fixe) */}
-          <motion.img 
-            src={flowersImageUrl}
-            animate={{ rotate: [0.4, -0.4, 0.4] }}
-            transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute bottom-[-20px] left-[-30px] w-[60%] max-w-[280px] object-contain origin-bottom-left select-none drop-shadow-lg z-10 rotate-180"
-          />
+          {/* Fleurs Bas Gauche (Même image retournée à 180 degrés) */}
+<motion.img 
+  src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleurs%20haut%20droite.png"
+  animate={{ rotate: [0.4, -0.4, 0.4] }}
+  transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut" }}
+  className="absolute bottom-[-20px] left-[-30px] w-[60%] max-w-[280px] object-contain origin-bottom-left select-none drop-shadow-lg z-10 rotate-180"
+/>
         </div>
       );
     }
