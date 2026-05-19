@@ -278,7 +278,7 @@ export function InvitationPreview({ invitation }: any) {
     if (invitation.background_theme === 'butterflies') {
       const butterflyImages = [
         "https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/papillions.png",
-        "https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/papilions%202.png"
+        "https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/papillion%202.png"
       ];
 
       return (
