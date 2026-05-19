@@ -192,7 +192,7 @@ export function InvitationPreview({ invitation }: any) {
 
   // Centralisation et exécution de l'ouverture
   const triggerContainerOpening = () => {
-    if (invitation.container_open === 'wooden_door' ? true : false) {
+    if (invitation.container_open === 'wooden_door') {
       playSyntheticSound('open_door');
     } else if (invitation.container_open === 'metal_door') {
       playSyntheticSound('open_metal_door');
@@ -315,31 +315,29 @@ export function InvitationPreview({ invitation }: any) {
       );
     }
 
-    // RENDU DÉCOR : FLEURS STRUCTURÉES AVEC RETOURNEMENT DE L'IMAGE UNIQUE POUR LE BAS VIA LE STYLE EN DEGRES
+    // RENDU DÉCOR : FLEURS REPOSITIONNÉES EN TOUT COIN DE L'ÉCRAN
     if (invitation.background_theme === 'flowers') {
-      const flowersImageUrl = "https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleurs%20haut%20droite.png";
       return (
         <div className="absolute inset-0 z-50 pointer-events-none w-full h-full rounded-[3.5rem] overflow-hidden">
-          {/* Fleurs Top Droite Originales */}
+          {/* Fleurs Top - Ajusté plus haut */}
           <motion.img 
-            src={flowersImageUrl}
+            src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleurs%20top.png"
             animate={{ rotate: [-0.6, 0.6, -0.6] }}
             transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute top-[-25px] right-[-20px] w-[75%] max-w-[320px] object-contain origin-top-right select-none drop-shadow-md z-10"
+            className="absolute top-[-10px] left-0 w-full object-contain origin-top select-none drop-shadow-md"
           />
-          {/* Fleurs Bas Gauche (Même image, pivotée statiquement à 180° via style inline pour forcer Framer Motion) */}
+          {/* Fleurs Coin Gauche - Ajusté plus profondément dans le coin gauche */}
           <motion.img 
-            src={flowersImageUrl}
-            animate={{ rotate: [0.4, -0.4, 0.4] }}
+            src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleus%20coin%20gauche.png"
+            animate={{ rotate: [0.4, -0.4, 0.4], scale: [1, 1.01, 1] }}
             transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut" }}
-            style={{ transform: "rotate(180deg)" }}
-            className="absolute bottom-[-20px] left-[-30px] w-[60%] max-w-[280px] object-contain origin-bottom-left select-none drop-shadow-lg z-10"
+            className="absolute bottom-[-15px] left-[-15px] w-[55%] object-contain origin-bottom-left select-none drop-shadow-lg"
           />
         </div>
       );
     }
 
-    // RENDU DÉCOR : VÉRITABLE PLUIE D'ÉTOILES SUR TOUT L'ÉCRAN S'ENTASSANT ET S'EFFAÇANT AU BAS
+    // RENDU DÉCOR : PLUIE D'ÉTOILES DOUBLEMENT CONQUÉRANTE REPARTIE DE GAUCHE À DROITE (SWITCH LEFT CSS)
     if (invitation.background_theme === 'stars') {
       const starColor = invitation.envelope_color && invitation.envelope_color.startsWith('#') ? invitation.envelope_color : '#FFFFFF';
       
@@ -349,7 +347,7 @@ export function InvitationPreview({ invitation }: any) {
         
         return {
           id: i,
-          left: `${0.5 + Math.random() * 99}%`, 
+          left: `${0.5 + Math.random() * 99}%`, // Répartition homogène totale
           landX: `${Math.random() * 12 - 6}px`, 
           landY: `${585 + Math.random() * 10}px`, 
           delay: Math.random() * 6,
@@ -387,7 +385,7 @@ export function InvitationPreview({ invitation }: any) {
               }}
               className="absolute w-10 h-10 origin-center select-none"
               style={{ 
-                left: p.left, 
+                left: p.left, // Distribution CSS natrice forcée sur l'écran
                 filter: `drop-shadow(0 0 4px ${starColor})` 
               }}
             />
