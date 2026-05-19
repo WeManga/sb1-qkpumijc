@@ -292,12 +292,172 @@ export function GuestView({ invitation }: any) {
     );
   };
 
-  const isDoorType = invitation.container_open === 'wooden_door' || invitation.container_open === 'metal_door';
+  // RENDU DU PREMIER PLAN GLOBAL PREMIUM (z-50)
+  const PremiumForegroundDecor = () => {
+    if (invitation.premium_trigger_type !== 'decor') return null;
+
+    // RENDU DÉCOR : BALLONS
+    if (invitation.background_theme === 'balloons') {
+      return (
+        <div className="absolute inset-0 z-50 pointer-events-none overflow-hidden rounded-[3.5rem]">
+          {[...Array(5)].map((_, idx) => (
+            <motion.img
+              key={idx}
+              src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/ballons.png"
+              initial={{ y: 650, x: 20 + idx * 55, opacity: 0.95 }}
+              animate={{ 
+                y: -400, 
+                x: [20 + idx * 55, (20 + idx * 55) + (idx % 2 === 0 ? 15 : -15), 20 + idx * 55]
+              }}
+              transition={{
+                y: { duration: 7 + idx * 1.5, repeat: Infinity, ease: "linear", delay: idx * 0.8 },
+                x: { duration: 3, repeat: Infinity, ease: "easeInOut" }
+              }}
+              className="absolute w-28 h-auto object-contain select-none drop-shadow-xl"
+            />
+          ))}
+        </div>
+      );
+    }
+
+    // RENDU DÉCOR : PAPILLONS REALS (GROSSIS, VOLS ET DIRECTIONS TOUT ÉCRAN ALTERNÉS)
+    if (invitation.background_theme === 'butterflies') {
+      const butterflyImages = [
+        "https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/papillions.png",
+        "https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/papilions%202.png"
+      ];
+
+      return (
+        <div className="absolute inset-0 z-50 pointer-events-none w-full h-full rounded-[3.5rem] overflow-hidden">
+          {[...Array(4)].map((_, idx) => {
+            const isFromRight = idx % 2 === 1; 
+            const currentImg = butterflyImages[idx % butterflyImages.length];
+            return (
+              <motion.div
+                key={idx}
+                initial={{ 
+                  x: isFromRight ? 360 : -70, 
+                  y: 460 - idx * 110, 
+                  scale: 0.65 + idx * 0.12, 
+                  scaleX: isFromRight ? -1 : 1 
+                }}
+                animate={{ 
+                  x: isFromRight ? -70 : 360, 
+                  y: [460 - idx * 110, 220 - idx * 80, 20 - idx * 110] 
+                }}
+                transition={{ duration: 7.5 + idx * 1.8, repeat: Infinity, ease: "easeInOut", delay: idx * 1.8 }}
+                className="absolute w-20 h-20 origin-center"
+              >
+                <motion.img
+                  src={currentImg}
+                  animate={{ rotateY: [0, 70, 0] }}
+                  transition={{ duration: 0.20, repeat: Infinity, ease: "linear" }}
+                  className="w-full h-full object-contain select-none drop-shadow-lg"
+                />
+              </motion.div>
+            );
+          })}
+        </div>
+      );
+    }
+
+    // RENDU DÉCOR : FLEURS REPOSITIONNÉES AVEC RETOURNEMENT DE L'IMAGE UNIQUE POUR LE BAS
+    if (invitation.background_theme === 'flowers') {
+      const flowersImageUrl = "https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleurs%20haut%20droite.png";
+      return (
+        <div className="absolute inset-0 z-50 pointer-events-none w-full h-full rounded-[3.5rem] overflow-hidden">
+          {/* Fleurs Top Droite Originales */}
+          <motion.img 
+            src={flowersImageUrl}
+            animate={{ rotate: [-0.6, 0.6, -0.6] }}
+            transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute top-[-25px] right-[-20px] w-[75%] max-w-[320px] object-contain origin-top-right select-none drop-shadow-md z-10"
+          />
+          {/* Fleurs Bas Gauche (Même image pivotée statiquement à 180° via style inline) */}
+          <motion.img 
+            src={flowersImageUrl}
+            animate={{ rotate: [0.4, -0.4, 0.4] }}
+            transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut" }}
+            style={{ transform: "rotate(180deg)" }}
+            className="absolute bottom-[-20px] left-[-30px] w-[60%] max-w-[280px] object-contain origin-bottom-left select-none drop-shadow-lg z-10"
+          />
+        </div>
+      );
+    }
+
+    // RENDU DÉCOR : VÉRITABLE PLUIE D'ÉTOILES SUR TOUT L'ÉCRAN S'ENTASSANT ET S'EFFAÇANT AU BAS
+    if (invitation.background_theme === 'stars') {
+      const starColor = invitation.envelope_color && invitation.envelope_color.startsWith('#') ? invitation.envelope_color : '#FFFFFF';
+      
+      const starParticles = useMemo(() => Array.from({ length: 110 }).map((_, i) => {
+        const fallDuration = 2.0 + Math.random() * 1.5;
+        const totalDuration = fallDuration + 2.5; 
+        
+        return {
+          id: i,
+          left: `${0.5 + Math.random() * 99}%`, 
+          landX: `${Math.random() * 12 - 6}px`, 
+          landY: `${585 + Math.random() * 10}px`, 
+          delay: Math.random() * 6,
+          fallDuration: fallDuration,
+          totalDuration: totalDuration,
+          scale: 0.09 + Math.random() * 0.08
+        };
+      }), []);
+
+      return (
+        <div className="absolute inset-0 z-50 pointer-events-none w-full h-full rounded-[3.5rem] overflow-hidden">
+          <div 
+            className="absolute inset-0 opacity-10 mix-blend-screen bg-cover bg-center" 
+            style={{ backgroundImage: 'url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/etoile%201.png")' }}
+          />
+          {starParticles.map((p) => (
+            <motion.img
+              key={p.id}
+              src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/etoile.png"
+              initial={{ y: -20, scale: p.scale, opacity: 0 }}
+              animate={{ 
+                y: [-20, parseFloat(p.landY), parseFloat(p.landY)],
+                x: [0, parseFloat(p.landX), parseFloat(p.landX)],
+                opacity: [0, 1, 1, 0], 
+                rotate: [0, 180, 180]
+              }}
+              transition={{ 
+                duration: p.totalDuration, 
+                times: [0, p.fallDuration / p.totalDuration, 0.75, 1], 
+                repeat: Infinity, 
+                ease: "linear", 
+                delay: p.delay 
+              }}
+              className="absolute w-10 h-10 origin-center select-none"
+              style={{ 
+                left: p.left, 
+                filter: `drop-shadow(0 0 4px ${starColor})` 
+              }}
+            />
+          ))}
+        </div>
+      );
+    }
+
+    return null;
+  };
+
+  const isDecorActive = invitation.premium_trigger_type === 'decor';
+  const hasBackgroundGradient = invitation.background_color && invitation.background_color.includes('linear-gradient');
+  const isFilmstrip = invitation.opening_type === 'filmstrip';
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center overflow-hidden touch-none bg-white" style={{ fontFamily: invitation.font_style || 'inherit' }}>
+    <div 
+      className="fixed inset-0 flex items-center justify-center overflow-hidden touch-none" 
+      style={{ 
+        fontFamily: invitation.font_style || 'inherit',
+        background: invitation.background_color || '#FFFFFF',
+        backgroundColor: hasBackgroundGradient ? undefined : (invitation.background_color || '#FFFFFF')
+      }}
+    >
       {invitation?.music_url && <audio ref={audioRef} src={invitation.music_url} loop />}
-      {isOpened && <EmojiRain />}
+      {isOpened && !isDecorActive && <EmojiRain />}
       
       <AnimatePresence mode="wait">
         {view === 'envelope' ? (
@@ -311,11 +471,11 @@ export function GuestView({ invitation }: any) {
             {/* --- ANIMATION DERRIÈRE LA CARTE (VINYLE OU PELLICULE) --- */}
             <motion.div 
               initial={{ y: 0, opacity: 0 }} 
-              animate={isOpened ? { y: invitation.opening_type === 'filmstrip' ? -160 : -140, opacity: 1 } : { y: 0, opacity: 0 }} 
+              animate={isOpened ? { y: isFilmstrip ? -160 : -140, opacity: 1 } : { y: 0, opacity: 0 }} 
               transition={{ type: "spring", damping: 25, delay: 0.2 }} 
               className="absolute z-20"
             >
-              {invitation.opening_type === 'filmstrip' ? (
+              {isFilmstrip ? (
                 <div className="relative w-44 h-72 bg-[#1a1a1a] rounded-xl shadow-2xl rotate-[-2deg] overflow-hidden p-2 border-y-4 border-[#1a1a1a]">
                   <div className="absolute inset-y-0 left-1.5 w-1.5 border-l-2 border-dashed border-white/20 z-10" />
                   <div className="absolute inset-y-0 right-1.5 w-1.5 border-r-2 border-dashed border-white/20 z-10" />
@@ -364,7 +524,7 @@ export function GuestView({ invitation }: any) {
               )}
             </motion.div>
 
-            {/* --- CARTE D'INVITATION AVEC INTEGRATION DE LA COULEUR DE FOND DU PAPIER SIDEBAR --- */}
+            {/* --- CARTE D'INVITATION --- */}
             <motion.div 
               initial={{ scale: 0.8, y: 0 }} 
               animate={isOpened ? { scale: 1, y: 80 } : { y: 0 }} 
@@ -388,6 +548,9 @@ export function GuestView({ invitation }: any) {
               </div>
             </motion.div>
 
+            {/* --- COMPOSANTS DE DÉCORS PREMIUM PLACÉS AU PREMIER PLAN --- */}
+            <PremiumForegroundDecor />
+
             {/* --- COUCHE DECLENCHEURS MECANIQUES ET FOND --- */}
             <div className="absolute inset-0 z-50 overflow-hidden" style={{ perspective: '2000px', pointerEvents: isOpened ? 'none' : 'auto' }}>
               <div className="w-full h-full relative flex items-center justify-center">
@@ -405,12 +568,12 @@ export function GuestView({ invitation }: any) {
                     >
                       <div className="relative w-full flex items-center justify-center">
                         {invitation.opening_style === 'knock' ? (
-                          <motion.div
+                          <motion.div 
                             animate={{ 
                               x: [0, -12, 4, -12, 4, 0],
                               y: [0, -6, 2, -6, 2, 0],
                               scale: [1, 1.05, 0.98, 1.05, 0.98, 1]
-                            }}
+                            }} 
                             transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 1.5, ease: "easeInOut" }}
                             className="w-56 h-56 select-none flex items-center justify-center"
                           >
@@ -536,7 +699,7 @@ export function GuestView({ invitation }: any) {
                       )}
                     </AnimatePresence>
                   ) : (
-                    /* --- ZONE CORRIGÉE : VOLET CLASSIQUE FREE QUI SE LÈVE --- */
+                    /* --- ZONE REPARÉE : VOLET CLASSIQUE FREE QUI SE LÈVE --- */
                     <motion.div
                       animate={isOpened ? { y: "-100%" } : { y: "0%" }}
                       transition={{ duration: 1.2, ease: "easeInOut" }}
