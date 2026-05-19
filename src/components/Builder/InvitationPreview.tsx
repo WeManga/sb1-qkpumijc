@@ -289,17 +289,69 @@ export function InvitationPreview({ invitation }: any) {
                   </motion.div>
                 </div>
               ) : (
-                <div className={`w-[270px] h-[270px] relative ${isOpened ? 'animate-disk-spin' : ''}`}>
-                  <div className="absolute inset-0 rounded-full bg-[#111] overflow-hidden">
-                    <div className="absolute inset-0 opacity-30" style={{ background: 'repeating-radial-gradient(circle, #444 0, #000 2px, #111 4px)' }} />
-                  </div>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-24 h-24 bg-white rounded-full border-[5px] border-[#111] overflow-hidden">
-                      {invitation.main_photo_url && (
+                /* --- NOUVEAU BLOC VINYLE LOOK PRO & INTERACTIF --- */
+                <div className="relative w-[280px] h-[280px] flex items-center justify-center" style={{ perspective: '1000px' }}>
+                  {/* Conteneur principal du vinyle avec légère inclinaison 3D */}
+                  <motion.div 
+                    initial={{ rotateX: 15, rotateZ: 0 }}
+                    animate={isOpened ? { rotateZ: 360 } : { rotateZ: 0 }}
+                    transition={isOpened ? { repeat: Infinity, duration: 4, ease: "linear", delay: 0.8 } : { duration: 0.5 }}
+                    className="w-[250px] h-[250px] relative rounded-full bg-neutral-950 shadow-[0_15px_35px_rgba(0,0,0,0.6),_inset_0_0_20px_rgba(255,255,255,0.05)] border-4 border-neutral-900 flex items-center justify-center overflow-hidden"
+                  >
+                    {/* Micros-sillons réalistes (Radial gradient) */}
+                    <div className="absolute inset-0 opacity-40 mix-blend-overlay pointer-events-none" style={{ background: 'repeating-radial-gradient(circle, #555 0px, #000 2px, #111 4px)' }} />
+                    
+                    {/* Reflet lumineux conique dynamique (Tourne à l'envers pour simuler la lumière fixe) */}
+                    <motion.div 
+                      animate={isOpened ? { rotate: -360 } : { rotate: 0 }}
+                      transition={isOpened ? { repeat: Infinity, duration: 4, ease: "linear", delay: 0.8 } : { duration: 0.5 }}
+                      className="absolute inset-0 opacity-20 pointer-events-none mix-blend-screen"
+                      style={{ background: 'conic-gradient(from 0deg, transparent 0deg, rgba(255,255,255,0.4) 60deg, transparent 120deg, transparent 180deg, rgba(255,255,255,0.4) 240deg, transparent 300deg)' }}
+                    />
+
+                    {/* Macaron central (Label du disque) */}
+                    <div className="w-24 h-24 bg-white rounded-full border-[6px] border-neutral-950 shadow-md overflow-hidden relative z-10 flex items-center justify-center">
+                      {invitation.main_photo_url ? (
                         <img src={invitation.main_photo_url} className="w-full h-full object-cover" 
                           style={{ transform: `translate(${invitation.main_photo_url_pos_x || 0}px, ${invitation.main_photo_url_pos_y || 0}px) scale(${invitation.main_photo_url_scale || 1})` }} alt="" />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-tr from-neutral-200 to-neutral-50" />
                       )}
+                      {/* Trou central du vinyle */}
+                      <div className="absolute w-3 h-3 bg-neutral-950 rounded-full shadow-inner border border-white/20" />
                     </div>
+                  </motion.div>
+
+                  {/* Bras de lecture SVG - S'anime en premier avant la rotation du disque */}
+                  <div className="absolute top-[-10px] right-[-10px] w-28 h-36 z-30 pointer-events-none">
+                    <svg className="w-full h-full drop-shadow-[4px_8px_10px_rgba(0,0,0,0.5)]" viewBox="0 0 100 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      {/* Base du bras */}
+                      <circle cx="75" cy="25" r="12" fill="#262626" stroke="#404040" strokeWidth="2"/>
+                      <circle cx="75" cy="25" r="5" fill="#171717"/>
+                      
+                      {/* Pivot mobile du bras */}
+                      <motion.g
+                        initial={{ rotate: -35 }}
+                        animate={isOpened ? { rotate: 5 } : { rotate: -35 }}
+                        transition={{ type: "spring", stiffness: 60, damping: 15, delay: 0.2 }}
+                        style={{ transformOrigin: "75px 25px" }}
+                      >
+                        {/* Tige métallique principale */}
+                        <path d="M 75 25 L 68 85 L 35 110" stroke="#d4d4d8" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M 75 25 L 68 85 L 35 110" stroke="#a1a1aa" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+                        
+                        {/* Contrepoids arrière */}
+                        <rect x="70" y="5" width="10" height="12" rx="2" fill="#525252" />
+                        
+                        {/* Tête de lecture (Cellule/Diamant) */}
+                        <g transform="translate(35, 110) rotate(-35)">
+                          <rect x="-6" y="-3" width="12" height="16" rx="2" fill="#171717" />
+                          <rect x="-4" y="2" width="8" height="10" rx="1" fill="#e5e5e5" />
+                          {/* Petite loupiote ou marqueur de style */}
+                          <circle cx="0" cy="10" r="1.5" fill="#f59e0b" />
+                        </g>
+                      </motion.g>
+                    </svg>
                   </div>
                 </div>
               )}
@@ -431,7 +483,7 @@ export function InvitationPreview({ invitation }: any) {
                                     );
                                   })}
                                 </div>
-                                <div className="mt-3.5 font-mono text-[8px] tracking-widest text-neutral-500 animate-pulse uppercase">
+                                <div className="w-full mt-3.5 font-mono text-[8px] tracking-widest text-neutral-500 animate-pulse uppercase text-center">
                                   {isVaultClicked ? "CRACKING CODE..." : "Tap Device to Unlock"}
                                 </div>
                               </div>
