@@ -286,7 +286,7 @@ export function InvitationPreview({ invitation }: any) {
                 initial={{ 
                   x: isFromRight ? 360 : -60, 
                   y: 480 - idx * 110, 
-                  scale: 0.35 + idx * 0.08,
+                  scale: 0.45 + idx * 0.1, // Grossis un peu les papillons
                   scaleX: isFromRight ? -1 : 1 // Aligne le regard du papillon vers sa direction de vol
                 }}
                 animate={{ 
@@ -331,39 +331,46 @@ export function InvitationPreview({ invitation }: any) {
       );
     }
 
-    // RENDU DÉCOR : VÉRITABLE PLUIE D'ÉTOILES SANS FILTRE SOMBRE PAS BEAU
+    // RENDU DÉCOR : PLUIE D'ÉTOILES DUPLIQUÉES ET NOMBREUSES SANS VOILE SOMBRE
     if (invitation.background_theme === 'stars') {
       const starColor = invitation.envelope_color && invitation.envelope_color.startsWith('#') ? invitation.envelope_color : '#FFFFFF';
+      const starParticles = useMemo(() => Array.from({ length: 60 }).map((_, i) => ({
+        id: i,
+        left: `${Math.random() * 100}%`,
+        initialY: -20,
+        delay: Math.random() * 5,
+        duration: 3 + Math.random() * 2,
+        scale: 0.1 + Math.random() * 0.1 // Toute petite
+      })), []);
+
       return (
         <div className="absolute inset-0 z-50 pointer-events-none w-full h-full rounded-[3.5rem] overflow-hidden">
-          {/* Texture d'étoiles de fond subtile et claire */}
+          {/* Texture d'étoiles de fond subtile et claire - Optionnelle, enlevée pour "vrai pluie" si demandée, ici gardée mais discrète */}
           <div 
-            className="absolute inset-0 opacity-20 mix-blend-screen bg-cover bg-center" 
-            style={{ backgroundImage: 'url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/etoile%201.png")"' }}
+            className="absolute inset-0 opacity-10 mix-blend-screen bg-cover bg-center" 
+            style={{ backgroundImage: 'url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/etoile%201.png")' }}
           />
-          {/* Véritable pluie vectorielle descendante et clignotante */}
-          <svg className="absolute inset-0 w-full h-full">
-            {[...Array(20)].map((_, idx) => (
-              <motion.circle
-                key={idx}
-                cx={`${2 + Math.random() * 96}%`}
-                initial={{ cy: -20, opacity: 0 }}
-                animate={{ 
-                  cy: 670, 
-                  opacity: [0, 1, 1, 0],
-                  scale: [0.8, 1.3, 0.8]
-                }}
-                transition={{ 
-                  duration: 2.5 + Math.random() * 2, 
-                  repeat: Infinity, 
-                  ease: "linear", 
-                  delay: Math.random() * 3 
-                }}
-                r={1.2 + Math.random() * 2}
-                fill={starColor}
-              />
-            ))}
-          </svg>
+          {/* Véritable averse d'étoiles dupliquées (etoile.png) */}
+          {starParticles.map((p) => (
+            <motion.img
+              key={p.id}
+              src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/etoile.png"
+              initial={{ x: p.left, y: p.initialY, scale: p.scale, opacity: 0 }}
+              animate={{ 
+                y: 670, // Tombe jusqu'en bas
+                opacity: [0, 1, 1, 0],
+                rotate: [0, 360 * (Math.random() > 0.5 ? 1 : -1)] // Rotation aléatoire en tombant
+              }}
+              transition={{ 
+                duration: p.duration, 
+                repeat: Infinity, 
+                ease: "linear", 
+                delay: p.delay 
+              }}
+              className="absolute w-10 h-10 origin-center select-none" // Base size, scale acts on top
+              style={{ filter: `drop-shadow(0 0 5px ${starColor})` }} // Teinte et lueur basées sur envelope_color
+            />
+          ))}
         </div>
       );
     }
@@ -522,7 +529,7 @@ export function InvitationPreview({ invitation }: any) {
                           /* --- BOITIER DIGITAL TACTILE RÉDUIT --- */
                           <div className="relative w-[220px] h-[330px] flex flex-col items-center justify-start bg-neutral-950 border-[4px] border-neutral-800 rounded-[1.75rem] shadow-[0_20px_40px_rgba(0,0,0,0.8)] overflow-hidden p-4">
                             <img 
-                              src="https://njvnmribopknrqvtjkup.supabase.co/storage/ v1/object/public/invitations/dgital.png" 
+                              src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/dgital.png" 
                               className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-30 pointer-events-none" 
                               alt="" 
                             />
