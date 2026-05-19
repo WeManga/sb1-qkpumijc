@@ -347,7 +347,7 @@ export function InvitationPreview({ invitation }: any) {
         
         return {
           id: i,
-          left: `${1 + Math.random() * 98}%`,
+          left: `${1 + Math.random() * 98}%`, // Distribution bien répartie sur TOUTE la largeur de l'écran
           landX: `${Math.random() * 12 - 6}px`, // Micro-décalage horizontal au sol
           landY: `${585 + Math.random() * 10}px`, // Entassement fluide sur la ligne du bas
           delay: Math.random() * 6,
@@ -359,6 +359,12 @@ export function InvitationPreview({ invitation }: any) {
 
       return (
         <div className="absolute inset-0 z-50 pointer-events-none w-full h-full rounded-[3.5rem] overflow-hidden">
+          {/* Texture d'étoiles de fond subtile et claire */}
+          <div 
+            className="absolute inset-0 opacity-10 mix-blend-screen bg-cover bg-center" 
+            style={{ backgroundImage: 'url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/etoile%201.png")' }}
+          />
+          {/* Véritable averse d'étoiles dupliquées (etoile.png) */}
           {starParticles.map((p) => (
             <motion.img
               key={p.id}
