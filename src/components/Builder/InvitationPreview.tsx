@@ -337,19 +337,19 @@ export function InvitationPreview({ invitation }: any) {
       );
     }
 
-    // RENDU DÉCOR : VÉRITABLE PLUIE D'ÉTOILES SUR TOUT L'ÉCRAN S'ENTASSANT ET S'EFFAÇANT AU BAS
+    // RENDU DÉCOR : PLUIE D'ÉTOILES DOUBLEMENT CONQUÉRANTE REPARTIE DE GAUCHE À DROITE (SWITCH LEFT CSS)
     if (invitation.background_theme === 'stars') {
       const starColor = invitation.envelope_color && invitation.envelope_color.startsWith('#') ? invitation.envelope_color : '#FFFFFF';
       
-      const starParticles = useMemo(() => Array.from({ length: 55 }).map((_, i) => {
+      const starParticles = useMemo(() => Array.from({ length: 110 }).map((_, i) => {
         const fallDuration = 2.0 + Math.random() * 1.5;
-        const totalDuration = fallDuration + 2.5; // Temps de chute + temps d'entassement au sol
+        const totalDuration = fallDuration + 2.5; 
         
         return {
           id: i,
-          left: `${1 + Math.random() * 98}%`, // Distribution bien répartie sur TOUTE la largeur de l'écran via CSS left
-          landX: `${Math.random() * 12 - 6}px`, // Micro-décalage horizontal au sol
-          landY: `${585 + Math.random() * 10}px`, // Entassement fluide sur la ligne du bas
+          left: `${0.5 + Math.random() * 99}%`, // Répartition homogène totale
+          landX: `${Math.random() * 12 - 6}px`, 
+          landY: `${585 + Math.random() * 10}px`, 
           delay: Math.random() * 6,
           fallDuration: fallDuration,
           totalDuration: totalDuration,
@@ -364,7 +364,7 @@ export function InvitationPreview({ invitation }: any) {
             className="absolute inset-0 opacity-10 mix-blend-screen bg-cover bg-center" 
             style={{ backgroundImage: 'url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/etoile%201.png")' }}
           />
-          {/* Véritable averse d'étoiles dupliquées (etoile.png) */}
+          {/* Averse doublée et corrigée de 110 particules */}
           {starParticles.map((p) => (
             <motion.img
               key={p.id}
@@ -373,19 +373,19 @@ export function InvitationPreview({ invitation }: any) {
               animate={{ 
                 y: [-20, parseFloat(p.landY), parseFloat(p.landY)],
                 x: [0, parseFloat(p.landX), parseFloat(p.landX)],
-                opacity: [0, 1, 1, 0], // S'efface petit à petit après s'être entassée
+                opacity: [0, 1, 1, 0], 
                 rotate: [0, 180, 180]
               }}
               transition={{ 
                 duration: p.totalDuration, 
-                times: [0, p.fallDuration / p.totalDuration, 0.75, 1], // Timing précis de chute, d'entassement et disparition
+                times: [0, p.fallDuration / p.totalDuration, 0.75, 1], 
                 repeat: Infinity, 
                 ease: "linear", 
                 delay: p.delay 
               }}
               className="absolute w-10 h-10 origin-center select-none"
               style={{ 
-                left: p.left, // Corrigé : Forçage de la vraie distribution de tout l'écran via left CSS natif
+                left: p.left, // Distribution CSS natrice forcée sur l'écran
                 filter: `drop-shadow(0 0 4px ${starColor})` 
               }}
             />
