@@ -347,7 +347,7 @@ export function InvitationPreview({ invitation }: any) {
         
         return {
           id: i,
-          left: `${1 + Math.random() * 98}%`, // Distribution bien répartie sur TOUTE la largeur de l'écran
+          left: `${1 + Math.random() * 98}%`, // Distribution bien répartie sur TOUTE la largeur de l'écran via CSS left
           landX: `${Math.random() * 12 - 6}px`, // Micro-décalage horizontal au sol
           landY: `${585 + Math.random() * 10}px`, // Entassement fluide sur la ligne du bas
           delay: Math.random() * 6,
@@ -369,10 +369,10 @@ export function InvitationPreview({ invitation }: any) {
             <motion.img
               key={p.id}
               src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/etoile.png"
-              initial={{ x: p.left, y: -20, scale: p.scale, opacity: 0 }}
+              initial={{ y: -20, scale: p.scale, opacity: 0 }}
               animate={{ 
                 y: [-20, parseFloat(p.landY), parseFloat(p.landY)],
-                x: [p.left, `calc(${p.left} + ${p.landX})`, `calc(${p.left} + ${p.landX})`],
+                x: [0, parseFloat(p.landX), parseFloat(p.landX)],
                 opacity: [0, 1, 1, 0], // S'efface petit à petit après s'être entassée
                 rotate: [0, 180, 180]
               }}
@@ -384,7 +384,10 @@ export function InvitationPreview({ invitation }: any) {
                 delay: p.delay 
               }}
               className="absolute w-10 h-10 origin-center select-none"
-              style={{ filter: `drop-shadow(0 0 4px ${starColor})` }}
+              style={{ 
+                left: p.left, // Corrigé : Forçage de la vraie distribution de tout l'écran via left CSS natif
+                filter: `drop-shadow(0 0 4px ${starColor})` 
+              }}
             />
           ))}
         </div>
