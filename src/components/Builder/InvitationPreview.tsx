@@ -328,7 +328,7 @@ export function InvitationPreview({ invitation }: any) {
           />
           {/* Fleurs Coin Gauche - Ajusté plus profondément dans le coin gauche */}
           <motion.img 
-            src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleus%20coin%20gauche.png"
+            src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleurs%20bas%20gauche.png"
             animate={{ rotate: [0.4, -0.4, 0.4], scale: [1, 1.01, 1] }}
             transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut" }}
             className="absolute bottom-[-15px] left-[-15px] w-[55%] object-contain origin-bottom-left select-none drop-shadow-lg"
