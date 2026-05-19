@@ -30,8 +30,6 @@ export function GuestView({ invitation }: any) {
   const [isCodeFading, setIsCodeFading] = useState(false);
   
   const audioRef = useRef<HTMLAudioElement>(null);
-  // Références pour capturer et détruire les minuteurs du coffre-fort à la volée
-  const vaultTimersRef = useRef<NodeJS.Timeout[]>([]);
 
   const lang = (invitation.language as Language) || (localStorage.getItem('invite_lang') as Language) || 'fr';
   const t = translations[lang].guest;
@@ -50,7 +48,7 @@ export function GuestView({ invitation }: any) {
   };
 
   // Système audio natif et hybride (fichiers locaux .wav + synthétiseur)
-  const playSyntheticSound = (type: 'beep' | 'lock' | 'key' | 'open_door' | 'open_metal_door') => {
+  const playSyntheticSound = (type: 'beep' | 'lock' | 'key' | 'open_door') => {
     if (isMuted) return;
     try {
       const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
@@ -97,8 +95,6 @@ export function GuestView({ invitation }: any) {
         playWavFile('/sounds/key-turn.wav');
       } else if (type === 'open_door') {
         playWavFile('/sounds/door-open.wav');
-      } else if (type === 'open_metal_door') {
-        playWavFile('/sounds/metal-door.wav');
       }
     } catch (e) {
       console.error("Le système audio n'a pas pu s'initialiser", e);
@@ -167,11 +163,11 @@ export function GuestView({ invitation }: any) {
         setActiveKey(randomKey);
       }, 75);
 
-      if (isVaultClicked) {
-        vaultTimersRef.current.forEach(clearTimeout);
-        vaultTimersRef.current = [];
+      let digitLockTimers: NodeJS.Timeout[] = [];
+      let endTimer: NodeJS.Timeout;
 
-        const timers = Array.from({ length: 6 }).map((_, index) => {
+      if (isVaultClicked) {
+        digitLockTimers = Array.from({ length: 6 }).map((_, index) => {
           return setTimeout(() => {
             currentDigitIndex = index + 1;
             setDisplayedCode((prev) => {
@@ -184,26 +180,22 @@ export function GuestView({ invitation }: any) {
           }, (index + 1) * 550);
         });
 
-        const endTimer = setTimeout(() => {
+        endTimer = setTimeout(() => {
           clearInterval(interval);
           setActiveKey(null);
           playSyntheticSound('lock');
           setIsCodeFading(true);
           
-          const openTimer = setTimeout(() => {
+          setTimeout(() => {
             triggerContainerOpening();
           }, 600);
-          
-          vaultTimersRef.current.push(openTimer);
         }, 4000);
-
-        vaultTimersRef.current = [...timers, endTimer];
       }
 
       return () => {
         clearInterval(interval);
-        vaultTimersRef.current.forEach(clearTimeout);
-        vaultTimersRef.current = [];
+        digitLockTimers.forEach(clearTimeout);
+        if (endTimer) clearTimeout(endTimer);
       };
     }
   }, [isOpened, invitation.opening_style, isVaultClicked, targetCode, invitation.container_open]);
@@ -212,8 +204,6 @@ export function GuestView({ invitation }: any) {
   const triggerContainerOpening = () => {
     if (invitation.container_open === 'wooden_door') {
       playSyntheticSound('open_door');
-    } else if (invitation.container_open === 'metal_door') {
-      playSyntheticSound('open_metal_door');
     }
     setIsOpened(true);
     audioRef.current?.play().catch(() => {});
@@ -292,171 +282,12 @@ export function GuestView({ invitation }: any) {
     );
   };
 
-  // RENDU DU PREMIER PLAN GLOBAL PREMIUM (z-50)
-  const PremiumForegroundDecor = () => {
-    if (invitation.premium_trigger_type !== 'decor') return null;
-
-    // RENDU DÉCOR : BALLONS
-    if (invitation.background_theme === 'balloons') {
-      return (
-        <div className="absolute inset-0 z-50 pointer-events-none overflow-hidden rounded-[3.5rem]">
-          {[...Array(5)].map((_, idx) => (
-            <motion.img
-              key={idx}
-              src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/ballons.png"
-              initial={{ y: 650, x: 20 + idx * 55, opacity: 0.95 }}
-              animate={{ 
-                y: -400, 
-                x: [20 + idx * 55, (20 + idx * 55) + (idx % 2 === 0 ? 15 : -15), 20 + idx * 55]
-              }}
-              transition={{
-                y: { duration: 7 + idx * 1.5, repeat: Infinity, ease: "linear", delay: idx * 0.8 },
-                x: { duration: 3, repeat: Infinity, ease: "easeInOut" }
-              }}
-              className="absolute w-28 h-auto object-contain select-none drop-shadow-xl"
-            />
-          ))}
-        </div>
-      );
-    }
-
-    // RENDU DÉCOR : PAPILLONS REALS (GROSSIS, VOLS ET DIRECTIONS TOUT ÉCRAN ALTERNÉS)
-    if (invitation.background_theme === 'butterflies') {
-      const butterflyImages = [
-        "https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/papillions.png",
-        "https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/papilions%202.png"
-      ];
-
-      return (
-        <div className="absolute inset-0 z-50 pointer-events-none w-full h-full rounded-[3.5rem] overflow-hidden">
-          {[...Array(4)].map((_, idx) => {
-            const isFromRight = idx % 2 === 1; 
-            const currentImg = butterflyImages[idx % butterflyImages.length];
-            return (
-              <motion.div
-                key={idx}
-                initial={{ 
-                  x: isFromRight ? 360 : -70, 
-                  y: 460 - idx * 110, 
-                  scale: 0.65 + idx * 0.12, 
-                  scaleX: isFromRight ? -1 : 1 
-                }}
-                animate={{ 
-                  x: isFromRight ? -70 : 360, 
-                  y: [460 - idx * 110, 220 - idx * 80, 20 - idx * 110] 
-                }}
-                transition={{ duration: 7.5 + idx * 1.8, repeat: Infinity, ease: "easeInOut", delay: idx * 1.8 }}
-                className="absolute w-20 h-20 origin-center"
-              >
-                <motion.img
-                  src={currentImg}
-                  animate={{ rotateY: [0, 70, 0] }}
-                  transition={{ duration: 0.20, repeat: Infinity, ease: "linear" }}
-                  className="w-full h-full object-contain select-none drop-shadow-lg"
-                />
-              </motion.div>
-            );
-          })}
-        </div>
-      );
-    }
-
-    // RENDU DÉCOR : FLEURS REPOSITIONNÉES AVEC RETOURNEMENT DE L'IMAGE UNIQUE POUR LE BAS
-    if (invitation.background_theme === 'flowers') {
-      const flowersImageUrl = "https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleurs%20haut%20droite.png";
-      return (
-        <div className="absolute inset-0 z-50 pointer-events-none w-full h-full rounded-[3.5rem] overflow-hidden">
-           {/* Fleurs Top - Ajusté plus haut et plus à droite */}
-<motion.img 
-  src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleurs%20haut%20droite.png"
-  animate={{ rotate: [-0.6, 0.6, -0.6] }}
-  transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
-  className="absolute top-[-25px] right-[-20px] w-[75%] max-w-[320px] object-contain origin-top-right select-none drop-shadow-md z-10"
-/>
-          {/* Fleurs Coin Gauche - Ajusté plus profondément dans le coin gauche */}
-          <motion.img 
-            src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleurs%20bas%20gauche.png"
-            animate={{ rotate: [0.4, -0.4, 0.4], scale: [1, 1.01, 1] }}
-            transition={{ duration: 6.5, repeat: Infinity, ease: "easeInOut" }}
-            className="absolute bottom-[-15px] left-[-15px] w-[55%] object-contain origin-bottom-left select-none drop-shadow-lg"
-          />
-        </div>
-      );
-    }
-
-    // RENDU DÉCOR : VÉRITABLE PLUIE D'ÉTOILES SUR TOUT L'ÉCRAN S'ENTASSANT ET S'EFFAÇANT AU BAS
-    if (invitation.background_theme === 'stars') {
-      const starColor = invitation.envelope_color && invitation.envelope_color.startsWith('#') ? invitation.envelope_color : '#FFFFFF';
-      
-      const starParticles = useMemo(() => Array.from({ length: 110 }).map((_, i) => {
-        const fallDuration = 2.0 + Math.random() * 1.5;
-        const totalDuration = fallDuration + 2.5; 
-        
-        return {
-          id: i,
-          left: `${0.5 + Math.random() * 99}%`, 
-          landX: `${Math.random() * 12 - 6}px`, 
-          landY: `${585 + Math.random() * 10}px`, 
-          delay: Math.random() * 6,
-          fallDuration: fallDuration,
-          totalDuration: totalDuration,
-          scale: 0.09 + Math.random() * 0.08
-        };
-      }), []);
-
-      return (
-        <div className="absolute inset-0 z-50 pointer-events-none w-full h-full rounded-[3.5rem] overflow-hidden">
-          <div 
-            className="absolute inset-0 opacity-10 mix-blend-screen bg-cover bg-center" 
-            style={{ backgroundImage: 'url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/etoile%201.png")' }}
-          />
-          {starParticles.map((p) => (
-            <motion.img
-              key={p.id}
-              src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/etoile.png"
-              initial={{ y: -20, scale: p.scale, opacity: 0 }}
-              animate={{ 
-                y: [-20, parseFloat(p.landY), parseFloat(p.landY)],
-                x: [0, parseFloat(p.landX), parseFloat(p.landX)],
-                opacity: [0, 1, 1, 0], 
-                rotate: [0, 180, 180]
-              }}
-              transition={{ 
-                duration: p.totalDuration, 
-                times: [0, p.fallDuration / p.totalDuration, 0.75, 1], 
-                repeat: Infinity, 
-                ease: "linear", 
-                delay: p.delay 
-              }}
-              className="absolute w-10 h-10 origin-center select-none"
-              style={{ 
-                left: p.left, 
-                filter: `drop-shadow(0 0 4px ${starColor})` 
-              }}
-            />
-          ))}
-        </div>
-      );
-    }
-
-    return null;
-  };
-
-  const isDecorActive = invitation.premium_trigger_type === 'decor';
-  const hasBackgroundGradient = invitation.background_color && invitation.background_color.includes('linear-gradient');
-  const isFilmstrip = invitation.opening_type === 'filmstrip';
+  const isDoorBackground = invitation.container_open === 'wooden_door' || invitation.container_open === 'metal_door';
 
   return (
-    <div 
-      className="fixed inset-0 flex items-center justify-center overflow-hidden touch-none" 
-      style={{ 
-        fontFamily: invitation.font_style || 'inherit',
-        background: invitation.background_color || '#FFFFFF',
-        backgroundColor: hasBackgroundGradient ? undefined : (invitation.background_color || '#FFFFFF')
-      }}
-    >
+    <div className="fixed inset-0 flex items-center justify-center overflow-hidden touch-none bg-white" style={{ fontFamily: invitation.font_style || 'inherit' }}>
       {invitation?.music_url && <audio ref={audioRef} src={invitation.music_url} loop />}
-      {isOpened && !isDecorActive && <EmojiRain />}
+      {isOpened && <EmojiRain />}
       
       <AnimatePresence mode="wait">
         {view === 'envelope' ? (
@@ -470,11 +301,11 @@ export function GuestView({ invitation }: any) {
             {/* --- ANIMATION DERRIÈRE LA CARTE (VINYLE OU PELLICULE) --- */}
             <motion.div 
               initial={{ y: 0, opacity: 0 }} 
-              animate={isOpened ? { y: isFilmstrip ? -160 : -140, opacity: 1 } : { y: 0, opacity: 0 }} 
+              animate={isOpened ? { y: invitation.opening_type === 'filmstrip' ? -160 : -140, opacity: 1 } : { y: 0, opacity: 0 }} 
               transition={{ type: "spring", damping: 25, delay: 0.2 }} 
               className="absolute z-20"
             >
-              {isFilmstrip ? (
+              {invitation.opening_type === 'filmstrip' ? (
                 <div className="relative w-44 h-72 bg-[#1a1a1a] rounded-xl shadow-2xl rotate-[-2deg] overflow-hidden p-2 border-y-4 border-[#1a1a1a]">
                   <div className="absolute inset-y-0 left-1.5 w-1.5 border-l-2 border-dashed border-white/20 z-10" />
                   <div className="absolute inset-y-0 right-1.5 w-1.5 border-r-2 border-dashed border-white/20 z-10" />
@@ -523,16 +354,12 @@ export function GuestView({ invitation }: any) {
               )}
             </motion.div>
 
-            {/* --- CARTE D'INVITATION --- */}
+            {/* --- CARTE D'INVITATION (AU CENTRE) --- */}
             <motion.div 
               initial={{ scale: 0.8, y: 0 }} 
               animate={isOpened ? { scale: 1, y: 80 } : { y: 0 }} 
               transition={{ type: "spring", damping: 20, delay: 0.4 }} 
               onClick={() => isOpened && setView('content')} 
-              style={{ 
-                backgroundColor: invitation.paper_color || '#FFFFFF',
-                fontFamily: invitation.font_style 
-              }}
               className={`z-30 w-[310px] h-[370px] rounded-[3rem] shadow-xl p-10 flex flex-col items-center justify-between border border-gray-100 cursor-pointer ${getPaperClass()}`}
             >
               <div className="text-center pt-14 w-full">
@@ -547,174 +374,171 @@ export function GuestView({ invitation }: any) {
               </div>
             </motion.div>
 
-            {/* --- COMPOSANTS DE DÉCORS PREMIUM PLACÉS AU PREMIER PLAN --- */}
-            <PremiumForegroundDecor />
-
-            {/* --- COUCHE DECLENCHEURS MECANIQUES ET FOND --- */}
+            {/* --- SYSTEME D'OUVERTURE --- */}
             <div className="absolute inset-0 z-50 overflow-hidden" style={{ perspective: '2000px', pointerEvents: isOpened ? 'none' : 'auto' }}>
-              <div className="w-full h-full relative flex items-center justify-center">
-                <AnimatePresence>
-                  {!isCodeFading && (!isOpened || invitation.container_open === 'metal_door') && (
-                    <motion.div 
-                      key="visual-trigger"
-                      initial={{ opacity: 1 }}
-                      exit={invitation.container_open === 'metal_door' ? {} : { 
-                        opacity: 0, 
-                        transition: { duration: 0.4, ease: "easeInOut" } 
-                      }}
-                      className="absolute inset-0 z-[70] flex flex-col items-center justify-center cursor-pointer"
-                      onClick={handleTriggerClick}
-                    >
-                      <div className="relative w-full flex items-center justify-center">
-                        {invitation.opening_style === 'knock' ? (
-                          <motion.div 
-                            animate={{ 
-                              x: [0, -12, 4, -12, 4, 0],
-                              y: [0, -6, 2, -6, 2, 0],
-                              scale: [1, 1.05, 0.98, 1.05, 0.98, 1]
-                            }} 
-                            transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 1.5, ease: "easeInOut" }}
-                            className="w-56 h-56 select-none flex items-center justify-center"
-                          >
-                            <img 
-                              src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/main-qui-toque.PNG" 
-                              className="w-full h-full object-contain drop-shadow-2xl" 
-                              alt="Main qui toque" 
-                            />
-                          </motion.div>
-                        ) : invitation.opening_style === 'key' ? (
-                            <div className="select-none flex items-center justify-center relative w-[260px] h-[260px]">
-                              <img 
-                                src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/cleserrure.png" 
-                                className="absolute w-full h-full object-contain" 
-                                alt="Serrure" 
-                              />
-                              <motion.img
-                                src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/cleserrure.png" 
-                                animate={{ rotate: [0, 45, 0] }} 
-                                transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1.0, ease: "easeInOut" }} 
-                                className="absolute w-full h-full object-contain origin-center"
-                                alt="Clé"
-                              />
-                            </div>
-                        ) : invitation.opening_style === 'vault' ? (
-                          <div className="relative w-[220px] h-[330px] flex flex-col items-center justify-start bg-neutral-950 border-[4px] border-neutral-800 rounded-[1.75rem] shadow-[0_20px_40px_rgba(0,0,0,0.8)] overflow-hidden p-4">
-                            <img 
-                              src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/dgital.png" 
-                              className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-30 pointer-events-none" 
-                              alt="" 
-                            />
-
-                            {/* Écran LCD Supérieur */}
-                            <div className="w-full h-16 bg-black/95 rounded-xl border border-neutral-800 p-2 flex flex-col items-center justify-center shadow-inner relative z-10 mb-5">
-                              <span className="text-[7.5px] font-mono tracking-[0.25em] text-neutral-400 font-bold uppercase mb-0.5">🔒 Invit Studio</span>
-                              <div className="flex gap-1">
-                                {displayedCode.map((digit, index) => (
-                                  <motion.span
-                                    key={index}
-                                    initial={{ scale: 1.3 }}
-                                    animate={{ scale: 1 }}
-                                    className="text-sky-500 font-mono text-xl font-black drop-shadow-[0_0_8px_rgba(14,165,233,0.8)] tracking-wider"
-                                  >
-                                    {digit}
-                                  </motion.span>
-                                ))}
-                              </div>
-                            </div>
-
-                            {/* Clavier Rétroéclairé Bleu */}
-                            <div className="grid grid-cols-3 gap-2 w-full max-w-[155px] relative z-10">
-                              {['1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '0', '#'].map((key) => {
-                                const isGlowing = activeKey === key;
-                                return (
-                                  <motion.div
-                                    key={key}
-                                    animate={isGlowing ? {
-                                      backgroundColor: 'rgba(14, 165, 233, 0.35)',
-                                      borderColor: '#38bdf8',
-                                      boxShadow: '0 0 10px rgba(56, 189, 248, 0.7)',
-                                      scale: 0.95
-                                    } : {
-                                      backgroundColor: 'rgba(23, 23, 23, 0.85)',
-                                      borderColor: 'rgba(63, 63, 70, 0.2)',
-                                      boxShadow: 'none',
-                                      scale: 1
-                                    }}
-                                    className="aspect-square flex items-center justify-center rounded-lg border font-mono font-bold text-sm text-neutral-400 transition-all select-none"
-                                  >
-                                    <span className={isGlowing ? "text-sky-400 drop-shadow-[0_0_4px_rgba(56,189,248,0.9)]" : ""}>
-                                      {key}
-                                    </span>
-                                  </motion.div>
-                                );
-                              })}
-                            </div>
-                            <div className="mt-3.5 font-mono text-[8px] tracking-widest text-neutral-500 animate-pulse uppercase">
-                              {isVaultClicked ? "CRACKING CODE..." : "Tap Device to Unlock"}
-                            </div>
-                          </div>
-                        ) : (
-                          <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-[32rem] h-[32rem] object-contain" alt="Sceau" />
-                        )}
-                      </div>
-                      
-                      <p className="absolute bottom-12 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse text-center w-full px-4">
-                        {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? "Tap to open invitation" : "Nhấn de mở lời mời"}
-                      </p>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* ANIMATION DES CONTENANTS DÉCOUPLÉS - PORTES PREMIUM OU VOLET COLORÉ FREE QUI SE LÈVE */}
-                <div className="absolute inset-0 z-50 w-full h-full flex" style={{ perspective: '2000px' }}>
-                  {invitation.container_open === 'metal_door' ? (
-                    <motion.div 
-                      animate={isOpened ? { x: "100%" } : { x: "0%" }}
-                      transition={{ duration: 1.6, ease: "easeInOut" }}
-                      className="absolute inset-0 w-full h-full bg-cover bg-center shadow-2xl"
-                      style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20noir.png")` }}
-                    />
-                  ) : invitation.container_open === 'wooden_door' ? (
+              <AnimatePresence>
+                {(!isOpened || invitation.container_open === 'metal_door') && (
+                  <motion.div 
+                    key="gate-container"
+                    exit={invitation.container_open === 'metal_door' ? { opacity: 1 } : { opacity: 1 }}
+                    className="w-full h-full relative flex items-center justify-center"
+                  >
                     <AnimatePresence>
-                      {!isOpened && (
-                        <>
-                          <motion.div 
-                            exit={{ rotateY: -100, x: '-20%', opacity: 0 }} 
-                            transition={{ duration: 1.2, ease: "easeInOut" }} 
-                            className="w-1/2 h-full origin-left bg-cover bg-center shadow-2xl border-r border-black/10" 
-                            style={{ 
-                              backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20gauche.png")`
-                            }} 
-                          />
-                          <motion.div 
-                            exit={{ rotateY: 100, x: '20%', opacity: 0 }} 
-                            transition={{ duration: 1.2, ease: "easeInOut" }} 
-                            className="w-1/2 h-full origin-right bg-cover bg-center shadow-2xl border-l border-black/10" 
-                            style={{ 
-                              backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20droite.png")`
-                            }} 
-                          />
-                        </>
+                      {!isCodeFading && (
+                        <motion.div 
+                          key="visual-trigger"
+                          initial={{ opacity: 1 }}
+                          exit={invitation.container_open === 'metal_door' ? {} : { 
+                            opacity: 0, 
+                            transition: { duration: 0.4, ease: "easeInOut" } 
+                          }}
+                          className="absolute inset-0 z-[70] flex flex-col items-center justify-center cursor-pointer"
+                          onClick={handleTriggerClick}
+                        >
+                          <div className="relative w-full flex items-center justify-center">
+                            {invitation.opening_style === 'knock' ? (
+                              <motion.div
+                                animate={{ 
+                                  x: [0, -12, 4, -12, 4, 0],
+                                  y: [0, -6, 2, -6, 2, 0],
+                                  scale: [1, 1.05, 0.98, 1.05, 0.98, 1]
+                                }}
+                                transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 1.5, ease: "easeInOut" }}
+                                className="w-56 h-56 select-none flex items-center justify-center"
+                              >
+                                <img 
+                                  src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/main-qui-toque.PNG" 
+                                  className="w-full h-full object-contain drop-shadow-2xl" 
+                                  alt="Main qui toque" 
+                                />
+                              </motion.div>
+                            ) : invitation.opening_style === 'key' ? (
+                                <div className="select-none flex items-center justify-center relative w-[260px] h-[260px]">
+                                  <img 
+                                    src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/cleserrure.png" 
+                                    className="absolute w-full h-full object-contain" 
+                                    alt="Serrure" 
+                                  />
+                                  <motion.img
+                                    src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/cleserrure.png" 
+                                    animate={{ rotate: [0, 45, 0] }} 
+                                    transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1.0, ease: "easeInOut" }} 
+                                    className="absolute w-full h-full object-contain origin-center"
+                                    alt="Clé"
+                                  />
+                                </div>
+                            ) : invitation.opening_style === 'vault' ? (
+                              <div className="relative w-[220px] h-[330px] flex flex-col items-center justify-start bg-neutral-950 border-[4px] border-neutral-800 rounded-[1.75rem] shadow-[0_20px_40px_rgba(0,0,0,0.8)] overflow-hidden p-4">
+                                <img 
+                                  src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/dgital.png" 
+                                  className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-30 pointer-events-none" 
+                                  alt="" 
+                                />
+
+                                {/* Écran LCD Supérieur */}
+                                <div className="w-full h-16 bg-black/95 rounded-xl border border-neutral-800 p-2 flex flex-col items-center justify-center shadow-inner relative z-10 mb-5">
+                                  <span className="text-[7.5px] font-mono tracking-[0.25em] text-neutral-400 font-bold uppercase mb-0.5">🔒 Invit Studio</span>
+                                  <div className="flex gap-1">
+                                    {displayedCode.map((digit, index) => (
+                                      <motion.span
+                                        key={index}
+                                        initial={{ scale: 1.3 }}
+                                        animate={{ scale: 1 }}
+                                        className="text-sky-500 font-mono text-xl font-black drop-shadow-[0_0_8px_rgba(14,165,233,0.8)] tracking-wider"
+                                      >
+                                        {digit}
+                                      </motion.span>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                {/* Clavier Rétroéclairé Bleu */}
+                                <div className="grid grid-cols-3 gap-2 w-full max-w-[155px] relative z-10">
+                                  {['1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '0', '#'].map((key) => {
+                                    const isGlowing = activeKey === key;
+                                    return (
+                                      <motion.div
+                                        key={key}
+                                        animate={isGlowing ? {
+                                          backgroundColor: 'rgba(14, 165, 233, 0.35)',
+                                          borderColor: '#38bdf8',
+                                          boxShadow: '0 0 10px rgba(56, 189, 248, 0.7)',
+                                          scale: 0.95
+                                        } : {
+                                          backgroundColor: 'rgba(23, 23, 23, 0.85)',
+                                          borderColor: 'rgba(63, 63, 70, 0.2)',
+                                          boxShadow: 'none',
+                                          scale: 1
+                                        }}
+                                        className="aspect-square flex items-center justify-center rounded-lg border font-mono font-bold text-sm text-neutral-400 transition-all select-none"
+                                      >
+                                        <span className={isGlowing ? "text-sky-400 drop-shadow-[0_0_4px_rgba(56,189,248,0.9)]" : ""}>
+                                          {key}
+                                        </span>
+                                      </motion.div>
+                                    );
+                                  })}
+                                </div>
+                                <div className="mt-3.5 font-mono text-[8px] tracking-widest text-neutral-500 animate-pulse uppercase">
+                                  {isVaultClicked ? "CRACKING CODE..." : "Tap Device to Unlock"}
+                                </div>
+                              </div>
+                            ) : (
+                              <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-[32rem] h-[32rem] object-contain" alt="Sceau" />
+                            )}
+                          </div>
+                          
+                          <p className="absolute bottom-12 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse text-center w-full px-4">
+                            {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? "Tap to open invitation" : "Nhấn de mở lời mời"}
+                          </p>
+                        </motion.div>
                       )}
                     </AnimatePresence>
-                  ) : (
-                    /* --- ZONE REPARÉE : VOLET CLASSIQUE FREE QUI SE LÈVE --- */
-                    <motion.div
-                      animate={isOpened ? { y: "-100%" } : { y: "0%" }}
-                      transition={{ duration: 1.2, ease: "easeInOut" }}
-                      className="absolute inset-0 w-full h-full shadow-2xl z-40"
-                      style={{ 
-                        background: invitation?.envelope_color || '#FEE2E2'
-                      }}
-                    />
-                  )}
-                </div>
-              </div>
+
+                    {/* ANIMATION DES CONTENANTS DÉCOUPLÉS - COULISSEMENT REALISTE OPAQUE VERS LA DROITE POUR LA PORTE EN METAL */}
+                    <div className="absolute inset-0 z-50 w-full h-full flex" style={{ perspective: '2000px' }}>
+                      {invitation.container_open === 'metal_door' ? (
+                        <motion.div 
+                          animate={isOpened ? { x: "100%" } : { x: "0%" }}
+                          transition={{ duration: 1.6, ease: "easeInOut" }}
+                          className="absolute inset-0 w-full h-full bg-cover bg-center shadow-2xl"
+                          style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20noir.png")` }}
+                        />
+                      ) : (
+                        <AnimatePresence>
+                          {!isOpened && (
+                            <>
+                              <motion.div 
+                                exit={{ rotateY: -100, x: '-20%', opacity: 0 }} 
+                                transition={{ duration: 1.2, ease: "easeInOut" }} 
+                                className="w-1/2 h-full origin-left bg-cover bg-center shadow-2xl border-r border-black/10" 
+                                style={{ 
+                                  backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20gauche.png")`, 
+                                  backgroundColor: invitation?.envelope_color || '#FEE2E2'
+                                }} 
+                              />
+                              <motion.div 
+                                exit={{ rotateY: 100, x: '20%', opacity: 0 }} 
+                                transition={{ duration: 1.2, ease: "easeInOut" }} 
+                                className="w-1/2 h-full origin-right bg-cover bg-center shadow-2xl border-l border-black/10" 
+                                style={{ 
+                                  backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20droite.png")`, 
+                                  backgroundColor: invitation?.envelope_color || '#FEE2E2'
+                                }} 
+                              />
+                            </>
+                          )}
+                        </AnimatePresence>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </motion.div>
         ) : (
           /* --- CONTENU --- */
-          <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ backgroundColor: invitation.paper_color || '#FFFFFF' }} className={`w-full h-full z-[100] flex flex-col overflow-y-auto ${getPaperClass()}`}>
+          <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`w-full h-full z-[100] flex flex-col overflow-y-auto ${getPaperClass()}`}>
             <div className="h-[30%] relative overflow-hidden shrink-0">
                <img 
                  src={invitation.main_photo_url} 
@@ -794,30 +618,8 @@ export function GuestView({ invitation }: any) {
                     </div>
                     {guests.map((guest, i) => (
                       <div key={i} className="grid grid-cols-2 gap-3">
-                        <input 
-                          required 
-                          placeholder={t.first_name} 
-                          className="bg-white/10 h-12 px-4 rounded-xl text-sm text-white focus:ring-1 ring-amber-400 outline-none" 
-                          value={guest.firstName} 
-                          onChange={e => {
-                            const updatedGuests = guests.map((g, index) => 
-                              index === i ? { ...g, firstName: e.target.value } : g
-                            );
-                            setGuests(updatedGuests);
-                          }} 
-                        />
-                        <input 
-                          required 
-                          placeholder={t.last_name} 
-                          className="bg-white/10 h-12 px-4 rounded-xl text-sm text-white focus:ring-1 ring-amber-400 outline-none" 
-                          value={guest.lastName} 
-                          onChange={e => {
-                            const updatedGuests = guests.map((g, index) => 
-                              index === i ? { ...g, lastName: e.target.value } : g
-                            );
-                            setGuests(updatedGuests);
-                          }} 
-                        />
+                        <input required placeholder={t.first_name} className="bg-white/10 h-12 px-4 rounded-xl text-sm text-white focus:ring-1 ring-amber-400 outline-none" value={guest.firstName} onChange={e => { const n = [...guests]; n[i].firstName = e.target.value; setGuests(n); }} />
+                        <input required placeholder={t.last_name} className="bg-white/10 h-12 px-4 rounded-xl text-sm text-white focus:ring-1 ring-amber-400 outline-none" value={guest.lastName} onChange={e => { const n = [...guests]; n[i].lastName = e.target.value; setGuests(n); }} />
                       </div>
                     ))}
                     <button type="submit" disabled={isSubmitting} className="w-full h-14 bg-white text-gray-900 rounded-2xl font-black uppercase text-xs shadow-xl active:scale-95 transition-all">
