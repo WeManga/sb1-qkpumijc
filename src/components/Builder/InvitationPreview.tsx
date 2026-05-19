@@ -321,7 +321,7 @@ export function InvitationPreview({ invitation }: any) {
         <div className="absolute inset-0 z-50 pointer-events-none w-full h-full rounded-[3.5rem] overflow-hidden">
           {/* Fleurs Top - Ajusté plus haut */}
           <motion.img 
-            src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleurs%20top.png"
+            src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleurs%20haut%20droite.png"
             animate={{ rotate: [-0.6, 0.6, -0.6] }}
             transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
             className="absolute top-[-10px] left-0 w-full object-contain origin-top select-none drop-shadow-md"
