@@ -219,22 +219,95 @@ export function InvitationPreview({ invitation }: any) {
     }
   };
 
-  const EmojiRain = () => {
-    const particles = useMemo(() => Array.from({ length: 25 }).map((_, i) => ({
+  /* --- COMPOSANT DÉCORS ET ANIMATIONS PARAMÉTRABLES --- */
+  const AutonomousDecor = () => {
+    const ballons = useMemo(() => Array.from({ length: 6 }).map((_, i) => ({
       id: i,
-      emoji: emojis[i % emojis.length],
-      left: `${(i * 4) + (Math.random() * 3)}%`,
+      left: `${15 + (i * 14) + Math.random() * 4}%`,
+      delay: i * 0.5,
+      duration: 6 + Math.random() * 3
+    })), []);
+
+    const papillons = useMemo(() => Array.from({ length: 6 }).map((_, i) => ({
+      id: i,
+      left: `${10 + Math.random() * 70}%`,
+      top: `${15 + Math.random() * 50}%`,
+      duration: 7 + Math.random() * 4,
+      delay: i * 0.3
+    })), []);
+
+    const etoilesPluie = useMemo(() => Array.from({ length: 15 }).map((_, i) => ({
+      id: i,
+      left: `${8 + (i * 6)}%`,
       delay: Math.random() * 2,
-      duration: 4 + Math.random() * 2
-    })), [emojis]);
+      duration: 2.5 + Math.random() * 1.5,
+      targetY: 560 + (Math.random() * 20)
+    })), []);
 
     return (
-      <div className="absolute inset-0 z-[60] pointer-events-none overflow-hidden">
-        {particles.map((p) => (
-          <motion.span key={p.id} initial={{ y: -50, opacity: 0 }} animate={{ y: 800, opacity: [0, 1, 1, 0] }}
-            transition={{ duration: p.duration, repeat: Infinity, delay: p.delay, ease: "linear" }}
-            className="absolute text-3xl" style={{ left: p.left }}>{p.emoji}
-          </motion.span>
+      <div className="absolute inset-0 z-[15] pointer-events-none overflow-hidden">
+        {/* Fleurs Haut Droite */}
+        {/* REMPLACE ICI l'URL pour l'image des fleurs en haut à droite */}
+        <div 
+          className="absolute top-0 right-0 w-40 h-40 bg-contain bg-no-repeat bg-right-top z-20" 
+          style={{ backgroundImage: `url("https://votre-lien-supabase/fleur_haut_droite.png")` }} 
+        />
+        
+        {/* Fleurs Bas Gauche */}
+        {/* REMPLACE ICI l'URL pour l'image des fleurs en bas à gauche */}
+        <div 
+          className="absolute bottom-0 left-0 w-40 h-40 bg-contain bg-no-repeat bg-left-bottom z-20" 
+          style={{ backgroundImage: `url("https://votre-lien-supabase/fleur_bas_gauche.png")` }} 
+        />
+
+        {/* Ballons animés */}
+        {ballons.map((b) => (
+          <motion.img 
+            key={`ballon-${b.id}`}
+            /* REMPLACE ICI l'URL pour le fichier image du ballon */
+            src="https://votre-lien-supabase/ballon.png"
+            initial={{ y: 680, opacity: 0 }} 
+            animate={{ y: -120, opacity: [0, 1, 1, 0] }}
+            transition={{ duration: b.duration, repeat: Infinity, delay: b.delay, ease: "linear" }}
+            className="absolute w-10 h-auto" 
+            style={{ left: b.left }}
+          />
+        ))}
+
+        {/* Papillons animés partout sur l'écran */}
+        {papillons.map((p) => (
+          <motion.img 
+            key={`papillon-${p.id}`}
+            /* REMPLACE ICI l'URL pour le fichier image du papillon */
+            src="https://votre-lien-supabase/papillon.png"
+            initial={{ x: p.left, y: p.top, opacity: 0, scale: 0.6 }}
+            animate={{ 
+              x: [p.left, `${parseFloat(p.left) + 12}%`, `${parseFloat(p.left) - 12}%`, p.left], 
+              y: [p.top, `${parseFloat(p.top) - 15}%`, `${parseFloat(p.top) + p.id * 3}%`, p.top],
+              opacity: [0, 1, 1, 0],
+              rotate: [0, 20, -20, 0]
+            }}
+            transition={{ duration: p.duration, repeat: Infinity, delay: p.delay, ease: "easeInOut" }}
+            className="absolute w-7 h-auto"
+          />
+        ))}
+
+        {/* Pluie d'étoiles avec accumulation en tas au sol */}
+        {etoilesPluie.map((e) => (
+          <motion.img 
+            key={`etoile-${e.id}`}
+            /* REMPLACE ICI l'URL pour le fichier image de l'étoile */
+            src="https://votre-lien-supabase/etoile.png"
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ 
+              y: [0, e.targetY, e.targetY], 
+              opacity: [0, 1, 1, 0],
+              scale: [1, 1, 0.75]
+            }}
+            transition={{ duration: e.duration, times: [0, 0.75, 1], repeat: Infinity, delay: e.delay }}
+            className="absolute w-4 h-auto drop-shadow-[0_0_6px_rgba(251,191,36,0.6)]" 
+            style={{ left: e.left }}
+          />
         ))}
       </div>
     );
@@ -245,7 +318,9 @@ export function InvitationPreview({ invitation }: any) {
   return (
     <div className="relative w-full h-full max-h-[650px] flex items-center justify-center overflow-hidden bg-white rounded-[3.5rem] shadow-2xl border-[12px] border-gray-50/50" style={{ fontFamily: invitation.font_style || 'inherit' }}>
       {invitation?.music_url && <audio ref={audioRef} src={invitation.music_url} loop />}
-      {isOpened && <EmojiRain />}
+      
+      {/* Rendu automatique des décors complets paramétrables dès l'ouverture */}
+      {isOpened && <AutonomousDecor />}
       
       <AnimatePresence mode="wait">
         {view === 'envelope' ? (
@@ -289,17 +364,52 @@ export function InvitationPreview({ invitation }: any) {
                   </motion.div>
                 </div>
               ) : (
-                <div className={`w-[270px] h-[270px] relative ${isOpened ? 'animate-disk-spin' : ''}`}>
-                  <div className="absolute inset-0 rounded-full bg-[#111] overflow-hidden">
-                    <div className="absolute inset-0 opacity-30" style={{ background: 'repeating-radial-gradient(circle, #444 0, #000 2px, #111 4px)' }} />
-                  </div>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-24 h-24 bg-white rounded-full border-[5px] border-[#111] overflow-hidden">
-                      {invitation.main_photo_url && (
+                /* --- VINYLE MODERNISÉ AVEC BRAS SVG ANIMÉ --- */
+                <div className="relative w-[280px] h-[280px] flex items-center justify-center" style={{ perspective: '1000px' }}>
+                  <motion.div 
+                    initial={{ rotateX: 15, rotateZ: 0 }}
+                    animate={isOpened ? { rotateZ: 360 } : { rotateZ: 0 }}
+                    transition={isOpened ? { repeat: Infinity, duration: 4, ease: "linear", delay: 0.8 } : { duration: 0.5 }}
+                    className="w-[250px] h-[250px] relative rounded-full bg-neutral-950 shadow-[0_15px_35px_rgba(0,0,0,0.6),_inset_0_0_20px_rgba(255,255,255,0.05)] border-4 border-neutral-900 flex items-center justify-center overflow-hidden"
+                  >
+                    <div className="absolute inset-0 opacity-40 mix-blend-overlay pointer-events-none" style={{ background: 'repeating-radial-gradient(circle, #555 0px, #000 2px, #111 4px)' }} />
+                    <motion.div 
+                      animate={isOpened ? { rotate: -360 } : { rotate: 0 }}
+                      transition={isOpened ? { repeat: Infinity, duration: 4, ease: "linear", delay: 0.8 } : { duration: 0.5 }}
+                      className="absolute inset-0 opacity-20 pointer-events-none mix-blend-screen"
+                      style={{ background: 'conic-gradient(from 0deg, transparent 0deg, rgba(255,255,255,0.4) 60deg, transparent 120deg, transparent 180deg, rgba(255,255,255,0.4) 240deg, transparent 300deg)' }}
+                    />
+                    <div className="w-24 h-24 bg-white rounded-full border-[6px] border-neutral-950 shadow-md overflow-hidden relative z-10 flex items-center justify-center">
+                      {invitation.main_photo_url ? (
                         <img src={invitation.main_photo_url} className="w-full h-full object-cover" 
                           style={{ transform: `translate(${invitation.main_photo_url_pos_x || 0}px, ${invitation.main_photo_url_pos_y || 0}px) scale(${invitation.main_photo_url_scale || 1})` }} alt="" />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-tr from-neutral-200 to-neutral-50" />
                       )}
+                      <div className="absolute w-3 h-3 bg-neutral-950 rounded-full shadow-inner border border-white/20" />
                     </div>
+                  </motion.div>
+
+                  <div className="absolute top-[-10px] right-[-10px] w-28 h-36 z-30 pointer-events-none">
+                    <svg className="w-full h-full drop-shadow-[4px_8px_10px_rgba(0,0,0,0.5)]" viewBox="0 0 100 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <circle cx="75" cy="25" r="12" fill="#262626" stroke="#404040" strokeWidth="2"/>
+                      <circle cx="75" cy="25" r="5" fill="#171717"/>
+                      <motion.g
+                        initial={{ rotate: -35 }}
+                        animate={isOpened ? { rotate: 5 } : { rotate: -35 }}
+                        transition={{ type: "spring", stiffness: 60, damping: 15, delay: 0.2 }}
+                        style={{ transformOrigin: "75px 25px" }}
+                      >
+                        <path d="M 75 25 L 68 85 L 35 110" stroke="#d4d4d8" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M 75 25 L 68 85 L 35 110" stroke="#a1a1aa" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+                        <rect x="70" y="5" width="10" height="12" rx="2" fill="#525252" />
+                        <g transform="translate(35, 110) rotate(-35)">
+                          <rect x="-6" y="-3" width="12" height="16" rx="2" fill="#171717" />
+                          <rect x="-4" y="2" width="8" height="10" rx="1" fill="#e5e5e5" />
+                          <circle cx="0" cy="10" r="1.5" fill="#f59e0b" />
+                        </g>
+                      </motion.g>
+                    </svg>
                   </div>
                 </div>
               )}
@@ -325,7 +435,7 @@ export function InvitationPreview({ invitation }: any) {
               </div>
             </motion.div>
 
-            {/* --- COUCHE DECLENCHEURS MECANIQUES ET FOND --- */}
+            {/* --- COUCHE DECLENCHEURS MECANIQUES ET ENVELOPPES PROPRES --- */}
             <div className="absolute inset-0 z-50 overflow-hidden" style={{ perspective: '2000px', pointerEvents: isOpened ? 'none' : 'auto' }}>
               <AnimatePresence>
                 {(!isOpened || invitation.container_open === 'metal_door') && (
@@ -379,7 +489,7 @@ export function InvitationPreview({ invitation }: any) {
                                   />
                                 </div>
                             ) : invitation.opening_style === 'vault' ? (
-                              /* --- BOITIER DIGITAL TACTILE RÉDUIT --- */
+                              /* --- BOITIER DIGITAL TACTILE --- */
                               <div className="relative w-[220px] h-[330px] flex flex-col items-center justify-start bg-neutral-950 border-[4px] border-neutral-800 rounded-[1.75rem] shadow-[0_20px_40px_rgba(0,0,0,0.8)] overflow-hidden p-4">
                                 <img 
                                   src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/dgital.png" 
@@ -431,7 +541,7 @@ export function InvitationPreview({ invitation }: any) {
                                     );
                                   })}
                                 </div>
-                                <div className="mt-3.5 font-mono text-[8px] tracking-widest text-neutral-500 animate-pulse uppercase">
+                                <div className="w-full mt-3.5 font-mono text-[8px] tracking-widest text-neutral-500 animate-pulse uppercase text-center">
                                   {isVaultClicked ? "CRACKING CODE..." : "Tap Device to Unlock"}
                                 </div>
                               </div>
@@ -448,16 +558,18 @@ export function InvitationPreview({ invitation }: any) {
                       )}
                     </AnimatePresence>
 
-                    {/* ANIMATION DES CONTENANTS DÉCOUPLÉS - COULISSEMENT REALISTE OPAQUE VERS LA DROITE POUR LA PORTE EN METAL */}
-                    <div className="absolute inset-0 z-50 w-full h-full flex" style={{ perspective: '2000px' }}>
+                    {/* INTERFACE DE RECOUVREMENT DE L'ENVELOPPE (FREE / PREMIUM) */}
+                    <div className="absolute inset-0 z-50 w-full h-full" style={{ perspective: '2000px' }}>
                       {invitation.container_open === 'metal_door' ? (
+                        /* PREMIUM : Porte métallique coulissant horizontalement à droite */
                         <motion.div 
                           animate={isOpened ? { x: "100%" } : { x: "0%" }}
                           transition={{ duration: 1.6, ease: "easeInOut" }}
                           className="absolute inset-0 w-full h-full bg-cover bg-center shadow-2xl"
                           style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20noir.png")` }}
                         />
-                      ) : (
+                      ) : invitation.container_open === 'wooden_door' ? (
+                        /* PREMIUM : Double porte en bois d'origine (inchangée) */
                         <AnimatePresence>
                           {!isOpened && (
                             <>
@@ -480,6 +592,20 @@ export function InvitationPreview({ invitation }: any) {
                                 }} 
                               />
                             </>
+                          )}
+                        </AnimatePresence>
+                      ) : (
+                        /* FREE PAR DÉFAUT : Volet uni qui change de couleur et qui monte verticalement */
+                        <AnimatePresence>
+                          {!isOpened && (
+                            <motion.div 
+                              key="free-gate-panel"
+                              initial={{ y: "0%" }}
+                              exit={{ y: "-100%" }}
+                              transition={{ duration: 1.3, ease: [0.43, 0.13, 0.23, 0.96] }}
+                              className="absolute inset-0 w-full h-full shadow-[0_20px_50px_rgba(0,0,0,0.6)] border-b border-black/10" 
+                              style={{ backgroundColor: invitation?.envelope_color || '#FEE2E2' }} 
+                            />
                           )}
                         </AnimatePresence>
                       )}
