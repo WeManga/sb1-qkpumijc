@@ -250,14 +250,14 @@ export function InvitationPreview({ invitation }: any) {
         {/* REMPLACE ICI l'URL pour l'image des fleurs en haut à droite */}
         <div 
           className="absolute top-0 right-0 w-40 h-40 bg-contain bg-no-repeat bg-right-top z-20" 
-          style={{ backgroundImage: `url("https://votre-lien-supabase/fleur_haut_droite.png")` }} 
+          style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleurs%20haut%20droite.png")` }} 
         />
         
         {/* Fleurs Bas Gauche */}
         {/* REMPLACE ICI l'URL pour l'image des fleurs en bas à gauche */}
         <div 
           className="absolute bottom-0 left-0 w-40 h-40 bg-contain bg-no-repeat bg-left-bottom z-20" 
-          style={{ backgroundImage: `url("https://votre-lien-supabase/fleur_bas_gauche.png")` }} 
+          style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleurs%20bas%20gauche.png")` }} 
         />
 
         {/* Ballons animés */}
@@ -265,7 +265,7 @@ export function InvitationPreview({ invitation }: any) {
           <motion.img 
             key={`ballon-${b.id}`}
             /* REMPLACE ICI l'URL pour le fichier image du ballon */
-            src="https://votre-lien-supabase/ballon.png"
+            src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/ballons.png"
             initial={{ y: 680, opacity: 0 }} 
             animate={{ y: -120, opacity: [0, 1, 1, 0] }}
             transition={{ duration: b.duration, repeat: Infinity, delay: b.delay, ease: "linear" }}
@@ -279,7 +279,7 @@ export function InvitationPreview({ invitation }: any) {
           <motion.img 
             key={`papillon-${p.id}`}
             /* REMPLACE ICI l'URL pour le fichier image du papillon */
-            src="https://votre-lien-supabase/papillon.png"
+            src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/papillions.png"
             initial={{ x: p.left, y: p.top, opacity: 0, scale: 0.6 }}
             animate={{ 
               x: [p.left, `${parseFloat(p.left) + 12}%`, `${parseFloat(p.left) - 12}%`, p.left], 
@@ -297,7 +297,7 @@ export function InvitationPreview({ invitation }: any) {
           <motion.img 
             key={`etoile-${e.id}`}
             /* REMPLACE ICI l'URL pour le fichier image de l'étoile */
-            src="https://votre-lien-supabase/etoile.png"
+            src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/etoile.png"
             initial={{ y: -20, opacity: 0 }}
             animate={{ 
               y: [0, e.targetY, e.targetY], 
