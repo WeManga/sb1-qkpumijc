@@ -264,77 +264,52 @@ export function InvitationPreview({ invitation }: any) {
               className="absolute top-0 z-20"
             >
               {invitation.opening_type === 'filmstrip' ? (
-                /* --- NOUVEAU BLOC PELLICULE PHOTO FLOTTANTE ET ORGANIQUE --- */
-                <div className="relative w-48 h-72" style={{ perspective: '1200px' }}>
-                  <motion.div 
-                    initial={{ rotateX: 20, rotateY: -15, rotateZ: -5 }}
-                    animate={isOpened ? { 
-                      x: [0, 5, -5, 0],
-                      y: [0, -3, 3, 0],
-                      rotateY: [-15, -10, -18, -15]
-                    } : {}}
-                    transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
-                    className="w-full h-full bg-[#141414] rounded-2xl shadow-[0_25px_50px_-12px_rgba(0,0,0,0.7),_0_0_30px_rgba(255,255,255,0.03)] overflow-hidden p-2.5 border-y-8 border-[#1a1a1a] border-x border-neutral-800"
-                  >
-                    {/* Perforations de film argentique gauche avec reflets de lumière */}
-                    <div className="absolute inset-y-0 left-2 w-2 flex flex-col justify-between py-2 z-10 opacity-60">
-                      {Array.from({ length: 12 }).map((_, i) => (
-                        <div key={i} className="w-1.5 h-3 bg-black rounded-sm border border-neutral-800 shadow-[inset_0_1px_2px_rgba(255,255,255,0.1)]" />
-                      ))}
-                    </div>
-
-                    {/* Perforations de film argentique droite avec reflets de lumière */}
-                    <div className="absolute inset-y-0 right-2 w-2 flex flex-col justify-between py-2 z-10 opacity-60">
-                      {Array.from({ length: 12 }).map((_, i) => (
-                        <div key={i} className="w-1.5 h-3 bg-black rounded-sm border border-neutral-800 shadow-[inset_0_1px_2px_rgba(255,255,255,0.1)]" />
-                      ))}
-                    </div>
-
-                    {/* Défilement vertical infini des photos */}
-                    <motion.div 
-                      animate={{ y: [0, -376] }} 
-                      transition={{ duration: 14, repeat: Infinity, ease: "linear" }} 
-                      className="flex flex-col gap-3 px-3"
-                    >
-                      {[
-                        { url: invitation.main_photo_url, key: 'main_photo_url' },
-                        { url: invitation.photo_url_2, key: 'photo_url_2' },
-                        { url: invitation.photo_url_3, key: 'photo_url_3' },
-                        { url: invitation.main_photo_url, key: 'main_photo_url' },
-                        { url: invitation.photo_url_2, key: 'photo_url_2' },
-                        { url: invitation.photo_url_3, key: 'photo_url_3' }
-                      ].map((imgObj, idx) => (
-                        <div key={idx} className="w-full h-[112px] bg-neutral-900 rounded-md overflow-hidden relative shrink-0 shadow-inner border border-black">
-                          {imgObj.url ? (
-                            <img src={imgObj.url} className="w-full h-full object-cover grayscale-[0.1] contrast-[1.15] brightness-[0.95]" 
-                              style={{ transform: `translate(${invitation[`${imgObj.key}_pos_x`] || 0}px, ${invitation[`${imgObj.key}_pos_y`] || 0}px) scale(${invitation[`${imgObj.key}_scale`] || 1})` }} alt="" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-neutral-950"><Film className="text-neutral-700" size={22}/></div>
-                          )}
-                          {/* Grain cinéma argentique / Ligne de lumière transversale */}
-                          <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/[0.04] to-transparent pointer-events-none" />
-                          <div className="absolute inset-x-0 bottom-0 h-[1px] bg-white/5" />
-                        </div>
-                      ))}
-                    </motion.div>
+                <div className="relative w-44 h-72 bg-[#1a1a1a] rounded-xl shadow-2xl rotate-[-2deg] overflow-hidden p-2 border-y-4 border-[#1a1a1a]">
+                  <div className="absolute inset-y-0 left-1.5 w-1.5 border-l-2 border-dashed border-white/20 z-10" />
+                  <div className="absolute inset-y-0 right-1.5 w-1.5 border-r-2 border-dashed border-white/20 z-10" />
+                  <motion.div animate={{ y: [0, -360] }} transition={{ duration: 12, repeat: Infinity, ease: "linear" }} className="flex flex-col gap-2">
+                    {[
+                      { url: invitation.main_photo_url, key: 'main_photo_url' },
+                      { url: invitation.photo_url_2, key: 'photo_url_2' },
+                      { url: invitation.photo_url_3, key: 'photo_url_3' },
+                      { url: invitation.main_photo_url, key: 'main_photo_url' },
+                      { url: invitation.photo_url_2, key: 'photo_url_2' },
+                      { url: invitation.photo_url_3, key: 'photo_url_3' }
+                    ].map((imgObj, idx) => (
+                      <div key={idx} className="w-full h-28 bg-[#222] rounded-sm overflow-hidden relative shrink-0">
+                        {imgObj.url ? (
+                          <img src={imgObj.url} className="w-full h-full object-cover grayscale-[0.2] contrast-125" 
+                            style={{ transform: `translate(${invitation[`${imgObj.key}_pos_x`] || 0}px, ${invitation[`${imgObj.key}_pos_y`] || 0}px) scale(${invitation[`${imgObj.key}_scale`] || 1})` }} alt="" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gray-800"><Film className="text-gray-600" size={20}/></div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none" />
+                      </div>
+                    ))}
                   </motion.div>
                 </div>
               ) : (
-                /* --- BLOC VINYLE LOOK PRO & INTERACTIF --- */
+                /* --- NOUVEAU BLOC VINYLE LOOK PRO & INTERACTIF --- */
                 <div className="relative w-[280px] h-[280px] flex items-center justify-center" style={{ perspective: '1000px' }}>
+                  {/* Conteneur principal du vinyle avec légère inclinaison 3D */}
                   <motion.div 
                     initial={{ rotateX: 15, rotateZ: 0 }}
                     animate={isOpened ? { rotateZ: 360 } : { rotateZ: 0 }}
                     transition={isOpened ? { repeat: Infinity, duration: 4, ease: "linear", delay: 0.8 } : { duration: 0.5 }}
                     className="w-[250px] h-[250px] relative rounded-full bg-neutral-950 shadow-[0_15px_35px_rgba(0,0,0,0.6),_inset_0_0_20px_rgba(255,255,255,0.05)] border-4 border-neutral-900 flex items-center justify-center overflow-hidden"
                   >
+                    {/* Micros-sillons réalistes (Radial gradient) */}
                     <div className="absolute inset-0 opacity-40 mix-blend-overlay pointer-events-none" style={{ background: 'repeating-radial-gradient(circle, #555 0px, #000 2px, #111 4px)' }} />
+                    
+                    {/* Reflet lumineux conique dynamique (Tourne à l'envers pour simuler la lumière fixe) */}
                     <motion.div 
                       animate={isOpened ? { rotate: -360 } : { rotate: 0 }}
                       transition={isOpened ? { repeat: Infinity, duration: 4, ease: "linear", delay: 0.8 } : { duration: 0.5 }}
                       className="absolute inset-0 opacity-20 pointer-events-none mix-blend-screen"
                       style={{ background: 'conic-gradient(from 0deg, transparent 0deg, rgba(255,255,255,0.4) 60deg, transparent 120deg, transparent 180deg, rgba(255,255,255,0.4) 240deg, transparent 300deg)' }}
                     />
+
+                    {/* Macaron central (Label du disque) */}
                     <div className="w-24 h-24 bg-white rounded-full border-[6px] border-neutral-950 shadow-md overflow-hidden relative z-10 flex items-center justify-center">
                       {invitation.main_photo_url ? (
                         <img src={invitation.main_photo_url} className="w-full h-full object-cover" 
@@ -342,26 +317,37 @@ export function InvitationPreview({ invitation }: any) {
                       ) : (
                         <div className="w-full h-full bg-gradient-to-tr from-neutral-200 to-neutral-50" />
                       )}
+                      {/* Trou central du vinyle */}
                       <div className="absolute w-3 h-3 bg-neutral-950 rounded-full shadow-inner border border-white/20" />
                     </div>
                   </motion.div>
 
+                  {/* Bras de lecture SVG - S'anime en premier avant la rotation du disque */}
                   <div className="absolute top-[-10px] right-[-10px] w-28 h-36 z-30 pointer-events-none">
                     <svg className="w-full h-full drop-shadow-[4px_8px_10px_rgba(0,0,0,0.5)]" viewBox="0 0 100 130" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      {/* Base du bras */}
                       <circle cx="75" cy="25" r="12" fill="#262626" stroke="#404040" strokeWidth="2"/>
                       <circle cx="75" cy="25" r="5" fill="#171717"/>
+                      
+                      {/* Pivot mobile du bras */}
                       <motion.g
                         initial={{ rotate: -35 }}
                         animate={isOpened ? { rotate: 5 } : { rotate: -35 }}
                         transition={{ type: "spring", stiffness: 60, damping: 15, delay: 0.2 }}
                         style={{ transformOrigin: "75px 25px" }}
                       >
+                        {/* Tige métallique principale */}
                         <path d="M 75 25 L 68 85 L 35 110" stroke="#d4d4d8" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/>
                         <path d="M 75 25 L 68 85 L 35 110" stroke="#a1a1aa" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+                        
+                        {/* Contrepoids arrière */}
                         <rect x="70" y="5" width="10" height="12" rx="2" fill="#525252" />
+                        
+                        {/* Tête de lecture (Cellule/Diamant) */}
                         <g transform="translate(35, 110) rotate(-35)">
                           <rect x="-6" y="-3" width="12" height="16" rx="2" fill="#171717" />
                           <rect x="-4" y="2" width="8" height="10" rx="1" fill="#e5e5e5" />
+                          {/* Petite loupiote ou marqueur de style */}
                           <circle cx="0" cy="10" r="1.5" fill="#f59e0b" />
                         </g>
                       </motion.g>
