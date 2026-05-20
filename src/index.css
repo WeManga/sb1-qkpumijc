@@ -133,7 +133,7 @@
   }
 
   .paper-preview.paper-velvet::before {
-    background-image: url("https://www.transparenttextures.com/patterns/felt.png");
+    background-image: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/velvet.PNG");
   }
 
   .paper-preview.paper-silk::before {
