@@ -45,7 +45,9 @@
     background-repeat: repeat !important;
     background-size: cover !important;
     background-position: center !important;
-    background-blend-mode: multiply !important; /* Permet le mélange avec la couleur de la Sidebar */
+    /* On inverse les couleurs pour que le mode multiply fonctionne avec des images claires */
+    filter: invert(100%);
+    background-blend-mode: multiply !important;
   }
 
   .paper-smooth { 
