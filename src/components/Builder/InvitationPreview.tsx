@@ -34,7 +34,6 @@ export function InvitationPreview({ invitation }: any) {
   const lang = (pick(invitation, ['language']) as Language) || (localStorage.getItem('invite_lang') as Language) || 'fr';
   const t = translations[lang].guest;
   const tBuilder = translations[lang].builder;
-  const emojis = THEME_EMOJIS[pick(invitation, ['event_type', 'eventtype'], '')] || THEME_EMOJIS.default;
 
   const paperType = pick(invitation, ['paper_type', 'papertype'], 'smooth');
   const openingStyle = pick(invitation, ['opening_style', 'openingtype'], 'knock');
@@ -242,12 +241,12 @@ export function InvitationPreview({ invitation }: any) {
       () =>
         Array.from({ length: 25 }).map((_, i) => ({
           id: i,
-          emoji: emojis[i % emojis.length],
+          emoji: THEME_EMOJIS[pick(invitation, ['event_type', 'eventtype'], '')]?.[i % THEME_EMOJIS[pick(invitation, ['event_type', 'eventtype'], '')]?.length] || THEME_EMOJIS.default[i % THEME_EMOJIS.default.length],
           left: `${i * 4 + Math.random() * 3}%`,
           delay: Math.random() * 2,
           duration: 4 + Math.random() * 2,
         })),
-      [emojis]
+      [invitation]
     );
 
     return (
@@ -332,6 +331,7 @@ export function InvitationPreview({ invitation }: any) {
               transition={{ duration: b.duration, repeat: Infinity, delay: b.delay, ease: 'linear' }}
               className="absolute w-10 h-auto"
               style={{ left: b.left }}
+              alt=""
             />
           ))}
 
@@ -349,6 +349,7 @@ export function InvitationPreview({ invitation }: any) {
               animate={{ scaleX: [1, -1, 1] }}
               transition={{ duration: p.flapSpeed, repeat: Infinity, ease: 'linear' }}
               className="w-8 h-auto origin-center"
+              alt=""
             />
           </motion.div>
         ))}
@@ -373,6 +374,7 @@ export function InvitationPreview({ invitation }: any) {
               }}
               className={`absolute ${e.sizeClass} drop-shadow-[0_0_5px_rgba(251,191,36,0.6)]`}
               style={{ left: e.left }}
+              alt=""
             />
           ))}
       </div>
@@ -434,7 +436,9 @@ export function InvitationPreview({ invitation }: any) {
                           <img
                             src={imgObj.url}
                             className="w-full h-full object-cover grayscale-[0.2] contrast-125"
-                            style={{ transform: `translate(${pick(invitation, [`${imgObj.key}_pos_x`, `${imgObj.key}posx`], 0)}px, ${pick(invitation, [`${imgObj.key}_pos_y`, `${imgObj.key}posy`], 0)}px) scale(${pick(invitation, [`${imgObj.key}_scale`, `${imgObj.key}scale`], 1)})` }}
+                            style={{
+                              transform: `translate(${pick(invitation, [`${imgObj.key}_pos_x`, `${imgObj.key}posx`], 0)}px, ${pick(invitation, [`${imgObj.key}_pos_y`, `${imgObj.key}posy`], 0)}px) scale(${pick(invitation, [`${imgObj.key}_scale`, `${imgObj.key}scale`], 1)})`,
+                            }}
                             alt=""
                           />
                         ) : (
@@ -678,7 +682,13 @@ export function InvitationPreview({ invitation }: any) {
             </div>
           </motion.div>
         ) : (
-          <motion.div key="content" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className={`w-full h-full z-[100] flex flex-col overflow-y-auto paper-container ${getPaperClass()}`} style={{ '--dynamic-color': paperColor } as React.CSSProperties}>
+          <motion.div
+            key="content"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className={`w-full h-full z-[100] flex flex-col overflow-y-auto paper-container ${getPaperClass()}`}
+            style={{ '--dynamic-color': paperColor } as React.CSSProperties}
+          >
             <div className="h-[30%] relative overflow-hidden shrink-0">
               <img
                 src={mainPhotoUrl}
@@ -736,7 +746,13 @@ export function InvitationPreview({ invitation }: any) {
                 </h3>
 
                 <div className="relative flex flex-col items-center">
-                  <motion.div initial={{ scaleY: 0 }} whileInView={{ scaleY: 1 }} viewport={{ once: true }} transition={{ duration: 3.0, ease: 'easeInOut' }} className="absolute top-0 w-[2px] h-full bg-gradient-to-b from-amber-200 via-amber-500 to-amber-200 rounded-full origin-top" />
+                  <motion.div
+                    initial={{ scaleY: 0 }}
+                    whileInView={{ scaleY: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 3.0, ease: 'easeInOut' }}
+                    className="absolute top-0 w-[2px] h-full bg-gradient-to-b from-amber-200 via-amber-500 to-amber-200 rounded-full origin-top"
+                  />
                   <div className="relative space-y-12 w-full pt-4">
                     {(eventProgram || []).map((step: any, i: number) => {
                       const isEven = i % 2 === 0;
@@ -755,9 +771,12 @@ export function InvitationPreview({ invitation }: any) {
                             viewport={{ once: true }}
                             className={`absolute top-1/2 -translate-y-1/2 z-20 w-3 h-3 bg-amber-500 border border-white shadow-md ${isEven ? 'right-[50%] translate-x-1/2' : 'left-[50%] -translate-x-1/2'}`}
                           >
-                            <motion.div animate={{ opacity: [1, 0.4, 1], scale: [1, 1.2, 1] }} transition={{ duration: 2.5, repeat: Infinity }} className="absolute inset-0 bg-amber-300 rounded-sm" />
+                            <motion.div
+                              animate={{ opacity: [1, 0.4, 1], scale: [1, 1.2, 1] }}
+                              transition={{ duration: 2.5, repeat: Infinity }}
+                              className="absolute inset-0 bg-amber-300 rounded-sm"
+                            />
                           </motion.div>
-
                           <div className={`w-[45%] overflow-hidden bg-white/60 rounded-2xl border border-amber-50 backdrop-blur-sm shadow-lg ${isEven ? 'text-left' : 'text-right'}`}>
                             {step.image_url && (
                               <div className="w-full aspect-video overflow-hidden">
