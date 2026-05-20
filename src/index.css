@@ -45,10 +45,6 @@
     overflow: hidden;
     isolation: isolate;
     background-color: var(--dynamic-color, #ffffff);
-    background-repeat: repeat;
-    background-position: center;
-    background-size: cover;
-    background-blend-mode: soft-light;
   }
 
   .paper-container::before {
@@ -56,11 +52,12 @@
     position: absolute;
     inset: 0;
     pointer-events: none;
+    z-index: 0;
+    background-image: var(--paper-texture, none);
     background-repeat: repeat;
     background-position: center;
     background-size: cover;
-    opacity: 0.35;
-    z-index: 0;
+    opacity: 0.28;
     mix-blend-mode: soft-light;
   }
 
@@ -70,51 +67,27 @@
   }
 
   .paper-smooth {
-    background-image: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/smooth.jpg");
-  }
-
-  .paper-smooth::before {
-    background-image: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/smooth.jpg");
+    --paper-texture: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/smooth.jpg");
   }
 
   .paper-parchment {
-    background-image: url("https://www.transparenttextures.com/patterns/parchment.png");
-  }
-
-  .paper-parchment::before {
-    background-image: url("https://www.transparenttextures.com/patterns/parchment.png");
+    --paper-texture: url("https://www.transparenttextures.com/patterns/parchment.png");
   }
 
   .paper-grainy {
-    background-image: url("https://www.transparenttextures.com/patterns/beige-paper.png");
-  }
-
-  .paper-grainy::before {
-    background-image: url("https://www.transparenttextures.com/patterns/beige-paper.png");
+    --paper-texture: url("https://www.transparenttextures.com/patterns/beige-paper.png");
   }
 
   .paper-cotton {
-    background-image: url("https://www.transparenttextures.com/patterns/white-diamond.png");
-  }
-
-  .paper-cotton::before {
-    background-image: url("https://www.transparenttextures.com/patterns/white-diamond.png");
+    --paper-texture: url("https://www.transparenttextures.com/patterns/white-diamond.png");
   }
 
   .paper-silk {
-    background-image: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/silk.png");
-  }
-
-  .paper-silk::before {
-    background-image: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/silk.png");
+    --paper-texture: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/silk.png");
   }
 
   .paper-velvet {
-    background-image: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/velvet.PNG");
-  }
-
-  .paper-velvet::before {
-    background-image: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/velvet.PNG");
+    --paper-texture: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/velvet.PNG");
   }
 
   .texture-btn {
