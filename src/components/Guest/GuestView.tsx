@@ -639,4 +639,4 @@ export function GuestView({ invitation }: any) {
       </AnimatePresence>
     </div>
   );
-}
+} 
