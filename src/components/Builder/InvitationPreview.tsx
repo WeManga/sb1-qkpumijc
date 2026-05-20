@@ -469,12 +469,12 @@ export function InvitationPreview({ invitation }: any) {
             </motion.div>
 
             {/* --- COUCHE DECLENCHEURS MECANIQUES ET ENVELOPPES PROPRES --- */}
-            <div className="absolute inset-0 z-50 overflow-hidden" style={{ perspective: '2500px', pointerEvents: isOpened ? 'none' : 'auto' }}>
+            <div className="absolute inset-0 z-50 overflow-hidden" style={{ perspective: '2500px', transformStyle: 'preserve-3d', pointerEvents: isOpened ? 'none' : 'auto' }}>
               <AnimatePresence>
-                {(!isOpened || invitation.container_open === 'metal_door') && (
+                {!isOpened && (
                   <motion.div 
                     key="gate-container" 
-                    exit={invitation.container_open === 'metal_door' ? { opacity: 1 } : { opacity: 1 }}
+                    exit={{ opacity: 1 }}
                     className="w-full h-full relative flex items-center justify-center"
                     style={{ transformStyle: 'preserve-3d' }}
                   >
@@ -592,58 +592,50 @@ export function InvitationPreview({ invitation }: any) {
                       )}
                     </AnimatePresence>
 
-                    {/* INTERFACE DE RECOUVREMENT DE L'ENVELOPPE (FREE / PREMIUM) */}
-                    <div className="absolute inset-0 z-50 w-full h-full flex" style={{ perspective: '2500px', transformStyle: 'preserve-3d' }}>
+                    {/* INTERFACE DE RECOUVREMENT ET ANIMATIONS SYNCHRONISÉES D'OUVERTURE */}
+                    <div className="absolute inset-0 w-full h-full flex" style={{ transformStyle: 'preserve-3d' }}>
                       {invitation.container_open === 'metal_door' ? (
                         /* PREMIUM : Porte métallique coulissant horizontalement à droite */
                         <motion.div 
-                          animate={isOpened ? { x: "100%" } : { x: "0%" }}
+                          exit={{ x: "100%" }}
                           transition={{ duration: 1.6, ease: "easeInOut" }}
                           className="absolute inset-0 w-full h-full bg-cover bg-center shadow-2xl"
                           style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20noir.png")` }}
                         />
                       ) : invitation.container_open === 'wooden_door' ? (
-                        /* PREMIUM : Double porte en bois pivotant de manière réaliste vers l'intérieur (3D) */
-                        <AnimatePresence>
-                          {!isOpened && (
-                            <>
-                              <motion.div 
-                                initial={{ rotateY: 0 }}
-                                exit={{ rotateY: -95, opacity: 0 }} 
-                                transition={{ duration: 1.4, ease: "easeInOut" }} 
-                                className="w-1/2 h-full origin-left bg-cover bg-center shadow-[15px_0_30px_rgba(0,0,0,0.5)] border-r border-black/10" 
-                                style={{ 
-                                  backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20gauche.png")`, 
-                                  backgroundColor: invitation?.envelope_color || '#FEE2E2'
-                                }} 
-                              />
-                              <motion.div 
-                                initial={{ rotateY: 0 }}
-                                exit={{ rotateY: 95, opacity: 0 }} 
-                                transition={{ duration: 1.4, ease: "easeInOut" }} 
-                                className="w-1/2 h-full origin-right bg-cover bg-center shadow-[-15px_0_30px_rgba(0,0,0,0.5)] border-l border-black/10" 
-                                style={{ 
-                                  backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20droite.png")`, 
-                                  backgroundColor: invitation?.envelope_color || '#FEE2E2'
-                                }} 
-                              />
-                            </>
-                          )}
-                        </AnimatePresence>
+                        /* PREMIUM : Double porte en bois s'ouvrant en 3D vers l'intérieur (Axe fixés sur les bords gauches et droits) */
+                        <>
+                          <motion.div 
+                            initial={{ rotateY: 0 }}
+                            exit={{ rotateY: -95, opacity: 0 }} 
+                            transition={{ duration: 1.4, ease: "easeInOut" }} 
+                            className="w-1/2 h-full origin-left bg-cover bg-center shadow-[15px_0_30px_rgba(0,0,0,0.5)] border-r border-black/10" 
+                            style={{ 
+                              backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20gauche.png")`, 
+                              backgroundColor: invitation?.envelope_color || '#FEE2E2'
+                            }} 
+                          />
+                          <motion.div 
+                            initial={{ rotateY: 0 }}
+                            exit={{ rotateY: 95, opacity: 0 }} 
+                            transition={{ duration: 1.4, ease: "easeInOut" }} 
+                            className="w-1/2 h-full origin-right bg-cover bg-center shadow-[-15px_0_30px_rgba(0,0,0,0.5)] border-l border-black/10" 
+                            style={{ 
+                              backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20droite.png")`, 
+                              backgroundColor: invitation?.envelope_color || '#FEE2E2'
+                            }} 
+                          />
+                        </>
                       ) : (
-                        /* FREE PAR DÉFAUT : Volet uni qui change de couleur et qui monte verticalement */
-                        <AnimatePresence>
-                          {!isOpened && (
-                            <motion.div 
-                              key="free-gate-panel"
-                              initial={{ y: "0%" }}
-                              exit={{ y: "-100%" }}
-                              transition={{ duration: 1.3, ease: [0.43, 0.13, 0.23, 0.96] }}
-                              className="absolute inset-0 w-full h-full shadow-[0_20px_50px_rgba(0,0,0,0.6)] border-b border-black/10" 
-                              style={{ backgroundColor: invitation?.envelope_color || '#FEE2E2' }} 
-                            />
-                          )}
-                        </AnimatePresence>
+                        /* FREE PAR DÉFAUT : Volet uni qui change de couleur et qui monte verticalement vers le haut de l'écran */
+                        <motion.div 
+                          key="free-gate-panel"
+                          initial={{ y: "0%" }}
+                          exit={{ y: "-100%" }}
+                          transition={{ duration: 1.3, ease: [0.43, 0.13, 0.23, 0.96] }}
+                          className="absolute inset-0 w-full h-full shadow-[0_20px_50px_rgba(0,0,0,0.6)] border-b border-black/10" 
+                          style={{ backgroundColor: invitation?.envelope_color || '#FEE2E2' }} 
+                        />
                       )}
                     </div>
                   </motion.div>
@@ -683,7 +675,7 @@ export function InvitationPreview({ invitation }: any) {
                       const isEven = i % 2 === 0;
                       return (
                         <motion.div key={i} initial={{ opacity: 0, x: isEven ? -30 : 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, margin: "-50px" }} transition={{ duration: 1.2, delay: 0.1 }} className={`flex items-center w-full relative ${isEven ? 'justify-start pl-6' : 'justify-end pr-6'}`}>
-                          <motion.div initial={{ scale: 0, rotate: 45 }} whileInView={{ scale: 1, rotate: 45 }} viewport={{ once: true }} className={`absolute top-1/2 -translate-y-1/2 z-20 w-3 h-3 bg-amber-500 border border-white shadow-md ${isEven ? 'right-[50%] translate-x-1/2' : 'left-[50%] -translate-x-1/2'}`}>
+                          <motion.div initial={{ scale: 0, rotate: 45 }} whileInView={{ scale: 1, rotate: 45 }} viewport={{ once: true }} className={`absolute top-1/2 -translate-y-1/2 z-20 w-3 h-3 bg-amber-500 border border-white shadow-md ${isEven ? 'right-[50%] translate-x-1/2' : 'left-[50%]' -translate-x-1/2}`}>
                             <motion.div animate={{ opacity: [1, 0.4, 1], scale: [1, 1.2, 1] }} transition={{ duration: 2.5, repeat: Infinity }} className="absolute inset-0 bg-amber-300 rounded-sm" />
                           </motion.div>
                           <div className={`w-[45%] overflow-hidden bg-white/60 rounded-2xl border border-amber-50 backdrop-blur-sm shadow-lg ${isEven ? 'text-left' : 'text-right'}`}>
