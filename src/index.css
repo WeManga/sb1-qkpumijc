@@ -57,6 +57,7 @@
     background-position: center;
     mix-blend-mode: multiply;
     opacity: 0.4;
+    z-index: 0;
   }
 
   .paper-container > * {
