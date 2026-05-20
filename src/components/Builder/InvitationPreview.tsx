@@ -251,14 +251,15 @@ export function InvitationPreview({ invitation }: any) {
       duration: 6 + Math.random() * 3
     })), []);
 
-    const papillons = useMemo(() => Array.from({ length: 6 }).map((_, i) => ({
-      id: i,
-      left: `${10 + Math.random() * 70}%`,
-      top: `${15 + Math.random() * 50}%`,
-      duration: 6 + Math.random() * 4,
-      delay: i * 0.4,
-      type: i % 2 === 0 ? 'pap1' : 'pap2'
-    })), []);
+    // Configuration des papillons : Entrées et sorties de tous les côtés, tailles et vitesses hétérogènes
+    const papillonsConfig = useMemo(() => [
+      { id: 1, type: 'pap1', size: 0.85, flapSpeed: 0.20, duration: 7, initX: -50, initY: 100, pathX: [120, 240, 400], pathY: [80, 220, 150] },
+      { id: 2, type: 'pap2', size: 0.50, flapSpeed: 0.16, duration: 5, initX: 420, initY: 200, pathX: [280, 140, -60], pathY: [250, 90, 180] },
+      { id: 3, type: 'pap1', size: 0.70, flapSpeed: 0.24, duration: 8, initX: 180, initY: -60, pathX: [220, 100, 160], pathY: [150, 380, 700] },
+      { id: 4, type: 'pap2', size: 0.60, flapSpeed: 0.18, duration: 6, initX: 250, initY: 680, pathX: [120, 300, 200], pathY: [480, 200, -60] },
+      { id: 5, type: 'pap1', size: 0.90, flapSpeed: 0.22, duration: 7.5, initX: -50, initY: 450, pathX: [150, 80, 420], pathY: [350, 120, 50] },
+      { id: 6, type: 'pap2', size: 0.45, flapSpeed: 0.14, duration: 4.5, initX: 420, initY: 400, pathX: [200, 310, -50], pathY: [300, 520, 380] }
+    ], []);
 
     const etoilesPluie = useMemo(() => Array.from({ length: 15 }).map((_, i) => ({
       id: i,
@@ -297,24 +298,28 @@ export function InvitationPreview({ invitation }: any) {
           />
         ))}
 
-        {/* THÈME BUTTERFLIES : Vol autonome dispersé sur l'écran et battement d'ailes */}
-        {theme === 'butterflies' && papillons.map((p) => (
+        {/* THÈME BUTTERFLIES : Vol global immersif de toute part sans blocage */}
+        {theme === 'butterflies' && invitation.plan_type === 'PREMIUM' && premium_trigger_type === 'decor' && papillonsConfig.map((p) => (
           <motion.div
-            key={`pap-container-${p.id}`}
-            initial={{ x: 0, y: 0, opacity: 0 }}
+            key={`pap-infinite-${p.id}`}
+            initial={{ x: p.initX, y: p.initY, opacity: 0 }}
             animate={{ 
-              x: [0, p.id % 2 === 0 ? 120 : -120, p.id % 2 === 0 ? -80 : 80, 0], 
-              y: [0, -140, 50, 0],
-              opacity: [0, 1, 1, 0]
+              x: p.pathX,
+              y: p.pathY,
+              opacity: [0, 1, 1, 1, 0]
             }}
-            transition={{ duration: p.duration, repeat: Infinity, delay: p.delay, ease: "easeInOut" }}
+            transition={{ 
+              duration: p.duration, 
+              repeat: Infinity, 
+              ease: "linear"
+            }}
             className="absolute"
-            style={{ left: p.left, top: p.top }}
+            style={{ scale: p.size }}
           >
             <motion.img 
               src={p.type === 'pap1' ? "https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/papillions.png" : "https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/papillion%202.png"}
               animate={{ scaleX: [1, -1, 1] }}
-              transition={{ duration: 0.25, repeat: Infinity, ease: "linear" }}
+              transition={{ duration: p.flapSpeed, repeat: Infinity, ease: "linear" }}
               className="w-8 h-auto origin-center"
             />
           </motion.div>
