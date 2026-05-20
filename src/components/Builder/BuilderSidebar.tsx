@@ -26,13 +26,13 @@ const PREMIUM_PALETTES = [
 
 const FONTS = [
   { id: 'font-sans', name: 'Moderne Pur', family: "ui-sans-serif, system-ui, sans-serif", premium: false },
-  { id: 'font-serif', name: 'Classique Chic', family: "'Playfair Display', serif", premium: false },
-  { id: 'font-elegant', name: 'Élégance Riviera', family: "'Cinzel', serif", premium: true },
-  { id: 'font-script', name: 'Plume Douce', family: "'Great Vibes', cursive", premium: true },
-  { id: 'font-royal', name: 'Royal Majesty', family: "'Monsieur La Doulaise', cursive", premium: true },
-  { id: 'font-vintage', name: 'Héritage Ancien', family: "'Cinzel Decorative', serif", premium: true },
-  { id: 'font-boho', name: 'Bohème Spirit', family: "'Caveat', cursive", premium: true },
-  { id: 'font-luxury', name: 'Luxe Minimal', family: "'Bodoni Moda', serif", premium: true }
+  { id: 'font-serif', name: 'Classique Chic', family: "ui-serif, Georgia, serif", premium: false },
+  { id: 'font-elegant', name: 'Élégance Riviera', family: "'Times New Roman', serif", premium: true },
+  { id: 'font-script', name: 'Plume Douce', family: "cursive", premium: true },
+  { id: 'font-royal', name: 'Royal Majesty', family: "'Apple Chancery', 'Zapfino', cursive", premium: true },
+  { id: 'font-vintage', name: 'Héritage Ancien', family: "'Copperplate', 'Papyrus', serif", premium: true },
+  { id: 'font-boho', name: 'Bohème Spirit', family: "'Bradley Hand', cursive", premium: true },
+  { id: 'font-luxury', name: 'Luxe Minimal', family: "'Didot', 'Bodoni MT', serif", premium: true }
 ];
 
 const TEXTURES = [
@@ -47,8 +47,6 @@ const TEXTURES = [
 export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: any) {
   const [uploading, setUploading] = useState(false);
   const [selectedPhotoKey, setSelectedPhotoKey] = useState('main_photo_url');
-  const [paperMode, setPaperMode] = useState<'color' | 'texture'>('texture');
-  const [triggerMode, setTriggerMode] = useState<'emoji' | 'decor'>(invitation.premium_trigger_type || 'emoji');
   const dragRef = useRef<{ x: number, y: number, isDragging: boolean, lastDist: number }>({ x: 0, y: 0, isDragging: false, lastDist: 0 });
   
   const lang = (invitation.language as Language) || (localStorage.getItem('invite_lang') as Language) || 'fr';
@@ -57,7 +55,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
   const localLabels = {
     fr: {
-      opening_type_label: "Style d'animation (Arrière de la carte)",
+      opening_type_label: "Style d'animation (Sortie de la carte)",
       action_style: "Le Style d'action (Déclencheur)",
       opening_container: "Le Type d'ouverture (Contenant)",
       premium_colors: "Couleurs PREMIUM",
@@ -65,27 +63,14 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       style_knock: "Main qui toque",
       style_key: "Clé classique",
       style_vault: "Code digital (Vault)",
-      type_vinyl: "Volet classique",
+      type_vinyl: "Enveloppe classique",
       type_filmstrip: "Porte en Bois",
       type_metal: "Porte en Métal",
       vault_date_label: "Date du code secret (6 chiffres animés)",
-      alert_msg: "Vous possédez un compte FREE, veuillez passer en PREMIUM pour débloquer cette fonctionnalité.",
-      paper_section_label: "Style de la carte d'invitation (Papier)",
-      paper_mode_texture: "Texture",
-      paper_mode_color: "Couleur",
-      paper_color_label: "Couleur de la carte",
-      paper_premium_colors: "Couleurs de carte PREMIUM",
-      trigger_mode_emoji: "Pluie d'émojis",
-      trigger_mode_decor: "Décor Animé",
-      bg_color_label: "Couleur de fond de l'ambiance",
-      bg_premium_colors: "Couleurs de fond spéciales",
-      bg_balloons: "Ballons Fête",
-      bg_flowers: "Fleurs Élégantes",
-      bg_butterflies: "Papillons Magiques",
-      bg_stars: "Pluie d'Étoiles"
+      alert_msg: "Vous possédez un compte FREE, veuillez passer en PREMIUM pour débloquer cette fonctionnalité."
     },
     en: {
-      opening_type_label: "Animation Style (Behind the Card)",
+      opening_type_label: "Animation Style (Card Reveal)",
       action_style: "Action Style (Trigger)",
       opening_container: "Opening Type (Container)",
       premium_colors: "PREMIUM Colors",
@@ -93,27 +78,14 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       style_knock: "Knocking Hand",
       style_key: "Classic Key",
       style_vault: "Digital Code (Vault)",
-      type_vinyl: "Classic Panel",
+      type_vinyl: "Classic Envelope",
       type_filmstrip: "Wooden Door",
       type_metal: "Metal Door",
       vault_date_label: "Secret Code Date (6 animated digits)",
-      alert_msg: "You have a FREE account, please upgrade to PREMIUM to unlock this feature.",
-      paper_section_label: "Invitation Card Style (Paper)",
-      paper_mode_texture: "Texture",
-      paper_mode_color: "Color",
-      paper_color_label: "Card Color",
-      paper_premium_colors: "PREMIUM Card Colors",
-      trigger_mode_emoji: "Emoji Rain",
-      trigger_mode_decor: "Animated Decor",
-      bg_color_label: "Ambiance Background Color",
-      bg_premium_colors: "Special Background Colors",
-      bg_balloons: "Celebration Balloons",
-      bg_flowers: "Elegant Flowers",
-      bg_butterflies: "Magical Butterflies",
-      bg_stars: "Star Rain"
+      alert_msg: "You have a FREE account, please upgrade to PREMIUM to unlock this feature."
     },
     vi: {
-      opening_type_label: "Kiểu hoạt ảnh (Phía sau thẻ)",
+      opening_type_label: "Kiểu hoạt ảnh (Lộ thẻ)",
       action_style: "Kiểu hành động (Kích hoạt)",
       opening_container: "Loại mở rộng (Hộp chứa)",
       premium_colors: "Màu sắc PREMIUM",
@@ -121,24 +93,11 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       style_knock: "Tay gõ cửa",
       style_key: "Chìa khóa cổ điển",
       style_vault: "Mã kỹ thuật số (Vault)",
-      type_vinyl: "Bảng cổ điển",
+      type_vinyl: "Phong bì cổ điển",
       type_filmstrip: "Cửa gỗ",
       type_metal: "Cửa kim loại",
       vault_date_label: "Ngày mã bí mật (6 chữ số hoạt hình)",
-      alert_msg: "Bạn đang sử dụng tài khoản MIỄN PHÍ, vui lòng nâng cấp lên PREMIUM để mở khóa tính năng này.",
-      paper_section_label: "Kiểu Thẻ Mời (Giấy)",
-      paper_mode_texture: "Kết cấu",
-      paper_mode_color: "Màu sắc",
-      paper_color_label: "Màu thẻ",
-      paper_premium_colors: "Màu thẻ PREMIUM",
-      trigger_mode_emoji: "Mưa émoji",
-      trigger_mode_decor: "Trang trí Động",
-      bg_color_label: "Màu nền không gian",
-      bg_premium_colors: "Màu nền đặc biệt",
-      bg_balloons: "Bóng bay tiệc",
-      bg_flowers: "Hoa sang trọng",
-      bg_butterflies: "Bướm thần tiên",
-      bg_stars: "Mưa sao lấp lánh"
+      alert_msg: "Bạn đang sử dụng tài khoản MIỄN PHÍ, vui lòng nâng cấp lên PREMIUM để mở khóa tính năng này."
     }
   }[lang];
 
@@ -153,27 +112,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
   const handlePremiumClick = (colorValue: string) => {
     if (!checkPremiumAccess(false)) return;
     onInvitationChange({...invitation, envelope_color: colorValue});
-  };
-
-  const handlePaperPremiumClick = (colorValue: string) => {
-    if (!checkPremiumAccess(false)) return;
-    onInvitationChange({...invitation, paper_color: colorValue});
-  };
-
-  const handleBackgroundPremiumClick = (colorValue: string) => {
-    if (!checkPremiumAccess(false)) return;
-    onInvitationChange({...invitation, background_color: colorValue});
-  };
-
-  const handleTriggerModeSwitch = (mode: 'emoji' | 'decor') => {
-    if (mode === 'decor' && !checkPremiumAccess(false)) return;
-    setTriggerMode(mode);
-    onInvitationChange({ ...invitation, premium_trigger_type: mode });
-  };
-
-  const handleBackgroundThemeClick = (themeId: string, premium: boolean) => {
-    if (!checkPremiumAccess(!premium)) return;
-    onInvitationChange({...invitation, background_theme: themeId});
   };
 
   const handleOpeningTypeClick = (typeId: string, premium: boolean) => {
@@ -230,7 +168,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
         [field]: data.publicUrl 
       };
 
-      if (field === 'main_photo_url' || field === 'end_photo_url' || field === 'photo_url_2' || field === 'photo_url_3') {
+      if (field === 'main_photo_url' || field === 'end_photo_url') {
         updates[`${field}_pos_x`] = 0;
         updates[`${field}_pos_y`] = 0;
         updates[`${field}_scale`] = 1;
@@ -360,29 +298,11 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-gray-600 uppercase bg-white/40 text-center px-2">{t.start_photo}</span>
                 <input type="file" className="hidden" accept="image/*" onChange={(e) => uploadFile(e, 'main_photo_url')} />
               </label>
-              
               <label className={`flex flex-col items-center justify-center aspect-square bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-200 cursor-pointer overflow-hidden relative ${!isPremium ? 'opacity-50 grayscale pointer-events-none' : ''}`}>
                 {invitation.end_photo_url ? <img src={invitation.end_photo_url} className="w-full h-full object-cover opacity-30" /> : <ImageIcon className="text-gray-400 mb-2" />}
                 <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-gray-600 uppercase bg-white/40 text-center px-2 flex flex-col items-center gap-1">{t.end_photo} {!isPremium && <Lock size={16} />}</span>
                 <input type="file" className="hidden" accept="image/*" onChange={(e) => uploadFile(e, 'end_photo_url')} />
               </label>
-
-              {invitation.opening_type === 'filmstrip' && (
-                <>
-                  <label className={`flex flex-col items-center justify-center aspect-square bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-200 cursor-pointer overflow-hidden relative ${!isPremium ? 'opacity-50 grayscale pointer-events-none' : ''}`}>
-                    {invitation.photo_url_2 ? <img src={invitation.photo_url_2} className="w-full h-full object-cover opacity-30" /> : <ImageIcon className="text-gray-400 mb-2" />}
-                    <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-gray-600 uppercase bg-white/40 text-center px-2 flex flex-col items-center gap-1">{localLabels.filmstrip_photo_2} {!isPremium && <Lock size={16} />}</span>
-                    <input type="file" className="hidden" accept="image/*" onChange={(e) => uploadFile(e, 'photo_url_2')} />
-                  </label>
-
-                  <label className={`flex flex-col items-center justify-center aspect-square bg-gray-50 rounded-[2rem] border-2 border-dashed border-gray-200 cursor-pointer overflow-hidden relative ${!isPremium ? 'opacity-50 grayscale pointer-events-none' : ''}`}>
-                    {invitation.photo_url_3 ? <img src={invitation.photo_url_3} className="w-full h-full object-cover opacity-30" /> : <ImageIcon className="text-gray-400 mb-2" />}
-                    <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-gray-600 uppercase bg-white/40 text-center px-2 flex flex-col items-center gap-1">{localLabels.filmstrip_photo_3} {!isPremium && <Lock size={16} />}</span>
-                    <input type="file" className="hidden" accept="image/*" onChange={(e) => uploadFile(e, 'photo_url_3')} />
-                  </label>
-                </>
-              )}
-
               <label className="col-span-2 flex items-center gap-3 p-4 bg-gray-50 rounded-2xl border-2 border-dashed border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
                 <Music className="text-gray-400 shrink-0" size={20} />
                 <span className="text-[10px] font-bold text-gray-500 uppercase truncate">{invitation.music_url ? t.music_loaded : t.upload_music}</span>
@@ -390,12 +310,10 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
               </label>
             </div>
           </div>
-          {(invitation.main_photo_url || invitation.end_photo_url || invitation.photo_url_2 || invitation.photo_url_3) && (
+          {(invitation.main_photo_url || invitation.end_photo_url) && (
             <div className="bg-amber-50/50 p-6 rounded-[2rem] border border-amber-100 space-y-4">
               <div className="flex flex-wrap gap-2">
                 <button onClick={() => setSelectedPhotoKey('main_photo_url')} className={`px-3 py-1 rounded-full text-[9px] font-black uppercase transition-all ${selectedPhotoKey === 'main_photo_url' ? 'bg-amber-500 text-white shadow-sm' : 'bg-white text-amber-800 border border-amber-200'}`}>{t.back_btn}</button>
-                {invitation.photo_url_2 && <button onClick={() => setSelectedPhotoKey('photo_url_2')} className={`px-3 py-1 rounded-full text-[9px] font-black uppercase transition-all ${selectedPhotoKey === 'photo_url_2' ? 'bg-amber-500 text-white shadow-sm' : 'bg-white text-amber-800 border border-amber-200'}`}>Pellicule 2</button>}
-                {invitation.photo_url_3 && <button onClick={() => setSelectedPhotoKey('photo_url_3')} className={`px-3 py-1 rounded-full text-[9px] font-black uppercase transition-all ${selectedPhotoKey === 'photo_url_3' ? 'bg-amber-500 text-white shadow-sm' : 'bg-white text-amber-800 border border-amber-200'}`}>Pellicule 3</button>}
                 {invitation.end_photo_url && <button onClick={() => setSelectedPhotoKey('end_photo_url')} className={`px-3 py-1 rounded-full text-[9px] font-black uppercase transition-all ${selectedPhotoKey === 'end_photo_url' ? 'bg-amber-500 text-white shadow-sm' : 'bg-white text-amber-800 border border-amber-200'}`}>{t.end_photo}</button>}
               </div>
               <span className="text-[10px] font-black uppercase text-amber-800 flex items-center gap-2"><Move size={12}/> {t.adjust_label}</span>
@@ -430,13 +348,12 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
       {activeTab === 'style' && (
         <div className="space-y-8">
-          {/* SECTION 1 : STYLE D'ANIMATION DE FOND (INDÉPENDANT) */}
+          {/* SECTION 1 : STYLE D'ANIMATION */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">
               {localLabels.opening_type_label}
             </label>
             <div className="grid grid-cols-2 gap-3">
-              {/* FREE : VINYLE */}
               <button 
                 type="button"
                 onClick={() => handleOpeningTypeClick('vinyl', false)} 
@@ -446,25 +363,24 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 <span className="text-[10px] font-bold uppercase">{translations[lang].opening_types.vinyl}</span>
               </button>
 
-              {/* PREMIUM : PELLICULE */}
               <button 
                 type="button"
-                onClick={() => handleOpeningTypeClick('filmstrip', true)} 
-                className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all relative ${invitation.opening_type === 'filmstrip' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'} ${!isPremium ? 'opacity-40 grayscale' : ''}`}
+                onClick={() => handleOpeningTypeClick('filmstrip', false)} 
+                className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all ${invitation.opening_type === 'filmstrip' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}
               >
                 <Film size={18} className={invitation.opening_type === 'filmstrip' ? 'text-amber-500' : 'text-gray-400'} />
                 <span className="text-[10px] font-bold uppercase">{translations[lang].opening_types.filmstrip}</span>
-                {!isPremium && <Lock size={12} className="absolute right-2 top-2 text-gray-400" />}
               </button>
             </div>
           </div>
 
-          {/* SECTION 2 : STYLE D'ACTION (L'ANIMATION INTERACTIVE SEULE) */}
+          {/* SECTION 2 : STYLE D'ACTION (L'ANIMATION SEULE) */}
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">
               {localLabels.action_style}
             </label>
             <div className="grid grid-cols-2 gap-3">
+              {/* GRATUIT : SCEAU */}
               <button 
                 type="button"
                 onClick={() => handleOpeningStyleClick('default', false)} 
@@ -474,6 +390,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 <span className="text-[10px] font-bold uppercase">{localLabels.style_default}</span>
               </button>
 
+              {/* PREMIUM : MAIN QUI TOQUE */}
               <button 
                 type="button"
                 onClick={() => handleOpeningStyleClick('knock', true)} 
@@ -484,6 +401,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 {!isPremium && <Lock size={12} className="absolute right-2 top-2 text-gray-400" />}
               </button>
 
+              {/* PREMIUM : CLÉ CLASSIQUE */}
               <button 
                 type="button"
                 onClick={() => handleOpeningStyleClick('key', true)} 
@@ -494,6 +412,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 {!isPremium && <Lock size={12} className="absolute right-2 top-2 text-gray-400" />}
               </button>
 
+              {/* PREMIUM : CODE DIGITAL (VAULT) */}
               <button 
                 type="button"
                 onClick={() => handleOpeningStyleClick('vault', true)} 
@@ -505,6 +424,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
               </button>
             </div>
 
+            {/* CAS DE CALENDRIER CONDITIONNEL INTÉGRÉ POUR LE CODE DIGITAL (VAULT) */}
             {invitation.opening_style === 'vault' && (
               <div className="mt-4 p-4 bg-gray-50 rounded-2xl border border-gray-100 space-y-2 animate-fade-in">
                 <label className="text-[10px] font-black uppercase text-gray-500 flex items-center gap-2">
@@ -527,7 +447,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
               {localLabels.opening_container}
             </label>
             <div className="grid grid-cols-2 gap-3">
-              {/* GRATUIT : VOLET CLASSIQUE */}
+              {/* GRATUIT : ENVELOPPE CLASSIQUE */}
               <button 
                 type="button"
                 onClick={() => handleContainerOpenClick('envelope', false)} 
@@ -561,144 +481,53 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </div>
 
-          {/* SÉLECTEUR VISUEL AUTONOME : CONFIGURATION DES COULEURS DU VOLET */}
-          {(invitation.container_open === 'envelope' || !invitation.container_open) && (
-            <div className="space-y-4 bg-gray-50/50 p-4 rounded-3xl border border-gray-100">
-              <div>
-                <label className="text-[10px] font-black uppercase text-gray-400 mb-3 block ml-1">{t.envelope_color}</label>
-                <div className="flex gap-3 overflow-x-auto pt-2 pb-3 px-1 scrollbar-hide">
-                  {COLOR_PALETTES.map(p => (
-                    <button type="button" key={p.color} onClick={() => onInvitationChange({...invitation, envelope_color: p.color})} style={{backgroundColor: p.color}} className={`h-11 w-11 shrink-0 rounded-full border-4 transition-all ${invitation.envelope_color === p.color ? 'border-amber-400 scale-110 shadow-lg' : 'border-white shadow-sm'}`} />
-                  ))}
-                </div>
-              </div>
+          {/* PLUIE D'EMOJIS */}
+          <div>
+            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">{t.theme_label}</label>
+            <div className="grid grid-cols-2 gap-3">
+              {EVENT_TYPES.map(type => (
+                <button key={type.id} onClick={() => handleThemeClick(type.id, type.premium)} className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all relative ${invitation.event_type === type.id ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'} ${type.premium && !isPremium ? 'opacity-40 grayscale' : ''}`}>
+                  <type.icon size={18} className={invitation.event_type === type.id ? 'text-amber-500' : 'text-gray-400'} />
+                  <span className="text-[10px] font-bold uppercase">{type.name}</span>
+                  {type.premium && !isPremium && <Lock size={12} className="absolute right-2 top-2 text-gray-400" />}
+                </button>
+              ))}
+            </div>
+          </div>
 
-              <div>
-                <label className="text-[10px] font-black uppercase text-gray-400 mb-3 flex items-center gap-2 ml-1">{localLabels.premium_colors}</label>
-                <div className="flex gap-3 overflow-x-auto pt-1 pb-2 px-1 scrollbar-hide">
-                  {PREMIUM_PALETTES.map(p => (
-                    <button type="button" key={p.id} onClick={() => handlePremiumClick(p.gradient)} style={{ background: p.gradient }} className={`h-12 w-12 shrink-0 rounded-xl border-4 relative flex items-center justify-center transition-all ${invitation.envelope_color === p.gradient ? 'border-amber-400 scale-110 shadow-lg' : 'border-white shadow-sm'} ${!isPremium ? 'opacity-40 grayscale' : ''}`}>
-                      {!isPremium && <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-lg"><Lock size={12} className="text-white drop-shadow-md" /></div>}
-                    </button>
-                  ))}
-                </div>
+          {/* TEXTURE PAPIER */}
+          <div>
+            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">{t.texture_label}</label>
+            <div className="grid grid-cols-2 gap-2">
+              {TEXTURES.map(texture => (
+                <button key={texture.id} onClick={() => handleTextureClick(texture.id, texture.premium)} className={`p-4 rounded-xl border-2 text-[10px] font-bold transition-all relative flex items-center justify-center ${invitation.paper_type === texture.id ? 'border-amber-400 bg-amber-50' : 'bg-gray-50 border-transparent'} ${texture.premium && !isPremium ? 'opacity-40 grayscale' : ''}`}>
+                  {texture.name.toUpperCase()} {texture.premium && !isPremium && <Lock size={10} className="absolute right-2 top-2 text-gray-400" />}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* SÉLECTEUR COULEUR CONDITIONNEL ENVELOPPE CLASSIQUE */}
+          {(invitation.container_open === 'envelope' || !invitation.container_open) && (
+            <div>
+              <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">{t.envelope_color}</label>
+              <div className="flex gap-3 overflow-x-auto pt-2 pb-6 px-4 -mx-4 scrollbar-hide">
+                {COLOR_PALETTES.map(p => (
+                  <button key={p.color} onClick={() => onInvitationChange({...invitation, envelope_color: p.color})} style={{backgroundColor: p.color}} className={`h-12 w-12 shrink-0 rounded-full border-4 transition-all ${invitation.envelope_color === p.color ? 'border-amber-400 scale-110 shadow-lg' : 'border-white shadow-sm'}`} />
+                ))}
               </div>
             </div>
           )}
 
-          {/* SÉLECTEUR VISUEL MULTI-ONGLETS : CONFIGURATION INTÉGRALE DU PAPIER */}
-          <div className="space-y-4 bg-amber-50/20 p-4 rounded-3xl border border-amber-100/60">
-            <div className="flex items-center justify-between ml-1 mb-2">
-              <label className="text-[10px] font-black uppercase text-gray-500">{localLabels.paper_section_label}</label>
-              <div className="flex bg-gray-100 p-1 rounded-xl">
-                <button type="button" onClick={() => setPaperMode('texture')} className={`px-3 py-1 text-[9px] font-black uppercase rounded-lg transition-all ${paperMode === 'texture' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'}`}>
-                  {localLabels.paper_mode_texture}
+          {/* PALETTES DE COULEURS PREMIUM */}
+          <div>
+            <label className="text-[10px] font-black uppercase text-gray-400 mb-4 flex items-center gap-2 ml-1">{localLabels.premium_colors}</label>
+            <div className="flex gap-3 overflow-x-auto pt-2 pb-4 px-4 -mx-4 scrollbar-hide">
+              {PREMIUM_PALETTES.map(p => (
+                <button key={p.id} onClick={() => handlePremiumClick(p.gradient)} style={{ background: p.gradient }} className={`h-14 w-14 shrink-0 rounded-2xl border-4 relative flex items-center justify-center transition-all ${invitation.envelope_color === p.gradient ? 'border-amber-400 scale-110 shadow-lg' : 'border-white shadow-sm'} ${!isPremium ? 'opacity-40 grayscale' : ''}`}>
+                  {!isPremium && <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-xl"><Lock size={14} className="text-white drop-shadow-md" /></div>}
                 </button>
-                <button type="button" onClick={() => setPaperMode('color')} className={`px-3 py-1 text-[9px] font-black uppercase rounded-lg transition-all ${paperMode === 'color' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'}`}>
-                  {localLabels.paper_mode_color}
-                </button>
-              </div>
-            </div>
-
-            {paperMode === 'texture' ? (
-              <div className="grid grid-cols-2 gap-2 animate-fade-in">
-                {TEXTURES.map(texture => (
-                  <button type="button" key={texture.id} onClick={() => handleTextureClick(texture.id, texture.premium)} className={`p-4 rounded-xl border-2 text-[10px] font-bold transition-all relative flex items-center justify-center ${invitation.paper_type === texture.id ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'} ${texture.premium && !isPremium ? 'opacity-40 grayscale' : ''}`}>
-                    {texture.name.toUpperCase()} {texture.premium && !isPremium && <Lock size={10} className="absolute right-2 top-2 text-gray-400" />}
-                  </button>
-                ))}
-              </div>
-            ) : (
-              <div className="space-y-4 animate-fade-in">
-                <div>
-                  <label className="text-[10px] font-black uppercase text-gray-400 mb-3 block ml-1">{localLabels.paper_color_label}</label>
-                  <div className="flex gap-3 overflow-x-auto pt-2 pb-3 px-1 scrollbar-hide">
-                    {COLOR_PALETTES.map(p => (
-                      <button type="button" key={p.color} onClick={() => onInvitationChange({...invitation, paper_color: p.color})} style={{backgroundColor: p.color}} className={`h-11 w-11 shrink-0 rounded-full border-4 transition-all ${invitation.paper_color === p.color ? 'border-amber-400 scale-110 shadow-lg' : 'border-white shadow-sm'}`} />
-                    ))}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="text-[10px] font-black uppercase text-gray-400 mb-3 block ml-1">{localLabels.paper_premium_colors}</label>
-                  <div className="flex gap-3 overflow-x-auto pt-1 pb-2 px-1 scrollbar-hide">
-                    {PREMIUM_PALETTES.map(p => (
-                      <button type="button" key={p.id} onClick={() => handlePaperPremiumClick(p.gradient)} style={{ background: p.gradient }} className={`h-12 w-12 shrink-0 rounded-xl border-4 relative flex items-center justify-center transition-all ${invitation.paper_color === p.gradient ? 'border-amber-400 scale-110 shadow-lg' : 'border-white shadow-sm'} ${!isPremium ? 'opacity-40 grayscale' : ''}`}>
-                        {!isPremium && <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-lg"><Lock size={12} className="text-white drop-shadow-md" /></div>}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* SÉLECTEUR MULTI-ONGLETS POUR LE THÈME ET L'AMBIANCE VISUELLE (EMOJIS / DÉCORS) */}
-          <div className="space-y-4 bg-gray-50/60 p-4 rounded-3xl border border-gray-100">
-            <div className="flex items-center justify-between ml-1 mb-2">
-              <label className="text-[10px] font-black uppercase text-gray-500">{t.theme_label}</label>
-              <div className="flex bg-gray-200/60 p-1 rounded-xl">
-                <button type="button" onClick={() => handleTriggerModeSwitch('emoji')} className={`px-3 py-1.5 text-[9px] font-black uppercase rounded-lg transition-all ${triggerMode === 'emoji' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'}`}>
-                  {localLabels.trigger_mode_emoji}
-                </button>
-                <button type="button" onClick={() => handleTriggerModeSwitch('decor')} className={`px-3 py-1.5 text-[9px] font-black uppercase rounded-lg transition-all relative flex items-center gap-1 ${triggerMode === 'decor' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'} ${!isPremium ? 'opacity-50' : ''}`}>
-                  {localLabels.trigger_mode_decor}
-                  {!isPremium && <Lock size={10} />}
-                </button>
-              </div>
-            </div>
-
-            {/* SELECTION DU DECOR EN PREMIER PLAN (LIE AU MODE DECOR SWITCHÉ) */}
-            {triggerMode === 'decor' ? (
-              <div className="grid grid-cols-2 gap-3 animate-fade-in pt-1 pb-2">
-                <button type="button" onClick={() => handleBackgroundThemeClick('balloons', true)} className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-all ${invitation.background_theme === 'balloons' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}>
-                  <PartyPopper size={16} className={invitation.background_theme === 'balloons' ? 'text-amber-500' : 'text-gray-400'} />
-                  <span className="text-[10px] font-bold uppercase">{localLabels.bg_balloons}</span>
-                </button>
-                <button type="button" onClick={() => handleBackgroundThemeClick('flowers', true)} className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-all ${invitation.background_theme === 'flowers' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}>
-                  <Heart size={16} className={invitation.background_theme === 'flowers' ? 'text-amber-500' : 'text-gray-400'} />
-                  <span className="text-[10px] font-bold uppercase">{localLabels.bg_flowers}</span>
-                </button>
-                <button type="button" onClick={() => handleBackgroundThemeClick('butterflies', true)} className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-all ${invitation.background_theme === 'butterflies' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}>
-                  <Sparkles size={16} className={invitation.background_theme === 'butterflies' ? 'text-amber-500' : 'text-gray-400'} />
-                  <span className="text-[10px] font-bold uppercase">{localLabels.bg_butterflies}</span>
-                </button>
-                <button type="button" onClick={() => handleBackgroundThemeClick('stars', true)} className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-all ${invitation.background_theme === 'stars' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}>
-                  <Sparkles size={16} className={invitation.background_theme === 'stars' ? 'text-amber-500' : 'text-gray-400'} />
-                  <span className="text-[10px] font-bold uppercase">{localLabels.bg_stars}</span>
-                </button>
-              </div>
-            ) : (
-              /* THEMES CLASSIQUES D'EMOJIS COUPLÉS AU MODE EMOJI */
-              <div className="grid grid-cols-2 gap-3 animate-fade-in pt-1">
-                {EVENT_TYPES.map(type => (
-                  <button type="button" key={type.id} onClick={() => handleThemeClick(type.id, type.premium)} className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all relative ${invitation.event_type === type.id ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'} ${type.premium && !isPremium ? 'opacity-40 grayscale' : ''}`}>
-                    <type.icon size={18} className={invitation.event_type === type.id ? 'text-amber-500' : 'text-gray-400'} />
-                    <span className="text-[10px] font-bold uppercase">{type.name}</span>
-                    {type.premium && !isPremium && <Lock size={12} className="absolute right-2 top-2 text-gray-400" />}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* SELECTION DE LA COULEUR DE FOND DU SIMULATEUR */}
-            <div className="border-t border-gray-200/60 mt-3 pt-3">
-              <label className="text-[10px] font-black uppercase text-gray-400 mb-3 block ml-1">{localLabels.bg_color_label}</label>
-              <div className="flex gap-3 overflow-x-auto pb-2 px-1 scrollbar-hide">
-                {COLOR_PALETTES.map(p => (
-                  <button type="button" key={p.color} onClick={() => handleBackgroundPremiumClick(p.color)} style={{backgroundColor: p.color}} className={`h-10 w-10 shrink-0 rounded-full border-4 relative transition-all ${invitation.background_color === p.color ? 'border-amber-400 scale-110 shadow-md' : 'border-white shadow-sm'} ${!isPremium ? 'opacity-40 grayscale pointer-events-none' : ''}`} />
-                ))}
-              </div>
-              <div className="mt-2">
-                <label className="text-[10px] font-black uppercase text-gray-400 mb-3 block ml-1">{localLabels.bg_premium_colors}</label>
-                <div className="flex gap-3 overflow-x-auto pt-1 pb-2 px-1 scrollbar-hide">
-                  {PREMIUM_PALETTES.map(p => (
-                    <button type="button" key={p.id} onClick={() => handleBackgroundPremiumClick(p.gradient)} style={{ background: p.gradient }} className={`h-11 w-11 shrink-0 rounded-xl border-4 relative flex items-center justify-center transition-all ${invitation.background_color === p.gradient ? 'border-amber-400 scale-110 shadow-md' : 'border-white shadow-sm'} ${!isPremium ? 'opacity-40 grayscale' : ''}`}>
-                      {!isPremium && <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-lg"><Lock size={12} className="text-white drop-shadow-md" /></div>}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              ))}
             </div>
           </div>
 
@@ -707,7 +536,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">{t.font_style_label}</label>
             <div className="space-y-2">
               {FONTS.map(f => (
-                <button type="button" key={f.id} onClick={() => handleFontClick(f.family, f.premium)} className={`w-full h-14 px-4 rounded-2xl text-left border-2 transition-all relative ${invitation.font_style === f.family ? 'border-amber-400 bg-amber-50' : 'bg-gray-50 border-transparent'} ${f.premium && !isPremium ? 'opacity-40 grayscale' : ''}`} style={{ fontFamily: f.family }}>
+                <button key={f.id} onClick={() => handleFontClick(f.family, f.premium)} className={`w-full h-14 px-4 rounded-2xl text-left border-2 transition-all relative ${invitation.font_style === f.family ? 'border-amber-400 bg-amber-50' : 'bg-gray-50 border-transparent'} ${f.premium && !isPremium ? 'opacity-40 grayscale' : ''}`} style={{ fontFamily: f.family }}>
                   {f.name} {f.premium && !isPremium && <Lock size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" />}
                 </button>
               ))}

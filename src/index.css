@@ -30,22 +30,43 @@ input[type="text"] {
   align-items: center;
 }
 
-/* --- TEXTURES PAPIER MODIFIÉES --- */
-
-.paper-smooth, .paper-parchment, .paper-grainy, .paper-cotton, .paper-silk, .paper-velvet, .paper-texture {
-  /* On supprime le background-color fixe ici pour qu'il soit géré par le style inline React */
-  background-blend-mode: multiply; /* C'est la clé : cela mélange l'image avec la couleur du conteneur */
-  background-size: cover;          /* Pour s'assurer que la texture couvre tout */
-  background-position: center;
+/* --- TEXTURES PAPIER --- */
+.paper-smooth { 
+  background-color: #ffffff; 
+  background-image: url("https://www.transparenttextures.com/patterns/natural-paper.png"); 
 }
 
-/* On garde juste les images, sans couleur de fond fixe */
-.paper-smooth { background-image: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/smooth.jpg"); }
-.paper-parchment { background-image: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/parchemin.jpg"); color: #5d4037 !important; }
-.paper-grainy { background-image: url("https://www.transparenttextures.com/patterns/beige-paper.png"); }
-.paper-cotton { background-image: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/coton.png"); }
-.paper-silk { background-image: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/silk.png"); }
-.paper-velvet { background-image: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/velvet.PNG"); }
+.paper-parchment { 
+  background-color: #f4e4bc; 
+  background-image: url("https://www.transparenttextures.com/patterns/parchment.png"); 
+  color: #5d4037 !important; 
+}
+
+.paper-grainy { 
+  background-color: #faf9f6; 
+  background-image: url("https://www.transparenttextures.com/patterns/beige-paper.png"); 
+}
+
+.paper-cotton { 
+  background-color: #fffcf5; 
+  background-image: url("https://www.transparenttextures.com/patterns/white-diamond.png"); 
+}
+
+.paper-silk {
+  background-color: #ffffff;
+  background-image: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 50%, rgba(255,255,255,0.4) 100%);
+}
+
+.paper-velvet {
+  background-color: #f0f0f0;
+  background-image: url("https://www.transparenttextures.com/patterns/felt.png");
+  box-shadow: inset 0 0 50px rgba(0,0,0,0.05);
+}
+
+.paper-texture {
+  background-color: #ffffff;
+  background-image: url("https://www.transparenttextures.com/patterns/natural-paper.png");
+}
 
 /* Animation Vinyle */
 @keyframes disk-spin {

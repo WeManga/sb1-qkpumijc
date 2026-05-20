@@ -229,7 +229,7 @@ export function InvitationPreview({ invitation }: any) {
     })), [emojis]);
 
     return (
-      <div className="absolute inset-0 z-[14] pointer-events-none overflow-hidden">
+      <div className="absolute inset-0 z-[60] pointer-events-none overflow-hidden">
         {particles.map((p) => (
           <motion.span key={p.id} initial={{ y: -50, opacity: 0 }} animate={{ y: 800, opacity: [0, 1, 1, 0] }}
             transition={{ duration: p.duration, repeat: Infinity, delay: p.delay, ease: "linear" }}
@@ -240,136 +240,12 @@ export function InvitationPreview({ invitation }: any) {
     );
   };
 
-  /* --- COMPOSANT DÉCORS ET ANIMATIONS CORRIGÉES ET STRUCTURÉES (PREMIUM) --- */
-  const AutonomousDecor = () => {
-    const theme = invitation.background_theme;
-
-    const ballons = useMemo(() => Array.from({ length: 6 }).map((_, i) => ({
-      id: i,
-      left: `${15 + (i * 14) + Math.random() * 4}%`,
-      delay: i * 0.5,
-      duration: 6 + Math.random() * 3
-    })), []);
-
-    // Configuration des papillons : Entrées et sorties de tous les côtés, tailles et vitesses hétérogènes
-    const papillonsConfig = useMemo(() => [
-      { id: 1, type: 'pap1', size: 0.85, flapSpeed: 0.20, duration: 7, initX: -50, initY: 100, pathX: [120, 240, 400], pathY: [80, 220, 150] },
-      { id: 2, type: 'pap2', size: 0.50, flapSpeed: 0.16, duration: 5, initX: 420, initY: 200, pathX: [280, 140, -60], pathY: [250, 90, 180] },
-      { id: 3, type: 'pap1', size: 0.70, flapSpeed: 0.24, duration: 8, initX: 180, initY: -60, pathX: [220, 100, 160], pathY: [150, 380, 700] },
-      { id: 4, type: 'pap2', size: 0.60, flapSpeed: 0.18, duration: 6, initX: 250, initY: 680, pathX: [120, 300, 200], pathY: [480, 200, -60] },
-      { id: 5, type: 'pap1', size: 0.90, flapSpeed: 0.22, duration: 7.5, initX: -50, initY: 450, pathX: [150, 80, 420], pathY: [350, 120, 50] },
-      { id: 6, type: 'pap2', size: 0.45, flapSpeed: 0.14, duration: 4.5, initX: 420, initY: 400, pathX: [200, 310, -50], pathY: [300, 520, 380] }
-    ], []);
-
-    // Pluie d'étoiles optimisée (Haute densité, variations TOUTES PETITES et PETITES, effet de tas au sol)
-    const etoilesPluie = useMemo(() => Array.from({ length: 45 }).map((_, i) => {
-      const isSmall = i % 2 === 0;
-      return {
-        id: i,
-        left: `${2 + (Math.random() * 96)}%`,
-        delay: Math.random() * 3.5,
-        duration: 1.8 + Math.random() * 1.6,
-        sizeClass: isSmall ? 'w-3 h-auto' : 'w-1.5 h-auto', // Tailles réduites ici (petites et toutes petites)
-        targetY: 582 + (Math.random() * 20)
-      };
-    }), []);
-
-    return (
-      <div className="absolute inset-0 z-[15] pointer-events-none overflow-hidden">
-        {/* THÈME FLOWERS : Rendu exclusif */}
-        {theme === 'flowers' && (
-          <>
-            <div 
-              className="absolute top-0 right-0 w-40 h-40 bg-contain bg-no-repeat bg-right-top z-20" 
-              style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleurs%20haut%20droite.png")` }} 
-            />
-            <div 
-              className="absolute bottom-0 left-0 w-40 h-40 bg-contain bg-no-repeat bg-left-bottom z-20" 
-              style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleurs%20bas%20gauche.png")` }} 
-            />
-          </>
-        )}
-
-        {/* THÈME BALLOONS : Rendu exclusif */}
-        {theme === 'balloons' && ballons.map((b) => (
-          <motion.img 
-            key={`ballon-${b.id}`}
-            src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/ballons.png"
-            initial={{ y: 680, opacity: 0 }} 
-            animate={{ y: -120, opacity: [0, 1, 1, 0] }}
-            transition={{ duration: b.duration, repeat: Infinity, delay: b.delay, ease: "linear" }}
-            className="absolute w-10 h-auto" 
-            style={{ left: b.left }}
-          />
-        ))}
-
-        {/* THÈME BUTTERFLIES : Vol global immersif avec variable sécurisée invitation.premium_trigger_type */}
-        {theme === 'butterflies' && invitation.plan_type === 'PREMIUM' && invitation.premium_trigger_type === 'decor' && papillonsConfig.map((p) => (
-          <motion.div
-            key={`pap-infinite-${p.id}`}
-            initial={{ x: p.initX, y: p.initY, opacity: 0 }}
-            animate={{ 
-              x: p.pathX,
-              y: p.pathY,
-              opacity: [0, 1, 1, 1, 0]
-            }}
-            transition={{ 
-              duration: p.duration, 
-              repeat: Infinity, 
-              ease: "linear"
-            }}
-            className="absolute"
-            style={{ scale: p.size }}
-          >
-            <motion.img 
-              src={p.id % 2 === 0 ? "https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/papillions.png" : "https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/papillion%202.png"}
-              animate={{ scaleX: [1, -1, 1] }}
-              transition={{ duration: p.flapSpeed, repeat: Infinity, ease: "linear" }}
-              className="w-8 h-auto origin-center"
-            />
-          </motion.div>
-        ))}
-
-        {/* THÈME STARS : Pluie d'étoiles fines et délicates avec effet de tas persistant au sol */}
-        {theme === 'stars' && etoilesPluie.map((e) => (
-          <motion.img 
-            key={`etoile-dense-${e.id}`}
-            src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/etoile.png"
-            initial={{ y: -30, opacity: 0, scale: 0.6 }}
-            animate={{ 
-              y: [0, e.targetY, e.targetY], 
-              opacity: [0, 1, 1, 0.8, 0],
-              scale: [0.8, 1, 1, 0.9, 0]
-            }}
-            transition={{ 
-              duration: e.duration, 
-              times: [0, 0.65, 0.85, 0.95, 1], 
-              repeat: Infinity, 
-              delay: e.delay,
-              ease: "easeOut"
-            }}
-            className={`absolute ${e.sizeClass} drop-shadow-[0_0_5px_rgba(251,191,36,0.6)]`} 
-            style={{ left: e.left }}
-          />
-        ))}
-      </div>
-    );
-  };
-
   const isDoorType = invitation.container_open === 'wooden_door' || invitation.container_open === 'metal_door';
 
-  const showEmojiRain = isOpened && (invitation.plan_type !== 'PREMIUM' || invitation.premium_trigger_type === 'emoji' || !invitation.premium_trigger_type);
-  const showPremiumDecor = isOpened && invitation.plan_type === 'PREMIUM' && invitation.premium_trigger_type === 'decor';
-
   return (
-    <div className="relative w-full h-full max-h-[650px] flex items-center justify-center overflow-hidden rounded-[3.5rem] shadow-2xl border-[12px] border-gray-50/50" style={{ fontFamily: invitation.font_style || 'inherit', background: invitation.background_color || 'white' }}>
+    <div className="relative w-full h-full max-h-[650px] flex items-center justify-center overflow-hidden bg-white rounded-[3.5rem] shadow-2xl border-[12px] border-gray-50/50" style={{ fontFamily: invitation.font_style || 'inherit' }}>
       {invitation?.music_url && <audio ref={audioRef} src={invitation.music_url} loop />}
-      
-      {/* Pluie d'émojis standard pour les comptes FREE ou si le switch PREMIUM est réglé sur 'emoji' */}
-      {showEmojiRain && <EmojiRain />}
-      
-      {/* Décors animés avancés exclusifs rendus uniquement pour les comptes PREMIUM en mode 'decor' */}
-      {showPremiumDecor && <AutonomousDecor />}
+      {isOpened && <EmojiRain />}
       
       <AnimatePresence mode="wait">
         {view === 'envelope' ? (
@@ -413,52 +289,17 @@ export function InvitationPreview({ invitation }: any) {
                   </motion.div>
                 </div>
               ) : (
-                /* --- VINYLE MODERNISÉ AVEC BRAS SVG ANIMÉ --- */
-                <div className="relative w-[280px] h-[280px] flex items-center justify-center" style={{ perspective: '1000px' }}>
-                  <motion.div 
-                    initial={{ rotateX: 15, rotateZ: 0 }}
-                    animate={isOpened ? { rotateZ: 360 } : { rotateZ: 0 }}
-                    transition={isOpened ? { repeat: Infinity, duration: 4, ease: "linear", delay: 0.8 } : { duration: 0.5 }}
-                    className="w-[250px] h-[250px] relative rounded-full bg-neutral-950 shadow-[0_15px_35px_rgba(0,0,0,0.6),_inset_0_0_20px_rgba(255,255,255,0.05)] border-4 border-neutral-900 flex items-center justify-center overflow-hidden"
-                  >
-                    <div className="absolute inset-0 opacity-40 mix-blend-overlay pointer-events-none" style={{ background: 'repeating-radial-gradient(circle, #555 0px, #000 2px, #111 4px)' }} />
-                    <motion.div 
-                      animate={isOpened ? { rotate: -360 } : { rotate: 0 }}
-                      transition={isOpened ? { repeat: Infinity, duration: 4, ease: "linear", delay: 0.8 } : { duration: 0.5 }}
-                      className="absolute inset-0 opacity-20 pointer-events-none mix-blend-screen"
-                      style={{ background: 'conic-gradient(from 0deg, transparent 0deg, rgba(255,255,255,0.4) 60deg, transparent 120deg, transparent 180deg, rgba(255,255,255,0.4) 240deg, transparent 300deg)' }}
-                    />
-                    <div className="w-24 h-24 bg-white rounded-full border-[6px] border-neutral-950 shadow-md overflow-hidden relative z-10 flex items-center justify-center">
-                      {invitation.main_photo_url ? (
+                <div className={`w-[270px] h-[270px] relative ${isOpened ? 'animate-disk-spin' : ''}`}>
+                  <div className="absolute inset-0 rounded-full bg-[#111] overflow-hidden">
+                    <div className="absolute inset-0 opacity-30" style={{ background: 'repeating-radial-gradient(circle, #444 0, #000 2px, #111 4px)' }} />
+                  </div>
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="w-24 h-24 bg-white rounded-full border-[5px] border-[#111] overflow-hidden">
+                      {invitation.main_photo_url && (
                         <img src={invitation.main_photo_url} className="w-full h-full object-cover" 
                           style={{ transform: `translate(${invitation.main_photo_url_pos_x || 0}px, ${invitation.main_photo_url_pos_y || 0}px) scale(${invitation.main_photo_url_scale || 1})` }} alt="" />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-tr from-neutral-200 to-neutral-50" />
                       )}
-                      <div className="absolute w-3 h-3 bg-neutral-950 rounded-full shadow-inner border border-white/20" />
                     </div>
-                  </motion.div>
-
-                  <div className="absolute top-[-10px] right-[-10px] w-28 h-36 z-30 pointer-events-none">
-                    <svg className="w-full h-full drop-shadow-[4px_8px_10px_rgba(0,0,0,0.5)]" viewBox="0 0 100 130" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <circle cx="75" cy="25" r="12" fill="#262626" stroke="#404040" strokeWidth="2"/>
-                      <circle cx="75" cy="25" r="5" fill="#171717"/>
-                      <motion.g
-                        initial={{ rotate: -35 }}
-                        animate={isOpened ? { rotate: 5 } : { rotate: -35 }}
-                        transition={{ type: "spring", stiffness: 60, damping: 15, delay: 0.2 }}
-                        style={{ transformOrigin: "75px 25px" }}
-                      >
-                        <path d="M 75 25 L 68 85 L 35 110" stroke="#d4d4d8" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M 75 25 L 68 85 L 35 110" stroke="#a1a1aa" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
-                        <rect x="70" y="5" width="10" height="12" rx="2" fill="#525252" />
-                        <g transform="translate(35, 110) rotate(-35)">
-                          <rect x="-6" y="-3" width="12" height="16" rx="2" fill="#171717" />
-                          <rect x="-4" y="2" width="8" height="10" rx="1" fill="#e5e5e5" />
-                          <circle cx="0" cy="10" r="1.5" fill="#f59e0b" />
-                        </g>
-                      </motion.g>
-                    </svg>
                   </div>
                 </div>
               )}
@@ -484,15 +325,14 @@ export function InvitationPreview({ invitation }: any) {
               </div>
             </motion.div>
 
-            {/* --- COUCHE DECLENCHEURS MECANIQUES ET ENVELOPPES PROPRES --- */}
-            <div className="absolute inset-0 z-50 overflow-hidden" style={{ perspective: '2500px', transformStyle: 'preserve-3d', pointerEvents: isOpened ? 'none' : 'auto' }}>
+            {/* --- COUCHE DECLENCHEURS MECANIQUES ET FOND --- */}
+            <div className="absolute inset-0 z-50 overflow-hidden" style={{ perspective: '2000px', pointerEvents: isOpened ? 'none' : 'auto' }}>
               <AnimatePresence>
-                {!isOpened && (
+                {(!isOpened || invitation.container_open === 'metal_door') && (
                   <motion.div 
                     key="gate-container" 
-                    exit={{ opacity: 1 }}
+                    exit={invitation.container_open === 'metal_door' ? { opacity: 1 } : { opacity: 1 }}
                     className="w-full h-full relative flex items-center justify-center"
-                    style={{ transformStyle: 'preserve-3d' }}
                   >
                     <AnimatePresence>
                       {!isCodeFading && (
@@ -539,7 +379,7 @@ export function InvitationPreview({ invitation }: any) {
                                   />
                                 </div>
                             ) : invitation.opening_style === 'vault' ? (
-                              /* --- BOITIER DIGITAL TACTILE --- */
+                              /* --- BOITIER DIGITAL TACTILE RÉDUIT --- */
                               <div className="relative w-[220px] h-[330px] flex flex-col items-center justify-start bg-neutral-950 border-[4px] border-neutral-800 rounded-[1.75rem] shadow-[0_20px_40px_rgba(0,0,0,0.8)] overflow-hidden p-4">
                                 <img 
                                   src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/dgital.png" 
@@ -591,7 +431,7 @@ export function InvitationPreview({ invitation }: any) {
                                     );
                                   })}
                                 </div>
-                                <div className="w-full mt-3.5 font-mono text-[8px] tracking-widest text-neutral-500 animate-pulse uppercase text-center">
+                                <div className="mt-3.5 font-mono text-[8px] tracking-widest text-neutral-500 animate-pulse uppercase">
                                   {isVaultClicked ? "CRACKING CODE..." : "Tap Device to Unlock"}
                                 </div>
                               </div>
@@ -608,50 +448,40 @@ export function InvitationPreview({ invitation }: any) {
                       )}
                     </AnimatePresence>
 
-                    {/* INTERFACE DE RECOUVREMENT ET ANIMATIONS SYNCHRONISÉES D'OUVERTURE */}
-                    <div className="absolute inset-0 w-full h-full flex" style={{ transformStyle: 'preserve-3d' }}>
+                    {/* ANIMATION DES CONTENANTS DÉCOUPLÉS - COULISSEMENT REALISTE OPAQUE VERS LA DROITE POUR LA PORTE EN METAL */}
+                    <div className="absolute inset-0 z-50 w-full h-full flex" style={{ perspective: '2000px' }}>
                       {invitation.container_open === 'metal_door' ? (
-                        /* PREMIUM : Porte métallique coulissant horizontalement à droite */
                         <motion.div 
-                          exit={{ x: "100%" }}
+                          animate={isOpened ? { x: "100%" } : { x: "0%" }}
                           transition={{ duration: 1.6, ease: "easeInOut" }}
                           className="absolute inset-0 w-full h-full bg-cover bg-center shadow-2xl"
                           style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20noir.png")` }}
                         />
-                      ) : invitation.container_open === 'wooden_door' ? (
-                        /* PREMIUM : Double porte en bois s'ouvrant en 3D vers l'intérieur (Axe fixés sur les bords gauches et droits) */
-                        <>
-                          <motion.div 
-                            initial={{ rotateY: 0 }}
-                            exit={{ rotateY: -95, opacity: 0 }} 
-                            transition={{ duration: 1.4, ease: "easeInOut" }} 
-                            className="w-1/2 h-full origin-left bg-cover bg-center shadow-[15px_0_30px_rgba(0,0,0,0.5)] border-r border-black/10" 
-                            style={{ 
-                              backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20gauche.png")`, 
-                              backgroundColor: invitation?.envelope_color || '#FEE2E2'
-                            }} 
-                          />
-                          <motion.div 
-                            initial={{ rotateY: 0 }}
-                            exit={{ rotateY: 95, opacity: 0 }} 
-                            transition={{ duration: 1.4, ease: "easeInOut" }} 
-                            className="w-1/2 h-full origin-right bg-cover bg-center shadow-[-15px_0_30px_rgba(0,0,0,0.5)] border-l border-black/10" 
-                            style={{ 
-                              backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20droite.png")`, 
-                              backgroundColor: invitation?.envelope_color || '#FEE2E2'
-                            }} 
-                          />
-                        </>
                       ) : (
-                        /* FREE PAR DÉFAUT : Volet uni qui change de couleur et qui monte verticalement vers le haut de l'écran */
-                        <motion.div 
-                          key="free-gate-panel"
-                          initial={{ y: "0%" }}
-                          exit={{ y: "-100%" }}
-                          transition={{ duration: 1.3, ease: [0.43, 0.13, 0.23, 0.96] }}
-                          className="absolute inset-0 w-full h-full shadow-[0_20px_50px_rgba(0,0,0,0.6)] border-b border-black/10" 
-                          style={{ backgroundColor: invitation?.envelope_color || '#FEE2E2' }} 
-                        />
+                        <AnimatePresence>
+                          {!isOpened && (
+                            <>
+                              <motion.div 
+                                exit={{ rotateY: -100, x: '-20%', opacity: 0 }} 
+                                transition={{ duration: 1.2, ease: "easeInOut" }} 
+                                className="w-1/2 h-full origin-left bg-cover bg-center shadow-2xl border-r border-black/10" 
+                                style={{ 
+                                  backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20gauche.png")`, 
+                                  backgroundColor: invitation?.envelope_color || '#FEE2E2'
+                                }} 
+                              />
+                              <motion.div 
+                                exit={{ rotateY: 100, x: '20%', opacity: 0 }} 
+                                transition={{ duration: 1.2, ease: "easeInOut" }} 
+                                className="w-1/2 h-full origin-right bg-cover bg-center shadow-2xl border-l border-black/10" 
+                                style={{ 
+                                  backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20droite.png")`, 
+                                  backgroundColor: invitation?.envelope_color || '#FEE2E2'
+                                }} 
+                              />
+                            </>
+                          )}
+                        </AnimatePresence>
                       )}
                     </div>
                   </motion.div>
@@ -691,18 +521,9 @@ export function InvitationPreview({ invitation }: any) {
                       const isEven = i % 2 === 0;
                       return (
                         <motion.div key={i} initial={{ opacity: 0, x: isEven ? -30 : 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, margin: "-50px" }} transition={{ duration: 1.2, delay: 0.1 }} className={`flex items-center w-full relative ${isEven ? 'justify-start pl-6' : 'justify-end pr-6'}`}>
-                          <motion.div 
-  initial={{ scale: 0, rotate: 45 }} 
-  whileInView={{ scale: 1, rotate: 45 }} 
-  viewport={{ once: true }} 
-  className={`absolute top-1/2 -translate-y-1/2 z-20 w-3 h-3 bg-amber-500 border border-white shadow-md ${isEven ? 'right-[50%] translate-x-1/2' : 'left-[50%] -translate-x-1/2'}`}
->
-  <motion.div 
-    animate={{ opacity: [1, 0.4, 1], scale: [1, 1.2, 1] }} 
-    transition={{ duration: 2.5, repeat: Infinity }} 
-    className="absolute inset-0 bg-amber-300 rounded-sm" 
-  />
-</motion.div>
+                          <motion.div initial={{ scale: 0, rotate: 45 }} whileInView={{ scale: 1, rotate: 45 }} viewport={{ once: true }} className={`absolute top-1/2 -translate-y-1/2 z-20 w-3 h-3 bg-amber-500 border border-white shadow-md ${isEven ? 'right-[50%] translate-x-1/2' : 'left-[50%] -translate-x-1/2'}`}>
+                            <motion.div animate={{ opacity: [1, 0.4, 1], scale: [1, 1.2, 1] }} transition={{ duration: 2.5, repeat: Infinity }} className="absolute inset-0 bg-amber-300 rounded-sm" />
+                          </motion.div>
                           <div className={`w-[45%] overflow-hidden bg-white/60 rounded-2xl border border-amber-50 backdrop-blur-sm shadow-lg ${isEven ? 'text-left' : 'text-right'}`}>
                             {step.image_url && <div className="w-full aspect-video overflow-hidden"><img src={step.image_url} className="w-full h-full object-cover" alt="" /></div>}
                             <div className="p-4">
