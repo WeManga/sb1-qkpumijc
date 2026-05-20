@@ -219,8 +219,10 @@ export function InvitationPreview({ invitation }: any) {
     }
   };
 
-  /* --- COMPOSANT DÉCORS ET ANIMATIONS PARAMÉTRABLES --- */
+  /* --- COMPOSANT DÉCORS ET ANIMATIONS PARAMÉTRABLES ET STRUCTURÉS --- */
   const AutonomousDecor = () => {
+    const theme = invitation.background_theme;
+
     const ballons = useMemo(() => Array.from({ length: 6 }).map((_, i) => ({
       id: i,
       left: `${15 + (i * 14) + Math.random() * 4}%`,
@@ -233,7 +235,8 @@ export function InvitationPreview({ invitation }: any) {
       left: `${10 + Math.random() * 70}%`,
       top: `${15 + Math.random() * 50}%`,
       duration: 7 + Math.random() * 4,
-      delay: i * 0.3
+      delay: i * 0.3,
+      type: i % 2 === 0 ? 'pap1' : 'pap2'
     })), []);
 
     const etoilesPluie = useMemo(() => Array.from({ length: 15 }).map((_, i) => ({
@@ -241,30 +244,29 @@ export function InvitationPreview({ invitation }: any) {
       left: `${8 + (i * 6)}%`,
       delay: Math.random() * 2,
       duration: 2.5 + Math.random() * 1.5,
-      targetY: 560 + (Math.random() * 20)
+      targetY: 575 + (Math.random() * 15)
     })), []);
 
     return (
       <div className="absolute inset-0 z-[15] pointer-events-none overflow-hidden">
-        {/* Fleurs Haut Droite */}
-        {/* REMPLACE ICI l'URL pour l'image des fleurs en haut à droite */}
-        <div 
-          className="absolute top-0 right-0 w-40 h-40 bg-contain bg-no-repeat bg-right-top z-20" 
-          style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleurs%20haut%20droite.png")` }} 
-        />
-        
-        {/* Fleurs Bas Gauche */}
-        {/* REMPLACE ICI l'URL pour l'image des fleurs en bas à gauche */}
-        <div 
-          className="absolute bottom-0 left-0 w-40 h-40 bg-contain bg-no-repeat bg-left-bottom z-20" 
-          style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleurs%20bas%20gauche.png")` }} 
-        />
+        {/* THÈME FLOWERS : Rendu exclusif et indépendant */}
+        {theme === 'flowers' && (
+          <>
+            <div 
+              className="absolute top-0 right-0 w-40 h-40 bg-contain bg-no-repeat bg-right-top z-20" 
+              style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleurs%20haut%20droite.png")` }} 
+            />
+            <div 
+              className="absolute bottom-0 left-0 w-40 h-40 bg-contain bg-no-repeat bg-left-bottom z-20" 
+              style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleurs%20bas%20gauche.png")` }} 
+            />
+          </>
+        )}
 
-        {/* Ballons animés */}
-        {ballons.map((b) => (
+        {/* THÈME BALLOONS : Rendu exclusif et indépendant */}
+        {theme === 'balloons' && ballons.map((b) => (
           <motion.img 
             key={`ballon-${b.id}`}
-            /* REMPLACE ICI l'URL pour le fichier image du ballon */
             src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/ballons.png"
             initial={{ y: 680, opacity: 0 }} 
             animate={{ y: -120, opacity: [0, 1, 1, 0] }}
@@ -274,35 +276,38 @@ export function InvitationPreview({ invitation }: any) {
           />
         ))}
 
-        {/* Papillons animés partout sur l'écran */}
-        {papillons.map((p) => (
-          <motion.img 
-            key={`papillon-${p.id}`}
-            /* REMPLACE ICI l'URL pour le fichier image du papillon */
-            src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/papillions.png"
-            initial={{ x: p.left, y: p.top, opacity: 0, scale: 0.6 }}
+        {/* THÈME BUTTERFLIES : Rendu exclusif et indépendant avec battement d'ailes */}
+        {theme === 'butterflies' && papillons.map((p) => (
+          <motion.div
+            key={`pap-container-${p.id}`}
+            initial={{ x: p.left, y: p.top, opacity: 0 }}
             animate={{ 
-              x: [p.left, `${parseFloat(p.left) + 12}%`, `${parseFloat(p.left) - 12}%`, p.left], 
-              y: [p.top, `${parseFloat(p.top) - 15}%`, `${parseFloat(p.top) + p.id * 3}%`, p.top],
-              opacity: [0, 1, 1, 0],
-              rotate: [0, 20, -20, 0]
+              x: [p.left, `${parseFloat(p.left) + 15}%`, `${parseFloat(p.left) - 15}%`, p.left], 
+              y: [p.top, `${parseFloat(p.top) - 18}%`, `${parseFloat(p.top) + 8}%`, p.top],
+              opacity: [0, 1, 1, 0]
             }}
             transition={{ duration: p.duration, repeat: Infinity, delay: p.delay, ease: "easeInOut" }}
-            className="absolute w-7 h-auto"
-          />
+            className="absolute"
+          >
+            <motion.img 
+              src={p.type === 'pap1' ? "https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/papillions.png" : "https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/papillion%202.png"}
+              animate={{ scaleX: [1, -1, 1] }}
+              transition={{ duration: 0.3, repeat: Infinity, ease: "linear" }}
+              className="w-8 h-auto origin-center"
+            />
+          </motion.div>
         ))}
 
-        {/* Pluie d'étoiles avec accumulation en tas au sol */}
-        {etoilesPluie.map((e) => (
+        {/* THÈME STARS : Rendu exclusif et indépendant avec accumulation au sol */}
+        {theme === 'stars' && etoilesPluie.map((e) => (
           <motion.img 
             key={`etoile-${e.id}`}
-            /* REMPLACE ICI l'URL pour le fichier image de l'étoile */
             src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/etoile.png"
             initial={{ y: -20, opacity: 0 }}
             animate={{ 
               y: [0, e.targetY, e.targetY], 
               opacity: [0, 1, 1, 0],
-              scale: [1, 1, 0.75]
+              scale: [1, 1, 0.85]
             }}
             transition={{ duration: e.duration, times: [0, 0.75, 1], repeat: Infinity, delay: e.delay }}
             className="absolute w-4 h-auto drop-shadow-[0_0_6px_rgba(251,191,36,0.6)]" 
@@ -569,23 +574,23 @@ export function InvitationPreview({ invitation }: any) {
                           style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20noir.png")` }}
                         />
                       ) : invitation.container_open === 'wooden_door' ? (
-                        /* PREMIUM : Double porte en bois d'origine (inchangée) */
+                        /* PREMIUM : Double porte en bois s'ouvrant vers l'intérieur avec perspective réaliste */
                         <AnimatePresence>
                           {!isOpened && (
                             <>
                               <motion.div 
-                                exit={{ rotateY: -100, x: '-20%', opacity: 0 }} 
-                                transition={{ duration: 1.2, ease: "easeInOut" }} 
-                                className="w-1/2 h-full origin-left bg-cover bg-center shadow-2xl border-r border-black/10" 
+                                exit={{ rotateY: -90, opacity: 0 }} 
+                                transition={{ duration: 1.4, ease: "easeInOut" }} 
+                                className="w-1/2 h-full origin-left bg-cover bg-center shadow-[15px_0_30px_rgba(0,0,0,0.5)] border-r border-black/10" 
                                 style={{ 
                                   backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20gauche.png")`, 
                                   backgroundColor: invitation?.envelope_color || '#FEE2E2'
                                 }} 
                               />
                               <motion.div 
-                                exit={{ rotateY: 100, x: '20%', opacity: 0 }} 
-                                transition={{ duration: 1.2, ease: "easeInOut" }} 
-                                className="w-1/2 h-full origin-right bg-cover bg-center shadow-2xl border-l border-black/10" 
+                                exit={{ rotateY: 90, opacity: 0 }} 
+                                transition={{ duration: 1.4, ease: "easeInOut" }} 
+                                className="w-1/2 h-full origin-right bg-cover bg-center shadow-[-15px_0_30px_rgba(0,0,0,0.5)] border-l border-black/10" 
                                 style={{ 
                                   backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20droite.png")`, 
                                   backgroundColor: invitation?.envelope_color || '#FEE2E2'
