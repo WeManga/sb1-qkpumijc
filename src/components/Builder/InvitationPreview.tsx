@@ -261,16 +261,16 @@ export function InvitationPreview({ invitation }: any) {
       { id: 6, type: 'pap2', size: 0.45, flapSpeed: 0.14, duration: 4.5, initX: 420, initY: 400, pathX: [200, 310, -50], pathY: [300, 520, 380] }
     ], []);
 
-    // Pluie d'étoiles optimisée (Haute densité, variations petites/moyennes et effet de tas réaliste)
+    // Pluie d'étoiles optimisée (Haute densité, variations TOUTES PETITES et PETITES, effet de tas au sol)
     const etoilesPluie = useMemo(() => Array.from({ length: 45 }).map((_, i) => {
-      const isMedium = i % 2 === 0;
+      const isSmall = i % 2 === 0;
       return {
         id: i,
         left: `${2 + (Math.random() * 96)}%`,
         delay: Math.random() * 3.5,
         duration: 1.8 + Math.random() * 1.6,
-        sizeClass: isMedium ? 'w-5.5 h-auto' : 'w-3 h-auto',
-        targetY: 580 + (Math.random() * 22)
+        sizeClass: isSmall ? 'w-3 h-auto' : 'w-1.5 h-auto', // Tailles réduites ici (petites et toutes petites)
+        targetY: 582 + (Math.random() * 20)
       };
     }), []);
 
@@ -330,7 +330,7 @@ export function InvitationPreview({ invitation }: any) {
           </motion.div>
         ))}
 
-        {/* THÈME STARS : Pluie d'étoiles enrichie avec effet de tas persistant au sol */}
+        {/* THÈME STARS : Pluie d'étoiles fines et délicates avec effet de tas persistant au sol */}
         {theme === 'stars' && etoilesPluie.map((e) => (
           <motion.img 
             key={`etoile-dense-${e.id}`}
@@ -348,7 +348,7 @@ export function InvitationPreview({ invitation }: any) {
               delay: e.delay,
               ease: "easeOut"
             }}
-            className={`absolute ${e.sizeClass} drop-shadow-[0_0_8px_rgba(251,191,36,0.7)]`} 
+            className={`absolute ${e.sizeClass} drop-shadow-[0_0_5px_rgba(251,191,36,0.6)]`} 
             style={{ left: e.left }}
           />
         ))}
