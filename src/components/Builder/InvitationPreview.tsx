@@ -219,7 +219,28 @@ export function InvitationPreview({ invitation }: any) {
     }
   };
 
-  /* --- COMPOSANT DÉCORS ET ANIMATIONS PARAMÉTRABLES ET STRUCTURÉS --- */
+  const EmojiRain = () => {
+    const particles = useMemo(() => Array.from({ length: 25 }).map((_, i) => ({
+      id: i,
+      emoji: emojis[i % emojis.length],
+      left: `${(i * 4) + (Math.random() * 3)}%`,
+      delay: Math.random() * 2,
+      duration: 4 + Math.random() * 2
+    })), [emojis]);
+
+    return (
+      <div className="absolute inset-0 z-[14] pointer-events-none overflow-hidden">
+        {particles.map((p) => (
+          <motion.span key={p.id} initial={{ y: -50, opacity: 0 }} animate={{ y: 800, opacity: [0, 1, 1, 0] }}
+            transition={{ duration: p.duration, repeat: Infinity, delay: p.delay, ease: "linear" }}
+            className="absolute text-3xl" style={{ left: p.left }}>{p.emoji}
+          </motion.span>
+        ))}
+      </div>
+    );
+  };
+
+  /* --- COMPOSANT DÉCORS ET ANIMATIONS CORRIGÉES ET STRUCTURÉES --- */
   const AutonomousDecor = () => {
     const theme = invitation.background_theme;
 
@@ -276,18 +297,19 @@ export function InvitationPreview({ invitation }: any) {
           />
         ))}
 
-        {/* THÈME BUTTERFLIES : Rendu exclusif et indépendant avec battement d'ailes */}
+        {/* THÈME BUTTERFLIES : Papillons corrigés (Dispersés sur l'écran + Battement d'ailes) */}
         {theme === 'butterflies' && papillons.map((p) => (
           <motion.div
             key={`pap-container-${p.id}`}
-            initial={{ x: p.left, y: p.top, opacity: 0 }}
+            initial={{ x: 0, y: 0, opacity: 0 }}
             animate={{ 
-              x: [p.left, `${parseFloat(p.left) + 15}%`, `${parseFloat(p.left) - 15}%`, p.left], 
-              y: [p.top, `${parseFloat(p.top) - 18}%`, `${parseFloat(p.top) + 8}%`, p.top],
+              x: [0, 45, -45, 0], 
+              y: [0, -60, 30, 0],
               opacity: [0, 1, 1, 0]
             }}
             transition={{ duration: p.duration, repeat: Infinity, delay: p.delay, ease: "easeInOut" }}
             className="absolute"
+            style={{ left: p.left, top: p.top }}
           >
             <motion.img 
               src={p.type === 'pap1' ? "https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/papillions.png" : "https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/papillion%202.png"}
@@ -323,6 +345,9 @@ export function InvitationPreview({ invitation }: any) {
   return (
     <div className="relative w-full h-full max-h-[650px] flex items-center justify-center overflow-hidden bg-white rounded-[3.5rem] shadow-2xl border-[12px] border-gray-50/50" style={{ fontFamily: invitation.font_style || 'inherit' }}>
       {invitation?.music_url && <audio ref={audioRef} src={invitation.music_url} loop />}
+      
+      {/* Pluie d'émojis d'origine calée en fonction du thème d'événement choisi */}
+      {isOpened && <EmojiRain />}
       
       {/* Rendu automatique des décors complets paramétrables dès l'ouverture */}
       {isOpened && <AutonomousDecor />}
@@ -574,12 +599,12 @@ export function InvitationPreview({ invitation }: any) {
                           style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20noir.png")` }}
                         />
                       ) : invitation.container_open === 'wooden_door' ? (
-                        /* PREMIUM : Double porte en bois s'ouvrant vers l'intérieur avec perspective réaliste */
+                        /* PREMIUM : Double porte en bois s'écartant de manière classique (Correction effacement plat à droite) */
                         <AnimatePresence>
                           {!isOpened && (
                             <>
                               <motion.div 
-                                exit={{ rotateY: -90, opacity: 0 }} 
+                                exit={{ x: "-50%", opacity: 0 }} 
                                 transition={{ duration: 1.4, ease: "easeInOut" }} 
                                 className="w-1/2 h-full origin-left bg-cover bg-center shadow-[15px_0_30px_rgba(0,0,0,0.5)] border-r border-black/10" 
                                 style={{ 
@@ -588,7 +613,7 @@ export function InvitationPreview({ invitation }: any) {
                                 }} 
                               />
                               <motion.div 
-                                exit={{ rotateY: 90, opacity: 0 }} 
+                                exit={{ x: "50%", opacity: 0 }} 
                                 transition={{ duration: 1.4, ease: "easeInOut" }} 
                                 className="w-1/2 h-full origin-right bg-cover bg-center shadow-[-15px_0_30px_rgba(0,0,0,0.5)] border-l border-black/10" 
                                 style={{ 
