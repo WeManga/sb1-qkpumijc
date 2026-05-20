@@ -777,6 +777,7 @@ export function InvitationPreview({ invitation }: any) {
                               className="absolute inset-0 bg-amber-300 rounded-sm"
                             />
                           </motion.div>
+
                           <div className={`w-[45%] overflow-hidden bg-white/60 rounded-2xl border border-amber-50 backdrop-blur-sm shadow-lg ${isEven ? 'text-left' : 'text-right'}`}>
                             {step.image_url && (
                               <div className="w-full aspect-video overflow-hidden">
