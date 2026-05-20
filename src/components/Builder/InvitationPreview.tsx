@@ -362,7 +362,13 @@ export function InvitationPreview({ invitation }: any) {
   const showPremiumDecor = isOpened && invitation.plan_type === 'PREMIUM' && invitation.premium_trigger_type === 'decor';
 
   return (
-    <div className="relative w-full h-full max-h-[650px] flex items-center justify-center overflow-hidden rounded-[3.5rem] shadow-2xl border-[12px] border-gray-50/50" style={{ fontFamily: invitation.font_style || 'inherit', background: invitation.background_color || 'white' }}>
+    <div
+  className={`paper-container paper-${invitation.papertype} relative w-full h-full max-h-[650px] flex items-center justify-center overflow-hidden rounded-[3.5rem] shadow-2xl border-[12px] border-gray-50/50`}
+  style={{
+    fontFamily: invitation.font_style || 'inherit',
+    '--dynamic-color': invitation.papercolor || '#ffffff',
+  }}
+>
       {invitation?.music_url && <audio ref={audioRef} src={invitation.music_url} loop />}
       
       {/* Pluie d'émojis standard pour les comptes FREE ou si le switch PREMIUM est réglé sur 'emoji' */}
