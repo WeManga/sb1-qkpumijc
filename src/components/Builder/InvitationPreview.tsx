@@ -261,13 +261,18 @@ export function InvitationPreview({ invitation }: any) {
       { id: 6, type: 'pap2', size: 0.45, flapSpeed: 0.14, duration: 4.5, initX: 420, initY: 400, pathX: [200, 310, -50], pathY: [300, 520, 380] }
     ], []);
 
-    const etoilesPluie = useMemo(() => Array.from({ length: 15 }).map((_, i) => ({
-      id: i,
-      left: `${8 + (i * 6)}%`,
-      delay: Math.random() * 2,
-      duration: 2.5 + Math.random() * 1.5,
-      targetY: 575 + (Math.random() * 15)
-    })), []);
+    // Pluie d'étoiles optimisée (Haute densité, variations petites/moyennes et effet de tas réaliste)
+    const etoilesPluie = useMemo(() => Array.from({ length: 45 }).map((_, i) => {
+      const isMedium = i % 2 === 0;
+      return {
+        id: i,
+        left: `${2 + (Math.random() * 96)}%`,
+        delay: Math.random() * 3.5,
+        duration: 1.8 + Math.random() * 1.6,
+        sizeClass: isMedium ? 'w-5.5 h-auto' : 'w-3 h-auto',
+        targetY: 580 + (Math.random() * 22)
+      };
+    }), []);
 
     return (
       <div className="absolute inset-0 z-[15] pointer-events-none overflow-hidden">
@@ -325,19 +330,25 @@ export function InvitationPreview({ invitation }: any) {
           </motion.div>
         ))}
 
-        {/* THÈME STARS : Rendu exclusif avec accumulation au sol */}
+        {/* THÈME STARS : Pluie d'étoiles enrichie avec effet de tas persistant au sol */}
         {theme === 'stars' && etoilesPluie.map((e) => (
           <motion.img 
-            key={`etoile-${e.id}`}
+            key={`etoile-dense-${e.id}`}
             src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/etoile.png"
-            initial={{ y: -20, opacity: 0 }}
+            initial={{ y: -30, opacity: 0, scale: 0.6 }}
             animate={{ 
               y: [0, e.targetY, e.targetY], 
-              opacity: [0, 1, 1, 0],
-              scale: [1, 1, 0.85]
+              opacity: [0, 1, 1, 0.8, 0],
+              scale: [0.8, 1, 1, 0.9, 0]
             }}
-            transition={{ duration: e.duration, times: [0, 0.75, 1], repeat: Infinity, delay: e.delay }}
-            className="absolute w-4 h-auto drop-shadow-[0_0_6px_rgba(251,191,36,0.6)]" 
+            transition={{ 
+              duration: e.duration, 
+              times: [0, 0.65, 0.85, 0.95, 1], 
+              repeat: Infinity, 
+              delay: e.delay,
+              ease: "easeOut"
+            }}
+            className={`absolute ${e.sizeClass} drop-shadow-[0_0_8px_rgba(251,191,36,0.7)]`} 
             style={{ left: e.left }}
           />
         ))}
@@ -680,7 +691,7 @@ export function InvitationPreview({ invitation }: any) {
                       const isEven = i % 2 === 0;
                       return (
                         <motion.div key={i} initial={{ opacity: 0, x: isEven ? -30 : 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, margin: "-50px" }} transition={{ duration: 1.2, delay: 0.1 }} className={`flex items-center w-full relative ${isEven ? 'justify-start pl-6' : 'justify-end pr-6'}`}>
-                          <motion.div initial={{ scale: 0, rotate: 45 }} whileInView={{ scale: 1, rotate: 45 }} viewport={{ once: true }} className={`absolute top-1/2 -translate-y-1/2 z-20 w-3 h-3 bg-amber-500 border border-white shadow-md ${isEven ? 'right-[50%] translate-x-1/2' : 'left-[50%] -translate-x-1/2'}`}>
+                          <motion.div initial={{ scale: 0, rotate: 45 }} whileInView={{ scale: 1, rotate: 45 }} viewport={{ once: true }} className={`absolute top-1/2 -translate-y-1/2 z-20 w-3 h-3 bg-amber-500 border border-white shadow-md ${isEven ? 'right-[50%] translate-x-1/2' : 'left-[50%]' -translate-x-1/2}`}>
                             <motion.div animate={{ opacity: [1, 0.4, 1], scale: [1, 1.2, 1] }} transition={{ duration: 2.5, repeat: Infinity }} className="absolute inset-0 bg-amber-300 rounded-sm" />
                           </motion.div>
                           <div className={`w-[45%] overflow-hidden bg-white/60 rounded-2xl border border-amber-50 backdrop-blur-sm shadow-lg ${isEven ? 'text-left' : 'text-right'}`}>
