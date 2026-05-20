@@ -45,19 +45,23 @@
     overflow: hidden;
     isolation: isolate;
     background-color: var(--dynamic-color, #ffffff);
+    background-repeat: repeat;
+    background-position: center;
+    background-size: cover;
+    background-blend-mode: soft-light;
   }
 
-  .paper-container::after {
+  .paper-container::before {
     content: "";
     position: absolute;
     inset: 0;
     pointer-events: none;
     background-repeat: repeat;
-    background-size: cover;
     background-position: center;
-    mix-blend-mode: multiply;
-    opacity: 0.4;
+    background-size: cover;
+    opacity: 0.35;
     z-index: 0;
+    mix-blend-mode: soft-light;
   }
 
   .paper-container > * {
@@ -65,27 +69,51 @@
     z-index: 1;
   }
 
-  .paper-smooth::after {
+  .paper-smooth {
     background-image: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/smooth.jpg");
   }
 
-  .paper-parchment::after {
+  .paper-smooth::before {
+    background-image: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/smooth.jpg");
+  }
+
+  .paper-parchment {
     background-image: url("https://www.transparenttextures.com/patterns/parchment.png");
   }
 
-  .paper-grainy::after {
+  .paper-parchment::before {
+    background-image: url("https://www.transparenttextures.com/patterns/parchment.png");
+  }
+
+  .paper-grainy {
     background-image: url("https://www.transparenttextures.com/patterns/beige-paper.png");
   }
 
-  .paper-cotton::after {
+  .paper-grainy::before {
+    background-image: url("https://www.transparenttextures.com/patterns/beige-paper.png");
+  }
+
+  .paper-cotton {
     background-image: url("https://www.transparenttextures.com/patterns/white-diamond.png");
   }
 
-  .paper-silk::after {
+  .paper-cotton::before {
+    background-image: url("https://www.transparenttextures.com/patterns/white-diamond.png");
+  }
+
+  .paper-silk {
     background-image: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/silk.png");
   }
 
-  .paper-velvet::after {
+  .paper-silk::before {
+    background-image: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/silk.png");
+  }
+
+  .paper-velvet {
+    background-image: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/velvet.PNG");
+  }
+
+  .paper-velvet::before {
     background-image: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/velvet.PNG");
   }
 
