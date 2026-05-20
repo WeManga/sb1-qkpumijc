@@ -47,6 +47,7 @@
     background-repeat: repeat !important;
     background-size: auto !important;
     background-position: center !important;
+    background-blend-mode: multiply !important; /* Permet le mélange avec la couleur de la Sidebar */
   }
 
   .paper-parchment {
