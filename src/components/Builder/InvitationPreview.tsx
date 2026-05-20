@@ -298,8 +298,8 @@ export function InvitationPreview({ invitation }: any) {
           />
         ))}
 
-        {/* THÈME BUTTERFLIES : Vol global immersif de toute part sans blocage */}
-        {theme === 'butterflies' && invitation.plan_type === 'PREMIUM' && premium_trigger_type === 'decor' && papillonsConfig.map((p) => (
+        {/* THÈME BUTTERFLIES : Vol global immersif avec variable sécurisée invitation.premium_trigger_type */}
+        {theme === 'butterflies' && invitation.plan_type === 'PREMIUM' && invitation.premium_trigger_type === 'decor' && papillonsConfig.map((p) => (
           <motion.div
             key={`pap-infinite-${p.id}`}
             initial={{ x: p.initX, y: p.initY, opacity: 0 }}
@@ -317,7 +317,7 @@ export function InvitationPreview({ invitation }: any) {
             style={{ scale: p.size }}
           >
             <motion.img 
-              src={p.type === 'pap1' ? "https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/papillions.png" : "https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/papillion%202.png"}
+              src={p.id % 2 === 0 ? "https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/papillions.png" : "https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/papillion%202.png"}
               animate={{ scaleX: [1, -1, 1] }}
               transition={{ duration: p.flapSpeed, repeat: Infinity, ease: "linear" }}
               className="w-8 h-auto origin-center"
@@ -351,7 +351,7 @@ export function InvitationPreview({ invitation }: any) {
   const showPremiumDecor = isOpened && invitation.plan_type === 'PREMIUM' && invitation.premium_trigger_type === 'decor';
 
   return (
-    <div className="relative w-full h-full max-h-[650px] flex items-center justify-center overflow-hidden bg-white rounded-[3.5rem] shadow-2xl border-[12px] border-gray-50/50" style={{ fontFamily: invitation.font_style || 'inherit' }}>
+    <div className="relative w-full h-full max-h-[650px] flex items-center justify-center overflow-hidden rounded-[3.5rem] shadow-2xl border-[12px] border-gray-50/50" style={{ fontFamily: invitation.font_style || 'inherit', background: invitation.background_color || 'white' }}>
       {invitation?.music_url && <audio ref={audioRef} src={invitation.music_url} loop />}
       
       {/* Pluie d'émojis standard pour les comptes FREE ou si le switch PREMIUM est réglé sur 'emoji' */}
@@ -680,7 +680,7 @@ export function InvitationPreview({ invitation }: any) {
                       const isEven = i % 2 === 0;
                       return (
                         <motion.div key={i} initial={{ opacity: 0, x: isEven ? -30 : 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, margin: "-50px" }} transition={{ duration: 1.2, delay: 0.1 }} className={`flex items-center w-full relative ${isEven ? 'justify-start pl-6' : 'justify-end pr-6'}`}>
-                          <motion.div initial={{ scale: 0, rotate: 45 }} whileInView={{ scale: 1, rotate: 45 }} viewport={{ once: true }} className={`absolute top-1/2 -translate-y-1/2 z-20 w-3 h-3 bg-amber-500 border border-white shadow-md ${isEven ? 'right-[50%] translate-x-1/2' : 'left-[50%]' -translate-x-1/2}`}>
+                          <motion.div initial={{ scale: 0, rotate: 45 }} whileInView={{ scale: 1, rotate: 45 }} viewport={{ once: true }} className={`absolute top-1/2 -translate-y-1/2 z-20 w-3 h-3 bg-amber-500 border border-white shadow-md ${isEven ? 'right-[50%] translate-x-1/2' : 'left-[50%] -translate-x-1/2'}`}>
                             <motion.div animate={{ opacity: [1, 0.4, 1], scale: [1, 1.2, 1] }} transition={{ duration: 2.5, repeat: Infinity }} className="absolute inset-0 bg-amber-300 rounded-sm" />
                           </motion.div>
                           <div className={`w-[45%] overflow-hidden bg-white/60 rounded-2xl border border-amber-50 backdrop-blur-sm shadow-lg ${isEven ? 'text-left' : 'text-right'}`}>
