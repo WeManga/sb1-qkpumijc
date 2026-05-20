@@ -546,4 +546,4 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       )}
     </div>
   );
-}
+} 
