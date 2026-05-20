@@ -41,109 +41,42 @@
   }
 
   /* TEXTURES PAPIER */
-  .paper-smooth {
-    background-color: #ffffff !important;
-    background-image: url("https://www.transparenttextures.com/patterns/natural-paper.png") !important;
+  .paper-smooth, .paper-parchment, .paper-grainy, .paper-cotton, .paper-silk, .paper-velvet, .paper-texture {
     background-repeat: repeat !important;
-    background-size: auto !important;
+    background-size: cover !important;
     background-position: center !important;
     background-blend-mode: multiply !important; /* Permet le mélange avec la couleur de la Sidebar */
   }
 
-  .paper-parchment {
-    background-color: #f4e4bc !important;
-    background-image: url("https://www.transparenttextures.com/patterns/parchment.png") !important;
-    background-repeat: repeat !important;
-    background-size: auto !important;
-    background-position: center !important;
-    color: #5d4037 !important;
+  .paper-smooth { 
+    background-image: url("https://www.transparenttextures.com/patterns/natural-paper.png") !important; 
   }
 
-  .paper-grainy {
-    background-color: #faf9f6 !important;
-    background-image: url("https://www.transparenttextures.com/patterns/beige-paper.png") !important;
-    background-repeat: repeat !important;
-    background-size: auto !important;
-    background-position: center !important;
+  .paper-parchment { 
+    background-image: url("https://www.transparenttextures.com/patterns/parchment.png") !important; 
+    color: #5d4037 !important; 
   }
 
-  .paper-cotton {
-    background-color: #fffcf5 !important;
-    background-image: url("https://www.transparenttextures.com/patterns/white-diamond.png") !important;
-    background-repeat: repeat !important;
-    background-size: auto !important;
-    background-position: center !important;
+  .paper-grainy { 
+    background-image: url("https://www.transparenttextures.com/patterns/beige-paper.png") !important; 
+  }
+
+  .paper-cotton { 
+    background-image: url("https://www.transparenttextures.com/patterns/white-diamond.png") !important; 
   }
 
   .paper-silk {
-    background-color: #ffffff !important;
-    background-image: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.45) 0%,
-      rgba(255, 255, 255, 0) 50%,
-      rgba(255, 255, 255, 0.45) 100%
-    ) !important;
+    background-image: linear-gradient(135deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0) 50%, rgba(255, 255, 255, 0.45) 100%) !important;
     background-repeat: no-repeat !important;
-    background-size: cover !important;
   }
 
   .paper-velvet {
-    background-color: #f0f0f0 !important;
-    background-image: url("https://www.transparenttextures.com/patterns/felt.png") !important;
-    background-repeat: repeat !important;
-    background-size: auto !important;
-    background-position: center !important;
+    background-image: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/velvet.PNG") !important;
     box-shadow: inset 0 0 50px rgba(0, 0, 0, 0.05);
   }
 
   .paper-texture {
-    background-color: #ffffff !important;
     background-image: url("https://www.transparenttextures.com/patterns/natural-paper.png") !important;
-    background-repeat: repeat !important;
-  }
-
-  /* Prévisualisation papier compatible sidebar */
-  .paper-preview {
-    position: relative;
-    overflow: hidden;
-  }
-
-  .paper-preview::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    opacity: 0.18;
-    mix-blend-mode: multiply;
-  }
-
-  .paper-preview.paper-smooth::before {
-    background-image: url("https://www.transparenttextures.com/patterns/natural-paper.png");
-  }
-
-  .paper-preview.paper-parchment::before {
-    background-image: url("https://www.transparenttextures.com/patterns/parchment.png");
-  }
-
-  .paper-preview.paper-grainy::before {
-    background-image: url("https://www.transparenttextures.com/patterns/beige-paper.png");
-  }
-
-  .paper-preview.paper-cotton::before {
-    background-image: url("https://www.transparenttextures.com/patterns/white-diamond.png");
-  }
-
-  .paper-preview.paper-velvet::before {
-    background-image: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/velvet.PNG");
-  }
-
-  .paper-preview.paper-silk::before {
-    background-image: linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.35) 0%,
-      rgba(255, 255, 255, 0) 50%,
-      rgba(255, 255, 255, 0.35) 100%
-    );
   }
 
   /* Boutons de texture */
