@@ -476,6 +476,7 @@ export function InvitationPreview({ invitation }: any) {
                     key="gate-container" 
                     exit={invitation.container_open === 'metal_door' ? { opacity: 1 } : { opacity: 1 }}
                     className="w-full h-full relative flex items-center justify-center"
+                    style={{ transformStyle: 'preserve-3d' }}
                   >
                     <AnimatePresence>
                       {!isCodeFading && (
@@ -602,23 +603,25 @@ export function InvitationPreview({ invitation }: any) {
                           style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20noir.png")` }}
                         />
                       ) : invitation.container_open === 'wooden_door' ? (
-                        /* PREMIUM : Double porte en bois s'ouvrant en 3D vers l'intérieur (Axe fixés sur les bords gauches et droits) */
+                        /* PREMIUM : Double porte en bois pivotant de manière réaliste vers l'intérieur (3D) */
                         <AnimatePresence>
                           {!isOpened && (
                             <>
                               <motion.div 
+                                initial={{ rotateY: 0 }}
                                 exit={{ rotateY: -95, opacity: 0 }} 
                                 transition={{ duration: 1.4, ease: "easeInOut" }} 
-                                className="w-1/2 h-full origin-left bg-cover bg-center shadow-[15px_0_30px_rgba(0,0,0,0.5)] border-r border-black/10 animate-preserve-3d" 
+                                className="w-1/2 h-full origin-left bg-cover bg-center shadow-[15px_0_30px_rgba(0,0,0,0.5)] border-r border-black/10" 
                                 style={{ 
                                   backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20gauche.png")`, 
                                   backgroundColor: invitation?.envelope_color || '#FEE2E2'
                                 }} 
                               />
                               <motion.div 
+                                initial={{ rotateY: 0 }}
                                 exit={{ rotateY: 95, opacity: 0 }} 
                                 transition={{ duration: 1.4, ease: "easeInOut" }} 
-                                className="w-1/2 h-full origin-right bg-cover bg-center shadow-[-15px_0_30px_rgba(0,0,0,0.5)] border-l border-black/10 animate-preserve-3d" 
+                                className="w-1/2 h-full origin-right bg-cover bg-center shadow-[-15px_0_30px_rgba(0,0,0,0.5)] border-l border-black/10" 
                                 style={{ 
                                   backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20droite.png")`, 
                                   backgroundColor: invitation?.envelope_color || '#FEE2E2'
