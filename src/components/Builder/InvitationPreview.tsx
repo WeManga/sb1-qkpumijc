@@ -255,8 +255,8 @@ export function InvitationPreview({ invitation }: any) {
       id: i,
       left: `${10 + Math.random() * 70}%`,
       top: `${15 + Math.random() * 50}%`,
-      duration: 7 + Math.random() * 4,
-      delay: i * 0.3,
+      duration: 6 + Math.random() * 4,
+      delay: i * 0.4,
       type: i % 2 === 0 ? 'pap1' : 'pap2'
     })), []);
 
@@ -297,14 +297,14 @@ export function InvitationPreview({ invitation }: any) {
           />
         ))}
 
-        {/* THÈME BUTTERFLIES : Papillons dispersés sur l'écran avec survol et battement d'ailes */}
+        {/* THÈME BUTTERFLIES : Autonomie totale et vol dispersé sur l'écran */}
         {theme === 'butterflies' && papillons.map((p) => (
           <motion.div
             key={`pap-container-${p.id}`}
             initial={{ x: 0, y: 0, opacity: 0 }}
             animate={{ 
-              x: [0, 45, -45, 0], 
-              y: [0, -60, 30, 0],
+              x: [0, p.id % 2 === 0 ? 90 : -90, p.id % 2 === 0 ? -60 : 60, 0], 
+              y: [0, -110, 40, 0],
               opacity: [0, 1, 1, 0]
             }}
             transition={{ duration: p.duration, repeat: Infinity, delay: p.delay, ease: "easeInOut" }}
@@ -314,7 +314,7 @@ export function InvitationPreview({ invitation }: any) {
             <motion.img 
               src={p.type === 'pap1' ? "https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/papillions.png" : "https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/papillion%202.png"}
               animate={{ scaleX: [1, -1, 1] }}
-              transition={{ duration: 0.3, repeat: Infinity, ease: "linear" }}
+              transition={{ duration: 0.25, repeat: Infinity, ease: "linear" }}
               className="w-8 h-auto origin-center"
             />
           </motion.div>
@@ -346,7 +346,7 @@ export function InvitationPreview({ invitation }: any) {
     <div className="relative w-full h-full max-h-[650px] flex items-center justify-center overflow-hidden bg-white rounded-[3.5rem] shadow-2xl border-[12px] border-gray-50/50" style={{ fontFamily: invitation.font_style || 'inherit' }}>
       {invitation?.music_url && <audio ref={audioRef} src={invitation.music_url} loop />}
       
-      {/* Pluie d'émojis universelle : Visible pour tous (FREE et PREMIUM) */}
+      {/* Pluie d'émojis universelle : Toujours visible pour tout le monde (FREE et PREMIUM) */}
       {isOpened && <EmojiRain />}
       
       {/* Décors animés avancés séparés visuellement : Visibles UNIQUEMENT pour les comptes PREMIUM */}
@@ -466,7 +466,7 @@ export function InvitationPreview({ invitation }: any) {
             </motion.div>
 
             {/* --- COUCHE DECLENCHEURS MECANIQUES ET ENVELOPPES PROPRES --- */}
-            <div className="absolute inset-0 z-50 overflow-hidden" style={{ perspective: '2000px', pointerEvents: isOpened ? 'none' : 'auto' }}>
+            <div className="absolute inset-0 z-50 overflow-hidden" style={{ perspective: '2500px', pointerEvents: isOpened ? 'none' : 'auto' }}>
               <AnimatePresence>
                 {(!isOpened || invitation.container_open === 'metal_door') && (
                   <motion.div 
@@ -589,7 +589,7 @@ export function InvitationPreview({ invitation }: any) {
                     </AnimatePresence>
 
                     {/* INTERFACE DE RECOUVREMENT DE L'ENVELOPPE (FREE / PREMIUM) */}
-                    <div className="absolute inset-0 z-50 w-full h-full" style={{ perspective: '2000px' }}>
+                    <div className="absolute inset-0 z-50 w-full h-full flex" style={{ perspective: '2500px' }}>
                       {invitation.container_open === 'metal_door' ? (
                         /* PREMIUM : Porte métallique coulissant horizontalement à droite */
                         <motion.div 
@@ -599,7 +599,7 @@ export function InvitationPreview({ invitation }: any) {
                           style={{ backgroundImage: `url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20noir.png")` }}
                         />
                       ) : invitation.container_open === 'wooden_door' ? (
-                        /* PREMIUM : Double porte en bois s'ouvrant en 3D vers l'intérieur (Axe fixés sur les bords de l'écran) */
+                        /* PREMIUM : Double porte en bois pivotant de manière réaliste vers l'intérieur (3D) */
                         <AnimatePresence>
                           {!isOpened && (
                             <>
@@ -677,7 +677,7 @@ export function InvitationPreview({ invitation }: any) {
                       const isEven = i % 2 === 0;
                       return (
                         <motion.div key={i} initial={{ opacity: 0, x: isEven ? -30 : 30 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, margin: "-50px" }} transition={{ duration: 1.2, delay: 0.1 }} className={`flex items-center w-full relative ${isEven ? 'justify-start pl-6' : 'justify-end pr-6'}`}>
-                          <motion.div initial={{ scale: 0, rotate: 45 }} whileInView={{ scale: 1, rotate: 45 }} viewport={{ once: true }} className={`absolute top-1/2 -translate-y-1/2 z-20 w-3 h-3 bg-amber-500 border border-white shadow-md ${isEven ? 'right-[50%] translate-x-1/2' : 'left-[50%] -translate-x-1/2'}`}>
+                          <motion.div initial={{ scale: 0, rotate: 45 }} whileInView={{ scale: 1, rotate: 45 }} viewport={{ once: true }} className={`absolute top-1/2 -translate-y-1/2 z-20 w-3 h-3 bg-amber-500 border border-white shadow-md ${isEven ? 'right-[50%] translate-x-1/2' : 'left-[50%' -translate-x-1/2'}`}>
                             <motion.div animate={{ opacity: [1, 0.4, 1], scale: [1, 1.2, 1] }} transition={{ duration: 2.5, repeat: Infinity }} className="absolute inset-0 bg-amber-300 rounded-sm" />
                           </motion.div>
                           <div className={`w-[45%] overflow-hidden bg-white/60 rounded-2xl border border-amber-50 backdrop-blur-sm shadow-lg ${isEven ? 'text-left' : 'text-right'}`}>
