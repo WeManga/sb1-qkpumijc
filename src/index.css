@@ -56,8 +56,8 @@
     background-image: var(--paper-texture, none);
     background-repeat: repeat;
     background-position: center;
-    background-size: cover;
-    opacity: 0.16;
+    background-size: auto;
+    opacity: 0.18;
     mix-blend-mode: soft-light;
   }
 
