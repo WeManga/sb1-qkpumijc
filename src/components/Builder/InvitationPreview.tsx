@@ -60,8 +60,15 @@ export function InvitationPreview({ invitation }: any) {
   const photoUrl2 = pick(invitation, ['photo_url_2', 'photourl2'], '');
   const photoUrl3 = pick(invitation, ['photo_url_3', 'photourl3'], '');
 
+  const isPremium = planType === 'PREMIUM';
+  const isPremiumDecor = isPremium && premiumTriggerType === 'decor';
+
+  const effectivePaperType = isPremium || paperType === 'smooth' ? paperType : 'smooth';
+  const cardPaperColor = isPremium ? paperColor : '#ffffff';
+  const previewBackgroundColor = isPremiumDecor && backgroundColor ? backgroundColor : '#ffffff';
+
   const getPaperClass = () => {
-    switch (paperType) {
+    switch (effectivePaperType) {
       case 'parchment':
         return 'paper-parchment';
       case 'grainy':
@@ -383,9 +390,7 @@ export function InvitationPreview({ invitation }: any) {
   };
 
   const showEmojiRain = isOpened && (planType !== 'PREMIUM' || premiumTriggerType === 'emoji' || !premiumTriggerType);
-  const showPremiumDecor = isOpened && planType === 'PREMIUM' && premiumTriggerType === 'decor';
-
-  const previewBackgroundColor = showPremiumDecor && backgroundColor ? backgroundColor : paperColor;
+  const showPremiumDecor = isOpened && isPremiumDecor;
 
   const mainPhotoPosX = pick(invitation, ['main_photo_url_pos_x', 'mainphotourlposx'], 0);
   const mainPhotoPosY = pick(invitation, ['main_photo_url_pos_y', 'mainphotourlposy'], 0);
@@ -393,11 +398,11 @@ export function InvitationPreview({ invitation }: any) {
 
   return (
     <div
-      className={`paper-container paper-${paperType} relative w-full h-full max-h-[650px] flex items-center justify-center overflow-hidden rounded-[3.5rem] shadow-2xl border-[12px] border-gray-50/50`}
+      className="relative w-full h-full max-h-[650px] flex items-center justify-center overflow-hidden rounded-[3.5rem] shadow-2xl border-[12px] border-gray-50/50"
       style={
         {
           fontFamily: fontStyle,
-          '--dynamic-color': previewBackgroundColor,
+          background: previewBackgroundColor,
         } as React.CSSProperties
       }
     >
@@ -498,7 +503,7 @@ export function InvitationPreview({ invitation }: any) {
               className={`z-30 w-[310px] h-[370px] rounded-[3rem] shadow-xl p-10 flex flex-col items-center justify-between border border-gray-100 cursor-pointer paper-container ${getPaperClass()}`}
               style={
                 {
-                  '--dynamic-color': paperColor,
+                  '--dynamic-color': cardPaperColor,
                 } as React.CSSProperties
               }
             >
@@ -693,7 +698,7 @@ export function InvitationPreview({ invitation }: any) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className={`w-full h-full z-[100] flex flex-col overflow-y-auto paper-container ${getPaperClass()}`}
-            style={{ '--dynamic-color': paperColor } as React.CSSProperties}
+            style={{ '--dynamic-color': cardPaperColor } as React.CSSProperties}
           >
             <div className="h-[30%] relative overflow-hidden shrink-0">
               <img
