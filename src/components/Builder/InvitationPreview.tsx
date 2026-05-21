@@ -269,6 +269,7 @@ export function InvitationPreview({ invitation }: any) {
 
   const AutonomousDecor = () => {
     const theme = backgroundTheme;
+    const bgColor = pick(invitation, ['background_color', 'backgroundcolor'], '');
 
     const ballons = useMemo(
       () =>
@@ -390,7 +391,7 @@ export function InvitationPreview({ invitation }: any) {
 
   return (
     <div
-      className={`paper-container paper-${paperType} relative w-full h-full max-h-[650px] flex items-center justify-center overflow-hidden rounded-[3.5rem] shadow-2xl border-[12px] border-gray-50/50 bg-white`}
+      className={`paper-container paper-${paperType} relative w-full h-full max-h-[650px] flex items-center justify-center overflow-hidden rounded-[3.5rem] shadow-2xl border-[12px] border-gray-50/50`}
       style={
         {
           fontFamily: fontStyle,
@@ -457,16 +458,19 @@ export function InvitationPreview({ invitation }: any) {
                     initial={{ rotateX: 15, rotateZ: 0 }}
                     animate={isOpened ? { rotateZ: 360 } : { rotateZ: 0 }}
                     transition={isOpened ? { repeat: Infinity, duration: 4, ease: 'linear', delay: 0.8 } : { duration: 0.5 }}
-                    className="w-[250px] h-[250px] relative rounded-full bg-neutral-950 shadow-[0_15px_35px_rgba(0,0,0,0.6),_inset_0_0_20px_rgba(255,255,255,0.05)] border-4 border-neutral-900 flex items-center justify-center overflow-hidden"
+                    className="w-[250px] h-[250px] relative rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.7),_inset_0_0_30px_rgba(255,255,255,0.08)] border-4 border-neutral-800 flex items-center justify-center overflow-hidden"
+                    style={{ background: 'radial-gradient(circle at 30% 30%, #2a2a2a, #0a0a0a)' }}
                   >
-                    <div className="absolute inset-0 opacity-40 mix-blend-overlay pointer-events-none" style={{ background: 'repeating-radial-gradient(circle, #555 0px, #000 2px, #111 4px)' }} />
+                    <div className="absolute inset-0 opacity-50 mix-blend-overlay pointer-events-none" style={{ background: 'repeating-radial-gradient(circle, #404040 0px, #1a1a1a 1px, #0d0d0d 2px)' }} />
                     <motion.div
                       animate={isOpened ? { rotate: -360 } : { rotate: 0 }}
                       transition={isOpened ? { repeat: Infinity, duration: 4, ease: 'linear', delay: 0.8 } : { duration: 0.5 }}
-                      className="absolute inset-0 opacity-20 pointer-events-none mix-blend-screen"
-                      style={{ background: 'conic-gradient(from 0deg, transparent 0deg, rgba(255,255,255,0.4) 60deg, transparent 120deg, transparent 180deg, rgba(255,255,255,0.4) 240deg, transparent 300deg)' }}
+                      className="absolute inset-0 opacity-25 pointer-events-none mix-blend-screen"
+                      style={{ background: 'conic-gradient(from 0deg, transparent 0deg, rgba(255,255,255,0.5) 45deg, transparent 90deg, transparent 180deg, rgba(255,255,255,0.5) 225deg, transparent 270deg)' }}
                     />
-                    <div className="w-24 h-24 bg-white rounded-full border-[6px] border-neutral-950 shadow-md overflow-hidden relative z-10 flex items-center justify-center">
+                    <div className="absolute inset-8 rounded-full border border-white/10 opacity-30 pointer-events-none" />
+                    <div className="absolute inset-12 rounded-full border border-white/5 opacity-20 pointer-events-none" />
+                    <div className="w-24 h-24 bg-white rounded-full border-[6px] border-neutral-900 shadow-[0_8px_24px_rgba(0,0,0,0.8),_inset_0_2px_4px_rgba(255,255,255,0.3)] overflow-hidden relative z-10 flex items-center justify-center">
                       {mainPhotoUrl ? (
                         <img
                           src={mainPhotoUrl}
@@ -477,7 +481,7 @@ export function InvitationPreview({ invitation }: any) {
                       ) : (
                         <div className="w-full h-full bg-gradient-to-tr from-neutral-200 to-neutral-50" />
                       )}
-                      <div className="absolute w-3 h-3 bg-neutral-950 rounded-full shadow-inner border border-white/20" />
+                      <div className="absolute w-3 h-3 bg-neutral-950 rounded-full shadow-inner border border-white/30" />
                     </div>
                   </motion.div>
                 </div>
