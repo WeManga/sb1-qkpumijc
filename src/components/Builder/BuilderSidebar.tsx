@@ -88,9 +88,10 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
   const localLabels = {
     fr: {
-      opening_type_label: "Style d'animation (Arrière de la carte)",
-      action_style: "Le Style d'action (Déclencheur)",
-      opening_container: "Le Type d'ouverture (Contenant)",
+      opening_type_label: "Style d'animation",
+      action_style: "Style d'action",
+      opening_container: "Type d'ouverture",
+      ambiance_label: "Ambiance",
       premium_colors: "Couleurs PREMIUM",
       style_default: "Sceau ancestral",
       style_knock: "Main qui toque",
@@ -116,9 +117,10 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       bg_stars: "Pluie d'Étoiles"
     },
     en: {
-      opening_type_label: 'Animation Style (Behind the Card)',
-      action_style: 'Action Style (Trigger)',
-      opening_container: 'Opening Type (Container)',
+      opening_type_label: 'Animation Style',
+      action_style: 'Action Style',
+      opening_container: 'Opening Type',
+      ambiance_label: 'Ambiance',
       premium_colors: 'PREMIUM Colors',
       style_default: 'Ancestral Seal',
       style_knock: 'Knocking Hand',
@@ -144,9 +146,10 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       bg_stars: 'Star Rain'
     },
     vi: {
-      opening_type_label: 'Kiểu hoạt ảnh (Phía sau thẻ)',
-      action_style: 'Kiểu hành động (Kích hoạt)',
-      opening_container: 'Loại mở rộng (Hộp chứa)',
+      opening_type_label: 'Kiểu hoạt ảnh',
+      action_style: 'Kiểu hành động',
+      opening_container: 'Loại mở rộng',
+      ambiance_label: 'Không gian',
       premium_colors: 'Màu sắc PREMIUM',
       style_default: 'Dấu ấn cổ xưa',
       style_knock: 'Tay gõ cửa',
@@ -261,7 +264,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       const { error } = await supabase.storage.from('invitations').upload(fileName, file);
       if (error) throw error;
       const { data } = supabase.storage.from('invitations').getPublicUrl(fileName);
-
       const updates: any = { ...invitation, [field]: data.publicUrl };
 
       if (
@@ -322,6 +324,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
   const handleDragMove = (e: any) => {
     if (!dragRef.current.isDragging) return;
+
     const posKeyX = `${selectedPhotoKey}_pos_x`;
     const posKeyY = `${selectedPhotoKey}_pos_y`;
     const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -332,6 +335,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
         e.touches[0].clientX - e.touches[1].clientX,
         e.touches[0].clientY - e.touches[1].clientY
       );
+
       if (dragRef.current.lastDist > 0) {
         const scaleKey = `${selectedPhotoKey}_scale`;
         const delta = (dist - dragRef.current.lastDist) * 0.01;
@@ -340,6 +344,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
           [scaleKey]: Math.max(0.1, (invitation[scaleKey] || 1) + delta)
         });
       }
+
       dragRef.current.lastDist = dist;
       return;
     }
@@ -372,6 +377,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
         <div className="space-y-8">
           <div className="space-y-4">
             <label className="text-[10px] font-black uppercase text-gray-400 ml-1">{t.general_info}</label>
+
             <input type="text" value={invitation.title || ''} onChange={e => onInvitationChange({ ...invitation, title: e.target.value })} className="w-full bg-gray-50 border-none h-14 px-4 rounded-2xl text-sm" placeholder={t.title_placeholder} />
             <input type="text" value={invitation.host_names || ''} onChange={e => onInvitationChange({ ...invitation, host_names: e.target.value })} className="w-full bg-gray-50 border-none h-14 px-4 rounded-2xl text-sm" placeholder={t.hosts_placeholder} />
             <textarea value={invitation.description || ''} onChange={e => onInvitationChange({ ...invitation, description: e.target.value })} className="w-full bg-gray-50 border-none p-4 rounded-2xl text-sm min-h-[100px] resize-none" placeholder={t.description_placeholder} />
@@ -516,6 +522,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">
               {localLabels.opening_type_label}
             </label>
+
             <div className="grid grid-cols-2 gap-3">
               <button type="button" onClick={() => handleOpeningTypeClick('vinyl', false)} className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all ${invitation.opening_type === 'vinyl' || !invitation.opening_type ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}>
                 <Disc size={18} className={invitation.opening_type === 'vinyl' || !invitation.opening_type ? 'text-amber-500' : 'text-gray-400'} />
@@ -534,6 +541,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">
               {localLabels.action_style}
             </label>
+
             <div className="grid grid-cols-2 gap-3">
               <button type="button" onClick={() => handleOpeningStyleClick('default', false)} className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all ${invitation.opening_style === 'default' || !invitation.opening_style ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}>
                 <ImageIcon size={18} className={invitation.opening_style === 'default' || !invitation.opening_style ? 'text-amber-500' : 'text-gray-400'} />
@@ -565,12 +573,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                   <Calendar size={14} className="text-amber-500" />
                   {localLabels.vault_date_label}
                 </label>
-                <input
-                  type="date"
-                  value={invitation.vault_date || ''}
-                  onChange={e => onInvitationChange({ ...invitation, vault_date: e.target.value })}
-                  className="w-full bg-white border border-gray-200 h-12 px-4 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-400"
-                />
+                <input type="date" value={invitation.vault_date || ''} onChange={e => onInvitationChange({ ...invitation, vault_date: e.target.value })} className="w-full bg-white border border-gray-200 h-12 px-4 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-amber-400" />
               </div>
             )}
           </div>
@@ -579,6 +582,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">
               {localLabels.opening_container}
             </label>
+
             <div className="grid grid-cols-2 gap-3">
               <button type="button" onClick={() => handleContainerOpenClick('envelope', false)} className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all ${invitation.container_open === 'envelope' || !invitation.container_open ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}>
                 <ImageIcon size={18} className={invitation.container_open === 'envelope' || !invitation.container_open ? 'text-amber-500' : 'text-gray-400'} />
@@ -604,13 +608,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
               <label className="text-[10px] font-black uppercase text-gray-400 mb-3 block ml-1">{t.envelope_color}</label>
               <div className="flex gap-3 overflow-x-auto pt-2 pb-3 px-1 scrollbar-hide">
                 {COLOR_PALETTES.map(p => (
-                  <button
-                    type="button"
-                    key={p.color}
-                    onClick={() => onInvitationChange({ ...invitation, envelope_color: p.color })}
-                    style={{ backgroundColor: p.color }}
-                    className={`h-11 w-11 shrink-0 rounded-full border-4 transition-all ${invitation.envelope_color === p.color ? 'border-amber-400 scale-110 shadow-lg' : 'border-white shadow-sm'}`}
-                  />
+                  <button type="button" key={p.color} onClick={() => onInvitationChange({ ...invitation, envelope_color: p.color })} style={{ backgroundColor: p.color }} className={`h-11 w-11 shrink-0 rounded-full border-4 transition-all ${invitation.envelope_color === p.color ? 'border-amber-400 scale-110 shadow-lg' : 'border-white shadow-sm'}`} />
                 ))}
               </div>
             </div>
@@ -619,13 +617,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
               <label className="text-[10px] font-black uppercase text-gray-400 mb-3 flex items-center gap-2 ml-1">{localLabels.premium_colors}</label>
               <div className="flex gap-3 overflow-x-auto pt-1 pb-2 px-1 scrollbar-hide">
                 {PREMIUM_PALETTES.map(p => (
-                  <button
-                    type="button"
-                    key={p.id}
-                    onClick={() => handlePremiumClick(p.gradient)}
-                    style={{ background: p.gradient }}
-                    className={`h-12 w-12 shrink-0 rounded-xl border-4 relative flex items-center justify-center transition-all ${invitation.envelope_color === p.gradient ? 'border-amber-400 scale-110 shadow-lg' : 'border-white shadow-sm'} ${!isPremium ? 'opacity-40 grayscale' : ''}`}
-                  >
+                  <button type="button" key={p.id} onClick={() => handlePremiumClick(p.gradient)} style={{ background: p.gradient }} className={`h-12 w-12 shrink-0 rounded-xl border-4 relative flex items-center justify-center transition-all ${invitation.envelope_color === p.gradient ? 'border-amber-400 scale-110 shadow-lg' : 'border-white shadow-sm'} ${!isPremium ? 'opacity-40 grayscale' : ''}`}>
                     {!isPremium && <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-lg"><Lock size={12} className="text-white drop-shadow-md" /></div>}
                   </button>
                 ))}
@@ -636,11 +628,13 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
           <div className="space-y-4 bg-amber-50/20 p-4 rounded-3xl border border-amber-100/60">
             <div className="flex items-center justify-between ml-1 mb-2">
               <label className="text-[10px] font-black uppercase text-gray-500">{localLabels.paper_section_label}</label>
+
               <div className="flex bg-gray-100 p-1 rounded-xl">
                 <button type="button" onClick={() => setPaperMode('texture')} className={`px-3 py-1 text-[9px] font-black uppercase rounded-lg transition-all ${paperMode === 'texture' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'}`}>
                   {localLabels.paper_mode_texture}
                 </button>
-                <button type="button" onClick={() => setPaperMode('color')} className={`px-3 py-1 text-[9px] font-black uppercase rounded-lg transition-all relative flex items-center gap-1 ${paperMode === 'color' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'} ${!isPremium ? 'opacity-50' : ''}`}>
+
+                <button type="button" onClick={() => (isPremium ? setPaperMode('color') : checkPremiumAccess(false))} className={`px-3 py-1 text-[9px] font-black uppercase rounded-lg transition-all relative flex items-center gap-1 ${paperMode === 'color' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'} ${!isPremium ? 'opacity-50' : ''}`}>
                   {localLabels.paper_mode_color}
                   {!isPremium && <Lock size={10} />}
                 </button>
@@ -650,32 +644,19 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             {paperMode === 'texture' ? (
               <div className="grid grid-cols-2 gap-2">
                 {TEXTURES.map(texture => (
-                  <button
-                    type="button"
-                    key={texture.id}
-                    onClick={() => handleTextureClick(texture.id, texture.premium)}
-                    className={`p-4 rounded-xl border-2 text-[10px] font-bold transition-all relative flex items-center justify-center ${invitation.paper_type === texture.id ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'} ${texture.premium && !isPremium ? 'opacity-40 grayscale' : ''}`}
-                  >
+                  <button type="button" key={texture.id} onClick={() => handleTextureClick(texture.id, texture.premium)} className={`p-4 rounded-xl border-2 text-[10px] font-bold transition-all relative flex items-center justify-center ${invitation.paper_type === texture.id ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'} ${texture.premium && !isPremium ? 'opacity-40 grayscale' : ''}`}>
                     {texture.name.toUpperCase()}
                     {texture.premium && !isPremium && <Lock size={10} className="absolute right-2 top-2 text-gray-400" />}
                   </button>
                 ))}
               </div>
             ) : (
-              <div className={`space-y-4 ${!isPremium ? 'opacity-50 grayscale' : ''}`}>
+              <div className="space-y-4">
                 <div>
                   <label className="text-[10px] font-black uppercase text-gray-400 mb-3 block ml-1">{localLabels.paper_color_label}</label>
                   <div className="flex gap-3 overflow-x-auto pt-2 pb-3 px-1 scrollbar-hide">
                     {COLOR_PALETTES.map(p => (
-                      <button
-                        type="button"
-                        key={p.color}
-                        onClick={() => handlePaperColorClick(p.color)}
-                        style={{ backgroundColor: p.color }}
-                        className={`h-11 w-11 shrink-0 rounded-full border-4 relative transition-all ${invitation.paper_color === p.color ? 'border-amber-400 scale-110 shadow-lg' : 'border-white shadow-sm'}`}
-                      >
-                        {!isPremium && <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-full"><Lock size={10} className="text-white drop-shadow-md" /></div>}
-                      </button>
+                      <button type="button" key={p.color} onClick={() => handlePaperColorClick(p.color)} style={{ backgroundColor: p.color }} className={`h-11 w-11 shrink-0 rounded-full border-4 transition-all ${invitation.paper_color === p.color ? 'border-amber-400 scale-110 shadow-lg' : 'border-white shadow-sm'}`} />
                     ))}
                   </div>
                 </div>
@@ -684,14 +665,8 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                   <label className="text-[10px] font-black uppercase text-gray-400 mb-3 block ml-1">{localLabels.paper_premium_colors}</label>
                   <div className="flex gap-3 overflow-x-auto pt-1 pb-2 px-1 scrollbar-hide">
                     {PREMIUM_PALETTES.map(p => (
-                      <button
-                        type="button"
-                        key={p.id}
-                        onClick={() => handlePaperPremiumClick(p.gradient)}
-                        style={{ background: p.gradient }}
-                        className={`h-12 w-12 shrink-0 rounded-xl border-4 relative flex items-center justify-center transition-all ${invitation.paper_color === p.gradient ? 'border-amber-400 scale-110 shadow-lg' : 'border-white shadow-sm'} ${!isPremium ? 'opacity-40 grayscale' : ''}`}
-                      >
-                        {!isPremium && <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-lg"><Lock size={12} className="text-white drop-shadow-md" /></div>}
+                      <button type="button" key={p.id} onClick={() => handlePaperPremiumClick(p.gradient)} style={{ background: p.gradient }} className={`h-12 w-12 shrink-0 rounded-xl border-4 relative flex items-center justify-center transition-all ${invitation.paper_color === p.gradient ? 'border-amber-400 scale-110 shadow-lg' : 'border-white shadow-sm'}`}>
+                        <span className="sr-only">{p.name}</span>
                       </button>
                     ))}
                   </div>
@@ -702,11 +677,13 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
           <div className="space-y-4 bg-gray-50/60 p-4 rounded-3xl border border-gray-100">
             <div className="flex items-center justify-between ml-1 mb-2">
-              <label className="text-[10px] font-black uppercase text-gray-500">{t.theme_label}</label>
+              <label className="text-[10px] font-black uppercase text-gray-500">{localLabels.ambiance_label}</label>
+
               <div className="flex bg-gray-200/60 p-1 rounded-xl">
                 <button type="button" onClick={() => handleTriggerModeSwitch('emoji')} className={`px-3 py-1.5 text-[9px] font-black uppercase rounded-lg transition-all ${triggerMode === 'emoji' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'}`}>
                   {localLabels.trigger_mode_emoji}
                 </button>
+
                 <button type="button" onClick={() => handleTriggerModeSwitch('decor')} className={`px-3 py-1.5 text-[9px] font-black uppercase rounded-lg transition-all relative flex items-center gap-1 ${triggerMode === 'decor' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'} ${!isPremium ? 'opacity-50' : ''}`}>
                   {localLabels.trigger_mode_decor}
                   {!isPremium && <Lock size={10} />}
@@ -720,14 +697,17 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                   <PartyPopper size={16} className={invitation.background_theme === 'balloons' ? 'text-amber-500' : 'text-gray-400'} />
                   <span className="text-[10px] font-bold uppercase">{localLabels.bg_balloons}</span>
                 </button>
+
                 <button type="button" onClick={() => handleBackgroundThemeClick('flowers', true)} className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-all ${invitation.background_theme === 'flowers' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}>
                   <Heart size={16} className={invitation.background_theme === 'flowers' ? 'text-amber-500' : 'text-gray-400'} />
                   <span className="text-[10px] font-bold uppercase">{localLabels.bg_flowers}</span>
                 </button>
+
                 <button type="button" onClick={() => handleBackgroundThemeClick('butterflies', true)} className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-all ${invitation.background_theme === 'butterflies' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}>
                   <Sparkles size={16} className={invitation.background_theme === 'butterflies' ? 'text-amber-500' : 'text-gray-400'} />
                   <span className="text-[10px] font-bold uppercase">{localLabels.bg_butterflies}</span>
                 </button>
+
                 <button type="button" onClick={() => handleBackgroundThemeClick('stars', true)} className={`flex items-center gap-3 p-4 rounded-xl border-2 text-left transition-all ${invitation.background_theme === 'stars' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}>
                   <Sparkles size={16} className={invitation.background_theme === 'stars' ? 'text-amber-500' : 'text-gray-400'} />
                   <span className="text-[10px] font-bold uppercase">{localLabels.bg_stars}</span>
@@ -747,29 +727,19 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
             <div className="border-t border-gray-200/60 mt-3 pt-3">
               <label className="text-[10px] font-black uppercase text-gray-400 mb-3 block ml-1">{localLabels.bg_color_label}</label>
+
               <div className="flex gap-3 overflow-x-auto pb-2 px-1 scrollbar-hide">
                 {COLOR_PALETTES.map(p => (
-                  <button
-                    type="button"
-                    key={p.color}
-                    onClick={() => handleBackgroundPremiumClick(p.color)}
-                    style={{ backgroundColor: p.color }}
-                    className={`h-10 w-10 shrink-0 rounded-full border-4 relative transition-all ${invitation.background_color === p.color ? 'border-amber-400 scale-110 shadow-md' : 'border-white shadow-sm'} ${!isPremium ? 'opacity-40 grayscale pointer-events-none' : ''}`}
-                  />
+                  <button type="button" key={p.color} onClick={() => handleBackgroundPremiumClick(p.color)} style={{ backgroundColor: p.color }} className={`h-10 w-10 shrink-0 rounded-full border-4 relative transition-all ${invitation.background_color === p.color ? 'border-amber-400 scale-110 shadow-md' : 'border-white shadow-sm'} ${!isPremium ? 'opacity-40 grayscale pointer-events-none' : ''}`} />
                 ))}
               </div>
 
               <div className="mt-2">
                 <label className="text-[10px] font-black uppercase text-gray-400 mb-3 block ml-1">{localLabels.bg_premium_colors}</label>
+
                 <div className="flex gap-3 overflow-x-auto pt-1 pb-2 px-1 scrollbar-hide">
                   {PREMIUM_PALETTES.map(p => (
-                    <button
-                      type="button"
-                      key={p.id}
-                      onClick={() => handleBackgroundPremiumClick(p.gradient)}
-                      style={{ background: p.gradient }}
-                      className={`h-11 w-11 shrink-0 rounded-xl border-4 relative flex items-center justify-center transition-all ${invitation.background_color === p.gradient ? 'border-amber-400 scale-110 shadow-md' : 'border-white shadow-sm'} ${!isPremium ? 'opacity-40 grayscale' : ''}`}
-                    >
+                    <button type="button" key={p.id} onClick={() => handleBackgroundPremiumClick(p.gradient)} style={{ background: p.gradient }} className={`h-11 w-11 shrink-0 rounded-xl border-4 relative flex items-center justify-center transition-all ${invitation.background_color === p.gradient ? 'border-amber-400 scale-110 shadow-md' : 'border-white shadow-sm'} ${!isPremium ? 'opacity-40 grayscale' : ''}`}>
                       {!isPremium && <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-lg"><Lock size={12} className="text-white drop-shadow-md" /></div>}
                     </button>
                   ))}
@@ -780,15 +750,10 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
           <div>
             <label className="text-[10px] font-black uppercase text-gray-400 mb-4 block ml-1">{t.font_style_label}</label>
+
             <div className="space-y-2">
               {FONTS.map(f => (
-                <button
-                  type="button"
-                  key={f.id}
-                  onClick={() => handleFontClick(f.family, f.premium)}
-                  className={`w-full h-14 px-4 rounded-2xl text-left border-2 transition-all relative ${invitation.font_style === f.family ? 'border-amber-400 bg-amber-50' : 'bg-gray-50 border-transparent'} ${f.premium && !isPremium ? 'opacity-40 grayscale' : ''}`}
-                  style={{ fontFamily: f.family }}
-                >
+                <button type="button" key={f.id} onClick={() => handleFontClick(f.family, f.premium)} className={`w-full h-14 px-4 rounded-2xl text-left border-2 transition-all relative ${invitation.font_style === f.family ? 'border-amber-400 bg-amber-50' : 'bg-gray-50 border-transparent'} ${f.premium && !isPremium ? 'opacity-40 grayscale' : ''}`} style={{ fontFamily: f.family }}>
                   {f.name}
                   {f.premium && !isPremium && <Lock size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400" />}
                 </button>
