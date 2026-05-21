@@ -44,7 +44,7 @@
     position: relative;
     overflow: hidden;
     isolation: isolate;
-    background: var(--dynamic-color, #ffffff);
+    background-color: #ffffff;
   }
 
   .paper-container::before {
@@ -53,13 +53,24 @@
     inset: 0;
     pointer-events: none;
     z-index: 0;
+    background: var(--dynamic-color, #ffffff);
+    opacity: var(--paper-color-opacity, 0.32);
+    mix-blend-mode: multiply;
+  }
+
+  .paper-container::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
     background-image: var(--paper-texture, none);
     background-repeat: repeat;
     background-position: center;
-    background-size: auto;
-    opacity: var(--paper-texture-opacity, 0.55);
-    mix-blend-mode: luminosity;
-    filter: contrast(1.35) brightness(1.12);
+    background-size: var(--paper-texture-size, auto);
+    opacity: var(--paper-texture-opacity, 0.65);
+    mix-blend-mode: multiply;
+    filter: contrast(var(--paper-texture-contrast, 1.12)) brightness(var(--paper-texture-brightness, 1.04));
   }
 
   .paper-container > * {
@@ -69,32 +80,50 @@
 
   .paper-smooth {
     --paper-texture: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/smooth.jpg");
-    --paper-texture-opacity: 0.22;
+    --paper-texture-opacity: 0.18;
+    --paper-color-opacity: 0.18;
+    --paper-texture-contrast: 1.05;
+    --paper-texture-brightness: 1.06;
   }
 
   .paper-parchment {
     --paper-texture: url("https://www.transparenttextures.com/patterns/parchment.png");
-    --paper-texture-opacity: 0.65;
+    --paper-texture-opacity: 0.58;
+    --paper-color-opacity: 0.26;
+    --paper-texture-contrast: 1.1;
+    --paper-texture-brightness: 1.04;
   }
 
   .paper-grainy {
     --paper-texture: url("https://www.transparenttextures.com/patterns/beige-paper.png");
-    --paper-texture-opacity: 0.72;
+    --paper-texture-opacity: 0.62;
+    --paper-color-opacity: 0.24;
+    --paper-texture-contrast: 1.16;
+    --paper-texture-brightness: 1.03;
   }
 
   .paper-cotton {
     --paper-texture: url("https://www.transparenttextures.com/patterns/white-diamond.png");
-    --paper-texture-opacity: 0.58;
+    --paper-texture-opacity: 0.54;
+    --paper-color-opacity: 0.22;
+    --paper-texture-contrast: 1.12;
+    --paper-texture-brightness: 1.06;
   }
 
   .paper-silk {
     --paper-texture: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/silk.png");
-    --paper-texture-opacity: 0.62;
+    --paper-texture-opacity: 0.5;
+    --paper-color-opacity: 0.24;
+    --paper-texture-contrast: 1.12;
+    --paper-texture-brightness: 1.08;
   }
 
   .paper-velvet {
     --paper-texture: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/velvet.PNG");
-    --paper-texture-opacity: 0.7;
+    --paper-texture-opacity: 0.6;
+    --paper-color-opacity: 0.3;
+    --paper-texture-contrast: 1.18;
+    --paper-texture-brightness: 1.03;
   }
 
   .texture-btn {
