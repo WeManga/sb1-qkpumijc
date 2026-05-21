@@ -97,9 +97,9 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       style_knock: "Main qui toque",
       style_key: "Clé classique",
       style_vault: "Code digital (Vault)",
-      type_vinyl: "Volet classique",
-      type_filmstrip: "Porte en Bois",
-      type_metal: "Porte en Métal",
+      container_envelope: "Volet classique",
+      container_wooden_door: "Porte en bois",
+      container_metal_door: "Porte en métal",
       vault_date_label: "Date du code secret (6 chiffres animés)",
       alert_msg: "Vous possédez un compte FREE, veuillez passer en PREMIUM pour débloquer cette fonctionnalité.",
       paper_section_label: "Style de la carte d'invitation (Papier)",
@@ -126,9 +126,9 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       style_knock: 'Knocking Hand',
       style_key: 'Classic Key',
       style_vault: 'Digital Code (Vault)',
-      type_vinyl: 'Classic Panel',
-      type_filmstrip: 'Wooden Door',
-      type_metal: 'Metal Door',
+      container_envelope: 'Classic Panel',
+      container_wooden_door: 'Wooden Door',
+      container_metal_door: 'Metal Door',
       vault_date_label: 'Secret Code Date (6 animated digits)',
       alert_msg: 'You have a FREE account, please upgrade to PREMIUM to unlock this feature.',
       paper_section_label: 'Invitation Card Style (Paper)',
@@ -155,9 +155,9 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       style_knock: 'Tay gõ cửa',
       style_key: 'Chìa khóa cổ điển',
       style_vault: 'Mã kỹ thuật số (Vault)',
-      type_vinyl: 'Bảng cổ điển',
-      type_filmstrip: 'Cửa gỗ',
-      type_metal: 'Cửa kim loại',
+      container_envelope: 'Bảng cổ điển',
+      container_wooden_door: 'Cửa gỗ',
+      container_metal_door: 'Cửa kim loại',
       vault_date_label: 'Ngày mã bí mật (6 chữ số hoạt hình)',
       alert_msg: 'Bạn đang sử dụng tài khoản MIỄN PHÍ, vui lòng nâng cấp lên PREMIUM để mở khóa tính năng này.',
       paper_section_label: 'Kiểu Thẻ Mời (Giấy)',
@@ -586,18 +586,18 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             <div className="grid grid-cols-2 gap-3">
               <button type="button" onClick={() => handleContainerOpenClick('envelope', false)} className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all ${invitation.container_open === 'envelope' || !invitation.container_open ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'}`}>
                 <ImageIcon size={18} className={invitation.container_open === 'envelope' || !invitation.container_open ? 'text-amber-500' : 'text-gray-400'} />
-                <span className="text-[10px] font-bold uppercase">{localLabels.type_vinyl}</span>
+                <span className="text-[10px] font-bold uppercase">{localLabels.container_envelope}</span>
               </button>
 
               <button type="button" onClick={() => handleContainerOpenClick('wooden_door', true)} className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all relative ${invitation.container_open === 'wooden_door' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'} ${!isPremium ? 'opacity-40 grayscale' : ''}`}>
                 <DoorClosed size={18} className={invitation.container_open === 'wooden_door' ? 'text-amber-500' : 'text-gray-400'} />
-                <span className="text-[10px] font-bold uppercase">{localLabels.type_filmstrip}</span>
+                <span className="text-[10px] font-bold uppercase">{localLabels.container_wooden_door}</span>
                 {!isPremium && <Lock size={12} className="absolute right-2 top-2 text-gray-400" />}
               </button>
 
               <button type="button" onClick={() => handleContainerOpenClick('metal_door', true)} className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all relative ${invitation.container_open === 'metal_door' ? 'border-amber-400 bg-amber-50' : 'bg-white border-transparent'} ${!isPremium ? 'opacity-40 grayscale' : ''}`}>
                 <DoorClosed size={18} className={invitation.container_open === 'metal_door' ? 'text-amber-500' : 'text-gray-400'} />
-                <span className="text-[10px] font-bold uppercase">{localLabels.type_metal}</span>
+                <span className="text-[10px] font-bold uppercase">{localLabels.container_metal_door}</span>
                 {!isPremium && <Lock size={12} className="absolute right-2 top-2 text-gray-400" />}
               </button>
             </div>
