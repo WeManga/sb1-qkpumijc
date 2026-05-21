@@ -73,9 +73,7 @@ const TEXTURES = [
 export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: any) {
   const [uploading, setUploading] = useState(false);
   const [selectedPhotoKey, setSelectedPhotoKey] = useState('main_photo_url');
-  const [paperMode, setPaperMode] = useState<'color' | 'texture'>(
-    invitation.paper_color && invitation.paper_color !== '#ffffff' ? 'color' : 'texture'
-  );
+  const [paperMode, setPaperMode] = useState<'color' | 'texture'>('texture');
   const [triggerMode, setTriggerMode] = useState<'emoji' | 'decor'>(invitation.premium_trigger_type || 'emoji');
   const dragRef = useRef<{ x: number; y: number; isDragging: boolean; lastDist: number }>({
     x: 0,
@@ -186,6 +184,11 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
   const handlePremiumClick = (colorValue: string) => {
     if (!checkPremiumAccess(false)) return;
     onInvitationChange({ ...invitation, envelope_color: colorValue });
+  };
+
+  const handlePaperColorClick = (colorValue: string) => {
+    if (!checkPremiumAccess(false)) return;
+    onInvitationChange({ ...invitation, paper_color: colorValue });
   };
 
   const handlePaperPremiumClick = (colorValue: string) => {
@@ -637,8 +640,9 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 <button type="button" onClick={() => setPaperMode('texture')} className={`px-3 py-1 text-[9px] font-black uppercase rounded-lg transition-all ${paperMode === 'texture' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'}`}>
                   {localLabels.paper_mode_texture}
                 </button>
-                <button type="button" onClick={() => setPaperMode('color')} className={`px-3 py-1 text-[9px] font-black uppercase rounded-lg transition-all ${paperMode === 'color' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'}`}>
+                <button type="button" onClick={() => setPaperMode('color')} className={`px-3 py-1 text-[9px] font-black uppercase rounded-lg transition-all relative flex items-center gap-1 ${paperMode === 'color' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400'} ${!isPremium ? 'opacity-50' : ''}`}>
                   {localLabels.paper_mode_color}
+                  {!isPremium && <Lock size={10} />}
                 </button>
               </div>
             </div>
@@ -658,7 +662,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 ))}
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className={`space-y-4 ${!isPremium ? 'opacity-50 grayscale' : ''}`}>
                 <div>
                   <label className="text-[10px] font-black uppercase text-gray-400 mb-3 block ml-1">{localLabels.paper_color_label}</label>
                   <div className="flex gap-3 overflow-x-auto pt-2 pb-3 px-1 scrollbar-hide">
@@ -666,10 +670,12 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                       <button
                         type="button"
                         key={p.color}
-                        onClick={() => onInvitationChange({ ...invitation, paper_color: p.color })}
+                        onClick={() => handlePaperColorClick(p.color)}
                         style={{ backgroundColor: p.color }}
-                        className={`h-11 w-11 shrink-0 rounded-full border-4 transition-all ${invitation.paper_color === p.color ? 'border-amber-400 scale-110 shadow-lg' : 'border-white shadow-sm'}`}
-                      />
+                        className={`h-11 w-11 shrink-0 rounded-full border-4 relative transition-all ${invitation.paper_color === p.color ? 'border-amber-400 scale-110 shadow-lg' : 'border-white shadow-sm'}`}
+                      >
+                        {!isPremium && <div className="absolute inset-0 flex items-center justify-center bg-black/10 rounded-full"><Lock size={10} className="text-white drop-shadow-md" /></div>}
+                      </button>
                     ))}
                   </div>
                 </div>
