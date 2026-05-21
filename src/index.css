@@ -57,8 +57,11 @@
     background-repeat: repeat;
     background-position: center;
     background-size: auto;
-    opacity: 0.18;
-    mix-blend-mode: soft-light;
+    /* --- CORRECTIF APPLIQUÉ ICI --- */
+    opacity: 0.35;
+    mix-blend-mode: multiply;
+    filter: brightness(0.9) contrast(1.1);
+    /* ------------------------------ */
   }
 
   .paper-container > * {
