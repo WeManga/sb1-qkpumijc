@@ -190,11 +190,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
   const handlePaperPremiumClick = (colorValue: string) => {
     if (!checkPremiumAccess(false)) return;
-    onInvitationChange({
-      ...invitation,
-      paper_color: colorValue,
-      paper_type: 'smooth'
-    });
+    onInvitationChange({ ...invitation, paper_color: colorValue });
   };
 
   const handleBackgroundPremiumClick = (colorValue: string) => {
@@ -240,11 +236,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
   const handleTextureClick = (textureId: string, premium: boolean) => {
     if (!checkPremiumAccess(!premium)) return;
-    onInvitationChange({
-      ...invitation,
-      paper_type: textureId,
-      paper_color: '#ffffff'
-    });
+    onInvitationChange({ ...invitation, paper_type: textureId });
   };
 
   const EVENT_TYPES = [
@@ -674,7 +666,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                       <button
                         type="button"
                         key={p.color}
-                        onClick={() => onInvitationChange({ ...invitation, paper_color: p.color, paper_type: 'smooth' })}
+                        onClick={() => onInvitationChange({ ...invitation, paper_color: p.color })}
                         style={{ backgroundColor: p.color }}
                         className={`h-11 w-11 shrink-0 rounded-full border-4 transition-all ${invitation.paper_color === p.color ? 'border-amber-400 scale-110 shadow-lg' : 'border-white shadow-sm'}`}
                       />
