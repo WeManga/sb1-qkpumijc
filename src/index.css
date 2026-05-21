@@ -44,7 +44,7 @@
     position: relative;
     overflow: hidden;
     isolation: isolate;
-    background-color: var(--dynamic-color, #ffffff);
+    background: var(--dynamic-color, #ffffff);
   }
 
   .paper-container::before {
@@ -57,11 +57,8 @@
     background-repeat: repeat;
     background-position: center;
     background-size: auto;
-    /* --- CORRECTIF APPLIQUÉ ICI --- */
-    opacity: 0.35;
+    opacity: var(--paper-texture-opacity, 0.38);
     mix-blend-mode: multiply;
-    filter: brightness(0.9) contrast(1.1);
-    /* ------------------------------ */
   }
 
   .paper-container > * {
@@ -71,26 +68,32 @@
 
   .paper-smooth {
     --paper-texture: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/smooth.jpg");
+    --paper-texture-opacity: 0.16;
   }
 
   .paper-parchment {
     --paper-texture: url("https://www.transparenttextures.com/patterns/parchment.png");
+    --paper-texture-opacity: 0.42;
   }
 
   .paper-grainy {
     --paper-texture: url("https://www.transparenttextures.com/patterns/beige-paper.png");
+    --paper-texture-opacity: 0.5;
   }
 
   .paper-cotton {
     --paper-texture: url("https://www.transparenttextures.com/patterns/white-diamond.png");
+    --paper-texture-opacity: 0.35;
   }
 
   .paper-silk {
     --paper-texture: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/silk.png");
+    --paper-texture-opacity: 0.42;
   }
 
   .paper-velvet {
     --paper-texture: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/velvet.PNG");
+    --paper-texture-opacity: 0.55;
   }
 
   .texture-btn {

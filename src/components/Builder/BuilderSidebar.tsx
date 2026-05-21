@@ -73,7 +73,9 @@ const TEXTURES = [
 export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: any) {
   const [uploading, setUploading] = useState(false);
   const [selectedPhotoKey, setSelectedPhotoKey] = useState('main_photo_url');
-  const [paperMode, setPaperMode] = useState<'color' | 'texture'>('texture');
+  const [paperMode, setPaperMode] = useState<'color' | 'texture'>(
+    invitation.paper_color && invitation.paper_color !== '#ffffff' ? 'color' : 'texture'
+  );
   const [triggerMode, setTriggerMode] = useState<'emoji' | 'decor'>(invitation.premium_trigger_type || 'emoji');
   const dragRef = useRef<{ x: number; y: number; isDragging: boolean; lastDist: number }>({
     x: 0,
@@ -188,7 +190,11 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
   const handlePaperPremiumClick = (colorValue: string) => {
     if (!checkPremiumAccess(false)) return;
-    onInvitationChange({ ...invitation, paper_color: colorValue });
+    onInvitationChange({
+      ...invitation,
+      paper_color: colorValue,
+      paper_type: 'smooth'
+    });
   };
 
   const handleBackgroundPremiumClick = (colorValue: string) => {
@@ -234,7 +240,11 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
   const handleTextureClick = (textureId: string, premium: boolean) => {
     if (!checkPremiumAccess(!premium)) return;
-    onInvitationChange({ ...invitation, paper_type: textureId });
+    onInvitationChange({
+      ...invitation,
+      paper_type: textureId,
+      paper_color: '#ffffff'
+    });
   };
 
   const EVENT_TYPES = [
@@ -664,7 +674,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                       <button
                         type="button"
                         key={p.color}
-                        onClick={() => onInvitationChange({ ...invitation, paper_color: p.color })}
+                        onClick={() => onInvitationChange({ ...invitation, paper_color: p.color, paper_type: 'smooth' })}
                         style={{ backgroundColor: p.color }}
                         className={`h-11 w-11 shrink-0 rounded-full border-4 transition-all ${invitation.paper_color === p.color ? 'border-amber-400 scale-110 shadow-lg' : 'border-white shadow-sm'}`}
                       />
