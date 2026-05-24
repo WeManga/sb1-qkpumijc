@@ -338,11 +338,11 @@ export function InvitationPreview({ invitation }: any) {
         {theme === 'flowers' && (
           <>
             <div
-              className="absolute top-0 right-0 w-40 h-40 bg-contain bg-no-repeat bg-right-top z-20"
+              className="absolute top-0 right-0 w-56 h-56 bg-contain bg-no-repeat bg-right-top z-20"
               style={{ backgroundImage: 'url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleurs%20haut%20droite.png")' }}
             />
             <div
-              className="absolute bottom-0 left-0 w-40 h-40 bg-contain bg-no-repeat bg-left-bottom z-20"
+              className="absolute bottom-0 left-0 w-56 h-56 bg-contain bg-no-repeat bg-left-bottom z-20"
               style={{ backgroundImage: 'url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleurs%20bas%20gauche.png")' }}
             />
           </>
