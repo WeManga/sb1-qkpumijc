@@ -87,7 +87,7 @@
   }
 
   .paper-parchment {
-    --paper-texture: url("https://www.transparenttextures.com/patterns/parchment.png");
+    --paper-texture: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/parchemin.jpg");
     --paper-texture-opacity: 0.58;
     --paper-color-opacity: 0.24;
     --paper-texture-contrast: 1.1;
@@ -103,7 +103,7 @@
   }
 
   .paper-cotton {
-    --paper-texture: url("https://www.transparenttextures.com/patterns/white-diamond.png");
+    --paper-texture: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/coton.png");
     --paper-texture-opacity: 0.54;
     --paper-color-opacity: 0.22;
     --paper-texture-contrast: 1.12;
