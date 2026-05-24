@@ -82,7 +82,11 @@ export default function MobileApp({ invitation, onInvitationChange, onSave, onBa
               </div>
 
               <div className="overflow-y-auto px-8 py-8 pb-32 scrollbar-hide">
-                <BuilderSidebar invitation={invitation} onInvitationChange={onInvitationChange} activeTab={activeTab} />
+                <BuilderSidebar
+                  invitation={invitation}
+                  onInvitationChange={onInvitationChange}
+                  activeTab={activeTab}
+                />
               </div>
             </motion.div>
           </div>
@@ -98,7 +102,11 @@ export default function MobileApp({ invitation, onInvitationChange, onSave, onBa
               activeTab === item.id ? 'text-amber-600 scale-105' : 'text-gray-400 hover:text-gray-600'
             }`}
           >
-            <div className={`p-3 rounded-[1.25rem] transition-all duration-300 ${activeTab === item.id ? 'bg-amber-50 shadow-inner' : ''}`}>
+            <div
+              className={`p-3 rounded-[1.25rem] transition-all duration-300 ${
+                activeTab === item.id ? 'bg-amber-50 shadow-inner' : ''
+              }`}
+            >
               {item.icon}
             </div>
             <span className="text-[10px] font-black uppercase tracking-wider">{item.label}</span>
