@@ -479,36 +479,85 @@ export function InvitationPreview({ invitation }: any) {
                   </motion.div>
                 </div>
               ) : (
-                <div className="relative w-[280px] h-[280px] flex items-center justify-center" style={{ perspective: '1000px' }}>
+                <div className="relative w-[300px] h-[300px] flex items-center justify-center" style={{ perspective: '1000px' }}>
                   <motion.div
                     initial={{ rotateX: 15, rotateZ: 0 }}
                     animate={isOpened ? { rotateZ: 360 } : { rotateZ: 0 }}
-                    transition={isOpened ? { repeat: Infinity, duration: 4, ease: 'linear', delay: 0.8 } : { duration: 0.5 }}
-                    className="w-[250px] h-[250px] relative rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.7),_inset_0_0_30px_rgba(255,255,255,0.08)] border-4 border-neutral-800 flex items-center justify-center overflow-hidden"
-                    style={{ background: 'radial-gradient(circle at 30% 30%, #2a2a2a, #0a0a0a)' }}
+                    transition={isOpened ? { repeat: Infinity, duration: 7, ease: 'linear', delay: 0.8 } : { duration: 0.5 }}
+                    className="w-[270px] h-[270px] relative rounded-full border border-neutral-950 overflow-hidden"
+                    style={{
+                      background: 'radial-gradient(circle at center, #050505 0 7%, #101010 8% 18%, #050505 19% 100%)',
+                      boxShadow: '0 24px 60px rgba(0,0,0,0.75), inset 0 0 18px rgba(255,255,255,0.06), inset 0 0 80px rgba(0,0,0,0.95)',
+                    }}
                   >
-                    <div className="absolute inset-0 opacity-50 mix-blend-overlay pointer-events-none" style={{ background: 'repeating-radial-gradient(circle, #404040 0px, #1a1a1a 1px, #0d0d0d 2px)' }} />
-                    <motion.div
-                      animate={isOpened ? { rotate: -360 } : { rotate: 0 }}
-                      transition={isOpened ? { repeat: Infinity, duration: 4, ease: 'linear', delay: 0.8 } : { duration: 0.5 }}
-                      className="absolute inset-0 opacity-25 pointer-events-none mix-blend-screen"
-                      style={{ background: 'conic-gradient(from 0deg, transparent 0deg, rgba(255,255,255,0.5) 45deg, transparent 90deg, transparent 180deg, rgba(255,255,255,0.5) 225deg, transparent 270deg)' }}
+                    <div
+                      className="absolute inset-0 rounded-full opacity-75 pointer-events-none"
+                      style={{
+                        background: 'repeating-radial-gradient(circle, rgba(255,255,255,0.12) 0px, rgba(255,255,255,0.12) 0.45px, transparent 0.9px, transparent 3.2px)',
+                      }}
                     />
-                    <div className="absolute inset-8 rounded-full border border-white/10 opacity-30 pointer-events-none" />
-                    <div className="absolute inset-12 rounded-full border border-white/5 opacity-20 pointer-events-none" />
-                    <div className="w-24 h-24 bg-white rounded-full border-[6px] border-neutral-900 shadow-[0_8px_24px_rgba(0,0,0,0.8),_inset_0_2px_4px_rgba(255,255,255,0.3)] overflow-hidden relative z-10 flex items-center justify-center">
-                      {mainPhotoUrl ? (
-                        <img
-                          src={mainPhotoUrl}
-                          className="w-full h-full object-cover"
-                          style={{ transform: `translate(${mainPhotoPosX}px, ${mainPhotoPosY}px) scale(${mainPhotoScale})` }}
-                          alt=""
+
+                    <div
+                      className="absolute inset-0 rounded-full opacity-45 pointer-events-none mix-blend-screen"
+                      style={{
+                        background: 'conic-gradient(from 18deg, transparent 0deg, rgba(255,255,255,0.22) 18deg, transparent 42deg, transparent 150deg, rgba(255,255,255,0.16) 178deg, transparent 215deg, transparent 360deg)',
+                      }}
+                    />
+
+                    <div
+                      className="absolute inset-[18px] rounded-full border border-white/5 pointer-events-none"
+                      style={{
+                        boxShadow: 'inset 0 0 18px rgba(255,255,255,0.03), inset 0 0 40px rgba(0,0,0,0.8)',
+                      }}
+                    />
+
+                    <div
+                      className="absolute inset-[46px] rounded-full border border-white/5 pointer-events-none"
+                      style={{
+                        boxShadow: 'inset 0 0 20px rgba(0,0,0,0.8)',
+                      }}
+                    />
+
+                    <div
+                      className="absolute left-[16%] top-[12%] w-[46%] h-[22%] rounded-full rotate-[-28deg] pointer-events-none opacity-35 blur-[1px]"
+                      style={{
+                        background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.28), transparent)',
+                      }}
+                    />
+
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div
+                        className="w-28 h-28 rounded-full bg-white border-[7px] border-neutral-950 overflow-hidden relative z-10 flex items-center justify-center"
+                        style={{
+                          boxShadow: '0 8px 24px rgba(0,0,0,0.85), inset 0 2px 5px rgba(255,255,255,0.6)',
+                        }}
+                      >
+                        {mainPhotoUrl ? (
+                          <img
+                            src={mainPhotoUrl}
+                            className="w-full h-full object-cover"
+                            style={{ transform: `translate(${mainPhotoPosX}px, ${mainPhotoPosY}px) scale(${mainPhotoScale})` }}
+                            alt=""
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-tr from-neutral-200 to-neutral-50" />
+                        )}
+
+                        <div className="absolute inset-0 bg-white/10 mix-blend-overlay pointer-events-none" />
+
+                        <div
+                          className="absolute w-4 h-4 bg-neutral-950 rounded-full border border-white/30 shadow-inner"
+                          style={{ boxShadow: 'inset 0 1px 2px rgba(255,255,255,0.2), 0 1px 4px rgba(0,0,0,0.6)' }}
                         />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-tr from-neutral-200 to-neutral-50" />
-                      )}
-                      <div className="absolute w-3 h-3 bg-neutral-950 rounded-full shadow-inner border border-white/30" />
+                      </div>
                     </div>
+
+                    <div
+                      className="absolute inset-0 rounded-full pointer-events-none"
+                      style={{
+                        background: 'radial-gradient(circle at center, transparent 0 16%, rgba(0,0,0,0.15) 17% 24%, transparent 25% 100%)',
+                      }}
+                    />
                   </motion.div>
                 </div>
               )}
