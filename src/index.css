@@ -45,6 +45,23 @@
     overflow: hidden;
     isolation: isolate;
     background-color: #ffffff;
+    background-image:
+      linear-gradient(var(--dynamic-color, #ffffff), var(--dynamic-color, #ffffff)),
+      var(--paper-fiber-layer, none),
+      var(--paper-grain-layer, none),
+      var(--paper-sheen-layer, none);
+    background-blend-mode: multiply, multiply, normal, screen;
+    background-attachment: local, local, local, local;
+    background-size:
+      auto,
+      var(--paper-fiber-size, 120px 120px),
+      var(--paper-grain-size, 160px 160px),
+      var(--paper-sheen-size, 220px 220px);
+    background-position:
+      center,
+      center,
+      center,
+      center;
   }
 
   .paper-container::before {
@@ -53,9 +70,12 @@
     inset: 0;
     pointer-events: none;
     z-index: 0;
-    background: var(--dynamic-color, #ffffff);
-    opacity: var(--paper-color-opacity, 0.28);
-    mix-blend-mode: multiply;
+    background:
+      radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.72), transparent 26%),
+      radial-gradient(circle at 84% 18%, rgba(255, 255, 255, 0.5), transparent 24%),
+      radial-gradient(circle at 50% 95%, rgba(120, 72, 18, 0.08), transparent 34%);
+    opacity: var(--paper-light-opacity, 0.42);
+    mix-blend-mode: soft-light;
   }
 
   .paper-container::after {
@@ -64,13 +84,24 @@
     inset: 0;
     pointer-events: none;
     z-index: 0;
-    background-image: var(--paper-texture, none);
-    background-repeat: repeat;
-    background-position: center;
-    background-size: var(--paper-texture-size, auto);
-    opacity: var(--paper-texture-opacity, 0.6);
+    background:
+      repeating-linear-gradient(
+        92deg,
+        rgba(120, 72, 18, 0.035) 0px,
+        rgba(120, 72, 18, 0.035) 1px,
+        transparent 1px,
+        transparent 5px
+      ),
+      repeating-linear-gradient(
+        2deg,
+        rgba(255, 255, 255, 0.22) 0px,
+        rgba(255, 255, 255, 0.22) 1px,
+        transparent 1px,
+        transparent 7px
+      );
+    opacity: var(--paper-texture-opacity, 0.18);
     mix-blend-mode: multiply;
-    filter: contrast(var(--paper-texture-contrast, 1.12)) brightness(var(--paper-texture-brightness, 1.04));
+    filter: contrast(var(--paper-texture-contrast, 1.04)) brightness(var(--paper-texture-brightness, 1.02));
   }
 
   .paper-container > * {
@@ -79,51 +110,189 @@
   }
 
   .paper-smooth {
-    --paper-texture: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/smooth.jpg");
-    --paper-texture-opacity: 0.16;
-    --paper-color-opacity: 0.16;
-    --paper-texture-contrast: 1.04;
-    --paper-texture-brightness: 1.06;
+    --paper-texture-opacity: 0.08;
+    --paper-light-opacity: 0.34;
+    --paper-texture-contrast: 1.02;
+    --paper-texture-brightness: 1.04;
+    --paper-fiber-layer:
+      radial-gradient(circle at 24% 18%, rgba(255, 255, 255, 0.28) 0 1px, transparent 1.5px),
+      radial-gradient(circle at 70% 56%, rgba(0, 0, 0, 0.025) 0 1px, transparent 1.5px);
+    --paper-grain-layer:
+      linear-gradient(115deg, rgba(255, 255, 255, 0.16), transparent 34%, rgba(0, 0, 0, 0.018) 68%, transparent);
+    --paper-sheen-layer:
+      linear-gradient(128deg, transparent 0%, rgba(255, 255, 255, 0.28) 48%, transparent 100%);
   }
 
   .paper-parchment {
-    --paper-texture: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/parche%202.jpg");
-    --paper-texture-opacity: 0.58;
-    --paper-color-opacity: 0.24;
-    --paper-texture-contrast: 1.1;
-    --paper-texture-brightness: 1.04;
+    --paper-texture-opacity: 0.22;
+    --paper-light-opacity: 0.5;
+    --paper-texture-contrast: 1.08;
+    --paper-texture-brightness: 1.02;
+    --paper-fiber-layer:
+      radial-gradient(circle at 14% 22%, rgba(111, 78, 38, 0.08) 0 1px, transparent 1.8px),
+      radial-gradient(circle at 64% 44%, rgba(255, 255, 255, 0.22) 0 1px, transparent 1.6px),
+      radial-gradient(circle at 86% 72%, rgba(111, 78, 38, 0.06) 0 1.2px, transparent 2px);
+    --paper-grain-layer:
+      linear-gradient(18deg, rgba(126, 84, 35, 0.08), transparent 28%, rgba(255, 255, 255, 0.18) 58%, transparent),
+      repeating-linear-gradient(82deg, rgba(126, 84, 35, 0.035) 0 1px, transparent 1px 9px);
+    --paper-sheen-layer:
+      radial-gradient(circle at 34% 22%, rgba(255, 248, 220, 0.34), transparent 34%),
+      radial-gradient(circle at 72% 82%, rgba(112, 70, 24, 0.08), transparent 30%);
   }
 
   .paper-grainy {
-    --paper-texture: url("https://www.transparenttextures.com/patterns/beige-paper.png");
-    --paper-texture-opacity: 0.62;
-    --paper-color-opacity: 0.24;
-    --paper-texture-contrast: 1.16;
-    --paper-texture-brightness: 1.03;
+    --paper-texture-opacity: 0.28;
+    --paper-light-opacity: 0.38;
+    --paper-texture-contrast: 1.12;
+    --paper-texture-brightness: 1.02;
+    --paper-fiber-layer:
+      radial-gradient(circle at 20% 30%, rgba(0, 0, 0, 0.055) 0 0.8px, transparent 1.3px),
+      radial-gradient(circle at 76% 62%, rgba(0, 0, 0, 0.04) 0 0.8px, transparent 1.3px),
+      radial-gradient(circle at 48% 88%, rgba(255, 255, 255, 0.26) 0 1px, transparent 1.6px);
+    --paper-fiber-size: 42px 42px;
+    --paper-grain-layer:
+      repeating-linear-gradient(34deg, rgba(0, 0, 0, 0.025) 0 1px, transparent 1px 4px),
+      repeating-linear-gradient(124deg, rgba(255, 255, 255, 0.18) 0 1px, transparent 1px 6px);
+    --paper-grain-size: 96px 96px;
+    --paper-sheen-layer:
+      linear-gradient(150deg, transparent, rgba(255, 255, 255, 0.18), transparent);
   }
 
   .paper-cotton {
-    --paper-texture: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/coton.png");
-    --paper-texture-opacity: 0.54;
-    --paper-color-opacity: 0.22;
-    --paper-texture-contrast: 1.12;
-    --paper-texture-brightness: 1.06;
+    --paper-texture-opacity: 0.18;
+    --paper-light-opacity: 0.46;
+    --paper-texture-contrast: 1.06;
+    --paper-texture-brightness: 1.05;
+    --paper-fiber-layer:
+      repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.018) 0 1px, transparent 1px 8px),
+      repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.22) 0 1px, transparent 1px 10px);
+    --paper-fiber-size: 140px 140px;
+    --paper-grain-layer:
+      radial-gradient(circle at 22% 24%, rgba(255, 255, 255, 0.22) 0 1px, transparent 2px),
+      radial-gradient(circle at 62% 72%, rgba(0, 0, 0, 0.025) 0 1px, transparent 2px);
+    --paper-grain-size: 72px 72px;
+    --paper-sheen-layer:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.18), transparent 36%, rgba(255, 255, 255, 0.16) 72%, transparent);
   }
 
   .paper-silk {
-    --paper-texture: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/silk.png");
-    --paper-texture-opacity: 0.5;
-    --paper-color-opacity: 0.24;
-    --paper-texture-contrast: 1.12;
+    --paper-texture-opacity: 0.14;
+    --paper-light-opacity: 0.54;
+    --paper-texture-contrast: 1.04;
     --paper-texture-brightness: 1.08;
+    --paper-fiber-layer:
+      linear-gradient(115deg, transparent 0%, rgba(255, 255, 255, 0.28) 38%, transparent 52%),
+      linear-gradient(72deg, rgba(0, 0, 0, 0.02), transparent 42%, rgba(255, 255, 255, 0.16));
+    --paper-fiber-size: 180px 180px;
+    --paper-grain-layer:
+      repeating-linear-gradient(104deg, rgba(255, 255, 255, 0.16) 0 1px, transparent 1px 9px);
+    --paper-grain-size: 120px 120px;
+    --paper-sheen-layer:
+      linear-gradient(122deg, transparent 8%, rgba(255, 255, 255, 0.38) 46%, transparent 72%);
+    --paper-sheen-size: 260px 260px;
   }
 
   .paper-velvet {
-    --paper-texture: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/velvet.PNG");
-    --paper-texture-opacity: 0.6;
-    --paper-color-opacity: 0.3;
-    --paper-texture-contrast: 1.18;
-    --paper-texture-brightness: 1.03;
+    --paper-texture-opacity: 0.24;
+    --paper-light-opacity: 0.48;
+    --paper-texture-contrast: 1.1;
+    --paper-texture-brightness: 1.01;
+    --paper-fiber-layer:
+      radial-gradient(circle at 18% 22%, rgba(0, 0, 0, 0.055) 0 1px, transparent 2px),
+      radial-gradient(circle at 70% 58%, rgba(255, 255, 255, 0.2) 0 1px, transparent 2px),
+      radial-gradient(circle at 42% 82%, rgba(0, 0, 0, 0.04) 0 1px, transparent 2px);
+    --paper-fiber-size: 64px 64px;
+    --paper-grain-layer:
+      linear-gradient(145deg, rgba(0, 0, 0, 0.08), transparent 36%, rgba(255, 255, 255, 0.14) 58%, transparent),
+      repeating-linear-gradient(96deg, rgba(0, 0, 0, 0.024) 0 1px, transparent 1px 7px);
+    --paper-grain-size: 128px 128px;
+    --paper-sheen-layer:
+      radial-gradient(circle at 30% 18%, rgba(255, 255, 255, 0.24), transparent 30%),
+      radial-gradient(circle at 78% 82%, rgba(0, 0, 0, 0.08), transparent 34%);
+  }
+
+  .invitation-ornament-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: 0;
+  }
+
+  .invitation-ornament-layer::before {
+    content: "";
+    position: absolute;
+    inset: 18px;
+    border: 1px solid rgba(245, 158, 11, 0.16);
+    border-radius: 2rem;
+    mask-image: linear-gradient(to bottom, transparent, black 12%, black 88%, transparent);
+  }
+
+  .invitation-ornament-layer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(120deg, transparent 0%, rgba(245, 158, 11, 0.12) 48%, transparent 58%),
+      radial-gradient(circle at 8% 18%, rgba(251, 191, 36, 0.18), transparent 20%),
+      radial-gradient(circle at 92% 72%, rgba(251, 191, 36, 0.14), transparent 22%);
+    opacity: 0.75;
+    mix-blend-mode: screen;
+  }
+
+  .gold-thread {
+    position: absolute;
+    width: 160px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(245, 158, 11, 0.45), transparent);
+    transform-origin: center;
+    filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.3));
+  }
+
+  .gold-spark {
+    position: absolute;
+    width: 16px;
+    height: 16px;
+  }
+
+  .gold-spark::before,
+  .gold-spark::after {
+    content: "";
+    position: absolute;
+    inset: 50% auto auto 50%;
+    background: rgba(245, 158, 11, 0.72);
+    border-radius: 999px;
+    box-shadow: 0 0 10px rgba(245, 158, 11, 0.55);
+    transform: translate(-50%, -50%);
+  }
+
+  .gold-spark::before {
+    width: 14px;
+    height: 1px;
+  }
+
+  .gold-spark::after {
+    width: 1px;
+    height: 14px;
+  }
+
+  .star-pile {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -6px;
+    height: 110px;
+    pointer-events: none;
+    background:
+      radial-gradient(circle at 10% 86%, rgba(251, 191, 36, 0.5) 0 1px, transparent 2px),
+      radial-gradient(circle at 22% 72%, rgba(255, 255, 255, 0.75) 0 1px, transparent 2px),
+      radial-gradient(circle at 38% 84%, rgba(251, 191, 36, 0.65) 0 1.3px, transparent 2.4px),
+      radial-gradient(circle at 54% 70%, rgba(255, 255, 255, 0.7) 0 1px, transparent 2px),
+      radial-gradient(circle at 69% 88%, rgba(251, 191, 36, 0.55) 0 1.2px, transparent 2.2px),
+      radial-gradient(circle at 84% 76%, rgba(255, 255, 255, 0.75) 0 1px, transparent 2px),
+      radial-gradient(ellipse at bottom, rgba(245, 158, 11, 0.2), transparent 66%);
+    opacity: 0.9;
+    mask-image: linear-gradient(to top, black 0%, black 48%, transparent 100%);
   }
 
   .texture-btn {
