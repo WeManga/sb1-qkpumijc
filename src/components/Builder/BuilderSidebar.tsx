@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { translations, Language } from '../../lib/i18n';
 import {
@@ -42,6 +42,19 @@ const COLOR_PALETTES = [
   { color: '#8B4513' }
 ];
 
+const PAPER_COLOR_PALETTES = [
+  { color: '#FFFFFF' },
+  { color: '#FFF8F0' },
+  { color: '#F8EFE2' },
+  { color: '#F5E6D3' },
+  { color: '#F2ECE4' },
+  { color: '#EEF3F0' },
+  { color: '#F6EEF2' },
+  { color: '#EFEAF6' },
+  { color: '#F7F3E8' },
+  { color: '#EDF2F7' }
+];
+
 const PREMIUM_PALETTES = [
   { id: 'satin_gold', name: 'Satin Gold', gradient: PREMIUM_COLORS.satin_gold },
   { id: 'satin_silver', name: 'Satin Silver', gradient: PREMIUM_COLORS.satin_silver },
@@ -81,6 +94,10 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     isDragging: false,
     lastDist: 0
   });
+
+  useEffect(() => {
+    setTriggerMode(invitation.premium_trigger_type || 'emoji');
+  }, [invitation.premium_trigger_type]);
 
   const lang = (invitation.language as Language) || (localStorage.getItem('invite_lang') as Language) || 'fr';
   const t = translations[lang].builder;
@@ -655,7 +672,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 <div>
                   <label className="text-[10px] font-black uppercase text-gray-400 mb-3 block ml-1">{localLabels.paper_color_label}</label>
                   <div className="flex gap-3 overflow-x-auto pt-2 pb-3 px-1 scrollbar-hide">
-                    {COLOR_PALETTES.map(p => (
+                    {PAPER_COLOR_PALETTES.map(p => (
                       <button type="button" key={p.color} onClick={() => handlePaperColorClick(p.color)} style={{ backgroundColor: p.color }} className={`h-11 w-11 shrink-0 rounded-full border-4 transition-all ${invitation.paper_color === p.color ? 'border-amber-400 scale-110 shadow-lg' : 'border-white shadow-sm'}`} />
                     ))}
                   </div>
