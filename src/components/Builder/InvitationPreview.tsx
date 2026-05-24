@@ -20,6 +20,24 @@ const pick = (obj: any, keys: string[], fallback: any = undefined) => {
   return fallback;
 };
 
+const isCssGradient = (value: string) => {
+  return typeof value === 'string' && value.includes('gradient(');
+};
+
+const getTintedImageStyle = (color: string, imageUrl: string) => {
+  if (isCssGradient(color)) {
+    return {
+      backgroundImage: `${color}, url("${imageUrl}")`,
+      backgroundBlendMode: 'multiply',
+    };
+  }
+
+  return {
+    backgroundImage: `linear-gradient(${color}, ${color}), url("${imageUrl}")`,
+    backgroundBlendMode: 'multiply',
+  };
+};
+
 export function InvitationPreview({ invitation }: any) {
   const [isOpened, setIsOpened] = useState(false);
   const [view, setView] = useState<'envelope' | 'content'>('envelope');
@@ -36,7 +54,8 @@ export function InvitationPreview({ invitation }: any) {
   const tBuilder = translations[lang].builder;
 
   const paperType = pick(invitation, ['paper_type', 'papertype'], 'smooth');
-  const openingStyle = pick(invitation, ['opening_style', 'openingtype'], 'knock');
+  const openingStyle = pick(invitation, ['opening_style', 'openingtype'], 'default');
+  const openingType = pick(invitation, ['opening_type', 'openingtype'], 'vinyl');
   const containerOpen = pick(invitation, ['container_open', 'containeropen'], 'free');
   const backgroundTheme = pick(invitation, ['background_theme', 'backgroundtheme'], '');
   const planType = pick(invitation, ['plan_type', 'plantype'], 'FREE');
@@ -422,11 +441,11 @@ export function InvitationPreview({ invitation }: any) {
 
             <motion.div
               initial={{ y: -450 }}
-              animate={isOpened ? { y: pick(invitation, ['opening_type', 'openingtype'], 'knock') === 'filmstrip' ? -35 : 25 } : { y: -450 }}
+              animate={isOpened ? { y: openingType === 'filmstrip' ? -35 : 25 } : { y: -450 }}
               transition={{ type: 'spring', damping: 25 }}
               className="absolute top-0 z-20"
             >
-              {pick(invitation, ['opening_type', 'openingtype'], 'knock') === 'filmstrip' ? (
+              {openingType === 'filmstrip' ? (
                 <div className="relative w-44 h-72 bg-[#1a1a1a] rounded-xl shadow-2xl rotate-[-2deg] overflow-hidden p-2 border-y-4 border-[#1a1a1a]">
                   <div className="absolute inset-y-0 left-1.5 w-1.5 border-l-2 border-dashed border-white/20 z-10" />
                   <div className="absolute inset-y-0 right-1.5 w-1.5 border-r-2 border-dashed border-white/20 z-10" />
@@ -660,20 +679,20 @@ export function InvitationPreview({ invitation }: any) {
                             exit={{ rotateY: -95, opacity: 0 }}
                             transition={{ duration: 1.4, ease: 'easeInOut' }}
                             className="w-1/2 h-full origin-left bg-cover bg-center shadow-[15px_0_30px_rgba(0,0,0,0.5)] border-r border-black/10"
-                            style={{
-                              backgroundImage: `linear-gradient(${envelopeColor}, ${envelopeColor}), url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20gauche.png")`,
-                              backgroundBlendMode: 'multiply',
-                            }}
+                            style={getTintedImageStyle(
+                              envelopeColor,
+                              'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20gauche.png'
+                            )}
                           />
                           <motion.div
                             initial={{ rotateY: 0 }}
                             exit={{ rotateY: 95, opacity: 0 }}
                             transition={{ duration: 1.4, ease: 'easeInOut' }}
                             className="w-1/2 h-full origin-right bg-cover bg-center shadow-[-15px_0_30px_rgba(0,0,0,0.5)] border-l border-black/10"
-                            style={{
-                              backgroundImage: `linear-gradient(${envelopeColor}, ${envelopeColor}), url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20droite.png")`,
-                              backgroundBlendMode: 'multiply',
-                            }}
+                            style={getTintedImageStyle(
+                              envelopeColor,
+                              'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20droite.png'
+                            )}
                           />
                         </>
                       ) : (
