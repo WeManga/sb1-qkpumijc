@@ -190,7 +190,17 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       bg_butterflies: 'Papillons Magiques',
       bg_stars: "Pluie d'Étoiles",
       filmstrip_photo_2: 'Pellicule photo 2',
-      filmstrip_photo_3: 'Pellicule photo 3'
+      filmstrip_photo_3: 'Pellicule photo 3',
+      premium_story_label: 'Sections PREMIUM',
+      premium_mid_label: 'Section après le programme',
+      premium_final_label: 'Section finale',
+      premium_title_placeholder: 'Titre de la section',
+      premium_text_placeholder: 'Texte de la section...',
+      premium_mid_title_placeholder: 'Ex : Notre histoire',
+      premium_mid_text_placeholder: 'Ajoutez un texte spécial après le programme...',
+      premium_final_title_placeholder: 'Ex : Un dernier mot',
+      premium_final_text_placeholder: 'Ajoutez un message final avant la confirmation...',
+      premium_photo: 'Photo de section'
     },
     en: {
       opening_type_label: 'Animation Style',
@@ -221,7 +231,17 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       bg_butterflies: 'Magical Butterflies',
       bg_stars: 'Star Rain',
       filmstrip_photo_2: 'Filmstrip photo 2',
-      filmstrip_photo_3: 'Filmstrip photo 3'
+      filmstrip_photo_3: 'Filmstrip photo 3',
+      premium_story_label: 'PREMIUM Sections',
+      premium_mid_label: 'Section after program',
+      premium_final_label: 'Final section',
+      premium_title_placeholder: 'Section title',
+      premium_text_placeholder: 'Section text...',
+      premium_mid_title_placeholder: 'E.g. Our story',
+      premium_mid_text_placeholder: 'Add a special text after the program...',
+      premium_final_title_placeholder: 'E.g. A final note',
+      premium_final_text_placeholder: 'Add a final message before RSVP...',
+      premium_photo: 'Section photo'
     },
     vi: {
       opening_type_label: 'Kiểu hoạt ảnh',
@@ -252,7 +272,17 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       bg_butterflies: 'Bướm thần tiên',
       bg_stars: 'Mưa sao lấp lánh',
       filmstrip_photo_2: 'Ảnh phim 2',
-      filmstrip_photo_3: 'Ảnh phim 3'
+      filmstrip_photo_3: 'Ảnh phim 3',
+      premium_story_label: 'Mục PREMIUM',
+      premium_mid_label: 'Mục sau chương trình',
+      premium_final_label: 'Mục cuối',
+      premium_title_placeholder: 'Tiêu đề mục',
+      premium_text_placeholder: 'Nội dung mục...',
+      premium_mid_title_placeholder: 'Ví dụ: Câu chuyện của chúng tôi',
+      premium_mid_text_placeholder: 'Thêm nội dung đặc biệt sau chương trình...',
+      premium_final_title_placeholder: 'Ví dụ: Lời cuối',
+      premium_final_text_placeholder: 'Thêm lời nhắn cuối trước xác nhận...',
+      premium_photo: 'Ảnh của mục'
     }
   }[lang];
 
@@ -546,6 +576,122 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                   </label>
                 </div>
               ))}
+            </div>
+          </div>
+
+          <div className={`space-y-5 bg-gray-950 p-5 rounded-[2rem] border border-amber-500/20 shadow-xl ${!isPremium ? 'opacity-60 grayscale' : ''}`}>
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] font-black uppercase tracking-[0.25em] text-amber-300 flex items-center gap-2">
+                <Sparkles size={14} />
+                {localLabels.premium_story_label}
+              </label>
+              {!isPremium && <Lock size={14} className="text-amber-200" />}
+            </div>
+
+            <div className="space-y-3 bg-white/5 rounded-2xl p-4 border border-white/10">
+              <label className="text-[10px] font-black uppercase text-amber-100">{localLabels.premium_mid_label}</label>
+
+              <input
+                type="text"
+                value={invitation.premium_mid_title || ''}
+                disabled={!isPremium}
+                onChange={e => onInvitationChange({ ...invitation, premium_mid_title: e.target.value })}
+                className="w-full bg-white/10 border border-white/10 h-12 px-4 rounded-xl text-sm text-white placeholder:text-white/35 disabled:cursor-not-allowed"
+                placeholder={localLabels.premium_mid_title_placeholder || localLabels.premium_title_placeholder}
+              />
+
+              <textarea
+                value={invitation.premium_mid_text || ''}
+                disabled={!isPremium}
+                onChange={e => onInvitationChange({ ...invitation, premium_mid_text: e.target.value })}
+                className="w-full bg-white/10 border border-white/10 p-4 rounded-xl text-sm text-white placeholder:text-white/35 min-h-[110px] resize-none disabled:cursor-not-allowed"
+                placeholder={localLabels.premium_mid_text_placeholder || localLabels.premium_text_placeholder}
+              />
+
+              <label className={`flex items-center gap-3 p-3 bg-white/10 rounded-xl border border-white/10 cursor-pointer ${!isPremium ? 'pointer-events-none' : ''}`}>
+                <div className="w-14 h-14 rounded-xl bg-black/20 flex items-center justify-center overflow-hidden border border-white/10">
+                  {invitation.premium_mid_photo_url ? (
+                    <img src={invitation.premium_mid_photo_url} className="w-full h-full object-cover" />
+                  ) : (
+                    <ImageIcon size={18} className="text-amber-200/70" />
+                  )}
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <span className="block text-[10px] font-black uppercase text-amber-100 truncate">
+                    {localLabels.premium_photo}
+                  </span>
+                  <span className="block text-[10px] font-bold text-white/40 truncate">
+                    {invitation.premium_mid_photo_url ? t.modify_photo : t.add_photo}
+                  </span>
+                </div>
+
+                {uploading ? <span className="text-[9px] font-black text-amber-200 uppercase">Upload...</span> : <Plus size={16} className="text-amber-200" />}
+
+                <input
+                  type="file"
+                  className="hidden"
+                  accept={IMAGE_ACCEPT}
+                  disabled={!isPremium}
+                  onChange={e => {
+                    if (!checkPremiumAccess(false)) return;
+                    uploadFile(e, 'premium_mid_photo_url');
+                  }}
+                />
+              </label>
+            </div>
+
+            <div className="space-y-3 bg-white/5 rounded-2xl p-4 border border-white/10">
+              <label className="text-[10px] font-black uppercase text-amber-100">{localLabels.premium_final_label}</label>
+
+              <input
+                type="text"
+                value={invitation.premium_final_title || ''}
+                disabled={!isPremium}
+                onChange={e => onInvitationChange({ ...invitation, premium_final_title: e.target.value })}
+                className="w-full bg-white/10 border border-white/10 h-12 px-4 rounded-xl text-sm text-white placeholder:text-white/35 disabled:cursor-not-allowed"
+                placeholder={localLabels.premium_final_title_placeholder || localLabels.premium_title_placeholder}
+              />
+
+              <textarea
+                value={invitation.premium_final_text || ''}
+                disabled={!isPremium}
+                onChange={e => onInvitationChange({ ...invitation, premium_final_text: e.target.value })}
+                className="w-full bg-white/10 border border-white/10 p-4 rounded-xl text-sm text-white placeholder:text-white/35 min-h-[110px] resize-none disabled:cursor-not-allowed"
+                placeholder={localLabels.premium_final_text_placeholder || localLabels.premium_text_placeholder}
+              />
+
+              <label className={`flex items-center gap-3 p-3 bg-white/10 rounded-xl border border-white/10 cursor-pointer ${!isPremium ? 'pointer-events-none' : ''}`}>
+                <div className="w-14 h-14 rounded-xl bg-black/20 flex items-center justify-center overflow-hidden border border-white/10">
+                  {invitation.premium_final_photo_url ? (
+                    <img src={invitation.premium_final_photo_url} className="w-full h-full object-cover" />
+                  ) : (
+                    <ImageIcon size={18} className="text-amber-200/70" />
+                  )}
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <span className="block text-[10px] font-black uppercase text-amber-100 truncate">
+                    {localLabels.premium_photo}
+                  </span>
+                  <span className="block text-[10px] font-bold text-white/40 truncate">
+                    {invitation.premium_final_photo_url ? t.modify_photo : t.add_photo}
+                  </span>
+                </div>
+
+                {uploading ? <span className="text-[9px] font-black text-amber-200 uppercase">Upload...</span> : <Plus size={16} className="text-amber-200" />}
+
+                <input
+                  type="file"
+                  className="hidden"
+                  accept={IMAGE_ACCEPT}
+                  disabled={!isPremium}
+                  onChange={e => {
+                    if (!checkPremiumAccess(false)) return;
+                    uploadFile(e, 'premium_final_photo_url');
+                  }}
+                />
+              </label>
             </div>
           </div>
         </div>
