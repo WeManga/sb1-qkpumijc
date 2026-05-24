@@ -54,7 +54,7 @@
     pointer-events: none;
     z-index: 0;
     background: var(--dynamic-color, #ffffff);
-    opacity: var(--paper-color-opacity, 0.32);
+    opacity: var(--paper-color-opacity, 0.28);
     mix-blend-mode: multiply;
   }
 
@@ -68,7 +68,7 @@
     background-repeat: repeat;
     background-position: center;
     background-size: var(--paper-texture-size, auto);
-    opacity: var(--paper-texture-opacity, 0.65);
+    opacity: var(--paper-texture-opacity, 0.6);
     mix-blend-mode: multiply;
     filter: contrast(var(--paper-texture-contrast, 1.12)) brightness(var(--paper-texture-brightness, 1.04));
   }
@@ -80,16 +80,16 @@
 
   .paper-smooth {
     --paper-texture: url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/smooth.jpg");
-    --paper-texture-opacity: 0.18;
-    --paper-color-opacity: 0.18;
-    --paper-texture-contrast: 1.05;
+    --paper-texture-opacity: 0.16;
+    --paper-color-opacity: 0.16;
+    --paper-texture-contrast: 1.04;
     --paper-texture-brightness: 1.06;
   }
 
   .paper-parchment {
     --paper-texture: url("https://www.transparenttextures.com/patterns/parchment.png");
     --paper-texture-opacity: 0.58;
-    --paper-color-opacity: 0.26;
+    --paper-color-opacity: 0.24;
     --paper-texture-contrast: 1.1;
     --paper-texture-brightness: 1.04;
   }
@@ -143,6 +143,7 @@
     from {
       transform: rotate(0deg);
     }
+
     to {
       transform: rotate(360deg);
     }
