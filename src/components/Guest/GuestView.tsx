@@ -359,12 +359,15 @@ export function GuestView({ invitation }: any) {
   const EmojiRain = () => {
     const particles = useMemo(
       () =>
-        Array.from({ length: 25 }).map((_, i) => ({
+        Array.from({ length: 30 }).map((_, i) => ({
           id: i,
           emoji: emojis[i % emojis.length],
-          left: `${i * 4 + Math.random() * 3}%`,
-          delay: Math.random() * 2,
-          duration: 4 + Math.random() * 2
+          left: `${2 + i * 3.4 + Math.random() * 2.5}%`,
+          delay: Math.random() * 1.2,
+          duration: 2.6 + Math.random() * 1.2,
+          size: 24 + Math.random() * 12,
+          drift: -28 + Math.random() * 56,
+          rotate: -18 + Math.random() * 36
         })),
       [emojis]
     );
@@ -374,11 +377,31 @@ export function GuestView({ invitation }: any) {
         {particles.map((p) => (
           <motion.span
             key={p.id}
-            initial={{ y: -50, opacity: 0 }}
-            animate={{ y: '110vh', opacity: [0, 1, 1, 0] }}
-            transition={{ duration: p.duration, repeat: Infinity, delay: p.delay, ease: 'linear' }}
-            className="absolute text-3xl"
-            style={{ left: p.left }}
+            initial={{
+              y: -90,
+              x: 0,
+              opacity: 0,
+              rotate: p.rotate,
+              scale: 0.8
+            }}
+            animate={{
+              y: '118vh',
+              x: p.drift,
+              opacity: [0, 1, 1, 0],
+              rotate: p.rotate + 38,
+              scale: [0.8, 1, 1, 0.9]
+            }}
+            transition={{
+              duration: p.duration,
+              repeat: Infinity,
+              delay: p.delay,
+              ease: 'linear'
+            }}
+            className="absolute leading-none select-none"
+            style={{
+              left: p.left,
+              fontSize: p.size
+            }}
           >
             {p.emoji}
           </motion.span>
