@@ -162,12 +162,10 @@ export function InvitationPreview({ invitation }: any) {
       if (type === 'beep') {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
-
         osc.type = 'sine';
         osc.frequency.setValueAtTime(880, ctx.currentTime);
         gain.gain.setValueAtTime(0.05, ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
-
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.start();
@@ -175,12 +173,10 @@ export function InvitationPreview({ invitation }: any) {
       } else if (type === 'lock') {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
-
         osc.type = 'square';
         osc.frequency.setValueAtTime(1200, ctx.currentTime);
         gain.gain.setValueAtTime(0.08, ctx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
-
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.start();
@@ -326,7 +322,7 @@ export function InvitationPreview({ invitation }: any) {
           delay: Math.random() * 2,
           duration: 4 + Math.random() * 2
         })),
-      []
+      [emojis]
     );
 
     return (
@@ -335,7 +331,7 @@ export function InvitationPreview({ invitation }: any) {
           <motion.span
             key={p.id}
             initial={{ y: -50, opacity: 0 }}
-            animate={{ y: 800, opacity: [0, 1, 1, 0] }}
+            animate={{ y: '110%', opacity: [0, 1, 1, 0] }}
             transition={{ duration: p.duration, repeat: Infinity, delay: p.delay, ease: 'linear' }}
             className="absolute text-3xl"
             style={{ left: p.left }}
@@ -375,13 +371,13 @@ export function InvitationPreview({ invitation }: any) {
 
     const etoilesPluie = useMemo(
       () =>
-        Array.from({ length: 45 }).map((_, i) => ({
+        Array.from({ length: 48 }).map((_, i) => ({
           id: i,
           left: `${2 + Math.random() * 96}%`,
           delay: Math.random() * 3.5,
-          duration: 1.8 + Math.random() * 1.6,
-          sizeClass: i % 2 === 0 ? 'w-3 h-auto' : 'w-1.5 h-auto',
-          targetY: 582 + Math.random() * 20
+          duration: 2.4 + Math.random() * 1.8,
+          sizeClass: i % 3 === 0 ? 'w-3 h-auto' : 'w-2 h-auto',
+          rotate: Math.random() * 180
         })),
       []
     );
@@ -440,59 +436,84 @@ export function InvitationPreview({ invitation }: any) {
             </motion.div>
           ))}
 
-        {theme === 'stars' &&
-          etoilesPluie.map((e) => (
-            <motion.img
-              key={`etoile-dense-${e.id}`}
-              src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/etoile.png"
-              initial={{ y: -30, opacity: 0, scale: 0.6 }}
-              animate={{
-                y: [0, e.targetY, e.targetY],
-                opacity: [0, 1, 1, 0.8, 0],
-                scale: [0.8, 1, 1, 0.9, 0]
-              }}
-              transition={{
-                duration: e.duration,
-                times: [0, 0.65, 0.85, 0.95, 1],
-                repeat: Infinity,
-                delay: e.delay,
-                ease: 'easeOut'
-              }}
-              className={`absolute ${e.sizeClass} drop-shadow-[0_0_5px_rgba(251,191,36,0.6)]`}
-              style={{ left: e.left }}
-              alt=""
-            />
-          ))}
+        {theme === 'stars' && (
+          <>
+            {etoilesPluie.map((e) => (
+              <motion.img
+                key={`etoile-dense-${e.id}`}
+                src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/etoile.png"
+                initial={{ y: -40, opacity: 0, scale: 0.55, rotate: e.rotate }}
+                animate={{
+                  y: '106%',
+                  opacity: [0, 1, 1, 0.9, 0],
+                  scale: [0.55, 1, 0.95, 0.7],
+                  rotate: e.rotate + 120
+                }}
+                transition={{
+                  duration: e.duration,
+                  times: [0, 0.18, 0.72, 0.9, 1],
+                  repeat: Infinity,
+                  delay: e.delay,
+                  ease: 'easeIn'
+                }}
+                className={`absolute ${e.sizeClass} drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]`}
+                style={{ left: e.left }}
+                alt=""
+              />
+            ))}
+            <div className="star-pile" />
+          </>
+        )}
       </div>
     );
   };
 
-  const ContentSparkles = () => {
-    const sparkles = useMemo(
+  const ContentOrnaments = () => {
+    const threads = useMemo(
       () =>
-        Array.from({ length: 18 }).map((_, i) => ({
+        Array.from({ length: 8 }).map((_, i) => ({
           id: i,
-          left: `${Math.random() * 100}%`,
-          top: `${Math.random() * 100}%`,
-          delay: Math.random() * 2.5,
-          duration: 2.5 + Math.random() * 2
+          left: `${8 + Math.random() * 84}%`,
+          top: `${8 + Math.random() * 86}%`,
+          rotate: `${-28 + Math.random() * 56}deg`,
+          delay: Math.random() * 2.4,
+          duration: 4 + Math.random() * 2
+        })),
+      []
+    );
+
+    const sparks = useMemo(
+      () =>
+        Array.from({ length: 14 }).map((_, i) => ({
+          id: i,
+          left: `${6 + Math.random() * 88}%`,
+          top: `${6 + Math.random() * 88}%`,
+          delay: Math.random() * 2.8,
+          duration: 2.8 + Math.random() * 2.2,
+          scale: 0.65 + Math.random() * 0.75
         })),
       []
     );
 
     return (
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute -top-20 -right-20 w-52 h-52 rounded-full bg-amber-200/20 blur-3xl" />
-        <div className="absolute top-1/3 -left-24 w-56 h-56 rounded-full bg-white/30 blur-3xl" />
-        <div className="absolute bottom-32 right-4 w-32 h-32 rounded-full bg-amber-300/10 blur-2xl" />
-
-        {sparkles.map((s) => (
+      <div className="invitation-ornament-layer">
+        {threads.map((thread) => (
           <motion.span
-            key={s.id}
-            className="absolute w-1 h-1 rounded-full bg-amber-400/60 shadow-[0_0_8px_rgba(245,158,11,0.8)]"
-            style={{ left: s.left, top: s.top }}
-            animate={{ opacity: [0, 1, 0], scale: [0.5, 1.5, 0.5], y: [0, -10, 0] }}
-            transition={{ duration: s.duration, repeat: Infinity, delay: s.delay, ease: 'easeInOut' }}
+            key={`thread-${thread.id}`}
+            className="gold-thread"
+            style={{ left: thread.left, top: thread.top, rotate: thread.rotate }}
+            animate={{ opacity: [0.08, 0.38, 0.08], x: [0, 8, 0] }}
+            transition={{ duration: thread.duration, repeat: Infinity, delay: thread.delay, ease: 'easeInOut' }}
+          />
+        ))}
+
+        {sparks.map((spark) => (
+          <motion.span
+            key={`spark-${spark.id}`}
+            className="gold-spark"
+            style={{ left: spark.left, top: spark.top, scale: spark.scale }}
+            animate={{ opacity: [0, 0.85, 0], rotate: [0, 45, 90], y: [0, -8, 0] }}
+            transition={{ duration: spark.duration, repeat: Infinity, delay: spark.delay, ease: 'easeInOut' }}
           />
         ))}
       </div>
@@ -659,16 +680,19 @@ export function InvitationPreview({ invitation }: any) {
               </div>
             </motion.div>
 
-            <div className="absolute inset-0 z-50 overflow-hidden" style={{ perspective: '2500px', pointerEvents: isOpened ? 'none' : 'auto' }}>
+            <div
+              className="absolute inset-0 z-50 overflow-hidden"
+              style={{ perspective: '2200px', transformStyle: 'preserve-3d', pointerEvents: isOpened ? 'none' : 'auto' }}
+            >
               <AnimatePresence>
-                {!isOpened && (
+                {(!isOpened || containerOpen === 'metal_door' || containerOpen === 'wooden_door') && (
                   <motion.div key="gate-container" exit={{ opacity: 1 }} className="w-full h-full relative flex items-center justify-center">
                     <AnimatePresence>
                       {!isCodeFading && (
                         <motion.div
                           key="visual-trigger"
                           initial={{ opacity: 1 }}
-                          exit={{ opacity: 0, transition: { duration: 0.4, ease: 'easeInOut' } }}
+                          exit={containerOpen === 'metal_door' || containerOpen === 'wooden_door' ? {} : { opacity: 0, transition: { duration: 0.4, ease: 'easeInOut' } }}
                           className="absolute inset-0 z-[70] flex flex-col items-center justify-center cursor-pointer"
                           onClick={handleTriggerClick}
                         >
@@ -753,7 +777,7 @@ export function InvitationPreview({ invitation }: any) {
                       )}
                     </AnimatePresence>
 
-                    <div className="absolute inset-0 z-50 w-full h-full flex" style={{ perspective: '2000px' }}>
+                    <div className="absolute inset-0 z-50 w-full h-full flex" style={{ perspective: '2200px', transformStyle: 'preserve-3d' }}>
                       {containerOpen === 'metal_door' ? (
                         <motion.div
                           animate={isOpened ? { x: '100%' } : { x: '0%' }}
@@ -762,24 +786,31 @@ export function InvitationPreview({ invitation }: any) {
                           style={{ backgroundImage: 'url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20noir.png")' }}
                         />
                       ) : containerOpen === 'wooden_door' ? (
-                        <AnimatePresence>
-                          {!isOpened && (
-                            <>
-                              <motion.div
-                                exit={{ rotateY: -100, x: '-20%', opacity: 0 }}
-                                transition={{ duration: 1.2, ease: 'easeInOut' }}
-                                className="w-1/2 h-full origin-left bg-cover bg-center shadow-2xl border-r border-black/10"
-                                style={{ backgroundImage: 'url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20gauche.png")' }}
-                              />
-                              <motion.div
-                                exit={{ rotateY: 100, x: '20%', opacity: 0 }}
-                                transition={{ duration: 1.2, ease: 'easeInOut' }}
-                                className="w-1/2 h-full origin-right bg-cover bg-center shadow-2xl border-l border-black/10"
-                                style={{ backgroundImage: 'url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20droite.png")' }}
-                              />
-                            </>
-                          )}
-                        </AnimatePresence>
+                        <>
+                          <motion.div
+                            initial={{ rotateY: 0, x: '0%', opacity: 1 }}
+                            animate={isOpened ? { rotateY: -112, x: '-7%', opacity: 0.88 } : { rotateY: 0, x: '0%', opacity: 1 }}
+                            transition={{ duration: 1.35, ease: [0.43, 0.13, 0.23, 0.96] }}
+                            className="w-1/2 h-full origin-left bg-cover bg-center shadow-[18px_0_36px_rgba(0,0,0,0.48)] border-r border-black/10"
+                            style={{
+                              backgroundImage: 'url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20gauche.png")',
+                              transformStyle: 'preserve-3d',
+                              backfaceVisibility: 'hidden'
+                            }}
+                          />
+
+                          <motion.div
+                            initial={{ rotateY: 0, x: '0%', opacity: 1 }}
+                            animate={isOpened ? { rotateY: 112, x: '7%', opacity: 0.88 } : { rotateY: 0, x: '0%', opacity: 1 }}
+                            transition={{ duration: 1.35, ease: [0.43, 0.13, 0.23, 0.96] }}
+                            className="w-1/2 h-full origin-right bg-cover bg-center shadow-[-18px_0_36px_rgba(0,0,0,0.48)] border-l border-black/10"
+                            style={{
+                              backgroundImage: 'url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20droite.png")',
+                              transformStyle: 'preserve-3d',
+                              backfaceVisibility: 'hidden'
+                            }}
+                          />
+                        </>
                       ) : (
                         <motion.div
                           key="free-gate-panel"
@@ -804,7 +835,7 @@ export function InvitationPreview({ invitation }: any) {
             className={`w-full h-full z-[100] flex flex-col overflow-y-auto paper-container ${getPaperClass()}`}
             style={{ '--dynamic-color': cardPaperColor } as CSSProperties}
           >
-            <ContentSparkles />
+            <ContentOrnaments />
 
             <motion.div initial={{ opacity: 0, scale: 1.08 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 1.1, ease: 'easeOut' }} className="h-[32%] relative overflow-hidden shrink-0">
               {mainPhotoUrl && (
