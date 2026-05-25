@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, type CSSProperties, type FormEvent, type MouseEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar, MapPin, CheckCircle2, Clock, Sparkles, Film, Volume2, VolumeX } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
@@ -13,6 +13,15 @@ const THEME_EMOJIS: Record<string, string[]> = {
   funeral: ['🙏', '🕊️', '🥀', '⚰️', '🤍'],
   default: ['✨', '🌟', '🤍']
 };
+
+const ENVELOPE_OPEN_BACK_URL =
+  'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/envlp.png';
+
+const ENVELOPE_FRONT_URL =
+  'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/envlop%202.png';
+
+const ENVELOPE_CLOSED_URL =
+  'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/enveloppe.png';
 
 const pick = (obj: any, keys: string[], fallback: any = undefined) => {
   for (const key of keys) {
@@ -54,7 +63,6 @@ export function GuestView({ invitation }: any) {
 
   const paperType = pick(invitation, ['paper_type', 'papertype'], 'smooth');
   const paperColor = pick(invitation, ['paper_color', 'papercolor'], '#ffffff');
-  const envelopeColor = pick(invitation, ['envelope_color', 'envelopecolor'], '#FEE2E2');
 
   const backgroundTheme = pick(invitation, ['background_theme', 'backgroundtheme'], '');
   const backgroundColor = pick(invitation, ['background_color', 'backgroundcolor'], '#ffffff');
@@ -190,11 +198,11 @@ export function GuestView({ invitation }: any) {
   };
 
   useEffect(() => {
-    if (isOpened || isCodeFading) return;
+    if (containerOpen === 'envelope' || isOpened || isCodeFading) return;
 
     let loopInterval: NodeJS.Timeout | undefined;
 
-    if (openingStyle === 'key' && containerOpen !== 'envelope') {
+    if (openingStyle === 'key') {
       playSyntheticSound('key');
 
       loopInterval = setInterval(() => {
@@ -205,7 +213,7 @@ export function GuestView({ invitation }: any) {
     return () => {
       if (loopInterval) clearInterval(loopInterval);
     };
-  }, [isOpened, isCodeFading, openingStyle, isMuted, containerOpen]);
+  }, [containerOpen, isOpened, isCodeFading, openingStyle, isMuted]);
 
   useEffect(() => {
     const newGuests = Array.from({ length: guestCount }, (_, i) => guests[i] || { firstName: '', lastName: '' });
@@ -231,7 +239,9 @@ export function GuestView({ invitation }: any) {
   }, [invitation?.vault_date, invitation?.event_date]);
 
   useEffect(() => {
-    if (!isOpened && openingStyle === 'vault' && containerOpen !== 'envelope') {
+    if (containerOpen === 'envelope') return;
+
+    if (!isOpened && openingStyle === 'vault') {
       let currentDigitIndex = 0;
 
       const interval = setInterval(() => {
@@ -286,7 +296,7 @@ export function GuestView({ invitation }: any) {
         if (endTimer) clearTimeout(endTimer);
       };
     }
-  }, [isOpened, openingStyle, isVaultClicked, targetCode, containerOpen]);
+  }, [containerOpen, isOpened, openingStyle, isVaultClicked, targetCode]);
 
   const triggerContainerOpening = () => {
     if (containerOpen === 'wooden_door') {
@@ -305,7 +315,7 @@ export function GuestView({ invitation }: any) {
 
       setTimeout(() => {
         triggerContainerOpening();
-      }, 1120);
+      }, 1180);
 
       return;
     }
@@ -314,13 +324,14 @@ export function GuestView({ invitation }: any) {
       if (!isVaultClicked) setIsVaultClicked(true);
     } else {
       setIsCodeFading(true);
+
       setTimeout(() => {
         triggerContainerOpening();
       }, 400);
     }
   };
 
-  const toggleMute = (e: React.MouseEvent) => {
+  const toggleMute = (e: MouseEvent) => {
     e.stopPropagation();
 
     if (audioRef.current) {
@@ -344,7 +355,7 @@ export function GuestView({ invitation }: any) {
     window.open(`https://maps.google.com/?q=${address}`, '_blank');
   };
 
-  const handleRSVP = async (e: React.FormEvent) => {
+  const handleRSVP = async (e: FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
@@ -423,122 +434,136 @@ export function GuestView({ invitation }: any) {
   };
 
   const LuxuryEnvelope = ({ opening }: { opening: boolean }) => {
-    const baseColor = envelopeColor || '#F7E7E4';
-
     return (
       <motion.div
-        initial={{ opacity: 0, y: 24, scale: 0.92 }}
-        animate={opening ? { opacity: 0, y: 38, scale: 0.92 } : { opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: opening ? 0.55 : 0.75, ease: 'easeOut' }}
+        initial={{ opacity: 0, y: 18, scale: 0.94 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.65, ease: 'easeOut' }}
         className="relative flex flex-col items-center"
       >
         <motion.div
-          animate={opening ? { opacity: 0.35, scale: 1.04 } : { opacity: [0.55, 0.85, 0.55], scale: [1, 1.04, 1] }}
-          transition={{ duration: 2.6, repeat: opening ? 0 : Infinity, ease: 'easeInOut' }}
-          className="absolute -inset-10 rounded-[3rem] bg-amber-200/20 blur-3xl"
+          animate={{
+            opacity: opening ? 0.28 : [0.18, 0.34, 0.18],
+            scale: opening ? 1.08 : [1, 1.04, 1]
+          }}
+          transition={{
+            duration: 3,
+            repeat: opening ? 0 : Infinity,
+            ease: 'easeInOut'
+          }}
+          className="absolute -inset-10 rounded-full bg-amber-200/25 blur-3xl"
         />
 
-        <motion.div
-          animate={opening ? { y: -26, opacity: 0 } : { y: [0, -4, 0], opacity: 1 }}
-          transition={{ duration: opening ? 0.75 : 3.2, repeat: opening ? 0 : Infinity, ease: 'easeInOut' }}
-          className="absolute -top-20 w-[250px] h-[130px] rounded-[2rem] border border-white/70 paper-container paper-smooth shadow-2xl"
-          style={
-            {
-              '--dynamic-color': '#ffffff',
-              transform: 'rotate(-2deg)'
-            } as React.CSSProperties
-          }
-        >
-          <div className="absolute inset-5 rounded-[1.5rem] border border-amber-200/30" />
-          <div className="absolute bottom-5 left-1/2 -translate-x-1/2 w-16 h-1 rounded-full bg-amber-300/55" />
-        </motion.div>
-
-        <div
-          className="relative w-[330px] h-[230px] rounded-[2rem] shadow-[0_30px_80px_rgba(80,52,32,0.28)]"
-          style={{ perspective: '1200px' }}
-        >
-          <div
-            className="absolute inset-0 rounded-[2rem]"
-            style={{
-              background:
-                'linear-gradient(145deg, rgba(255,255,255,0.72), rgba(255,255,255,0.18)), radial-gradient(circle at 20% 12%, rgba(255,255,255,0.85), transparent 30%)'
+        <div className="relative w-[360px] max-w-[86vw] aspect-[1924/1036]">
+          <motion.img
+            src={ENVELOPE_OPEN_BACK_URL}
+            alt=""
+            draggable={false}
+            initial={{ opacity: 0, scale: 0.99 }}
+            animate={{
+              opacity: opening ? 1 : 0,
+              scale: opening ? 1 : 0.99
             }}
+            transition={{ duration: 0.45, ease: 'easeOut' }}
+            className="absolute inset-0 z-10 w-full h-full object-contain select-none pointer-events-none drop-shadow-[0_24px_42px_rgba(0,0,0,0.26)]"
           />
 
-          <div
-            className="absolute inset-0 rounded-[2rem] overflow-hidden border border-white/70"
-            style={{
-              background: `linear-gradient(145deg, ${baseColor}, rgba(255,255,255,0.9))`
-            }}
-          >
-            <div className="absolute inset-0 opacity-45 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.7)_0_1px,transparent_2px),radial-gradient(circle_at_70%_60%,rgba(0,0,0,0.05)_0_1px,transparent_2px)] bg-[length:26px_26px]" />
-            <div className="absolute inset-0 bg-[linear-gradient(115deg,transparent,rgba(255,255,255,0.35),transparent)]" />
-          </div>
-
           <motion.div
-            initial={{ rotateX: 0, y: 0 }}
-            animate={opening ? { rotateX: -158, y: -10 } : { rotateX: 0, y: 0 }}
-            transition={{ duration: 0.9, ease: [0.43, 0.13, 0.23, 0.96] }}
-            className="absolute left-0 right-0 top-0 h-[128px] origin-top rounded-t-[2rem] border border-white/60 shadow-[0_16px_35px_rgba(80,52,32,0.18)]"
-            style={{
-              transformStyle: 'preserve-3d',
-              backfaceVisibility: 'hidden',
-              clipPath: 'polygon(0 0, 100% 0, 50% 100%)',
-              background: `linear-gradient(165deg, rgba(255,255,255,0.82), ${baseColor})`
+            initial={false}
+            animate={
+              opening
+                ? {
+                    y: '-38%',
+                    opacity: 1,
+                    scale: 0.86,
+                    rotate: -1
+                  }
+                : {
+                    y: '14%',
+                    opacity: 0,
+                    scale: 0.74,
+                    rotate: -1
+                  }
+            }
+            transition={{
+              duration: 0.95,
+              delay: 0.16,
+              ease: [0.22, 1, 0.36, 1]
             }}
+            className={`absolute left-1/2 top-[23%] z-20 w-[62%] -translate-x-1/2 rounded-[1.6rem] border border-white/80 shadow-2xl paper-container ${getPaperClass()}`}
+            style={{ '--dynamic-color': cardPaperColor } as CSSProperties}
           >
-            <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent,rgba(255,255,255,0.42),transparent)]" />
+            <div className="relative aspect-[4/5] overflow-hidden rounded-[1.6rem] p-5 flex flex-col items-center justify-between text-center">
+              <div className="absolute inset-0 bg-gradient-to-br from-white/70 via-transparent to-amber-100/30 pointer-events-none" />
+
+              <div className="relative z-10 w-full pt-3">
+                <p className="text-[8px] font-black uppercase tracking-[0.28em] text-amber-600/80 mb-3">
+                  Invit Studio
+                </p>
+
+                <h2
+                  className="text-lg font-black leading-tight uppercase break-words text-gray-900"
+                  style={{ fontFamily: fontStyle }}
+                >
+                  {invitation?.title || tBuilder.title_placeholder}
+                </h2>
+              </div>
+
+              {mainPhotoUrl ? (
+                <div className="relative z-10 w-20 h-20 rounded-full overflow-hidden border-[5px] border-white shadow-xl bg-white">
+                  <img
+                    src={mainPhotoUrl}
+                    className="w-full h-full object-cover"
+                    style={{
+                      transform: `translate(${mainPhotoPosX}px, ${mainPhotoPosY}px) scale(${mainPhotoScale})`
+                    }}
+                    alt=""
+                  />
+                </div>
+              ) : (
+                <div className="relative z-10 w-14 h-1 rounded-full bg-amber-300/70" />
+              )}
+
+              <p className="relative z-10 text-[8px] font-black uppercase tracking-[0.24em] text-gray-400">
+                {lang === 'vi' ? 'Xem chi tiết' : lang === 'en' ? 'See details' : 'Voir les détails'}
+              </p>
+            </div>
           </motion.div>
 
-          <div
-            className="absolute left-0 bottom-0 w-[55%] h-[158px] rounded-bl-[2rem] border-l border-b border-white/60"
-            style={{
-              clipPath: 'polygon(0 0, 100% 50%, 0 100%)',
-              background: `linear-gradient(115deg, ${baseColor}, rgba(255,255,255,0.86))`
+          <motion.img
+            src={ENVELOPE_FRONT_URL}
+            alt=""
+            draggable={false}
+            initial={{ opacity: 0 }}
+            animate={{
+              opacity: opening ? 1 : 0
             }}
+            transition={{ duration: 0.35, ease: 'easeOut' }}
+            className="absolute inset-0 z-30 w-full h-full object-contain select-none pointer-events-none drop-shadow-[0_26px_50px_rgba(0,0,0,0.28)]"
           />
 
-          <div
-            className="absolute right-0 bottom-0 w-[55%] h-[158px] rounded-br-[2rem] border-r border-b border-white/60"
-            style={{
-              clipPath: 'polygon(100% 0, 0 50%, 100% 100%)',
-              background: `linear-gradient(245deg, ${baseColor}, rgba(255,255,255,0.86))`
+          <motion.img
+            src={ENVELOPE_CLOSED_URL}
+            alt=""
+            draggable={false}
+            initial={{ opacity: 1, scale: 1 }}
+            animate={{
+              opacity: opening ? 0 : 1,
+              scale: opening ? 1.025 : 1,
+              y: opening ? 8 : 0
             }}
-          />
-
-          <div
-            className="absolute left-0 right-0 bottom-0 h-[136px] rounded-b-[2rem] border-x border-b border-white/70"
-            style={{
-              clipPath: 'polygon(0 18%, 50% 72%, 100% 18%, 100% 100%, 0 100%)',
-              background: `linear-gradient(180deg, rgba(255,255,255,0.92), ${baseColor})`
-            }}
-          />
-
-          <motion.div
-            animate={opening ? { opacity: 0, scale: 0.82, y: -10 } : { opacity: 1, scale: [1, 1.035, 1], y: 0 }}
-            transition={{ duration: opening ? 0.35 : 2.8, repeat: opening ? 0 : Infinity, ease: 'easeInOut' }}
-            className="absolute left-1/2 top-[93px] z-20 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full bg-white/90 border border-amber-200/70 shadow-[0_14px_30px_rgba(80,52,32,0.2)] flex items-center justify-center overflow-hidden"
-          >
-            <img
-              src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png"
-              className="w-24 h-24 object-contain"
-              alt=""
-            />
-          </motion.div>
-
-          <motion.div
-            animate={opening ? { opacity: 1, y: -8 } : { opacity: [0.18, 0.42, 0.18], y: [0, -3, 0] }}
-            transition={{ duration: opening ? 0.5 : 2.8, repeat: opening ? 0 : Infinity, ease: 'easeInOut' }}
-            className="absolute left-8 right-8 bottom-8 h-px bg-gradient-to-r from-transparent via-amber-400/60 to-transparent"
+            transition={{ duration: 0.48, ease: 'easeInOut' }}
+            className="absolute inset-0 z-40 w-full h-full object-contain select-none pointer-events-none drop-shadow-[0_26px_52px_rgba(0,0,0,0.28)]"
           />
         </div>
 
         <motion.p
-          animate={opening ? { opacity: 0, y: 10 } : { opacity: [0.55, 1, 0.55], y: [0, -2, 0] }}
-          transition={{ duration: opening ? 0.35 : 2.3, repeat: opening ? 0 : Infinity, ease: 'easeInOut' }}
-          className="mt-8 text-white font-black text-[10px] uppercase tracking-[0.32em] text-center px-4 drop-shadow-lg"
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: opening ? 0 : 1, y: opening ? 14 : 0 }}
+          transition={{ duration: 0.45, delay: opening ? 0 : 0.35 }}
+          className="mt-8 text-white font-black text-[10px] uppercase tracking-[0.28em] text-center px-6 drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)]"
         >
-          {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? 'Tap to open invitation' : 'Nhấn de mở lời mời'}
+          {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? 'Tap to open invitation' : 'Nhấn để mở lời mời'}
         </motion.p>
       </motion.div>
     );
@@ -866,7 +891,7 @@ export function GuestView({ invitation }: any) {
               transition={{ type: 'spring', damping: 20, delay: 0.4 }}
               onClick={() => isOpened && setView('content')}
               className={`z-30 w-[310px] h-[370px] rounded-[3rem] shadow-2xl p-10 flex flex-col items-center justify-between border border-gray-100 cursor-pointer paper-container ${getPaperClass()}`}
-              style={{ '--dynamic-color': cardPaperColor } as React.CSSProperties}
+              style={{ '--dynamic-color': cardPaperColor } as CSSProperties}
             >
               <div className="text-center pt-14 w-full">
                 <h2 className="text-2xl font-black uppercase tracking-tighter mb-4 break-words" style={{ fontFamily: fontStyle }}>
@@ -1005,7 +1030,7 @@ export function GuestView({ invitation }: any) {
                               </div>
 
                               <p className="absolute bottom-12 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse text-center w-full px-4">
-                                {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? 'Tap to open invitation' : 'Nhấn de mở lời mời'}
+                                {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? 'Tap to open invitation' : 'Nhấn để mở lời mời'}
                               </p>
                             </>
                           )}
@@ -1054,16 +1079,16 @@ export function GuestView({ invitation }: any) {
                             className="absolute inset-0 w-full h-full"
                             style={{
                               background:
-                                'radial-gradient(circle at 50% 42%, rgba(255,255,255,0.22), transparent 30%), linear-gradient(145deg, rgba(24,24,27,0.82), rgba(90,65,45,0.48), rgba(24,24,27,0.86))'
+                                'radial-gradient(circle at 50% 42%, rgba(255,255,255,0.22), transparent 30%), linear-gradient(145deg, rgba(24,24,27,0.88), rgba(97,71,48,0.48), rgba(24,24,27,0.9))'
                             }}
                           />
                           <motion.div
                             animate={isCodeFading ? { opacity: 0, scale: 1.03 } : { opacity: 1, scale: 1 }}
-                            transition={{ duration: 0.9, ease: 'easeInOut' }}
+                            transition={{ duration: 1.05, ease: 'easeInOut' }}
                             className="absolute inset-0 w-full h-full"
                             style={{
                               background:
-                                'radial-gradient(circle at 50% 52%, rgba(251,191,36,0.18), transparent 28%), radial-gradient(circle at 20% 10%, rgba(255,255,255,0.16), transparent 22%), radial-gradient(circle at 84% 82%, rgba(255,255,255,0.12), transparent 24%)'
+                                'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.08), transparent 34%), linear-gradient(180deg, rgba(0,0,0,0.18), rgba(0,0,0,0.36))'
                             }}
                           />
                         </>
@@ -1080,7 +1105,7 @@ export function GuestView({ invitation }: any) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className={`w-full h-full z-[100] flex flex-col overflow-y-auto paper-container ${getPaperClass()}`}
-            style={{ '--dynamic-color': cardPaperColor } as React.CSSProperties}
+            style={{ '--dynamic-color': cardPaperColor } as CSSProperties}
           >
             <ContentOrnaments />
 
