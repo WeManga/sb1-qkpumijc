@@ -43,7 +43,6 @@ export function GuestView({ invitation }: any) {
   const [isCodeFading, setIsCodeFading] = useState(false);
   const [showOpeningGif, setShowOpeningGif] = useState(false);
   const [isOpeningTransitionFading, setIsOpeningTransitionFading] = useState(false);
-  const [openingGifNonce, setOpeningGifNonce] = useState(0);
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const openingTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -322,12 +321,11 @@ export function GuestView({ invitation }: any) {
 
       const gifVisibleDuration = 5600;
       const gifFadeDuration = 900;
-      const revealDelay = gifVisibleDuration + gifFadeDuration + 180;
+      const revealDelay = gifVisibleDuration + gifFadeDuration + 160;
 
       openingTimersRef.current.forEach(clearTimeout);
       openingTimersRef.current = [];
 
-      setOpeningGifNonce(Date.now());
       setShowOpeningGif(true);
       setIsOpeningTransitionFading(false);
       setIsCodeFading(true);
@@ -456,7 +454,7 @@ export function GuestView({ invitation }: any) {
         initial={{ opacity: 1 }}
         animate={{ opacity: isOpeningTransitionFading ? 0 : 1 }}
         transition={{ duration: 0.9, ease: 'easeInOut' }}
-        className="absolute inset-0 z-[48] pointer-events-none overflow-hidden bg-white"
+        className="absolute inset-0 z-[45] pointer-events-none overflow-hidden bg-white"
       >
         <img
           src={OPENING_BACKGROUND_URL}
@@ -467,12 +465,9 @@ export function GuestView({ invitation }: any) {
         <div className="absolute inset-0 bg-white/5" />
 
         <div className="relative z-10 w-full h-full flex items-center justify-center pt-40">
-          <motion.img
-            src={`${OPENING_GIF_URL}?t=${openingGifNonce}`}
-            initial={{ opacity: 1, scale: 1, y: 0 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ duration: 0.1 }}
-            className="w-[330px] max-w-[82vw] h-auto object-contain drop-shadow-[0_24px_55px_rgba(0,0,0,0.28)]"
+          <img
+            src={OPENING_GIF_URL}
+            className="w-[330px] max-w-[82vw] h-auto object-contain drop-shadow-[0_18px_35px_rgba(0,0,0,0.22)]"
             alt=""
           />
         </div>
