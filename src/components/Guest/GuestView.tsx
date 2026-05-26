@@ -20,6 +20,12 @@ const OPENING_GIF_URL =
 const OPENING_BACKGROUND_URL =
   'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fond.png';
 
+const PIXEL_OPENING_VIDEO_URL =
+  'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/beat%20pixel.mp4';
+
+const SEAL_URL =
+  'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png';
+
 const pick = (obj: any, keys: string[], fallback: any = undefined) => {
   for (const key of keys) {
     if (obj?.[key] !== undefined && obj?.[key] !== null && obj?.[key] !== '') return obj[key];
@@ -41,6 +47,7 @@ export function GuestView({ invitation }: any) {
   const [displayedCode, setDisplayedCode] = useState(['*', '*', '*', '*', '*', '*']);
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const [isCodeFading, setIsCodeFading] = useState(false);
+  const [isSealBreaking, setIsSealBreaking] = useState(false);
   const [showOpeningGif, setShowOpeningGif] = useState(false);
   const [isOpeningTransitionFading, setIsOpeningTransitionFading] = useState(false);
 
@@ -85,8 +92,8 @@ export function GuestView({ invitation }: any) {
   const premiumFinalText = pick(invitation, ['premium_final_text'], '');
   const premiumFinalPhotoUrl = pick(invitation, ['premium_final_photo_url'], '');
 
-  const effectivePaperType = isPremium || paperType === 'smooth' ? paperType : 'smooth';
-  const cardPaperColor = isPremium ? paperColor : '#ffffff';
+  const effectivePaperType = paperType || 'smooth';
+  const cardPaperColor = paperColor || '#ffffff';
   const pageBackgroundColor = isPremiumDecor && backgroundColor ? backgroundColor : '#ffffff';
 
   const mainPhotoPosX = pick(invitation, ['main_photo_url_pos_x', 'mainphotourlposx'], 0);
@@ -206,7 +213,7 @@ export function GuestView({ invitation }: any) {
   }, []);
 
   useEffect(() => {
-    if (containerOpen === 'envelope' || isOpened || isCodeFading) return;
+    if (containerOpen === 'envelope' || containerOpen === 'wooden_door' || isOpened || isCodeFading) return;
 
     let loopInterval: ReturnType<typeof setInterval> | undefined;
 
@@ -247,7 +254,7 @@ export function GuestView({ invitation }: any) {
   }, [invitation?.vault_date, invitation?.event_date]);
 
   useEffect(() => {
-    if (containerOpen === 'envelope') return;
+    if (containerOpen === 'envelope' || containerOpen === 'wooden_door') return;
 
     if (!isOpened && openingStyle === 'vault') {
       let currentDigitIndex = 0;
@@ -307,53 +314,78 @@ export function GuestView({ invitation }: any) {
   }, [containerOpen, isOpened, openingStyle, isVaultClicked, targetCode]);
 
   const triggerContainerOpening = () => {
-    if (containerOpen === 'wooden_door') {
-      playSyntheticSound('open_door');
-    }
-
     setIsOpened(true);
     audioRef.current?.play().catch(() => {});
   };
 
   const handleTriggerClick = () => {
-    if (containerOpen === 'envelope') {
-      if (isCodeFading) return;
+    if (isCodeFading || isSealBreaking) return;
 
+    openingTimersRef.current.forEach(clearTimeout);
+    openingTimersRef.current = [];
+
+    if (containerOpen === 'wooden_door') {
+      setIsSealBreaking(true);
+      setIsCodeFading(true);
+
+      const hideSealTimer = setTimeout(() => {
+        setIsSealBreaking(false);
+      }, 900);
+
+      const revealTimer = setTimeout(() => {
+        triggerContainerOpening();
+      }, 1250);
+
+      openingTimersRef.current.push(hideSealTimer, revealTimer);
+      return;
+    }
+
+    if (containerOpen === 'envelope') {
+      const sealBreakDuration = 900;
       const gifVisibleDuration = 5600;
       const gifFadeDuration = 900;
-      const revealDelay = gifVisibleDuration + gifFadeDuration + 160;
+      const revealDelay = sealBreakDuration + gifVisibleDuration + gifFadeDuration + 160;
 
-      openingTimersRef.current.forEach(clearTimeout);
-      openingTimersRef.current = [];
+      setIsSealBreaking(true);
 
-      setShowOpeningGif(true);
-      setIsOpeningTransitionFading(false);
-      setIsCodeFading(true);
+      const startGifTimer = setTimeout(() => {
+        setIsSealBreaking(false);
+        setShowOpeningGif(true);
+        setIsOpeningTransitionFading(false);
+        setIsCodeFading(true);
+      }, sealBreakDuration);
 
       const gifFadeTimer = setTimeout(() => {
         setIsOpeningTransitionFading(true);
-      }, gifVisibleDuration);
+      }, sealBreakDuration + gifVisibleDuration);
 
       const gifEndTimer = setTimeout(() => {
         setShowOpeningGif(false);
-      }, gifVisibleDuration + gifFadeDuration);
+      }, sealBreakDuration + gifVisibleDuration + gifFadeDuration);
 
       const revealTimer = setTimeout(() => {
         triggerContainerOpening();
       }, revealDelay);
 
-      openingTimersRef.current.push(gifFadeTimer, gifEndTimer, revealTimer);
+      openingTimersRef.current.push(startGifTimer, gifFadeTimer, gifEndTimer, revealTimer);
       return;
     }
 
     if (openingStyle === 'vault') {
       if (!isVaultClicked) setIsVaultClicked(true);
     } else {
+      setIsSealBreaking(true);
       setIsCodeFading(true);
 
-      setTimeout(() => {
+      const hideSealTimer = setTimeout(() => {
+        setIsSealBreaking(false);
+      }, 900);
+
+      const revealTimer = setTimeout(() => {
         triggerContainerOpening();
-      }, 400);
+      }, 1050);
+
+      openingTimersRef.current.push(hideSealTimer, revealTimer);
     }
   };
 
@@ -445,6 +477,68 @@ export function GuestView({ invitation }: any) {
     );
   };
 
+  const BreakingSeal = ({ sizeClass = 'w-[22rem] max-w-[76vw]' }: { sizeClass?: string }) => {
+    const shardClass = `${sizeClass} h-auto object-contain absolute inset-0 m-auto drop-shadow-[0_22px_45px_rgba(0,0,0,0.35)]`;
+
+    if (!isSealBreaking) {
+      return (
+        <motion.img
+          src={SEAL_URL}
+          animate={{ scale: [1, 1.035, 1], opacity: [0.92, 1, 0.92] }}
+          transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
+          className={`${sizeClass} h-auto object-contain drop-shadow-[0_22px_45px_rgba(0,0,0,0.35)]`}
+          alt="Sceau"
+        />
+      );
+    }
+
+    return (
+      <motion.div
+        initial={{ scale: 1 }}
+        animate={{ scale: [1, 1.08, 1.02], rotate: [0, -1.5, 1] }}
+        transition={{ duration: 0.22, ease: 'easeOut' }}
+        className="relative w-[22rem] max-w-[76vw] aspect-square"
+      >
+        <motion.img
+          src={SEAL_URL}
+          className={shardClass}
+          style={{ clipPath: 'polygon(0 0, 54% 0, 45% 100%, 0 100%)' }}
+          animate={{ x: -76, y: -24, rotate: -18, opacity: 0 }}
+          transition={{ duration: 0.82, ease: [0.22, 1, 0.36, 1] }}
+          alt=""
+        />
+        <motion.img
+          src={SEAL_URL}
+          className={shardClass}
+          style={{ clipPath: 'polygon(48% 0, 100% 0, 100% 48%, 42% 58%)' }}
+          animate={{ x: 72, y: -38, rotate: 16, opacity: 0 }}
+          transition={{ duration: 0.82, ease: [0.22, 1, 0.36, 1] }}
+          alt=""
+        />
+        <motion.img
+          src={SEAL_URL}
+          className={shardClass}
+          style={{ clipPath: 'polygon(42% 52%, 100% 42%, 100% 100%, 45% 100%)' }}
+          animate={{ x: 44, y: 72, rotate: 12, opacity: 0 }}
+          transition={{ duration: 0.82, ease: [0.22, 1, 0.36, 1] }}
+          alt=""
+        />
+        <motion.div
+          className="absolute left-1/2 top-1/2 h-[2px] w-44 -translate-x-1/2 -translate-y-1/2 bg-white/90 shadow-[0_0_18px_rgba(255,255,255,0.85)]"
+          initial={{ scaleX: 0, opacity: 0, rotate: -18 }}
+          animate={{ scaleX: 1, opacity: [0, 1, 0], rotate: -18 }}
+          transition={{ duration: 0.55, ease: 'easeOut' }}
+        />
+        <motion.div
+          className="absolute left-1/2 top-1/2 h-[2px] w-36 -translate-x-1/2 -translate-y-1/2 bg-white/80 shadow-[0_0_14px_rgba(255,255,255,0.75)]"
+          initial={{ scaleX: 0, opacity: 0, rotate: 28 }}
+          animate={{ scaleX: 1, opacity: [0, 0.85, 0], rotate: 28 }}
+          transition={{ duration: 0.58, delay: 0.08, ease: 'easeOut' }}
+        />
+      </motion.div>
+    );
+  };
+
   const OpeningGifTransition = () => {
     if (!showOpeningGif) return null;
 
@@ -456,14 +550,8 @@ export function GuestView({ invitation }: any) {
         transition={{ duration: 0.9, ease: 'easeInOut' }}
         className="absolute inset-0 z-[45] pointer-events-none overflow-hidden bg-white"
       >
-        <img
-          src={OPENING_BACKGROUND_URL}
-          className="absolute inset-0 w-full h-full object-cover object-top"
-          alt=""
-        />
-
+        <img src={OPENING_BACKGROUND_URL} className="absolute inset-0 w-full h-full object-cover object-top" alt="" />
         <div className="absolute inset-0 bg-white/5" />
-
         <div className="relative z-10 w-full h-full flex items-center justify-center pt-[18vh]">
           <img
             src={OPENING_GIF_URL}
@@ -474,6 +562,28 @@ export function GuestView({ invitation }: any) {
       </motion.div>
     );
   };
+
+  const PixelOpeningVideo = () => (
+    <motion.div
+      initial={{ opacity: 1 }}
+      animate={isCodeFading ? { opacity: 0, scale: 1.03 } : { opacity: 1, scale: 1 }}
+      transition={{ duration: 0.95, ease: 'easeInOut' }}
+      className="absolute inset-0 w-full h-full overflow-hidden bg-black"
+    >
+      <video
+        src={PIXEL_OPENING_VIDEO_URL}
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+        className="absolute inset-0 w-full h-full object-cover"
+      />
+      <div className="absolute inset-0 bg-black/20" />
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.12)_48%,rgba(0,0,0,0.5)_100%)]" />
+      <div className="absolute inset-0 opacity-20 mix-blend-screen bg-[linear-gradient(90deg,transparent_0_48%,rgba(255,255,255,0.18)_49%,transparent_50%)] bg-[length:8px_8px]" />
+    </motion.div>
+  );
 
   const AutonomousDecor = () => {
     const theme = backgroundTheme;
@@ -696,6 +806,7 @@ export function GuestView({ invitation }: any) {
     );
   };
 
+  const showOpeningTrigger = !isCodeFading || isSealBreaking;
   const showEmojiRain = isOpened && (planType !== 'PREMIUM' || premiumTriggerType === 'emoji' || !premiumTriggerType);
   const showPremiumDecor = isOpened && isPremiumDecor;
 
@@ -813,24 +924,16 @@ export function GuestView({ invitation }: any) {
                 {(!isOpened || containerOpen === 'metal_door' || containerOpen === 'wooden_door') && (
                   <motion.div key="gate-container" exit={{ opacity: 1 }} className="w-full h-full relative flex items-center justify-center">
                     <AnimatePresence>
-                      {!isCodeFading && (
+                      {showOpeningTrigger && (
                         <motion.div
                           key="visual-trigger"
                           initial={{ opacity: 1 }}
-                          exit={containerOpen === 'metal_door' || containerOpen === 'wooden_door' ? {} : { opacity: 0, transition: { duration: 0.25, ease: 'easeInOut' } }}
+                          exit={{ opacity: 0, transition: { duration: 0.25, ease: 'easeInOut' } }}
                           className="absolute inset-0 z-[70] flex flex-col items-center justify-center cursor-pointer"
                           onClick={handleTriggerClick}
                         >
                           <div className="relative w-full flex items-center justify-center">
-                            {containerOpen === 'envelope' ? (
-                              <motion.img
-                                src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png"
-                                animate={{ scale: [1, 1.035, 1], opacity: [0.92, 1, 0.92] }}
-                                transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
-                                className="w-[22rem] max-w-[76vw] h-auto object-contain drop-shadow-[0_22px_45px_rgba(0,0,0,0.35)]"
-                                alt="Sceau"
-                              />
-                            ) : openingStyle === 'knock' ? (
+                            {openingStyle === 'knock' && containerOpen !== 'wooden_door' ? (
                               <motion.div
                                 animate={{ x: [0, -12, 4, -12, 4, 0], y: [0, -6, 2, -6, 2, 0], scale: [1, 1.05, 0.98, 1.05, 0.98, 1] }}
                                 transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 1.5, ease: 'easeInOut' }}
@@ -838,7 +941,7 @@ export function GuestView({ invitation }: any) {
                               >
                                 <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/main-qui-toque.PNG" className="w-full h-full object-contain drop-shadow-2xl" alt="Main qui toque" />
                               </motion.div>
-                            ) : openingStyle === 'key' ? (
+                            ) : openingStyle === 'key' && containerOpen !== 'wooden_door' ? (
                               <div className="select-none flex items-center justify-center relative w-[260px] h-[260px]">
                                 <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/cleserrure.png" className="absolute w-full h-full object-contain" alt="Serrure" />
                                 <motion.img
@@ -849,7 +952,7 @@ export function GuestView({ invitation }: any) {
                                   alt="Clé"
                                 />
                               </div>
-                            ) : openingStyle === 'vault' ? (
+                            ) : openingStyle === 'vault' && containerOpen !== 'wooden_door' ? (
                               <div className="relative w-[220px] h-[330px] flex flex-col items-center justify-start bg-neutral-950 border-[4px] border-neutral-800 rounded-[1.75rem] shadow-[0_20px_40px_rgba(0,0,0,0.8)] overflow-hidden p-4">
                                 <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/dgital.png" className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-30 pointer-events-none" alt="" />
 
@@ -901,7 +1004,7 @@ export function GuestView({ invitation }: any) {
                                 </div>
                               </div>
                             ) : (
-                              <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-[32rem] h-[32rem] object-contain" alt="Sceau" />
+                              <BreakingSeal />
                             )}
                           </div>
 
@@ -913,38 +1016,15 @@ export function GuestView({ invitation }: any) {
                     </AnimatePresence>
 
                     <div className="absolute inset-0 z-50 w-full h-full flex" style={{ perspective: '2200px', transformStyle: 'preserve-3d' }}>
-                      {containerOpen === 'metal_door' ? (
+                      {containerOpen === 'wooden_door' ? (
+                        <PixelOpeningVideo />
+                      ) : containerOpen === 'metal_door' ? (
                         <motion.div
                           animate={isOpened ? { x: '100%' } : { x: '0%' }}
                           transition={{ duration: 1.6, ease: 'easeInOut' }}
                           className="absolute inset-0 w-full h-full bg-cover bg-center shadow-2xl"
                           style={{ backgroundImage: 'url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20noir.png")' }}
                         />
-                      ) : containerOpen === 'wooden_door' ? (
-                        <>
-                          <motion.div
-                            initial={{ rotateY: 0, x: '0%', opacity: 1 }}
-                            animate={isOpened ? { rotateY: -112, x: '-7%', opacity: 0.88 } : { rotateY: 0, x: '0%', opacity: 1 }}
-                            transition={{ duration: 1.35, ease: [0.43, 0.13, 0.23, 0.96] }}
-                            className="w-1/2 h-full origin-left bg-cover bg-center shadow-[18px_0_36px_rgba(0,0,0,0.48)] border-r border-black/10"
-                            style={{
-                              backgroundImage: 'url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20gauche.png")',
-                              transformStyle: 'preserve-3d',
-                              backfaceVisibility: 'hidden'
-                            }}
-                          />
-                          <motion.div
-                            initial={{ rotateY: 0, x: '0%', opacity: 1 }}
-                            animate={isOpened ? { rotateY: 112, x: '7%', opacity: 0.88 } : { rotateY: 0, x: '0%', opacity: 1 }}
-                            transition={{ duration: 1.35, ease: [0.43, 0.13, 0.23, 0.96] }}
-                            className="w-1/2 h-full origin-right bg-cover bg-center shadow-[-18px_0_36px_rgba(0,0,0,0.48)] border-l border-black/10"
-                            style={{
-                              backgroundImage: 'url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20droite.png")',
-                              transformStyle: 'preserve-3d',
-                              backfaceVisibility: 'hidden'
-                            }}
-                          />
-                        </>
                       ) : (
                         <>
                           <motion.div
