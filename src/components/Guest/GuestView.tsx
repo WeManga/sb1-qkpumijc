@@ -326,25 +326,28 @@ export function GuestView({ invitation }: any) {
 
     if (containerOpen === 'wooden_door') {
       setIsSealBreaking(true);
-      setIsCodeFading(true);
+
+      const videoFadeTimer = setTimeout(() => {
+        setIsCodeFading(true);
+      }, 520);
 
       const hideSealTimer = setTimeout(() => {
         setIsSealBreaking(false);
-      }, 900);
+      }, 1450);
 
       const revealTimer = setTimeout(() => {
         triggerContainerOpening();
-      }, 1250);
+      }, 2100);
 
-      openingTimersRef.current.push(hideSealTimer, revealTimer);
+      openingTimersRef.current.push(videoFadeTimer, hideSealTimer, revealTimer);
       return;
     }
 
     if (containerOpen === 'envelope') {
-      const sealBreakDuration = 900;
+      const sealBreakDuration = 1300;
       const gifVisibleDuration = 5600;
-      const gifFadeDuration = 900;
-      const revealDelay = sealBreakDuration + gifVisibleDuration + gifFadeDuration + 160;
+      const gifFadeDuration = 1100;
+      const revealDelay = sealBreakDuration + gifVisibleDuration + gifFadeDuration + 180;
 
       setIsSealBreaking(true);
 
@@ -375,17 +378,20 @@ export function GuestView({ invitation }: any) {
       if (!isVaultClicked) setIsVaultClicked(true);
     } else {
       setIsSealBreaking(true);
-      setIsCodeFading(true);
+
+      const fadeTimer = setTimeout(() => {
+        setIsCodeFading(true);
+      }, 420);
 
       const hideSealTimer = setTimeout(() => {
         setIsSealBreaking(false);
-      }, 900);
+      }, 1350);
 
       const revealTimer = setTimeout(() => {
         triggerContainerOpening();
-      }, 1050);
+      }, 1650);
 
-      openingTimersRef.current.push(hideSealTimer, revealTimer);
+      openingTimersRef.current.push(fadeTimer, hideSealTimer, revealTimer);
     }
   };
 
@@ -478,8 +484,6 @@ export function GuestView({ invitation }: any) {
   };
 
   const BreakingSeal = ({ sizeClass = 'w-[22rem] max-w-[76vw]' }: { sizeClass?: string }) => {
-    const shardClass = `${sizeClass} h-auto object-contain absolute inset-0 m-auto drop-shadow-[0_22px_45px_rgba(0,0,0,0.35)]`;
-
     if (!isSealBreaking) {
       return (
         <motion.img
@@ -494,47 +498,62 @@ export function GuestView({ invitation }: any) {
 
     return (
       <motion.div
-        initial={{ scale: 1 }}
-        animate={{ scale: [1, 1.08, 1.02], rotate: [0, -1.5, 1] }}
-        transition={{ duration: 0.22, ease: 'easeOut' }}
-        className="relative w-[22rem] max-w-[76vw] aspect-square"
+        className="relative w-[22rem] max-w-[76vw] aspect-square flex items-center justify-center"
+        initial={{ scale: 1, opacity: 1 }}
+        animate={{
+          scale: [1, 1.08, 1.02, 0.9],
+          opacity: [1, 1, 1, 0],
+          x: [0, -4, 4, -2, 0],
+          rotate: [0, -1.5, 1.5, -0.6, 0]
+        }}
+        transition={{ duration: 1.35, ease: [0.22, 1, 0.36, 1] }}
       >
-        <motion.img
+        <img
           src={SEAL_URL}
-          className={shardClass}
-          style={{ clipPath: 'polygon(0 0, 54% 0, 45% 100%, 0 100%)' }}
-          animate={{ x: -76, y: -24, rotate: -18, opacity: 0 }}
-          transition={{ duration: 0.82, ease: [0.22, 1, 0.36, 1] }}
-          alt=""
+          className={`${sizeClass} h-auto object-contain drop-shadow-[0_22px_45px_rgba(0,0,0,0.35)]`}
+          alt="Sceau"
         />
-        <motion.img
-          src={SEAL_URL}
-          className={shardClass}
-          style={{ clipPath: 'polygon(48% 0, 100% 0, 100% 48%, 42% 58%)' }}
-          animate={{ x: 72, y: -38, rotate: 16, opacity: 0 }}
-          transition={{ duration: 0.82, ease: [0.22, 1, 0.36, 1] }}
-          alt=""
+
+        <motion.span
+          className="absolute left-[49%] top-[18%] h-[46%] w-[2px] origin-top rounded-full bg-white/90 shadow-[0_0_12px_rgba(255,255,255,0.9)]"
+          initial={{ scaleY: 0, opacity: 0, rotate: -17 }}
+          animate={{ scaleY: [0, 1, 1, 0.95], opacity: [0, 1, 1, 0], rotate: -17 }}
+          transition={{ duration: 1.05, ease: 'easeOut' }}
         />
-        <motion.img
-          src={SEAL_URL}
-          className={shardClass}
-          style={{ clipPath: 'polygon(42% 52%, 100% 42%, 100% 100%, 45% 100%)' }}
-          animate={{ x: 44, y: 72, rotate: 12, opacity: 0 }}
-          transition={{ duration: 0.82, ease: [0.22, 1, 0.36, 1] }}
-          alt=""
+
+        <motion.span
+          className="absolute left-[38%] top-[45%] h-[2px] w-[32%] origin-left rounded-full bg-white/85 shadow-[0_0_12px_rgba(255,255,255,0.8)]"
+          initial={{ scaleX: 0, opacity: 0, rotate: 22 }}
+          animate={{ scaleX: [0, 1, 1, 0.9], opacity: [0, 0.9, 0.9, 0], rotate: 22 }}
+          transition={{ duration: 1.0, delay: 0.12, ease: 'easeOut' }}
         />
-        <motion.div
-          className="absolute left-1/2 top-1/2 h-[2px] w-44 -translate-x-1/2 -translate-y-1/2 bg-white/90 shadow-[0_0_18px_rgba(255,255,255,0.85)]"
-          initial={{ scaleX: 0, opacity: 0, rotate: -18 }}
-          animate={{ scaleX: 1, opacity: [0, 1, 0], rotate: -18 }}
-          transition={{ duration: 0.55, ease: 'easeOut' }}
+
+        <motion.span
+          className="absolute left-[50%] top-[51%] h-[2px] w-[25%] origin-left rounded-full bg-white/80 shadow-[0_0_10px_rgba(255,255,255,0.75)]"
+          initial={{ scaleX: 0, opacity: 0, rotate: -34 }}
+          animate={{ scaleX: [0, 1, 1, 0.9], opacity: [0, 0.85, 0.85, 0], rotate: -34 }}
+          transition={{ duration: 0.95, delay: 0.2, ease: 'easeOut' }}
         />
-        <motion.div
-          className="absolute left-1/2 top-1/2 h-[2px] w-36 -translate-x-1/2 -translate-y-1/2 bg-white/80 shadow-[0_0_14px_rgba(255,255,255,0.75)]"
-          initial={{ scaleX: 0, opacity: 0, rotate: 28 }}
-          animate={{ scaleX: 1, opacity: [0, 0.85, 0], rotate: 28 }}
-          transition={{ duration: 0.58, delay: 0.08, ease: 'easeOut' }}
-        />
+
+        {Array.from({ length: 10 }).map((_, index) => {
+          const angle = index * 36;
+          const distance = 38 + (index % 3) * 13;
+
+          return (
+            <motion.span
+              key={index}
+              className="absolute left-1/2 top-1/2 h-1.5 w-1.5 rounded-full bg-amber-200 shadow-[0_0_10px_rgba(251,191,36,0.85)]"
+              initial={{ x: 0, y: 0, opacity: 0, scale: 0.4 }}
+              animate={{
+                x: Math.cos((angle * Math.PI) / 180) * distance,
+                y: Math.sin((angle * Math.PI) / 180) * distance,
+                opacity: [0, 1, 1, 0],
+                scale: [0.4, 1, 0.8, 0.2]
+              }}
+              transition={{ duration: 1.15, delay: 0.12 + index * 0.018, ease: 'easeOut' }}
+            />
+          );
+        })}
       </motion.div>
     );
   };
@@ -547,7 +566,7 @@ export function GuestView({ invitation }: any) {
         key="opening-gif"
         initial={{ opacity: 1 }}
         animate={{ opacity: isOpeningTransitionFading ? 0 : 1 }}
-        transition={{ duration: 0.9, ease: 'easeInOut' }}
+        transition={{ duration: 1.1, ease: 'easeInOut' }}
         className="absolute inset-0 z-[45] pointer-events-none overflow-hidden bg-white"
       >
         <img src={OPENING_BACKGROUND_URL} className="absolute inset-0 w-full h-full object-cover object-top" alt="" />
@@ -565,9 +584,9 @@ export function GuestView({ invitation }: any) {
 
   const PixelOpeningVideo = () => (
     <motion.div
-      initial={{ opacity: 1 }}
-      animate={isCodeFading ? { opacity: 0, scale: 1.03 } : { opacity: 1, scale: 1 }}
-      transition={{ duration: 0.95, ease: 'easeInOut' }}
+      initial={{ opacity: 1, scale: 1 }}
+      animate={isCodeFading ? { opacity: 0, scale: 1.035 } : { opacity: 1, scale: 1 }}
+      transition={{ duration: 1.45, ease: 'easeInOut' }}
       className="absolute inset-0 w-full h-full overflow-hidden bg-black"
     >
       <video
@@ -928,7 +947,7 @@ export function GuestView({ invitation }: any) {
                         <motion.div
                           key="visual-trigger"
                           initial={{ opacity: 1 }}
-                          exit={{ opacity: 0, transition: { duration: 0.25, ease: 'easeInOut' } }}
+                          exit={{ opacity: 0, transition: { duration: 0.45, ease: 'easeInOut' } }}
                           className="absolute inset-0 z-[70] flex flex-col items-center justify-center cursor-pointer"
                           onClick={handleTriggerClick}
                         >
