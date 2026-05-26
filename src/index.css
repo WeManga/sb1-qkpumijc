@@ -44,24 +44,20 @@
     position: relative;
     overflow: hidden;
     isolation: isolate;
-    background-color: #ffffff;
+    background-color: var(--dynamic-color, #ffffff);
     background-image:
       linear-gradient(var(--dynamic-color, #ffffff), var(--dynamic-color, #ffffff)),
       var(--paper-fiber-layer, none),
       var(--paper-grain-layer, none),
       var(--paper-sheen-layer, none);
-    background-blend-mode: multiply, multiply, normal, screen;
+    background-blend-mode: normal, multiply, multiply, screen;
     background-attachment: local, local, local, local;
     background-size:
       auto,
       var(--paper-fiber-size, 120px 120px),
       var(--paper-grain-size, 160px 160px),
       var(--paper-sheen-size, 220px 220px);
-    background-position:
-      center,
-      center,
-      center,
-      center;
+    background-position: center, center, center, center;
   }
 
   .paper-container::before {
@@ -69,7 +65,8 @@
     position: absolute;
     inset: 0;
     pointer-events: none;
-    z-index: 0;
+    z-index: 1;
+    border-radius: inherit;
     background:
       radial-gradient(circle at 18% 12%, rgba(255, 255, 255, 0.72), transparent 26%),
       radial-gradient(circle at 84% 18%, rgba(255, 255, 255, 0.5), transparent 24%),
@@ -83,22 +80,29 @@
     position: absolute;
     inset: 0;
     pointer-events: none;
-    z-index: 0;
+    z-index: 30;
+    border-radius: inherit;
     background:
+      var(--paper-visible-texture, none),
       repeating-linear-gradient(
         92deg,
-        rgba(120, 72, 18, 0.035) 0px,
-        rgba(120, 72, 18, 0.035) 1px,
+        rgba(120, 72, 18, 0.04) 0px,
+        rgba(120, 72, 18, 0.04) 1px,
         transparent 1px,
         transparent 5px
       ),
       repeating-linear-gradient(
         2deg,
-        rgba(255, 255, 255, 0.22) 0px,
-        rgba(255, 255, 255, 0.22) 1px,
+        rgba(255, 255, 255, 0.24) 0px,
+        rgba(255, 255, 255, 0.24) 1px,
         transparent 1px,
         transparent 7px
       );
+    background-size:
+      var(--paper-visible-texture-size, 180px 180px),
+      var(--paper-line-size-a, 140px 140px),
+      var(--paper-line-size-b, 160px 160px);
+    background-position: center;
     opacity: var(--paper-texture-opacity, 0.18);
     mix-blend-mode: multiply;
     filter: contrast(var(--paper-texture-contrast, 1.04)) brightness(var(--paper-texture-brightness, 1.02));
@@ -106,14 +110,19 @@
 
   .paper-container > * {
     position: relative;
-    z-index: 1;
+    z-index: 2;
   }
 
   .paper-smooth {
-    --paper-texture-opacity: 0.08;
+    --paper-texture-opacity: 0.1;
     --paper-light-opacity: 0.34;
-    --paper-texture-contrast: 1.02;
+    --paper-texture-contrast: 1.04;
     --paper-texture-brightness: 1.04;
+    --paper-visible-texture-size: 90px 90px;
+    --paper-visible-texture:
+      radial-gradient(circle at 24% 18%, rgba(255, 255, 255, 0.42) 0 1px, transparent 1.5px),
+      radial-gradient(circle at 70% 56%, rgba(0, 0, 0, 0.05) 0 1px, transparent 1.5px),
+      radial-gradient(circle at 42% 82%, rgba(0, 0, 0, 0.035) 0 0.8px, transparent 1.4px);
     --paper-fiber-layer:
       radial-gradient(circle at 24% 18%, rgba(255, 255, 255, 0.28) 0 1px, transparent 1.5px),
       radial-gradient(circle at 70% 56%, rgba(0, 0, 0, 0.025) 0 1px, transparent 1.5px);
@@ -124,10 +133,16 @@
   }
 
   .paper-parchment {
-    --paper-texture-opacity: 0.22;
+    --paper-texture-opacity: 0.28;
     --paper-light-opacity: 0.5;
-    --paper-texture-contrast: 1.08;
+    --paper-texture-contrast: 1.12;
     --paper-texture-brightness: 1.02;
+    --paper-visible-texture-size: 150px 150px;
+    --paper-visible-texture:
+      radial-gradient(circle at 14% 22%, rgba(111, 78, 38, 0.18) 0 1px, transparent 1.8px),
+      radial-gradient(circle at 64% 44%, rgba(255, 255, 255, 0.28) 0 1px, transparent 1.6px),
+      radial-gradient(circle at 86% 72%, rgba(111, 78, 38, 0.14) 0 1.2px, transparent 2px),
+      linear-gradient(18deg, rgba(126, 84, 35, 0.12), transparent 28%, rgba(255, 255, 255, 0.18) 58%, transparent);
     --paper-fiber-layer:
       radial-gradient(circle at 14% 22%, rgba(111, 78, 38, 0.08) 0 1px, transparent 1.8px),
       radial-gradient(circle at 64% 44%, rgba(255, 255, 255, 0.22) 0 1px, transparent 1.6px),
@@ -141,10 +156,15 @@
   }
 
   .paper-grainy {
-    --paper-texture-opacity: 0.28;
+    --paper-texture-opacity: 0.34;
     --paper-light-opacity: 0.38;
-    --paper-texture-contrast: 1.12;
+    --paper-texture-contrast: 1.16;
     --paper-texture-brightness: 1.02;
+    --paper-visible-texture-size: 48px 48px;
+    --paper-visible-texture:
+      radial-gradient(circle at 20% 30%, rgba(0, 0, 0, 0.12) 0 0.8px, transparent 1.3px),
+      radial-gradient(circle at 76% 62%, rgba(0, 0, 0, 0.09) 0 0.8px, transparent 1.3px),
+      radial-gradient(circle at 48% 88%, rgba(255, 255, 255, 0.3) 0 1px, transparent 1.6px);
     --paper-fiber-layer:
       radial-gradient(circle at 20% 30%, rgba(0, 0, 0, 0.055) 0 0.8px, transparent 1.3px),
       radial-gradient(circle at 76% 62%, rgba(0, 0, 0, 0.04) 0 0.8px, transparent 1.3px),
@@ -159,10 +179,16 @@
   }
 
   .paper-cotton {
-    --paper-texture-opacity: 0.18;
+    --paper-texture-opacity: 0.24;
     --paper-light-opacity: 0.46;
-    --paper-texture-contrast: 1.06;
+    --paper-texture-contrast: 1.08;
     --paper-texture-brightness: 1.05;
+    --paper-visible-texture-size: 120px 120px;
+    --paper-visible-texture:
+      repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.045) 0 1px, transparent 1px 8px),
+      repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.34) 0 1px, transparent 1px 10px),
+      radial-gradient(circle at 22% 24%, rgba(255, 255, 255, 0.3) 0 1px, transparent 2px),
+      radial-gradient(circle at 62% 72%, rgba(0, 0, 0, 0.05) 0 1px, transparent 2px);
     --paper-fiber-layer:
       repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.018) 0 1px, transparent 1px 8px),
       repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.22) 0 1px, transparent 1px 10px);
@@ -176,10 +202,15 @@
   }
 
   .paper-silk {
-    --paper-texture-opacity: 0.14;
+    --paper-texture-opacity: 0.2;
     --paper-light-opacity: 0.54;
-    --paper-texture-contrast: 1.04;
+    --paper-texture-contrast: 1.06;
     --paper-texture-brightness: 1.08;
+    --paper-visible-texture-size: 180px 180px;
+    --paper-visible-texture:
+      linear-gradient(115deg, transparent 0%, rgba(255, 255, 255, 0.5) 38%, transparent 52%),
+      repeating-linear-gradient(104deg, rgba(255, 255, 255, 0.22) 0 1px, transparent 1px 9px),
+      repeating-linear-gradient(14deg, rgba(0, 0, 0, 0.035) 0 1px, transparent 1px 14px);
     --paper-fiber-layer:
       linear-gradient(115deg, transparent 0%, rgba(255, 255, 255, 0.28) 38%, transparent 52%),
       linear-gradient(72deg, rgba(0, 0, 0, 0.02), transparent 42%, rgba(255, 255, 255, 0.16));
@@ -193,10 +224,16 @@
   }
 
   .paper-velvet {
-    --paper-texture-opacity: 0.24;
+    --paper-texture-opacity: 0.3;
     --paper-light-opacity: 0.48;
-    --paper-texture-contrast: 1.1;
+    --paper-texture-contrast: 1.14;
     --paper-texture-brightness: 1.01;
+    --paper-visible-texture-size: 72px 72px;
+    --paper-visible-texture:
+      radial-gradient(circle at 18% 22%, rgba(0, 0, 0, 0.13) 0 1px, transparent 2px),
+      radial-gradient(circle at 70% 58%, rgba(255, 255, 255, 0.24) 0 1px, transparent 2px),
+      radial-gradient(circle at 42% 82%, rgba(0, 0, 0, 0.1) 0 1px, transparent 2px),
+      linear-gradient(145deg, rgba(0, 0, 0, 0.1), transparent 36%, rgba(255, 255, 255, 0.16) 58%, transparent);
     --paper-fiber-layer:
       radial-gradient(circle at 18% 22%, rgba(0, 0, 0, 0.055) 0 1px, transparent 2px),
       radial-gradient(circle at 70% 58%, rgba(255, 255, 255, 0.2) 0 1px, transparent 2px),
