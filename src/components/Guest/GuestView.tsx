@@ -39,6 +39,7 @@ export function GuestView({ invitation }: any) {
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const [isCodeFading, setIsCodeFading] = useState(false);
   const [showOpeningGif, setShowOpeningGif] = useState(false);
+  const [openingGifNonce, setOpeningGifNonce] = useState(0);
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const openingTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -315,18 +316,29 @@ export function GuestView({ invitation }: any) {
     if (containerOpen === 'envelope') {
       if (isCodeFading) return;
 
+      const panelLiftDuration = 650;
+      const gifDuration = 6290;
+      const revealDelay = panelLiftDuration + gifDuration;
+
+      openingTimersRef.current.forEach(clearTimeout);
+      openingTimersRef.current = [];
+
       setIsCodeFading(true);
-      setShowOpeningGif(true);
+      setOpeningGifNonce(Date.now());
+
+      const gifStartTimer = setTimeout(() => {
+        setShowOpeningGif(true);
+      }, panelLiftDuration);
 
       const revealTimer = setTimeout(() => {
         triggerContainerOpening();
-      }, 520);
+      }, revealDelay);
 
-      const gifTimer = setTimeout(() => {
+      const gifEndTimer = setTimeout(() => {
         setShowOpeningGif(false);
-      }, 2450);
+      }, revealDelay + 500);
 
-      openingTimersRef.current.push(revealTimer, gifTimer);
+      openingTimersRef.current.push(gifStartTimer, revealTimer, gifEndTimer);
       return;
     }
 
@@ -435,9 +447,9 @@ export function GuestView({ invitation }: any) {
         {showOpeningGif && (
           <motion.div
             key="opening-gif"
-            initial={{ opacity: 0, scale: 0.92, y: 14 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 1.08, y: -14 }}
+            initial={{ opacity: 0, scale: 0.94 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.04 }}
             transition={{ duration: 0.45, ease: 'easeOut' }}
             className="absolute inset-0 z-[85] pointer-events-none flex items-center justify-center"
           >
@@ -445,11 +457,12 @@ export function GuestView({ invitation }: any) {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/10 backdrop-blur-[1px]"
+              className="absolute inset-0 bg-black/20 backdrop-blur-[1px]"
             />
+
             <img
-              src={`${OPENING_GIF_URL}?v=${isCodeFading ? 'open' : 'idle'}`}
-              className="relative w-[310px] max-w-[78vw] h-auto object-contain drop-shadow-[0_24px_55px_rgba(0,0,0,0.35)]"
+              src={`${OPENING_GIF_URL}?t=${openingGifNonce}`}
+              className="relative w-[340px] max-w-[82vw] h-auto object-contain drop-shadow-[0_24px_55px_rgba(0,0,0,0.38)]"
               alt=""
             />
           </motion.div>
