@@ -78,8 +78,8 @@ export function InvitationPreview({ invitation }: any) {
 
   const isPremiumDecor = isPremium && premiumTriggerType === 'decor';
 
-  const effectivePaperType = isPremium || paperType === 'smooth' ? paperType : 'smooth';
-  const cardPaperColor = isPremium ? paperColor : '#ffffff';
+  const effectivePaperType = paperType || 'smooth';
+  const cardPaperColor = paperColor || '#ffffff';
   const previewBackgroundColor = isPremiumDecor && backgroundColor ? backgroundColor : '#ffffff';
 
   const mainPhotoPosX = pick(invitation, ['main_photo_url_pos_x', 'mainphotourlposx'], 0);
@@ -198,7 +198,7 @@ export function InvitationPreview({ invitation }: any) {
   useEffect(() => {
     if (isOpened || isCodeFading) return;
 
-    let loopInterval: NodeJS.Timeout | undefined;
+    let loopInterval: ReturnType<typeof setInterval> | undefined;
 
     if (openingStyle === 'key') {
       playSyntheticSound('key');
@@ -250,8 +250,8 @@ export function InvitationPreview({ invitation }: any) {
         setActiveKey(String(Math.floor(Math.random() * 10)));
       }, 75);
 
-      let digitLockTimers: NodeJS.Timeout[] = [];
-      let endTimer: NodeJS.Timeout | undefined;
+      let digitLockTimers: ReturnType<typeof setTimeout>[] = [];
+      let endTimer: ReturnType<typeof setTimeout> | undefined;
 
       if (isVaultClicked) {
         digitLockTimers = Array.from({ length: 6 }).map((_, index) =>
