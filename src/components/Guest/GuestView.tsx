@@ -17,6 +17,9 @@ const THEME_EMOJIS: Record<string, string[]> = {
 const OPENING_GIF_URL =
   'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/placidplace-love-7233.gif';
 
+const OPENING_BACKGROUND_URL =
+  'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fond.png';
+
 const pick = (obj: any, keys: string[], fallback: any = undefined) => {
   for (const key of keys) {
     if (obj?.[key] !== undefined && obj?.[key] !== null && obj?.[key] !== '') return obj[key];
@@ -317,8 +320,9 @@ export function GuestView({ invitation }: any) {
       if (isCodeFading) return;
 
       const panelLiftDuration = 650;
-      const gifDuration = 6290;
-      const revealDelay = panelLiftDuration + gifDuration;
+      const gifVisibleDuration = 5600;
+      const gifFadeDuration = 700;
+      const revealDelay = panelLiftDuration + gifVisibleDuration + gifFadeDuration;
 
       openingTimersRef.current.forEach(clearTimeout);
       openingTimersRef.current = [];
@@ -330,15 +334,15 @@ export function GuestView({ invitation }: any) {
         setShowOpeningGif(true);
       }, panelLiftDuration);
 
+      const gifFadeTimer = setTimeout(() => {
+        setShowOpeningGif(false);
+      }, panelLiftDuration + gifVisibleDuration);
+
       const revealTimer = setTimeout(() => {
         triggerContainerOpening();
       }, revealDelay);
 
-      const gifEndTimer = setTimeout(() => {
-        setShowOpeningGif(false);
-      }, revealDelay + 500);
-
-      openingTimersRef.current.push(gifStartTimer, revealTimer, gifEndTimer);
+      openingTimersRef.current.push(gifStartTimer, gifFadeTimer, revealTimer);
       return;
     }
 
@@ -447,24 +451,31 @@ export function GuestView({ invitation }: any) {
         {showOpeningGif && (
           <motion.div
             key="opening-gif"
-            initial={{ opacity: 0, scale: 0.94 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 1.04 }}
-            transition={{ duration: 0.45, ease: 'easeOut' }}
-            className="absolute inset-0 z-[85] pointer-events-none flex items-center justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.7, ease: 'easeInOut' }}
+            className="absolute inset-0 z-[85] pointer-events-none overflow-hidden"
           >
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-black/20 backdrop-blur-[1px]"
-            />
-
             <img
-              src={`${OPENING_GIF_URL}?t=${openingGifNonce}`}
-              className="relative w-[340px] max-w-[82vw] h-auto object-contain drop-shadow-[0_24px_55px_rgba(0,0,0,0.38)]"
+              src={OPENING_BACKGROUND_URL}
+              className="absolute inset-0 w-full h-full object-cover"
               alt=""
             />
+
+            <div className="absolute inset-0 bg-white/5" />
+
+            <div className="relative z-10 w-full h-full flex items-center justify-center pt-40">
+              <motion.img
+                src={`${OPENING_GIF_URL}?t=${openingGifNonce}`}
+                initial={{ opacity: 0, scale: 0.94, y: 16 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 1.04, y: -10 }}
+                transition={{ duration: 0.45, ease: 'easeOut' }}
+                className="w-[330px] max-w-[82vw] h-auto object-contain drop-shadow-[0_24px_55px_rgba(0,0,0,0.28)]"
+                alt=""
+              />
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
