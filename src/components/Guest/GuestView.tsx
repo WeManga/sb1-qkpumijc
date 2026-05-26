@@ -14,11 +14,8 @@ const THEME_EMOJIS: Record<string, string[]> = {
   default: ['✨', '🌟', '🤍']
 };
 
-const ENVELOPE_OPEN_BACK_URL =
-  'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/env%20ouv.png';
-
-const ENVELOPE_FRONT_URL =
-  'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/env%20dev.png';
+const OPENING_GIF_URL =
+  'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/placidplace-love-7233.gif';
 
 const pick = (obj: any, keys: string[], fallback: any = undefined) => {
   for (const key of keys) {
@@ -41,8 +38,10 @@ export function GuestView({ invitation }: any) {
   const [displayedCode, setDisplayedCode] = useState(['*', '*', '*', '*', '*', '*']);
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const [isCodeFading, setIsCodeFading] = useState(false);
+  const [showOpeningGif, setShowOpeningGif] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement>(null);
+  const openingTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const lang = (pick(invitation, ['language']) as Language) || (localStorage.getItem('invite_lang') as Language) || 'fr';
   const t = translations[lang].guest;
@@ -60,6 +59,7 @@ export function GuestView({ invitation }: any) {
 
   const paperType = pick(invitation, ['paper_type', 'papertype'], 'smooth');
   const paperColor = pick(invitation, ['paper_color', 'papercolor'], '#ffffff');
+  const envelopeColor = pick(invitation, ['envelope_color', 'envelopecolor'], '#FEE2E2');
 
   const backgroundTheme = pick(invitation, ['background_theme', 'backgroundtheme'], '');
   const backgroundColor = pick(invitation, ['background_color', 'backgroundcolor'], '#ffffff');
@@ -195,9 +195,16 @@ export function GuestView({ invitation }: any) {
   };
 
   useEffect(() => {
+    return () => {
+      openingTimersRef.current.forEach(clearTimeout);
+      openingTimersRef.current = [];
+    };
+  }, []);
+
+  useEffect(() => {
     if (containerOpen === 'envelope' || isOpened || isCodeFading) return;
 
-    let loopInterval: NodeJS.Timeout | undefined;
+    let loopInterval: ReturnType<typeof setInterval> | undefined;
 
     if (openingStyle === 'key') {
       playSyntheticSound('key');
@@ -256,8 +263,8 @@ export function GuestView({ invitation }: any) {
         setActiveKey(String(Math.floor(Math.random() * 10)));
       }, 75);
 
-      let digitLockTimers: NodeJS.Timeout[] = [];
-      let endTimer: NodeJS.Timeout | undefined;
+      let digitLockTimers: ReturnType<typeof setTimeout>[] = [];
+      let endTimer: ReturnType<typeof setTimeout> | undefined;
 
       if (isVaultClicked) {
         digitLockTimers = Array.from({ length: 6 }).map((_, index) =>
@@ -309,11 +316,17 @@ export function GuestView({ invitation }: any) {
       if (isCodeFading) return;
 
       setIsCodeFading(true);
+      setShowOpeningGif(true);
 
-      setTimeout(() => {
+      const revealTimer = setTimeout(() => {
         triggerContainerOpening();
-      }, 1180);
+      }, 520);
 
+      const gifTimer = setTimeout(() => {
+        setShowOpeningGif(false);
+      }, 2450);
+
+      openingTimersRef.current.push(revealTimer, gifTimer);
       return;
     }
 
@@ -416,91 +429,32 @@ export function GuestView({ invitation }: any) {
     );
   };
 
-  const LuxuryEnvelope = ({ opening }: { opening: boolean }) => {
+  const OpeningGifTransition = () => {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 18, scale: 0.94 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ duration: 0.65, ease: 'easeOut' }}
-        className="relative flex flex-col items-center"
-      >
-        <motion.div
-          animate={{
-            opacity: opening ? 0.22 : [0.16, 0.32, 0.16],
-            scale: opening ? 1.08 : [1, 1.04, 1]
-          }}
-          transition={{ duration: 3, repeat: opening ? 0 : Infinity, ease: 'easeInOut' }}
-          className="absolute -inset-10 rounded-full bg-amber-200/25 blur-3xl"
-        />
-
-        <div className="relative w-[360px] max-w-[86vw] aspect-[1924/1036]">
-          <img
-            src={ENVELOPE_OPEN_BACK_URL}
-            alt=""
-            draggable={false}
-            className="absolute inset-0 z-10 w-full h-full object-contain select-none pointer-events-none drop-shadow-[0_24px_42px_rgba(0,0,0,0.24)]"
-          />
-
+      <AnimatePresence>
+        {showOpeningGif && (
           <motion.div
-            initial={false}
-            animate={
-              opening
-                ? { y: '-42%', opacity: 1, scale: 0.84, rotate: -1 }
-                : { y: '8%', opacity: 0.96, scale: 0.76, rotate: -1 }
-            }
-            transition={{ duration: 1.05, ease: [0.22, 1, 0.36, 1] }}
-            className={`absolute left-1/2 top-[25%] z-20 w-[62%] -translate-x-1/2 rounded-[1.6rem] border border-white/80 shadow-2xl paper-container ${getPaperClass()}`}
-            style={{ '--dynamic-color': cardPaperColor } as CSSProperties}
+            key="opening-gif"
+            initial={{ opacity: 0, scale: 0.92, y: 14 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 1.08, y: -14 }}
+            transition={{ duration: 0.45, ease: 'easeOut' }}
+            className="absolute inset-0 z-[85] pointer-events-none flex items-center justify-center"
           >
-            <div className="relative aspect-[4/5] overflow-hidden rounded-[1.6rem] p-5 flex flex-col items-center justify-between text-center">
-              <div className="absolute inset-0 bg-gradient-to-br from-white/70 via-transparent to-amber-100/30 pointer-events-none" />
-
-              <div className="relative z-10 w-full pt-3">
-                <p className="text-[8px] font-black uppercase tracking-[0.28em] text-amber-600/80 mb-3">
-                  Invit Studio
-                </p>
-
-                <h2 className="text-lg font-black leading-tight uppercase break-words text-gray-900" style={{ fontFamily: fontStyle }}>
-                  {invitation?.title || tBuilder.title_placeholder}
-                </h2>
-              </div>
-
-              {mainPhotoUrl ? (
-                <div className="relative z-10 w-20 h-20 rounded-full overflow-hidden border-[5px] border-white shadow-xl bg-white">
-                  <img
-                    src={mainPhotoUrl}
-                    className="w-full h-full object-cover"
-                    style={{ transform: `translate(${mainPhotoPosX}px, ${mainPhotoPosY}px) scale(${mainPhotoScale})` }}
-                    alt=""
-                  />
-                </div>
-              ) : (
-                <div className="relative z-10 w-14 h-1 rounded-full bg-amber-300/70" />
-              )}
-
-              <p className="relative z-10 text-[8px] font-black uppercase tracking-[0.24em] text-gray-400">
-                {lang === 'vi' ? 'Xem chi tiết' : lang === 'en' ? 'See details' : 'Voir les détails'}
-              </p>
-            </div>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/10 backdrop-blur-[1px]"
+            />
+            <img
+              src={`${OPENING_GIF_URL}?v=${isCodeFading ? 'open' : 'idle'}`}
+              className="relative w-[310px] max-w-[78vw] h-auto object-contain drop-shadow-[0_24px_55px_rgba(0,0,0,0.35)]"
+              alt=""
+            />
           </motion.div>
-
-          <img
-            src={ENVELOPE_FRONT_URL}
-            alt=""
-            draggable={false}
-            className="absolute inset-0 z-30 w-full h-full object-contain select-none pointer-events-none drop-shadow-[0_26px_50px_rgba(0,0,0,0.28)]"
-          />
-        </div>
-
-        <motion.p
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: opening ? 0 : 1, y: opening ? 14 : 0 }}
-          transition={{ duration: 0.45, delay: opening ? 0 : 0.35 }}
-          className="mt-8 text-white font-black text-[10px] uppercase tracking-[0.28em] text-center px-6 drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)]"
-        >
-          {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? 'Tap to open invitation' : 'Nhấn để mở lời mời'}
-        </motion.p>
-      </motion.div>
+        )}
+      </AnimatePresence>
     );
   };
 
@@ -729,11 +683,15 @@ export function GuestView({ invitation }: any) {
   const showPremiumDecor = isOpened && isPremiumDecor;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center overflow-hidden touch-none" style={{ fontFamily: fontStyle, backgroundColor: pageBackgroundColor }}>
+    <div
+      className="fixed inset-0 flex items-center justify-center overflow-hidden touch-none"
+      style={{ fontFamily: fontStyle, backgroundColor: pageBackgroundColor }}
+    >
       {invitation?.music_url && <audio ref={audioRef} src={invitation.music_url} loop />}
 
       {showEmojiRain && <EmojiRain />}
       {showPremiumDecor && <AutonomousDecor />}
+      <OpeningGifTransition />
 
       <AnimatePresence mode="wait">
         {view === 'envelope' ? (
@@ -779,6 +737,7 @@ export function GuestView({ invitation }: any) {
                             <Film className="text-gray-600" size={20} />
                           </div>
                         )}
+
                         <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none" />
                       </div>
                     ))}
@@ -835,106 +794,140 @@ export function GuestView({ invitation }: any) {
               </div>
             </motion.div>
 
-            <div className="absolute inset-0 z-50 overflow-hidden" style={{ perspective: '2200px', transformStyle: 'preserve-3d', pointerEvents: isOpened ? 'none' : 'auto' }}>
+            <div
+              className="absolute inset-0 z-50 overflow-hidden"
+              style={{ perspective: '2200px', transformStyle: 'preserve-3d', pointerEvents: isOpened ? 'none' : 'auto' }}
+            >
               <AnimatePresence>
                 {(!isOpened || containerOpen === 'metal_door' || containerOpen === 'wooden_door') && (
                   <motion.div key="gate-container" exit={{ opacity: 1 }} className="w-full h-full relative flex items-center justify-center">
                     <AnimatePresence>
-                      {(!isCodeFading || containerOpen === 'envelope') && (
+                      {!isCodeFading && (
                         <motion.div
                           key="visual-trigger"
                           initial={{ opacity: 1 }}
-                          exit={containerOpen === 'metal_door' || containerOpen === 'wooden_door' ? {} : { opacity: 0, transition: { duration: 0.4, ease: 'easeInOut' } }}
+                          exit={containerOpen === 'metal_door' || containerOpen === 'wooden_door' ? {} : { opacity: 0, transition: { duration: 0.28, ease: 'easeInOut' } }}
                           className="absolute inset-0 z-[70] flex flex-col items-center justify-center cursor-pointer"
                           onClick={handleTriggerClick}
                         >
-                          {containerOpen === 'envelope' ? (
-                            <LuxuryEnvelope opening={isCodeFading} />
-                          ) : (
-                            <>
-                              <div className="relative w-full flex items-center justify-center">
-                                {openingStyle === 'knock' ? (
-                                  <motion.div
-                                    animate={{ x: [0, -12, 4, -12, 4, 0], y: [0, -6, 2, -6, 2, 0], scale: [1, 1.05, 0.98, 1.05, 0.98, 1] }}
-                                    transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 1.5, ease: 'easeInOut' }}
-                                    className="w-56 h-56 select-none flex items-center justify-center"
-                                  >
-                                    <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/main-qui-toque.PNG" className="w-full h-full object-contain drop-shadow-2xl" alt="Main qui toque" />
-                                  </motion.div>
-                                ) : openingStyle === 'key' ? (
-                                  <div className="select-none flex items-center justify-center relative w-[260px] h-[260px]">
-                                    <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/cleserrure.png" className="absolute w-full h-full object-contain" alt="Serrure" />
-                                    <motion.img
-                                      src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/cleserrure.png"
-                                      animate={{ rotate: [0, 45, 0] }}
-                                      transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1.0, ease: 'easeInOut' }}
-                                      className="absolute w-full h-full object-contain origin-center"
-                                      alt="Clé"
-                                    />
-                                  </div>
-                                ) : openingStyle === 'vault' ? (
-                                  <div className="relative w-[220px] h-[330px] flex flex-col items-center justify-start bg-neutral-950 border-[4px] border-neutral-800 rounded-[1.75rem] shadow-[0_20px_40px_rgba(0,0,0,0.8)] overflow-hidden p-4">
-                                    <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/dgital.png" className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-30 pointer-events-none" alt="" />
-
-                                    <div className="w-full h-16 bg-black/95 rounded-xl border border-neutral-800 p-2 flex flex-col items-center justify-center shadow-inner relative z-10 mb-5">
-                                      <span className="text-[7.5px] font-mono tracking-[0.25em] text-neutral-400 font-bold uppercase mb-0.5">
-                                        🔒 Invit Studio
-                                      </span>
-                                      <div className="flex gap-1">
-                                        {displayedCode.map((digit, index) => (
-                                          <motion.span key={index} initial={{ scale: 1.3 }} animate={{ scale: 1 }} className="text-sky-500 font-mono text-xl font-black drop-shadow-[0_0_8px_rgba(14,165,233,0.8)] tracking-wider">
-                                            {digit}
-                                          </motion.span>
-                                        ))}
-                                      </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-3 gap-2 w-full max-w-[155px] relative z-10">
-                                      {['1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '0', '#'].map((key) => {
-                                        const isGlowing = activeKey === key;
-
-                                        return (
-                                          <motion.div
-                                            key={key}
-                                            animate={
-                                              isGlowing
-                                                ? {
-                                                    backgroundColor: 'rgba(14, 165, 233, 0.35)',
-                                                    borderColor: '#38bdf8',
-                                                    boxShadow: '0 0 10px rgba(56, 189, 248, 0.7)',
-                                                    scale: 0.95
-                                                  }
-                                                : {
-                                                    backgroundColor: 'rgba(23, 23, 23, 0.85)',
-                                                    borderColor: 'rgba(63, 63, 70, 0.2)',
-                                                    boxShadow: 'none',
-                                                    scale: 1
-                                                  }
-                                            }
-                                            className="aspect-square flex items-center justify-center rounded-lg border font-mono font-bold text-sm text-neutral-400 transition-all select-none"
-                                          >
-                                            <span className={isGlowing ? 'text-sky-400 drop-shadow-[0_0_4px_rgba(56,189,248,0.9)]' : ''}>
-                                              {key}
-                                            </span>
-                                          </motion.div>
-                                        );
-                                      })}
-                                    </div>
-
-                                    <div className="mt-3.5 font-mono text-[8px] tracking-widest text-neutral-500 animate-pulse uppercase">
-                                      {isVaultClicked ? 'CRACKING CODE...' : 'Tap Device to Unlock'}
-                                    </div>
-                                  </div>
-                                ) : (
-                                  <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-[32rem] h-[32rem] object-contain" alt="Sceau" />
-                                )}
+                          <div className="relative w-full flex items-center justify-center">
+                            {containerOpen === 'envelope' ? (
+                              <motion.div
+                                animate={{ scale: [1, 1.035, 1], opacity: [0.9, 1, 0.9] }}
+                                transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
+                                className="flex flex-col items-center"
+                              >
+                                <img
+                                  src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png"
+                                  className="w-[20rem] h-[20rem] object-contain drop-shadow-[0_24px_50px_rgba(0,0,0,0.35)]"
+                                  alt="Sceau"
+                                />
+                              </motion.div>
+                            ) : openingStyle === 'knock' ? (
+                              <motion.div
+                                animate={{
+                                  x: [0, -12, 4, -12, 4, 0],
+                                  y: [0, -6, 2, -6, 2, 0],
+                                  scale: [1, 1.05, 0.98, 1.05, 0.98, 1]
+                                }}
+                                transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 1.5, ease: 'easeInOut' }}
+                                className="w-56 h-56 select-none flex items-center justify-center"
+                              >
+                                <img
+                                  src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/main-qui-toque.PNG"
+                                  className="w-full h-full object-contain drop-shadow-2xl"
+                                  alt="Main qui toque"
+                                />
+                              </motion.div>
+                            ) : openingStyle === 'key' ? (
+                              <div className="select-none flex items-center justify-center relative w-[260px] h-[260px]">
+                                <img
+                                  src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/cleserrure.png"
+                                  className="absolute w-full h-full object-contain"
+                                  alt="Serrure"
+                                />
+                                <motion.img
+                                  src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/cleserrure.png"
+                                  animate={{ rotate: [0, 45, 0] }}
+                                  transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1.0, ease: 'easeInOut' }}
+                                  className="absolute w-full h-full object-contain origin-center"
+                                  alt="Clé"
+                                />
                               </div>
+                            ) : openingStyle === 'vault' ? (
+                              <div className="relative w-[220px] h-[330px] flex flex-col items-center justify-start bg-neutral-950 border-[4px] border-neutral-800 rounded-[1.75rem] shadow-[0_20px_40px_rgba(0,0,0,0.8)] overflow-hidden p-4">
+                                <img
+                                  src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/dgital.png"
+                                  className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-30 pointer-events-none"
+                                  alt=""
+                                />
 
-                              <p className="absolute bottom-12 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse text-center w-full px-4">
-                                {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? 'Tap to open invitation' : 'Nhấn để mở lời mời'}
-                              </p>
-                            </>
-                          )}
+                                <div className="w-full h-16 bg-black/95 rounded-xl border border-neutral-800 p-2 flex flex-col items-center justify-center shadow-inner relative z-10 mb-5">
+                                  <span className="text-[7.5px] font-mono tracking-[0.25em] text-neutral-400 font-bold uppercase mb-0.5">
+                                    🔒 Invit Studio
+                                  </span>
+                                  <div className="flex gap-1">
+                                    {displayedCode.map((digit, index) => (
+                                      <motion.span
+                                        key={index}
+                                        initial={{ scale: 1.3 }}
+                                        animate={{ scale: 1 }}
+                                        className="text-sky-500 font-mono text-xl font-black drop-shadow-[0_0_8px_rgba(14,165,233,0.8)] tracking-wider"
+                                      >
+                                        {digit}
+                                      </motion.span>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                <div className="grid grid-cols-3 gap-2 w-full max-w-[155px] relative z-10">
+                                  {['1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '0', '#'].map((key) => {
+                                    const isGlowing = activeKey === key;
+
+                                    return (
+                                      <motion.div
+                                        key={key}
+                                        animate={
+                                          isGlowing
+                                            ? {
+                                                backgroundColor: 'rgba(14, 165, 233, 0.35)',
+                                                borderColor: '#38bdf8',
+                                                boxShadow: '0 0 10px rgba(56, 189, 248, 0.7)',
+                                                scale: 0.95
+                                              }
+                                            : {
+                                                backgroundColor: 'rgba(23, 23, 23, 0.85)',
+                                                borderColor: 'rgba(63, 63, 70, 0.2)',
+                                                boxShadow: 'none',
+                                                scale: 1
+                                              }
+                                        }
+                                        className="aspect-square flex items-center justify-center rounded-lg border font-mono font-bold text-sm text-neutral-400 transition-all select-none"
+                                      >
+                                        <span className={isGlowing ? 'text-sky-400 drop-shadow-[0_0_4px_rgba(56,189,248,0.9)]' : ''}>
+                                          {key}
+                                        </span>
+                                      </motion.div>
+                                    );
+                                  })}
+                                </div>
+
+                                <div className="mt-3.5 font-mono text-[8px] tracking-widest text-neutral-500 animate-pulse uppercase">
+                                  {isVaultClicked ? 'CRACKING CODE...' : 'Tap Device to Unlock'}
+                                </div>
+                              </div>
+                            ) : (
+                              <img
+                                src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png"
+                                className="w-[32rem] h-[32rem] object-contain"
+                                alt="Sceau"
+                              />
+                            )}
+                          </div>
+
+                          <p className="absolute bottom-12 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse text-center w-full px-4">
+                            {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? 'Tap to open invitation' : 'Nhấn để mở lời mời'}
+                          </p>
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -975,21 +968,23 @@ export function GuestView({ invitation }: any) {
                       ) : (
                         <>
                           <motion.div
-                            animate={isOpened ? { opacity: 0 } : { opacity: 1 }}
-                            transition={{ duration: 0.8, ease: 'easeInOut' }}
-                            className="absolute inset-0 w-full h-full"
+                            animate={isCodeFading ? { y: '-100%', opacity: 0.92 } : { y: '0%', opacity: 1 }}
+                            transition={{ duration: 0.62, ease: [0.43, 0.13, 0.23, 0.96] }}
+                            className="absolute inset-0 w-full h-full shadow-[0_20px_50px_rgba(0,0,0,0.6)] border-b border-black/10"
                             style={{
                               background:
-                                'radial-gradient(circle at 50% 42%, rgba(255,255,255,0.22), transparent 30%), linear-gradient(145deg, rgba(24,24,27,0.88), rgba(97,71,48,0.48), rgba(24,24,27,0.9))'
+                                typeof envelopeColor === 'string' && envelopeColor.includes('gradient')
+                                  ? envelopeColor
+                                  : `linear-gradient(145deg, ${envelopeColor}, #ffffff 48%, ${envelopeColor})`
                             }}
                           />
                           <motion.div
-                            animate={isCodeFading ? { opacity: 0, scale: 1.03 } : { opacity: 1, scale: 1 }}
-                            transition={{ duration: 1.05, ease: 'easeInOut' }}
+                            animate={isCodeFading ? { opacity: 0 } : { opacity: 1 }}
+                            transition={{ duration: 0.42, ease: 'easeOut' }}
                             className="absolute inset-0 w-full h-full"
                             style={{
                               background:
-                                'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.08), transparent 34%), linear-gradient(180deg, rgba(0,0,0,0.18), rgba(0,0,0,0.36))'
+                                'radial-gradient(circle at 50% 42%, rgba(255,255,255,0.24), transparent 30%), linear-gradient(180deg, rgba(0,0,0,0.08), rgba(0,0,0,0.22))'
                             }}
                           />
                         </>
@@ -1010,7 +1005,12 @@ export function GuestView({ invitation }: any) {
           >
             <ContentOrnaments />
 
-            <motion.div initial={{ opacity: 0, scale: 1.08 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 1.1, ease: 'easeOut' }} className="h-[32%] relative overflow-hidden shrink-0">
+            <motion.div
+              initial={{ opacity: 0, scale: 1.08 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 1.1, ease: 'easeOut' }}
+              className="h-[32%] relative overflow-hidden shrink-0"
+            >
               {mainPhotoUrl && (
                 <motion.img
                   src={mainPhotoUrl}
@@ -1032,11 +1032,22 @@ export function GuestView({ invitation }: any) {
 
             <div className="relative flex-1 p-8 space-y-14">
               <motion.div initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.85, delay: 0.15 }} className="text-center">
-                <motion.h2 initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.25 }} className="text-3xl font-black mb-4 leading-tight" style={{ fontFamily: fontStyle }}>
+                <motion.h2
+                  initial={{ opacity: 0, y: 22 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.25 }}
+                  className="text-3xl font-black mb-4 leading-tight"
+                  style={{ fontFamily: fontStyle }}
+                >
                   {invitation?.host_names || tBuilder.hosts_placeholder}
                 </motion.h2>
 
-                <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.75, delay: 0.45 }} className="flex flex-col items-center gap-2 opacity-70 font-bold text-[10px] uppercase tracking-widest text-gray-700">
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.75, delay: 0.45 }}
+                  className="flex flex-col items-center gap-2 opacity-70 font-bold text-[10px] uppercase tracking-widest text-gray-700"
+                >
                   <div className="flex items-center gap-2">
                     <Calendar size={14} className="text-amber-500" />
                     {invitation.event_date
@@ -1054,7 +1065,12 @@ export function GuestView({ invitation }: any) {
                   </div>
                 </motion.div>
 
-                <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.65 }} className="mt-6 flex justify-center gap-4">
+                <motion.div
+                  initial={{ opacity: 0, y: 14 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.7, delay: 0.65 }}
+                  className="mt-6 flex justify-center gap-4"
+                >
                   <button onClick={addToCalendar} className="p-3 bg-amber-50 rounded-full shadow-sm active:scale-95 transition-transform">
                     <Calendar size={18} className="text-amber-600" />
                   </button>
@@ -1065,14 +1081,26 @@ export function GuestView({ invitation }: any) {
               </motion.div>
 
               {invitation.description && (
-                <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.85 }} className="text-center italic opacity-85" style={{ fontFamily: fontStyle }}>
+                <motion.div
+                  initial={{ opacity: 0, y: 24 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 1, delay: 0.85 }}
+                  className="text-center italic opacity-85"
+                  style={{ fontFamily: fontStyle }}
+                >
                   <p className="text-[13px] leading-relaxed px-4 whitespace-pre-wrap">{invitation.description}</p>
                   <div className="w-12 h-[1px] bg-amber-200 mx-auto mt-6" />
                 </motion.div>
               )}
 
               <div className="space-y-12">
-                <motion.h3 initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.75 }} className="text-[10px] font-black text-amber-600 uppercase tracking-[0.3em] text-center flex items-center justify-center gap-2">
+                <motion.h3
+                  initial={{ opacity: 0, y: 18 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.75 }}
+                  className="text-[10px] font-black text-amber-600 uppercase tracking-[0.3em] text-center flex items-center justify-center gap-2"
+                >
                   <Sparkles size={12} /> {tBuilder.program_title} <Sparkles size={12} />
                 </motion.h3>
 
@@ -1127,9 +1155,19 @@ export function GuestView({ invitation }: any) {
                           </div>
 
                           <div className="w-[10%] flex justify-center">
-                            <motion.div initial={{ scale: 0 }} whileInView={{ scale: 1 }} viewport={{ once: true }} transition={{ type: 'spring', damping: 12 }} className="relative z-10">
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              whileInView={{ scale: 1 }}
+                              viewport={{ once: true }}
+                              transition={{ type: 'spring', damping: 12 }}
+                              className="relative z-10"
+                            >
                               <div className="w-3 h-3 bg-amber-500 rounded-full ring-4 ring-white shadow-sm" />
-                              <motion.div animate={{ scale: [1, 2.2, 1], opacity: [0.45, 0, 0.45] }} transition={{ duration: 2.4, repeat: Infinity, delay: i * 0.15 }} className="absolute inset-0 rounded-full bg-amber-400" />
+                              <motion.div
+                                animate={{ scale: [1, 2.2, 1], opacity: [0.45, 0, 0.45] }}
+                                transition={{ duration: 2.4, repeat: Infinity, delay: i * 0.15 }}
+                                className="absolute inset-0 rounded-full bg-amber-400"
+                              />
                             </motion.div>
                           </div>
 
@@ -1144,7 +1182,13 @@ export function GuestView({ invitation }: any) {
               <PremiumStorySection title={premiumMidTitle} text={premiumMidText} imageUrl={premiumMidPhotoUrl} />
 
               {isPremium && premiumGalleryPhotos.length >= 2 && (
-                <motion.section initial={{ opacity: 0, y: 36 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-80px' }} transition={{ duration: 0.9 }} className="space-y-6">
+                <motion.section
+                  initial={{ opacity: 0, y: 36 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-80px' }}
+                  transition={{ duration: 0.9 }}
+                  className="space-y-6"
+                >
                   <h3 className="text-[10px] font-black text-amber-600 uppercase tracking-[0.3em] text-center flex items-center justify-center gap-2">
                     <Sparkles size={12} />
                     {lang === 'fr' ? 'Album souvenir' : lang === 'en' ? 'Memory album' : 'Album kỷ niệm'}
@@ -1161,7 +1205,12 @@ export function GuestView({ invitation }: any) {
                         transition={{ duration: 0.75, delay: index * 0.08 }}
                         className={`${index === 0 ? 'col-span-2' : ''} bg-white p-2 rounded-2xl shadow-xl border border-white overflow-hidden`}
                       >
-                        <img src={photo.url} loading="lazy" className={`${index === 0 ? 'aspect-[16/10]' : 'aspect-square'} w-full object-cover rounded-xl`} alt="" />
+                        <img
+                          src={photo.url}
+                          loading="lazy"
+                          className={`${index === 0 ? 'aspect-[16/10]' : 'aspect-square'} w-full object-cover rounded-xl`}
+                          alt=""
+                        />
                         <div className="px-2 py-2 text-[9px] font-black uppercase tracking-widest text-gray-400 truncate">
                           {photo.label}
                         </div>
@@ -1172,7 +1221,13 @@ export function GuestView({ invitation }: any) {
               )}
 
               {isPremium && endPhotoUrl && (
-                <motion.div initial={{ opacity: 0, y: 34, rotate: 0 }} whileInView={{ opacity: 1, y: 0, rotate: 1 }} viewport={{ once: true, margin: '-80px' }} transition={{ duration: 0.9 }} className="px-2">
+                <motion.div
+                  initial={{ opacity: 0, y: 34, rotate: 0 }}
+                  whileInView={{ opacity: 1, y: 0, rotate: 1 }}
+                  viewport={{ once: true, margin: '-80px' }}
+                  transition={{ duration: 0.9 }}
+                  className="px-2"
+                >
                   <div className="text-center mb-5">
                     <p className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-600">
                       {lang === 'fr' ? 'Un souvenir à garder' : lang === 'en' ? 'A memory to keep' : 'Một kỷ niệm để giữ'}
@@ -1247,12 +1302,22 @@ export function GuestView({ invitation }: any) {
                       </div>
                     ))}
 
-                    <motion.button type="submit" disabled={isSubmitting} whileTap={{ scale: 0.97 }} className="w-full h-14 bg-white text-gray-900 rounded-2xl font-black uppercase text-xs shadow-xl transition-all disabled:opacity-60">
+                    <motion.button
+                      type="submit"
+                      disabled={isSubmitting}
+                      whileTap={{ scale: 0.97 }}
+                      className="w-full h-14 bg-white text-gray-900 rounded-2xl font-black uppercase text-xs shadow-xl transition-all disabled:opacity-60"
+                    >
                       {isSubmitting ? '...' : t.send}
                     </motion.button>
                   </form>
                 ) : (
-                  <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.55 }} className="relative z-10 py-8 text-center space-y-4">
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.55 }}
+                    className="relative z-10 py-8 text-center space-y-4"
+                  >
                     <CheckCircle2 size={46} className="text-amber-400 mx-auto drop-shadow-[0_0_12px_rgba(251,191,36,0.5)]" />
                     <p className="text-white font-black uppercase text-sm">{t.thank_you}</p>
                     <p className="text-white/45 text-[11px] font-bold uppercase tracking-widest">{t.success_msg}</p>
