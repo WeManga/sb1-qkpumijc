@@ -458,16 +458,16 @@ export function GuestView({ invitation }: any) {
       >
         <img
           src={OPENING_BACKGROUND_URL}
-          className="absolute inset-0 w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full object-cover object-top"
           alt=""
         />
 
         <div className="absolute inset-0 bg-white/5" />
 
-        <div className="relative z-10 w-full h-full flex items-center justify-center pt-40">
+        <div className="relative z-10 w-full h-full flex items-center justify-center pt-[18vh]">
           <img
             src={OPENING_GIF_URL}
-            className="w-[330px] max-w-[82vw] h-auto object-contain drop-shadow-[0_18px_35px_rgba(0,0,0,0.22)]"
+            className="w-[250px] max-w-[64vw] sm:w-[310px] h-auto object-contain drop-shadow-[0_14px_26px_rgba(0,0,0,0.18)]"
             alt=""
           />
         </div>
@@ -700,19 +700,17 @@ export function GuestView({ invitation }: any) {
   const showPremiumDecor = isOpened && isPremiumDecor;
 
   return (
-    <div
-      className="fixed inset-0 flex items-center justify-center overflow-hidden touch-none"
-      style={{ fontFamily: fontStyle, backgroundColor: pageBackgroundColor }}
-    >
+    <div className="fixed inset-0 flex items-center justify-center overflow-hidden touch-none" style={{ fontFamily: fontStyle, backgroundColor: pageBackgroundColor }}>
       {invitation?.music_url && <audio ref={audioRef} src={invitation.music_url} loop />}
 
       {showEmojiRain && <EmojiRain />}
       {showPremiumDecor && <AutonomousDecor />}
-      <OpeningGifTransition />
 
       <AnimatePresence mode="wait">
         {view === 'envelope' ? (
           <motion.div key="env" className="relative w-full h-full flex items-center justify-center" style={{ perspective: '1200px' }}>
+            <OpeningGifTransition />
+
             {isOpened && invitation?.music_url && (
               <button onClick={toggleMute} className="absolute top-6 right-6 z-[70] w-10 h-10 bg-white/80 rounded-full flex items-center justify-center shadow-lg">
                 {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} className="animate-pulse" />}
@@ -754,7 +752,6 @@ export function GuestView({ invitation }: any) {
                             <Film className="text-gray-600" size={20} />
                           </div>
                         )}
-
                         <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none" />
                       </div>
                     ))}
@@ -811,10 +808,7 @@ export function GuestView({ invitation }: any) {
               </div>
             </motion.div>
 
-            <div
-              className="absolute inset-0 z-50 overflow-hidden"
-              style={{ perspective: '2200px', transformStyle: 'preserve-3d', pointerEvents: isOpened ? 'none' : 'auto' }}
-            >
+            <div className="absolute inset-0 z-50 overflow-hidden" style={{ perspective: '2200px', transformStyle: 'preserve-3d', pointerEvents: isOpened ? 'none' : 'auto' }}>
               <AnimatePresence>
                 {(!isOpened || containerOpen === 'metal_door' || containerOpen === 'wooden_door') && (
                   <motion.div key="gate-container" exit={{ opacity: 1 }} className="w-full h-full relative flex items-center justify-center">
@@ -823,46 +817,30 @@ export function GuestView({ invitation }: any) {
                         <motion.div
                           key="visual-trigger"
                           initial={{ opacity: 1 }}
-                          exit={containerOpen === 'metal_door' || containerOpen === 'wooden_door' ? {} : { opacity: 0, transition: { duration: 0.28, ease: 'easeInOut' } }}
+                          exit={containerOpen === 'metal_door' || containerOpen === 'wooden_door' ? {} : { opacity: 0, transition: { duration: 0.25, ease: 'easeInOut' } }}
                           className="absolute inset-0 z-[70] flex flex-col items-center justify-center cursor-pointer"
                           onClick={handleTriggerClick}
                         >
                           <div className="relative w-full flex items-center justify-center">
                             {containerOpen === 'envelope' ? (
-                              <motion.div
-                                animate={{ scale: [1, 1.035, 1], opacity: [0.9, 1, 0.9] }}
-                                transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
-                                className="flex flex-col items-center"
-                              >
-                                <img
-                                  src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png"
-                                  className="w-[20rem] h-[20rem] object-contain drop-shadow-[0_24px_50px_rgba(0,0,0,0.35)]"
-                                  alt="Sceau"
-                                />
-                              </motion.div>
+                              <motion.img
+                                src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png"
+                                animate={{ scale: [1, 1.035, 1], opacity: [0.92, 1, 0.92] }}
+                                transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
+                                className="w-[22rem] max-w-[76vw] h-auto object-contain drop-shadow-[0_22px_45px_rgba(0,0,0,0.35)]"
+                                alt="Sceau"
+                              />
                             ) : openingStyle === 'knock' ? (
                               <motion.div
-                                animate={{
-                                  x: [0, -12, 4, -12, 4, 0],
-                                  y: [0, -6, 2, -6, 2, 0],
-                                  scale: [1, 1.05, 0.98, 1.05, 0.98, 1]
-                                }}
+                                animate={{ x: [0, -12, 4, -12, 4, 0], y: [0, -6, 2, -6, 2, 0], scale: [1, 1.05, 0.98, 1.05, 0.98, 1] }}
                                 transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 1.5, ease: 'easeInOut' }}
                                 className="w-56 h-56 select-none flex items-center justify-center"
                               >
-                                <img
-                                  src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/main-qui-toque.PNG"
-                                  className="w-full h-full object-contain drop-shadow-2xl"
-                                  alt="Main qui toque"
-                                />
+                                <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/main-qui-toque.PNG" className="w-full h-full object-contain drop-shadow-2xl" alt="Main qui toque" />
                               </motion.div>
                             ) : openingStyle === 'key' ? (
                               <div className="select-none flex items-center justify-center relative w-[260px] h-[260px]">
-                                <img
-                                  src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/cleserrure.png"
-                                  className="absolute w-full h-full object-contain"
-                                  alt="Serrure"
-                                />
+                                <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/cleserrure.png" className="absolute w-full h-full object-contain" alt="Serrure" />
                                 <motion.img
                                   src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/cleserrure.png"
                                   animate={{ rotate: [0, 45, 0] }}
@@ -873,11 +851,7 @@ export function GuestView({ invitation }: any) {
                               </div>
                             ) : openingStyle === 'vault' ? (
                               <div className="relative w-[220px] h-[330px] flex flex-col items-center justify-start bg-neutral-950 border-[4px] border-neutral-800 rounded-[1.75rem] shadow-[0_20px_40px_rgba(0,0,0,0.8)] overflow-hidden p-4">
-                                <img
-                                  src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/dgital.png"
-                                  className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-30 pointer-events-none"
-                                  alt=""
-                                />
+                                <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/dgital.png" className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-30 pointer-events-none" alt="" />
 
                                 <div className="w-full h-16 bg-black/95 rounded-xl border border-neutral-800 p-2 flex flex-col items-center justify-center shadow-inner relative z-10 mb-5">
                                   <span className="text-[7.5px] font-mono tracking-[0.25em] text-neutral-400 font-bold uppercase mb-0.5">
@@ -885,12 +859,7 @@ export function GuestView({ invitation }: any) {
                                   </span>
                                   <div className="flex gap-1">
                                     {displayedCode.map((digit, index) => (
-                                      <motion.span
-                                        key={index}
-                                        initial={{ scale: 1.3 }}
-                                        animate={{ scale: 1 }}
-                                        className="text-sky-500 font-mono text-xl font-black drop-shadow-[0_0_8px_rgba(14,165,233,0.8)] tracking-wider"
-                                      >
+                                      <motion.span key={index} initial={{ scale: 1.3 }} animate={{ scale: 1 }} className="text-sky-500 font-mono text-xl font-black drop-shadow-[0_0_8px_rgba(14,165,233,0.8)] tracking-wider">
                                         {digit}
                                       </motion.span>
                                     ))}
@@ -921,9 +890,7 @@ export function GuestView({ invitation }: any) {
                                         }
                                         className="aspect-square flex items-center justify-center rounded-lg border font-mono font-bold text-sm text-neutral-400 transition-all select-none"
                                       >
-                                        <span className={isGlowing ? 'text-sky-400 drop-shadow-[0_0_4px_rgba(56,189,248,0.9)]' : ''}>
-                                          {key}
-                                        </span>
+                                        <span className={isGlowing ? 'text-sky-400 drop-shadow-[0_0_4px_rgba(56,189,248,0.9)]' : ''}>{key}</span>
                                       </motion.div>
                                     );
                                   })}
@@ -934,11 +901,7 @@ export function GuestView({ invitation }: any) {
                                 </div>
                               </div>
                             ) : (
-                              <img
-                                src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png"
-                                className="w-[32rem] h-[32rem] object-contain"
-                                alt="Sceau"
-                              />
+                              <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-[32rem] h-[32rem] object-contain" alt="Sceau" />
                             )}
                           </div>
 
@@ -1022,12 +985,7 @@ export function GuestView({ invitation }: any) {
           >
             <ContentOrnaments />
 
-            <motion.div
-              initial={{ opacity: 0, scale: 1.08 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 1.1, ease: 'easeOut' }}
-              className="h-[32%] relative overflow-hidden shrink-0"
-            >
+            <motion.div initial={{ opacity: 0, scale: 1.08 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 1.1, ease: 'easeOut' }} className="h-[32%] relative overflow-hidden shrink-0">
               {mainPhotoUrl && (
                 <motion.img
                   src={mainPhotoUrl}
@@ -1049,22 +1007,11 @@ export function GuestView({ invitation }: any) {
 
             <div className="relative flex-1 p-8 space-y-14">
               <motion.div initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.85, delay: 0.15 }} className="text-center">
-                <motion.h2
-                  initial={{ opacity: 0, y: 22 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.8, delay: 0.25 }}
-                  className="text-3xl font-black mb-4 leading-tight"
-                  style={{ fontFamily: fontStyle }}
-                >
+                <motion.h2 initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.25 }} className="text-3xl font-black mb-4 leading-tight" style={{ fontFamily: fontStyle }}>
                   {invitation?.host_names || tBuilder.hosts_placeholder}
                 </motion.h2>
 
-                <motion.div
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.75, delay: 0.45 }}
-                  className="flex flex-col items-center gap-2 opacity-70 font-bold text-[10px] uppercase tracking-widest text-gray-700"
-                >
+                <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.75, delay: 0.45 }} className="flex flex-col items-center gap-2 opacity-70 font-bold text-[10px] uppercase tracking-widest text-gray-700">
                   <div className="flex items-center gap-2">
                     <Calendar size={14} className="text-amber-500" />
                     {invitation.event_date
@@ -1082,12 +1029,7 @@ export function GuestView({ invitation }: any) {
                   </div>
                 </motion.div>
 
-                <motion.div
-                  initial={{ opacity: 0, y: 14 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.7, delay: 0.65 }}
-                  className="mt-6 flex justify-center gap-4"
-                >
+                <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.65 }} className="mt-6 flex justify-center gap-4">
                   <button onClick={addToCalendar} className="p-3 bg-amber-50 rounded-full shadow-sm active:scale-95 transition-transform">
                     <Calendar size={18} className="text-amber-600" />
                   </button>
@@ -1098,26 +1040,14 @@ export function GuestView({ invitation }: any) {
               </motion.div>
 
               {invitation.description && (
-                <motion.div
-                  initial={{ opacity: 0, y: 24 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 1, delay: 0.85 }}
-                  className="text-center italic opacity-85"
-                  style={{ fontFamily: fontStyle }}
-                >
+                <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.85 }} className="text-center italic opacity-85" style={{ fontFamily: fontStyle }}>
                   <p className="text-[13px] leading-relaxed px-4 whitespace-pre-wrap">{invitation.description}</p>
                   <div className="w-12 h-[1px] bg-amber-200 mx-auto mt-6" />
                 </motion.div>
               )}
 
               <div className="space-y-12">
-                <motion.h3
-                  initial={{ opacity: 0, y: 18 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.75 }}
-                  className="text-[10px] font-black text-amber-600 uppercase tracking-[0.3em] text-center flex items-center justify-center gap-2"
-                >
+                <motion.h3 initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.75 }} className="text-[10px] font-black text-amber-600 uppercase tracking-[0.3em] text-center flex items-center justify-center gap-2">
                   <Sparkles size={12} /> {tBuilder.program_title} <Sparkles size={12} />
                 </motion.h3>
 
@@ -1172,19 +1102,9 @@ export function GuestView({ invitation }: any) {
                           </div>
 
                           <div className="w-[10%] flex justify-center">
-                            <motion.div
-                              initial={{ scale: 0 }}
-                              whileInView={{ scale: 1 }}
-                              viewport={{ once: true }}
-                              transition={{ type: 'spring', damping: 12 }}
-                              className="relative z-10"
-                            >
+                            <motion.div initial={{ scale: 0 }} whileInView={{ scale: 1 }} viewport={{ once: true }} transition={{ type: 'spring', damping: 12 }} className="relative z-10">
                               <div className="w-3 h-3 bg-amber-500 rounded-full ring-4 ring-white shadow-sm" />
-                              <motion.div
-                                animate={{ scale: [1, 2.2, 1], opacity: [0.45, 0, 0.45] }}
-                                transition={{ duration: 2.4, repeat: Infinity, delay: i * 0.15 }}
-                                className="absolute inset-0 rounded-full bg-amber-400"
-                              />
+                              <motion.div animate={{ scale: [1, 2.2, 1], opacity: [0.45, 0, 0.45] }} transition={{ duration: 2.4, repeat: Infinity, delay: i * 0.15 }} className="absolute inset-0 rounded-full bg-amber-400" />
                             </motion.div>
                           </div>
 
@@ -1199,13 +1119,7 @@ export function GuestView({ invitation }: any) {
               <PremiumStorySection title={premiumMidTitle} text={premiumMidText} imageUrl={premiumMidPhotoUrl} />
 
               {isPremium && premiumGalleryPhotos.length >= 2 && (
-                <motion.section
-                  initial={{ opacity: 0, y: 36 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-80px' }}
-                  transition={{ duration: 0.9 }}
-                  className="space-y-6"
-                >
+                <motion.section initial={{ opacity: 0, y: 36 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-80px' }} transition={{ duration: 0.9 }} className="space-y-6">
                   <h3 className="text-[10px] font-black text-amber-600 uppercase tracking-[0.3em] text-center flex items-center justify-center gap-2">
                     <Sparkles size={12} />
                     {lang === 'fr' ? 'Album souvenir' : lang === 'en' ? 'Memory album' : 'Album kỷ niệm'}
@@ -1222,12 +1136,7 @@ export function GuestView({ invitation }: any) {
                         transition={{ duration: 0.75, delay: index * 0.08 }}
                         className={`${index === 0 ? 'col-span-2' : ''} bg-white p-2 rounded-2xl shadow-xl border border-white overflow-hidden`}
                       >
-                        <img
-                          src={photo.url}
-                          loading="lazy"
-                          className={`${index === 0 ? 'aspect-[16/10]' : 'aspect-square'} w-full object-cover rounded-xl`}
-                          alt=""
-                        />
+                        <img src={photo.url} loading="lazy" className={`${index === 0 ? 'aspect-[16/10]' : 'aspect-square'} w-full object-cover rounded-xl`} alt="" />
                         <div className="px-2 py-2 text-[9px] font-black uppercase tracking-widest text-gray-400 truncate">
                           {photo.label}
                         </div>
@@ -1238,13 +1147,7 @@ export function GuestView({ invitation }: any) {
               )}
 
               {isPremium && endPhotoUrl && (
-                <motion.div
-                  initial={{ opacity: 0, y: 34, rotate: 0 }}
-                  whileInView={{ opacity: 1, y: 0, rotate: 1 }}
-                  viewport={{ once: true, margin: '-80px' }}
-                  transition={{ duration: 0.9 }}
-                  className="px-2"
-                >
+                <motion.div initial={{ opacity: 0, y: 34, rotate: 0 }} whileInView={{ opacity: 1, y: 0, rotate: 1 }} viewport={{ once: true, margin: '-80px' }} transition={{ duration: 0.9 }} className="px-2">
                   <div className="text-center mb-5">
                     <p className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-600">
                       {lang === 'fr' ? 'Un souvenir à garder' : lang === 'en' ? 'A memory to keep' : 'Một kỷ niệm để giữ'}
@@ -1319,22 +1222,12 @@ export function GuestView({ invitation }: any) {
                       </div>
                     ))}
 
-                    <motion.button
-                      type="submit"
-                      disabled={isSubmitting}
-                      whileTap={{ scale: 0.97 }}
-                      className="w-full h-14 bg-white text-gray-900 rounded-2xl font-black uppercase text-xs shadow-xl transition-all disabled:opacity-60"
-                    >
+                    <motion.button type="submit" disabled={isSubmitting} whileTap={{ scale: 0.97 }} className="w-full h-14 bg-white text-gray-900 rounded-2xl font-black uppercase text-xs shadow-xl transition-all disabled:opacity-60">
                       {isSubmitting ? '...' : t.send}
                     </motion.button>
                   </form>
                 ) : (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.55 }}
-                    className="relative z-10 py-8 text-center space-y-4"
-                  >
+                  <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.55 }} className="relative z-10 py-8 text-center space-y-4">
                     <CheckCircle2 size={46} className="text-amber-400 mx-auto drop-shadow-[0_0_12px_rgba(251,191,36,0.5)]" />
                     <p className="text-white font-black uppercase text-sm">{t.thank_you}</p>
                     <p className="text-white/45 text-[11px] font-bold uppercase tracking-widest">{t.success_msg}</p>
