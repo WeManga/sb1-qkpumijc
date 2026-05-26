@@ -42,6 +42,7 @@ export function GuestView({ invitation }: any) {
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const [isCodeFading, setIsCodeFading] = useState(false);
   const [showOpeningGif, setShowOpeningGif] = useState(false);
+  const [isOpeningTransitionFading, setIsOpeningTransitionFading] = useState(false);
   const [openingGifNonce, setOpeningGifNonce] = useState(0);
 
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -319,30 +320,31 @@ export function GuestView({ invitation }: any) {
     if (containerOpen === 'envelope') {
       if (isCodeFading) return;
 
-      const panelLiftDuration = 650;
       const gifVisibleDuration = 5600;
-      const gifFadeDuration = 700;
-      const revealDelay = panelLiftDuration + gifVisibleDuration + gifFadeDuration;
+      const gifFadeDuration = 900;
+      const revealDelay = gifVisibleDuration + gifFadeDuration + 180;
 
       openingTimersRef.current.forEach(clearTimeout);
       openingTimersRef.current = [];
 
-      setIsCodeFading(true);
       setOpeningGifNonce(Date.now());
-
-      const gifStartTimer = setTimeout(() => {
-        setShowOpeningGif(true);
-      }, panelLiftDuration);
+      setShowOpeningGif(true);
+      setIsOpeningTransitionFading(false);
+      setIsCodeFading(true);
 
       const gifFadeTimer = setTimeout(() => {
+        setIsOpeningTransitionFading(true);
+      }, gifVisibleDuration);
+
+      const gifEndTimer = setTimeout(() => {
         setShowOpeningGif(false);
-      }, panelLiftDuration + gifVisibleDuration);
+      }, gifVisibleDuration + gifFadeDuration);
 
       const revealTimer = setTimeout(() => {
         triggerContainerOpening();
       }, revealDelay);
 
-      openingTimersRef.current.push(gifStartTimer, gifFadeTimer, revealTimer);
+      openingTimersRef.current.push(gifFadeTimer, gifEndTimer, revealTimer);
       return;
     }
 
@@ -446,39 +448,35 @@ export function GuestView({ invitation }: any) {
   };
 
   const OpeningGifTransition = () => {
+    if (!showOpeningGif) return null;
+
     return (
-      <AnimatePresence>
-        {showOpeningGif && (
-          <motion.div
-            key="opening-gif"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.7, ease: 'easeInOut' }}
-            className="absolute inset-0 z-[85] pointer-events-none overflow-hidden"
-          >
-            <img
-              src={OPENING_BACKGROUND_URL}
-              className="absolute inset-0 w-full h-full object-cover"
-              alt=""
-            />
+      <motion.div
+        key="opening-gif"
+        initial={{ opacity: 1 }}
+        animate={{ opacity: isOpeningTransitionFading ? 0 : 1 }}
+        transition={{ duration: 0.9, ease: 'easeInOut' }}
+        className="absolute inset-0 z-[48] pointer-events-none overflow-hidden bg-white"
+      >
+        <img
+          src={OPENING_BACKGROUND_URL}
+          className="absolute inset-0 w-full h-full object-cover"
+          alt=""
+        />
 
-            <div className="absolute inset-0 bg-white/5" />
+        <div className="absolute inset-0 bg-white/5" />
 
-            <div className="relative z-10 w-full h-full flex items-center justify-center pt-40">
-              <motion.img
-                src={`${OPENING_GIF_URL}?t=${openingGifNonce}`}
-                initial={{ opacity: 0, scale: 0.94, y: 16 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 1.04, y: -10 }}
-                transition={{ duration: 0.45, ease: 'easeOut' }}
-                className="w-[330px] max-w-[82vw] h-auto object-contain drop-shadow-[0_24px_55px_rgba(0,0,0,0.28)]"
-                alt=""
-              />
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+        <div className="relative z-10 w-full h-full flex items-center justify-center pt-40">
+          <motion.img
+            src={`${OPENING_GIF_URL}?t=${openingGifNonce}`}
+            initial={{ opacity: 1, scale: 1, y: 0 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.1 }}
+            className="w-[330px] max-w-[82vw] h-auto object-contain drop-shadow-[0_24px_55px_rgba(0,0,0,0.28)]"
+            alt=""
+          />
+        </div>
+      </motion.div>
     );
   };
 
