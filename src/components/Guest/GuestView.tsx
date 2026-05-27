@@ -15,7 +15,12 @@ const THEME_EMOJIS: Record<string, string[]> = {
 };
 
 const SEAL_URL = 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png';
-const PIXEL_OPENING_VIDEO_URL = 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/beat%20pixel%202.mp4';
+
+const PIXEL_OPENING_VIDEO_URL =
+  'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/beat%20pixel%202.mp4';
+
+const PIXEL_OPENING_POSTER_URL =
+  'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/poster%20pixel.PNG';
 
 const pick = (obj: any, keys: string[], fallback: any = undefined) => {
   for (const key of keys) {
@@ -92,7 +97,9 @@ export function GuestView({ invitation }: any) {
 
   const isFreeShutterOpening = containerOpen === 'envelope';
   const isVaultOpening = openingStyle === 'vault' && !isFreeShutterOpening;
+
   const openingVideoUrl = pick(invitation, ['opening_video_url', 'openingvideourl'], PIXEL_OPENING_VIDEO_URL);
+  const openingPosterUrl = pick(invitation, ['opening_poster_url', 'openingposterurl'], PIXEL_OPENING_POSTER_URL);
 
   const getPaperClass = () => {
     switch (effectivePaperType) {
@@ -187,6 +194,10 @@ export function GuestView({ invitation }: any) {
       openingTimersRef.current = [];
     };
   }, []);
+
+  useEffect(() => {
+    setIsVideoReady(false);
+  }, [openingVideoUrl, openingPosterUrl]);
 
   useEffect(() => {
     const newGuests = Array.from({ length: guestCount }, (_, i) => guests[i] || { firstName: '', lastName: '' });
@@ -385,45 +396,21 @@ export function GuestView({ invitation }: any) {
   };
 
   const SealTrigger = () => (
-    <motion.div
+    <motion.img
+      src={SEAL_URL}
       animate={
         isOpening
-          ? {
-              scale: [1, 1.07, 0.9],
-              opacity: [1, 1, 0],
-              rotate: [0, -1.2, 1.2, 0]
-            }
-          : {
-              scale: [1, 1.035, 1],
-              opacity: [0.92, 1, 0.92]
-            }
+          ? { scale: 1.06, opacity: 0, filter: 'blur(2px)' }
+          : { scale: [1, 1.025, 1], opacity: [0.94, 1, 0.94], filter: 'blur(0px)' }
       }
-      transition={isOpening ? { duration: 1.2, ease: [0.22, 1, 0.36, 1] } : { duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
-      className="relative w-[22rem] max-w-[76vw] aspect-square flex items-center justify-center"
-    >
-      <img
-        src={SEAL_URL}
-        className="w-full h-full object-contain drop-shadow-[0_22px_45px_rgba(0,0,0,0.35)]"
-        alt="Sceau"
-      />
-
-      {isOpening && (
-        <>
-          <motion.span
-            className="absolute left-[49%] top-[18%] h-[46%] w-[2px] origin-top rounded-full bg-white/90 shadow-[0_0_12px_rgba(255,255,255,0.9)]"
-            initial={{ scaleY: 0, opacity: 0, rotate: -17 }}
-            animate={{ scaleY: [0, 1, 1], opacity: [0, 1, 0], rotate: -17 }}
-            transition={{ duration: 0.95, ease: 'easeOut' }}
-          />
-          <motion.span
-            className="absolute left-[38%] top-[45%] h-[2px] w-[32%] origin-left rounded-full bg-white/85 shadow-[0_0_12px_rgba(255,255,255,0.8)]"
-            initial={{ scaleX: 0, opacity: 0, rotate: 22 }}
-            animate={{ scaleX: [0, 1, 1], opacity: [0, 0.9, 0], rotate: 22 }}
-            transition={{ duration: 0.9, delay: 0.1, ease: 'easeOut' }}
-          />
-        </>
-      )}
-    </motion.div>
+      transition={
+        isOpening
+          ? { duration: 0.9, ease: 'easeInOut' }
+          : { duration: 2.6, repeat: Infinity, ease: 'easeInOut' }
+      }
+      className="w-[22rem] max-w-[76vw] h-auto object-contain drop-shadow-[0_22px_45px_rgba(0,0,0,0.35)]"
+      alt="Sceau"
+    />
   );
 
   const OpeningVideoLayer = () => (
@@ -435,8 +422,16 @@ export function GuestView({ invitation }: any) {
     >
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.12),transparent_34%),linear-gradient(135deg,#160d2e,#09070f_48%,#2a0f24)]" />
 
+      <img
+        src={openingPosterUrl}
+        className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
+        style={{ opacity: isVideoReady ? 0 : 1 }}
+        alt=""
+      />
+
       <video
         src={openingVideoUrl}
+        poster={openingPosterUrl}
         autoPlay
         muted
         loop
@@ -444,6 +439,7 @@ export function GuestView({ invitation }: any) {
         preload="auto"
         onLoadedData={() => setIsVideoReady(true)}
         onCanPlay={() => setIsVideoReady(true)}
+        onCanPlayThrough={() => setIsVideoReady(true)}
         className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
         style={{ opacity: isVideoReady ? 1 : 0 }}
       />
