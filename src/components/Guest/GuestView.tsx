@@ -17,7 +17,7 @@ const THEME_EMOJIS: Record<string, string[]> = {
 const SEAL_URL =
   'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png';
 
-const PIXEL_OPENING_VIDEO_URL =
+const DEFAULT_OPENING_VIDEO_URL =
   'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/flower.mp4';
 
 const pick = (obj: any, keys: string[], fallback: any = undefined) => {
@@ -84,7 +84,7 @@ export function GuestView({ invitation }: any) {
   const premiumFinalText = pick(invitation, ['premium_final_text'], '');
   const premiumFinalPhotoUrl = pick(invitation, ['premium_final_photo_url'], '');
 
-  const openingVideoUrl = pick(invitation, ['opening_video_url', 'openingvideourl'], PIXEL_OPENING_VIDEO_URL);
+  const openingVideoUrl = pick(invitation, ['opening_video_url', 'openingvideourl'], DEFAULT_OPENING_VIDEO_URL);
 
   const effectivePaperType = isPremium || paperType === 'smooth' ? paperType : 'smooth';
   const cardPaperColor = isPremium ? paperColor : '#ffffff';
@@ -265,7 +265,7 @@ export function GuestView({ invitation }: any) {
 
         setTimeout(() => {
           triggerContainerOpening();
-        }, 1200);
+        }, 1500);
       }, 4200);
     }
 
@@ -289,7 +289,7 @@ export function GuestView({ invitation }: any) {
       return;
     }
 
-    const revealDelay = isFreeShutterOpening ? 900 : 1550;
+    const revealDelay = isFreeShutterOpening ? 1100 : 1900;
 
     openingTimersRef.current.forEach(clearTimeout);
     openingTimersRef.current = [];
@@ -406,7 +406,7 @@ export function GuestView({ invitation }: any) {
         }
         transition={
           isCodeFading
-            ? { duration: 0.55, ease: 'easeInOut' }
+            ? { duration: 0.75, ease: 'easeInOut' }
             : { duration: 3.4, times: [0, 0.26, 0.78, 1], ease: 'easeInOut' }
         }
         className="absolute top-[6.5vh] left-0 right-0 z-[85] flex justify-center pointer-events-none"
@@ -516,9 +516,9 @@ export function GuestView({ invitation }: any) {
   const OpeningVideoLayer = () => {
     return (
       <motion.div
-        initial={{ opacity: 1 }}
+        initial={false}
         animate={{ opacity: isCodeFading ? 0 : 1 }}
-        transition={{ duration: 1.15, ease: 'easeInOut' }}
+        transition={{ duration: 1.45, ease: 'easeInOut' }}
         className="absolute inset-0 z-40 overflow-hidden bg-[#f8f4ec] pointer-events-none"
       >
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_38%,rgba(255,255,255,0.92),rgba(248,244,236,0.82)_42%,rgba(231,214,184,0.56)_100%)]" />
@@ -533,9 +533,9 @@ export function GuestView({ invitation }: any) {
           onLoadedData={() => setIsVideoReady(true)}
           onCanPlay={() => setIsVideoReady(true)}
           onCanPlayThrough={() => setIsVideoReady(true)}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: isVideoReady ? 1 : 0 }}
-          transition={{ duration: 1.1, ease: 'easeInOut' }}
+          initial={false}
+          animate={{ opacity: isVideoReady && !isCodeFading ? 1 : 0 }}
+          transition={{ duration: 1.15, ease: 'easeInOut' }}
           className="absolute inset-0 w-full h-full object-cover"
         />
 
@@ -546,33 +546,29 @@ export function GuestView({ invitation }: any) {
 
   const SealTrigger = () => {
     return (
-      <motion.img
-        src={SEAL_URL}
-        initial={{ opacity: 0, scale: 0.92, y: 10 }}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96 }}
         animate={
           isCodeFading
-            ? { opacity: 0, scale: 1.05, y: -8, filter: 'blur(2px)' }
-            : {
-                opacity: 1,
-                scale: [1, 1.025, 1],
-                y: 0,
-                filter: 'blur(0px)'
-              }
+            ? { opacity: 0, scale: 0.98, filter: 'blur(3px)' }
+            : { opacity: 1, scale: 1, filter: 'blur(0px)' }
         }
-        transition={
-          isCodeFading
-            ? { duration: 0.95, ease: 'easeInOut' }
-            : {
-                opacity: { duration: 0.95, ease: 'easeOut' },
-                y: { duration: 0.95, ease: 'easeOut' },
-                scale: { duration: 2.8, repeat: Infinity, ease: 'easeInOut' },
-                filter: { duration: 0.95, ease: 'easeInOut' }
-              }
-        }
-        className="w-[19rem] max-w-[68vw] h-auto object-contain drop-shadow-[0_22px_45px_rgba(0,0,0,0.35)] select-none"
-        alt="Sceau"
-        draggable={false}
-      />
+        transition={{ duration: isCodeFading ? 0.9 : 1.05, ease: 'easeInOut' }}
+        className="relative"
+      >
+        <motion.div
+          animate={isCodeFading ? { opacity: 0 } : { opacity: [0.25, 0.45, 0.25] }}
+          transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
+          className="absolute inset-8 rounded-full bg-amber-200/30 blur-2xl"
+        />
+
+        <img
+          src={SEAL_URL}
+          className="relative w-[19rem] max-w-[68vw] h-auto object-contain drop-shadow-[0_22px_45px_rgba(0,0,0,0.35)] select-none"
+          alt="Sceau"
+          draggable={false}
+        />
+      </motion.div>
     );
   };
 
@@ -903,8 +899,8 @@ export function GuestView({ invitation }: any) {
       <AnimatePresence mode="wait">
         {view === 'envelope' ? (
           <motion.div key="env" className="relative w-full h-full flex items-center justify-center" style={{ perspective: '1200px' }}>
-            {!isFreeShutterOpening && <OpeningVideoLayer />}
-            {!isFreeShutterOpening && !isVaultOpening && <LuxuryCalligraphyIntro />}
+            {!isFreeShutterOpening && !isOpened && <OpeningVideoLayer />}
+            {!isFreeShutterOpening && !isVaultOpening && !isOpened && <LuxuryCalligraphyIntro />}
 
             {isOpened && invitation?.music_url && (
               <button onClick={toggleMute} className="absolute top-6 right-6 z-[70] w-10 h-10 bg-white/80 rounded-full flex items-center justify-center shadow-lg">
@@ -912,128 +908,128 @@ export function GuestView({ invitation }: any) {
               </button>
             )}
 
-            <motion.div
-              initial={{ y: 0, opacity: 0 }}
-              animate={isOpened ? { y: openingType === 'filmstrip' ? -160 : -140, opacity: 1 } : { y: 0, opacity: 0 }}
-              transition={{ type: 'spring', damping: 25, delay: 0.2 }}
-              className="absolute z-20"
-            >
-              {openingType === 'filmstrip' ? (
-                <div className="relative w-44 h-72 bg-[#1a1a1a] rounded-xl shadow-2xl rotate-[-2deg] overflow-hidden p-2 border-y-4 border-[#1a1a1a]">
-                  <div className="absolute inset-y-0 left-1.5 w-1.5 border-l-2 border-dashed border-white/20 z-10" />
-                  <div className="absolute inset-y-0 right-1.5 w-1.5 border-r-2 border-dashed border-white/20 z-10" />
+            {isOpened && (
+              <motion.div
+                initial={{ y: 0, opacity: 0 }}
+                animate={{ y: openingType === 'filmstrip' ? -160 : -140, opacity: 1 }}
+                transition={{ type: 'spring', damping: 25, delay: 0.15 }}
+                className="absolute z-20"
+              >
+                {openingType === 'filmstrip' ? (
+                  <div className="relative w-44 h-72 bg-[#1a1a1a] rounded-xl shadow-2xl rotate-[-2deg] overflow-hidden p-2 border-y-4 border-[#1a1a1a]">
+                    <div className="absolute inset-y-0 left-1.5 w-1.5 border-l-2 border-dashed border-white/20 z-10" />
+                    <div className="absolute inset-y-0 right-1.5 w-1.5 border-r-2 border-dashed border-white/20 z-10" />
 
-                  <motion.div animate={{ y: [0, -360] }} transition={{ duration: 12, repeat: Infinity, ease: 'linear' }} className="flex flex-col gap-2">
-                    {[
-                      { url: mainPhotoUrl, key: 'main_photo_url' },
-                      { url: photoUrl2, key: 'photo_url_2' },
-                      { url: photoUrl3, key: 'photo_url_3' },
-                      { url: mainPhotoUrl, key: 'main_photo_url' },
-                      { url: photoUrl2, key: 'photo_url_2' },
-                      { url: photoUrl3, key: 'photo_url_3' }
-                    ].map((imgObj, idx) => (
-                      <div key={idx} className="w-full h-28 bg-[#222] rounded-sm overflow-hidden relative shrink-0">
-                        {imgObj.url ? (
-                          <img
-                            src={imgObj.url}
-                            className="w-full h-full object-cover grayscale-[0.2] contrast-125"
-                            style={{
-                              transform: `translate(${pick(invitation, [`${imgObj.key}_pos_x`, `${imgObj.key}posx`], 0)}px, ${pick(invitation, [`${imgObj.key}_pos_y`, `${imgObj.key}posy`], 0)}px) scale(${pick(invitation, [`${imgObj.key}_scale`, `${imgObj.key}scale`], 1)})`
-                            }}
-                            alt=""
-                          />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center bg-gray-800">
-                            <Film className="text-gray-600" size={20} />
-                          </div>
-                        )}
-                        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none" />
-                      </div>
-                    ))}
-                  </motion.div>
-                </div>
-              ) : (
-                <motion.div
-                  animate={isOpened ? { rotate: 360 } : { rotate: 0 }}
-                  transition={isOpened ? { repeat: Infinity, duration: 4, ease: 'linear', delay: 0.8 } : { duration: 0.5 }}
-                  className="w-[250px] h-[250px] relative rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.7),_inset_0_0_30px_rgba(255,255,255,0.08)] border-4 border-neutral-800 flex items-center justify-center overflow-hidden"
-                  style={{ background: 'radial-gradient(circle at 30% 30%, #2a2a2a, #0a0a0a)' }}
-                >
-                  <div className="absolute inset-0 opacity-50 mix-blend-overlay pointer-events-none" style={{ background: 'repeating-radial-gradient(circle, #404040 0px, #1a1a1a 1px, #0d0d0d 2px)' }} />
-                  <motion.div
-                    animate={isOpened ? { rotate: -360 } : { rotate: 0 }}
-                    transition={isOpened ? { repeat: Infinity, duration: 4, ease: 'linear', delay: 0.8 } : { duration: 0.5 }}
-                    className="absolute inset-0 opacity-25 pointer-events-none mix-blend-screen"
-                    style={{ background: 'conic-gradient(from 0deg, transparent 0deg, rgba(255,255,255,0.5) 45deg, transparent 90deg, transparent 180deg, rgba(255,255,255,0.5) 225deg, transparent 270deg)' }}
-                  />
-
-                  <div className="w-24 h-24 bg-white rounded-full border-[6px] border-neutral-900 shadow-[0_8px_24px_rgba(0,0,0,0.8),_inset_0_2px_4px_rgba(255,255,255,0.3)] overflow-hidden relative z-10 flex items-center justify-center">
-                    {mainPhotoUrl && (
-                      <img
-                        src={mainPhotoUrl}
-                        className="w-full h-full object-cover"
-                        style={{ transform: `translate(${mainPhotoPosX}px, ${mainPhotoPosY}px) scale(${mainPhotoScale})` }}
-                        alt=""
-                      />
-                    )}
-                    <div className="absolute w-3 h-3 bg-neutral-950 rounded-full shadow-inner border border-white/30" />
+                    <motion.div animate={{ y: [0, -360] }} transition={{ duration: 12, repeat: Infinity, ease: 'linear' }} className="flex flex-col gap-2">
+                      {[
+                        { url: mainPhotoUrl, key: 'main_photo_url' },
+                        { url: photoUrl2, key: 'photo_url_2' },
+                        { url: photoUrl3, key: 'photo_url_3' },
+                        { url: mainPhotoUrl, key: 'main_photo_url' },
+                        { url: photoUrl2, key: 'photo_url_2' },
+                        { url: photoUrl3, key: 'photo_url_3' }
+                      ].map((imgObj, idx) => (
+                        <div key={idx} className="w-full h-28 bg-[#222] rounded-sm overflow-hidden relative shrink-0">
+                          {imgObj.url ? (
+                            <img
+                              src={imgObj.url}
+                              className="w-full h-full object-cover grayscale-[0.2] contrast-125"
+                              style={{
+                                transform: `translate(${pick(invitation, [`${imgObj.key}_pos_x`, `${imgObj.key}posx`], 0)}px, ${pick(invitation, [`${imgObj.key}_pos_y`, `${imgObj.key}posy`], 0)}px) scale(${pick(invitation, [`${imgObj.key}_scale`, `${imgObj.key}scale`], 1)})`
+                              }}
+                              alt=""
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center bg-gray-800">
+                              <Film className="text-gray-600" size={20} />
+                            </div>
+                          )}
+                          <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none" />
+                        </div>
+                      ))}
+                    </motion.div>
                   </div>
-                </motion.div>
-              )}
-            </motion.div>
+                ) : (
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ repeat: Infinity, duration: 4, ease: 'linear', delay: 0.8 }}
+                    className="w-[250px] h-[250px] relative rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.7),_inset_0_0_30px_rgba(255,255,255,0.08)] border-4 border-neutral-800 flex items-center justify-center overflow-hidden"
+                    style={{ background: 'radial-gradient(circle at 30% 30%, #2a2a2a, #0a0a0a)' }}
+                  >
+                    <div className="absolute inset-0 opacity-50 mix-blend-overlay pointer-events-none" style={{ background: 'repeating-radial-gradient(circle, #404040 0px, #1a1a1a 1px, #0d0d0d 2px)' }} />
+                    <motion.div
+                      animate={{ rotate: -360 }}
+                      transition={{ repeat: Infinity, duration: 4, ease: 'linear', delay: 0.8 }}
+                      className="absolute inset-0 opacity-25 pointer-events-none mix-blend-screen"
+                      style={{ background: 'conic-gradient(from 0deg, transparent 0deg, rgba(255,255,255,0.5) 45deg, transparent 90deg, transparent 180deg, rgba(255,255,255,0.5) 225deg, transparent 270deg)' }}
+                    />
 
-            <motion.div
-              initial={{ scale: 0.8, y: 0 }}
-              animate={isOpened ? { scale: 1, y: 80 } : { y: 0 }}
-              transition={{ type: 'spring', damping: 20, delay: 0.4 }}
-              onClick={() => isOpened && setView('content')}
-              className={`z-30 w-[310px] h-[370px] rounded-[3rem] shadow-2xl p-10 flex flex-col items-center justify-between border border-gray-100 cursor-pointer paper-container ${getPaperClass()}`}
-              style={{ '--dynamic-color': cardPaperColor } as CSSProperties}
-            >
-              <div className="text-center pt-14 w-full">
-                <h2 className="text-2xl font-black uppercase tracking-tighter mb-4 break-words" style={{ fontFamily: fontStyle }}>
-                  {invitation?.title || tBuilder.title_placeholder}
-                </h2>
-                <div className="w-8 h-1 bg-amber-400 mx-auto mb-4" />
-                <p className="opacity-60 text-[9px] font-bold uppercase tracking-[0.3em]">{t.tap_open}</p>
-              </div>
-
-              <div className="w-full py-4 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase text-center tracking-widest">
-                {lang === 'vi' ? 'Xem chi tiết' : lang === 'en' ? 'See details' : 'Voir les détails'}
-              </div>
-            </motion.div>
-
-            <div className="absolute inset-0 z-50 overflow-hidden" style={{ perspective: '2200px', transformStyle: 'preserve-3d', pointerEvents: isOpened ? 'none' : 'auto' }}>
-              <AnimatePresence>
-                {!isOpened && (
-                  <motion.div key="gate-container" exit={{ opacity: 1 }} className="w-full h-full relative flex items-center justify-center">
-                    <AnimatePresence>
-                      {!isCodeFading && (
-                        <motion.div
-                          key="visual-trigger"
-                          initial={{ opacity: 1 }}
-                          exit={{ opacity: 0, transition: { duration: 0.35, ease: 'easeInOut' } }}
-                          className="absolute inset-0 z-[70] flex flex-col items-center justify-center cursor-pointer"
-                          onClick={handleTriggerClick}
-                        >
-                          <div className="relative z-[80] w-full flex items-center justify-center">
-                            {isVaultOpening ? <VaultTrigger /> : <SealTrigger />}
-                          </div>
-
-                          <p className="absolute bottom-12 z-[80] text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse text-center w-full px-4 drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)]">
-                            {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? 'Tap to open invitation' : 'Nhấn để mở lời mời'}
-                          </p>
-                        </motion.div>
+                    <div className="w-24 h-24 bg-white rounded-full border-[6px] border-neutral-900 shadow-[0_8px_24px_rgba(0,0,0,0.8),_inset_0_2px_4px_rgba(255,255,255,0.3)] overflow-hidden relative z-10 flex items-center justify-center">
+                      {mainPhotoUrl && (
+                        <img
+                          src={mainPhotoUrl}
+                          className="w-full h-full object-cover"
+                          style={{ transform: `translate(${mainPhotoPosX}px, ${mainPhotoPosY}px) scale(${mainPhotoScale})` }}
+                          alt=""
+                        />
                       )}
-                    </AnimatePresence>
-
-                    <div className="absolute inset-0 z-50 w-full h-full flex" style={{ perspective: '2200px', transformStyle: 'preserve-3d' }}>
-                      {isFreeShutterOpening && <FreeShutterLayer />}
+                      <div className="absolute w-3 h-3 bg-neutral-950 rounded-full shadow-inner border border-white/30" />
                     </div>
                   </motion.div>
                 )}
-              </AnimatePresence>
-            </div>
+              </motion.div>
+            )}
+
+            {isOpened && (
+              <motion.div
+                initial={{ scale: 0.86, y: 24, opacity: 0 }}
+                animate={{ scale: 1, y: 80, opacity: 1 }}
+                transition={{ type: 'spring', damping: 20, delay: 0.25 }}
+                onClick={() => setView('content')}
+                className={`z-30 w-[310px] h-[370px] rounded-[3rem] shadow-2xl p-10 flex flex-col items-center justify-between border border-gray-100 cursor-pointer paper-container ${getPaperClass()}`}
+                style={{ '--dynamic-color': cardPaperColor } as CSSProperties}
+              >
+                <div className="text-center pt-14 w-full">
+                  <h2 className="text-2xl font-black uppercase tracking-tighter mb-4 break-words" style={{ fontFamily: fontStyle }}>
+                    {invitation?.title || tBuilder.title_placeholder}
+                  </h2>
+                  <div className="w-8 h-1 bg-amber-400 mx-auto mb-4" />
+                  <p className="opacity-60 text-[9px] font-bold uppercase tracking-[0.3em]">{t.tap_open}</p>
+                </div>
+
+                <div className="w-full py-4 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase text-center tracking-widest">
+                  {lang === 'vi' ? 'Xem chi tiết' : lang === 'en' ? 'See details' : 'Voir les détails'}
+                </div>
+              </motion.div>
+            )}
+
+            {!isOpened && (
+              <div className="absolute inset-0 z-50 overflow-hidden" style={{ perspective: '2200px', transformStyle: 'preserve-3d', pointerEvents: 'auto' }}>
+                <motion.div key="gate-container" className="w-full h-full relative flex items-center justify-center">
+                  <motion.div
+                    key="visual-trigger"
+                    initial={{ opacity: 1 }}
+                    animate={isCodeFading ? { opacity: 0, scale: 0.985 } : { opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.85, ease: 'easeInOut' }}
+                    className="absolute inset-0 z-[70] flex flex-col items-center justify-center cursor-pointer"
+                    style={{ pointerEvents: isCodeFading ? 'none' : 'auto' }}
+                    onClick={handleTriggerClick}
+                  >
+                    <div className="relative z-[80] w-full flex items-center justify-center">
+                      {isVaultOpening ? <VaultTrigger /> : <SealTrigger />}
+                    </div>
+
+                    <p className="absolute bottom-12 z-[80] text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse text-center w-full px-4 drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)]">
+                      {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? 'Tap to open invitation' : 'Nhấn để mở lời mời'}
+                    </p>
+                  </motion.div>
+
+                  <div className="absolute inset-0 z-50 w-full h-full flex" style={{ perspective: '2200px', transformStyle: 'preserve-3d' }}>
+                    {isFreeShutterOpening && <FreeShutterLayer />}
+                  </div>
+                </motion.div>
+              </div>
+            )}
           </motion.div>
         ) : (
           <motion.div
