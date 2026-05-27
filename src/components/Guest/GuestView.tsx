@@ -14,18 +14,17 @@ const THEME_EMOJIS: Record<string, string[]> = {
   default: ['✨', '🌟', '🤍']
 };
 
-const SEAL_URL =
-  'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png';
-
 const DEFAULT_OPENING_VIDEO_URL =
   'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/flower.mp4';
 
 const METAL_OPENING_VIDEO_URL =
   'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/Happy%20Birthday.mp4';
 
-const OPENING_FADE_DURATION = 1.2;
-const OPENING_REVEAL_DELAY = 1200;
-const OPENING_VIDEO_DELAY = 1000;
+const DEFAULT_OPENING_POSTER_URL =
+  'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/poster.png';
+
+const OPENING_FADE_DURATION = 0.95;
+const OPENING_REVEAL_DELAY = 620;
 
 const pick = (obj: any, keys: string[], fallback: any = undefined) => {
   for (const key of keys) {
@@ -49,7 +48,6 @@ export function GuestView({ invitation }: any) {
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const [isCodeFading, setIsCodeFading] = useState(false);
   const [isVideoReady, setIsVideoReady] = useState(false);
-  const [canShowOpeningVideo, setCanShowOpeningVideo] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const openingTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -94,6 +92,7 @@ export function GuestView({ invitation }: any) {
 
   const defaultOpeningVideoUrl = containerOpen === 'metal_door' ? METAL_OPENING_VIDEO_URL : DEFAULT_OPENING_VIDEO_URL;
   const openingVideoUrl = pick(invitation, ['opening_video_url', 'openingvideourl'], defaultOpeningVideoUrl);
+  const openingPosterUrl = pick(invitation, ['opening_poster_url', 'openingposterurl'], DEFAULT_OPENING_POSTER_URL);
 
   const effectivePaperType = isPremium || paperType === 'smooth' ? paperType : 'smooth';
   const cardPaperColor = isPremium ? paperColor : '#ffffff';
@@ -105,7 +104,7 @@ export function GuestView({ invitation }: any) {
 
   const isFreeShutterOpening = containerOpen === 'envelope';
   const isVaultOpening = openingStyle === 'vault' && !isFreeShutterOpening;
-  const openingVideoVisible = canShowOpeningVideo && isVideoReady;
+  const openingVideoVisible = isVideoReady && !isCodeFading;
 
   const getPaperClass = () => {
     switch (effectivePaperType) {
@@ -203,22 +202,7 @@ export function GuestView({ invitation }: any) {
 
   useEffect(() => {
     setIsVideoReady(false);
-    setCanShowOpeningVideo(false);
   }, [openingVideoUrl]);
-
-  useEffect(() => {
-    if (isFreeShutterOpening || isOpened) return;
-
-    setCanShowOpeningVideo(false);
-
-    const videoTimer = setTimeout(() => {
-      setCanShowOpeningVideo(true);
-    }, OPENING_VIDEO_DELAY);
-
-    return () => {
-      clearTimeout(videoTimer);
-    };
-  }, [isFreeShutterOpening, isOpened, openingVideoUrl]);
 
   useEffect(() => {
     const newGuests = Array.from({ length: guestCount }, (_, i) => guests[i] || { firstName: '', lastName: '' });
@@ -314,7 +298,7 @@ export function GuestView({ invitation }: any) {
       return;
     }
 
-    const revealDelay = isFreeShutterOpening ? 900 : OPENING_REVEAL_DELAY;
+    const revealDelay = isFreeShutterOpening ? 820 : OPENING_REVEAL_DELAY;
 
     openingTimersRef.current.forEach(clearTimeout);
     openingTimersRef.current = [];
@@ -416,58 +400,6 @@ export function GuestView({ invitation }: any) {
     );
   };
 
-  const LuxuryCalligraphyIntro = () => {
-    return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={isCodeFading || openingVideoVisible ? { opacity: 0 } : { opacity: 1 }}
-        transition={{ duration: 0.85, ease: 'easeInOut' }}
-        className="absolute top-[6.5vh] left-0 right-0 z-[85] flex justify-center pointer-events-none"
-      >
-        <svg viewBox="0 0 1100 300" className="w-[88vw] max-w-[560px] h-auto overflow-visible">
-          <defs>
-            <path id="invit-studio-curve" d="M 120 178 Q 550 58 980 178" />
-
-            <linearGradient id="invit-studio-gold" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#5d3512" />
-              <stop offset="34%" stopColor="#9f6a24" />
-              <stop offset="54%" stopColor="#f4d58d" />
-              <stop offset="72%" stopColor="#b47a2a" />
-              <stop offset="100%" stopColor="#4b2a0f" />
-            </linearGradient>
-
-            <filter id="invit-studio-glow" x="-25%" y="-45%" width="150%" height="190%">
-              <feGaussianBlur stdDeviation="2.2" result="blur" />
-              <feColorMatrix
-                in="blur"
-                type="matrix"
-                values="1 0 0 0 0.92  0 1 0 0 0.62  0 0 1 0 0.22  0 0 0 0.45 0"
-                result="goldBlur"
-              />
-              <feMerge>
-                <feMergeNode in="goldBlur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          </defs>
-
-          <text
-            filter="url(#invit-studio-glow)"
-            fill="url(#invit-studio-gold)"
-            fontSize="124"
-            fontFamily="'Pinyon Script', 'Great Vibes', 'Times New Roman', cursive"
-            textAnchor="middle"
-            letterSpacing="0"
-          >
-            <textPath href="#invit-studio-curve" startOffset="50%">
-              Invit Studio
-            </textPath>
-          </text>
-        </svg>
-      </motion.div>
-    );
-  };
-
   const OpeningVideoLayer = () => {
     return (
       <motion.div
@@ -476,10 +408,19 @@ export function GuestView({ invitation }: any) {
         transition={{ duration: OPENING_FADE_DURATION, ease: 'easeInOut' }}
         className="absolute inset-0 z-40 overflow-hidden bg-[#f8f4ec] pointer-events-none"
       >
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_38%,rgba(255,255,255,0.92),rgba(248,244,236,0.82)_42%,rgba(231,214,184,0.56)_100%)]" />
+        <motion.img
+          src={openingPosterUrl}
+          initial={false}
+          animate={{ opacity: openingVideoVisible ? 0 : 1 }}
+          transition={{ duration: 0.85, ease: 'easeInOut' }}
+          className="absolute inset-0 w-full h-full object-cover"
+          alt=""
+          draggable={false}
+        />
 
         <motion.video
           src={openingVideoUrl}
+          poster={openingPosterUrl}
           autoPlay
           muted
           loop
@@ -490,31 +431,11 @@ export function GuestView({ invitation }: any) {
           onCanPlayThrough={() => setIsVideoReady(true)}
           initial={false}
           animate={{ opacity: openingVideoVisible ? 1 : 0 }}
-          transition={{ duration: 0.9, ease: 'easeInOut' }}
+          transition={{ duration: 0.85, ease: 'easeInOut' }}
           className="absolute inset-0 w-full h-full object-cover"
         />
 
         <div className="absolute inset-0 bg-black/10" />
-      </motion.div>
-    );
-  };
-
-  const SealTrigger = () => {
-    return (
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={isCodeFading || openingVideoVisible ? { opacity: 0 } : { opacity: 1 }}
-        transition={{ duration: 0.85, ease: 'easeInOut' }}
-        className="relative"
-      >
-        <div className="absolute inset-8 rounded-full bg-amber-200/30 blur-2xl" />
-
-        <img
-          src={SEAL_URL}
-          className="relative w-[19rem] max-w-[68vw] h-auto object-contain drop-shadow-[0_22px_45px_rgba(0,0,0,0.35)] select-none"
-          alt="Sceau"
-          draggable={false}
-        />
       </motion.div>
     );
   };
@@ -847,7 +768,6 @@ export function GuestView({ invitation }: any) {
         {view === 'envelope' ? (
           <motion.div key="env" className="relative w-full h-full flex items-center justify-center" style={{ perspective: '1200px' }}>
             {!isFreeShutterOpening && !isOpened && <OpeningVideoLayer />}
-            {!isFreeShutterOpening && !isVaultOpening && !isOpened && <LuxuryCalligraphyIntro />}
 
             {isOpened && invitation?.music_url && (
               <button onClick={toggleMute} className="absolute top-6 right-6 z-[70] w-10 h-10 bg-white/80 rounded-full flex items-center justify-center shadow-lg">
@@ -855,104 +775,111 @@ export function GuestView({ invitation }: any) {
               </button>
             )}
 
-            {isOpened && (
-              <motion.div
-                initial={{ y: 0, opacity: 0 }}
-                animate={{ y: openingType === 'filmstrip' ? -160 : -140, opacity: 1 }}
-                transition={{ type: 'spring', damping: 25, delay: 0.15 }}
-                className="absolute z-20"
-              >
-                {openingType === 'filmstrip' ? (
-                  <div className="relative w-44 h-72 bg-[#1a1a1a] rounded-xl shadow-2xl rotate-[-2deg] overflow-hidden p-2 border-y-4 border-[#1a1a1a]">
-                    <div className="absolute inset-y-0 left-1.5 w-1.5 border-l-2 border-dashed border-white/20 z-10" />
-                    <div className="absolute inset-y-0 right-1.5 w-1.5 border-r-2 border-dashed border-white/20 z-10" />
+            <motion.div
+              initial={{ y: 0, opacity: 0 }}
+              animate={isOpened ? { y: openingType === 'filmstrip' ? -160 : -140, opacity: 1 } : { y: 0, opacity: 0 }}
+              transition={{ type: 'spring', damping: 25, delay: 0.08 }}
+              className="absolute z-20"
+            >
+              {openingType === 'filmstrip' ? (
+                <div className="relative w-44 h-72 bg-[#1a1a1a] rounded-xl shadow-2xl rotate-[-2deg] overflow-hidden p-2 border-y-4 border-[#1a1a1a]">
+                  <div className="absolute inset-y-0 left-1.5 w-1.5 border-l-2 border-dashed border-white/20 z-10" />
+                  <div className="absolute inset-y-0 right-1.5 w-1.5 border-r-2 border-dashed border-white/20 z-10" />
 
-                    <motion.div animate={{ y: [0, -360] }} transition={{ duration: 12, repeat: Infinity, ease: 'linear' }} className="flex flex-col gap-2">
-                      {[
-                        { url: mainPhotoUrl, key: 'main_photo_url' },
-                        { url: photoUrl2, key: 'photo_url_2' },
-                        { url: photoUrl3, key: 'photo_url_3' },
-                        { url: mainPhotoUrl, key: 'main_photo_url' },
-                        { url: photoUrl2, key: 'photo_url_2' },
-                        { url: photoUrl3, key: 'photo_url_3' }
-                      ].map((imgObj, idx) => (
-                        <div key={idx} className="w-full h-28 bg-[#222] rounded-sm overflow-hidden relative shrink-0">
-                          {imgObj.url ? (
-                            <img
-                              src={imgObj.url}
-                              className="w-full h-full object-cover grayscale-[0.2] contrast-125"
-                              style={{
-                                transform: `translate(${pick(invitation, [`${imgObj.key}_pos_x`, `${imgObj.key}posx`], 0)}px, ${pick(invitation, [`${imgObj.key}_pos_y`, `${imgObj.key}posy`], 0)}px) scale(${pick(invitation, [`${imgObj.key}_scale`, `${imgObj.key}scale`], 1)})`
-                              }}
-                              alt=""
-                            />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center bg-gray-800">
-                              <Film className="text-gray-600" size={20} />
-                            </div>
-                          )}
-                          <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none" />
-                        </div>
-                      ))}
-                    </motion.div>
-                  </div>
-                ) : (
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ repeat: Infinity, duration: 4, ease: 'linear', delay: 0.8 }}
-                    className="w-[250px] h-[250px] relative rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.7),_inset_0_0_30px_rgba(255,255,255,0.08)] border-4 border-neutral-800 flex items-center justify-center overflow-hidden"
-                    style={{ background: 'radial-gradient(circle at 30% 30%, #2a2a2a, #0a0a0a)' }}
-                  >
-                    <div className="absolute inset-0 opacity-50 mix-blend-overlay pointer-events-none" style={{ background: 'repeating-radial-gradient(circle, #404040 0px, #1a1a1a 1px, #0d0d0d 2px)' }} />
-                    <motion.div
-                      animate={{ rotate: -360 }}
-                      transition={{ repeat: Infinity, duration: 4, ease: 'linear', delay: 0.8 }}
-                      className="absolute inset-0 opacity-25 pointer-events-none mix-blend-screen"
-                      style={{ background: 'conic-gradient(from 0deg, transparent 0deg, rgba(255,255,255,0.5) 45deg, transparent 90deg, transparent 180deg, rgba(255,255,255,0.5) 225deg, transparent 270deg)' }}
-                    />
-
-                    <div className="w-24 h-24 bg-white rounded-full border-[6px] border-neutral-900 shadow-[0_8px_24px_rgba(0,0,0,0.8),_inset_0_2px_4px_rgba(255,255,255,0.3)] overflow-hidden relative z-10 flex items-center justify-center">
-                      {mainPhotoUrl && (
-                        <img
-                          src={mainPhotoUrl}
-                          className="w-full h-full object-cover"
-                          style={{ transform: `translate(${mainPhotoPosX}px, ${mainPhotoPosY}px) scale(${mainPhotoScale})` }}
-                          alt=""
-                        />
-                      )}
-                      <div className="absolute w-3 h-3 bg-neutral-950 rounded-full shadow-inner border border-white/30" />
-                    </div>
+                  <motion.div animate={{ y: [0, -360] }} transition={{ duration: 12, repeat: Infinity, ease: 'linear' }} className="flex flex-col gap-2">
+                    {[
+                      { url: mainPhotoUrl, key: 'main_photo_url' },
+                      { url: photoUrl2, key: 'photo_url_2' },
+                      { url: photoUrl3, key: 'photo_url_3' },
+                      { url: mainPhotoUrl, key: 'main_photo_url' },
+                      { url: photoUrl2, key: 'photo_url_2' },
+                      { url: photoUrl3, key: 'photo_url_3' }
+                    ].map((imgObj, idx) => (
+                      <div key={idx} className="w-full h-28 bg-[#222] rounded-sm overflow-hidden relative shrink-0">
+                        {imgObj.url ? (
+                          <img
+                            src={imgObj.url}
+                            className="w-full h-full object-cover grayscale-[0.2] contrast-125"
+                            style={{
+                              transform: `translate(${pick(invitation, [`${imgObj.key}_pos_x`, `${imgObj.key}posx`], 0)}px, ${pick(invitation, [`${imgObj.key}_pos_y`, `${imgObj.key}posy`], 0)}px) scale(${pick(invitation, [`${imgObj.key}_scale`, `${imgObj.key}scale`], 1)})`
+                            }}
+                            alt=""
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center bg-gray-800">
+                            <Film className="text-gray-600" size={20} />
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent pointer-events-none" />
+                      </div>
+                    ))}
                   </motion.div>
-                )}
-              </motion.div>
-            )}
-
-            {isOpened && (
-              <motion.div
-                initial={{ scale: 0.86, y: 24, opacity: 0 }}
-                animate={{ scale: 1, y: 80, opacity: 1 }}
-                transition={{ type: 'spring', damping: 20, delay: 0.25 }}
-                onClick={() => setView('content')}
-                className={`z-30 w-[310px] h-[370px] rounded-[3rem] shadow-2xl p-10 flex flex-col items-center justify-between border border-gray-100 cursor-pointer paper-container ${getPaperClass()}`}
-                style={{ '--dynamic-color': cardPaperColor } as CSSProperties}
-              >
-                <div className="text-center pt-14 w-full">
-                  <h2 className="text-2xl font-black uppercase tracking-tighter mb-4 break-words" style={{ fontFamily: fontStyle }}>
-                    {invitation?.title || tBuilder.title_placeholder}
-                  </h2>
-                  <div className="w-8 h-1 bg-amber-400 mx-auto mb-4" />
-                  <p className="opacity-60 text-[9px] font-bold uppercase tracking-[0.3em]">{t.tap_open}</p>
                 </div>
+              ) : (
+                <motion.div
+                  animate={isOpened ? { rotate: 360 } : { rotate: 0 }}
+                  transition={isOpened ? { repeat: Infinity, duration: 4, ease: 'linear', delay: 0.8 } : { duration: 0.5 }}
+                  className="w-[250px] h-[250px] relative rounded-full shadow-[0_20px_50px_rgba(0,0,0,0.7),_inset_0_0_30px_rgba(255,255,255,0.08)] border-4 border-neutral-800 flex items-center justify-center overflow-hidden"
+                  style={{ background: 'radial-gradient(circle at 30% 30%, #2a2a2a, #0a0a0a)' }}
+                >
+                  <div className="absolute inset-0 opacity-50 mix-blend-overlay pointer-events-none" style={{ background: 'repeating-radial-gradient(circle, #404040 0px, #1a1a1a 1px, #0d0d0d 2px)' }} />
+                  <motion.div
+                    animate={isOpened ? { rotate: -360 } : { rotate: 0 }}
+                    transition={isOpened ? { repeat: Infinity, duration: 4, ease: 'linear', delay: 0.8 } : { duration: 0.5 }}
+                    className="absolute inset-0 opacity-25 pointer-events-none mix-blend-screen"
+                    style={{ background: 'conic-gradient(from 0deg, transparent 0deg, rgba(255,255,255,0.5) 45deg, transparent 90deg, transparent 180deg, rgba(255,255,255,0.5) 225deg, transparent 270deg)' }}
+                  />
 
-                <div className="w-full py-4 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase text-center tracking-widest">
-                  {lang === 'vi' ? 'Xem chi tiết' : lang === 'en' ? 'See details' : 'Voir les détails'}
-                </div>
-              </motion.div>
-            )}
+                  <div className="w-24 h-24 bg-white rounded-full border-[6px] border-neutral-900 shadow-[0_8px_24px_rgba(0,0,0,0.8),_inset_0_2px_4px_rgba(255,255,255,0.3)] overflow-hidden relative z-10 flex items-center justify-center">
+                    {mainPhotoUrl && (
+                      <img
+                        src={mainPhotoUrl}
+                        className="w-full h-full object-cover"
+                        style={{ transform: `translate(${mainPhotoPosX}px, ${mainPhotoPosY}px) scale(${mainPhotoScale})` }}
+                        alt=""
+                      />
+                    )}
+                    <div className="absolute w-3 h-3 bg-neutral-950 rounded-full shadow-inner border border-white/30" />
+                  </div>
+                </motion.div>
+              )}
+            </motion.div>
+
+            <motion.div
+              initial={{ scale: 0.8, y: 0, opacity: 0 }}
+              animate={isOpened ? { scale: 1, y: 80, opacity: 1 } : { y: 0, opacity: 0 }}
+              transition={{ type: 'spring', damping: 20, delay: 0.05 }}
+              onClick={() => isOpened && setView('content')}
+              className={`z-30 w-[310px] h-[370px] rounded-[3rem] shadow-2xl p-10 flex flex-col items-center justify-between border border-gray-100 cursor-pointer paper-container ${getPaperClass()}`}
+              style={{ '--dynamic-color': cardPaperColor } as CSSProperties}
+            >
+              <div className="text-center pt-14 w-full">
+                <h2 className="text-2xl font-black uppercase tracking-tighter mb-4 break-words" style={{ fontFamily: fontStyle }}>
+                  {invitation?.title || tBuilder.title_placeholder}
+                </h2>
+                <div className="w-8 h-1 bg-amber-400 mx-auto mb-4" />
+                <p className="opacity-60 text-[9px] font-bold uppercase tracking-[0.3em]">{t.tap_open}</p>
+              </div>
+
+              <div className="w-full py-4 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase text-center tracking-widest">
+                {lang === 'vi' ? 'Xem chi tiết' : lang === 'en' ? 'See details' : 'Voir les détails'}
+              </div>
+            </motion.div>
 
             {!isOpened && (
               <div className="absolute inset-0 z-50 overflow-hidden" style={{ perspective: '2200px', transformStyle: 'preserve-3d', pointerEvents: 'auto' }}>
                 <motion.div key="gate-container" className="w-full h-full relative flex items-center justify-center">
+                  {!isVaultOpening && !isFreeShutterOpening && (
+                    <motion.div
+                      initial={false}
+                      animate={isCodeFading || openingVideoVisible ? { opacity: 0 } : { opacity: 1 }}
+                      transition={{ duration: 0.5, ease: 'easeInOut' }}
+                      className="absolute bottom-12 z-[80] text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse text-center w-full px-4 drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)] pointer-events-none"
+                    >
+                      {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? 'Tap to open invitation' : 'Nhấn để mở lời mời'}
+                    </motion.div>
+                  )}
+
                   <motion.div
                     key="visual-trigger"
                     initial={{ opacity: 1 }}
@@ -962,13 +889,13 @@ export function GuestView({ invitation }: any) {
                     style={{ pointerEvents: isCodeFading ? 'none' : 'auto' }}
                     onClick={handleTriggerClick}
                   >
-                    <div className="relative z-[80] w-full flex items-center justify-center">
-                      {isVaultOpening ? <VaultTrigger /> : <SealTrigger />}
-                    </div>
+                    {isVaultOpening && <VaultTrigger />}
 
-                    <p className="absolute bottom-12 z-[80] text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse text-center w-full px-4 drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)]">
-                      {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? 'Tap to open invitation' : 'Nhấn để mở lời mời'}
-                    </p>
+                    {isFreeShutterOpening && (
+                      <p className="absolute bottom-12 z-[80] text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse text-center w-full px-4 drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)]">
+                        {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? 'Tap to open invitation' : 'Nhấn để mở lời mời'}
+                      </p>
+                    )}
                   </motion.div>
 
                   <div className="absolute inset-0 z-50 w-full h-full flex" style={{ perspective: '2200px', transformStyle: 'preserve-3d' }}>
