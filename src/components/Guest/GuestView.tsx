@@ -26,6 +26,7 @@ const METAL_OPENING_VIDEO_URL =
 const OPENING_FADE_DURATION = 1.2;
 const OPENING_REVEAL_DELAY = 1200;
 const BRAND_LOOP_DURATION = 4.4;
+const OPENING_VIDEO_DELAY = 1000;
 
 const pick = (obj: any, keys: string[], fallback: any = undefined) => {
   for (const key of keys) {
@@ -49,6 +50,8 @@ export function GuestView({ invitation }: any) {
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const [isCodeFading, setIsCodeFading] = useState(false);
   const [isVideoReady, setIsVideoReady] = useState(false);
+  const [canShowOpeningVideo, setCanShowOpeningVideo] = useState(false);
+  const [canLoopBrand, setCanLoopBrand] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const openingTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -201,7 +204,29 @@ export function GuestView({ invitation }: any) {
 
   useEffect(() => {
     setIsVideoReady(false);
+    setCanShowOpeningVideo(false);
+    setCanLoopBrand(false);
   }, [openingVideoUrl]);
+
+  useEffect(() => {
+    if (isFreeShutterOpening || isOpened) return;
+
+    setCanShowOpeningVideo(false);
+    setCanLoopBrand(false);
+
+    const videoTimer = setTimeout(() => {
+      setCanShowOpeningVideo(true);
+    }, OPENING_VIDEO_DELAY);
+
+    const brandTimer = setTimeout(() => {
+      setCanLoopBrand(true);
+    }, OPENING_VIDEO_DELAY + 500);
+
+    return () => {
+      clearTimeout(videoTimer);
+      clearTimeout(brandTimer);
+    };
+  }, [isFreeShutterOpening, isOpened, openingVideoUrl]);
 
   useEffect(() => {
     const newGuests = Array.from({ length: guestCount }, (_, i) => guests[i] || { firstName: '', lastName: '' });
@@ -403,17 +428,25 @@ export function GuestView({ invitation }: any) {
     return (
       <motion.div
         initial={{ opacity: 0 }}
-        animate={isCodeFading ? { opacity: 0 } : { opacity: [0, 1, 1, 0] }}
+        animate={
+          isCodeFading
+            ? { opacity: 0 }
+            : canLoopBrand
+              ? { opacity: [0, 1, 1, 0] }
+              : { opacity: 1 }
+        }
         transition={
           isCodeFading
             ? { duration: OPENING_FADE_DURATION, ease: 'easeInOut' }
-            : {
-                duration: BRAND_LOOP_DURATION,
-                times: [0, 0.22, 0.78, 1],
-                repeat: Infinity,
-                repeatDelay: 0.15,
-                ease: 'easeInOut'
-              }
+            : canLoopBrand
+              ? {
+                  duration: BRAND_LOOP_DURATION,
+                  times: [0, 0.22, 0.78, 1],
+                  repeat: Infinity,
+                  repeatDelay: 0.15,
+                  ease: 'easeInOut'
+                }
+              : { duration: 0.9, ease: 'easeOut' }
         }
         className="absolute top-[6.5vh] left-0 right-0 z-[85] flex justify-center pointer-events-none"
       >
@@ -482,8 +515,8 @@ export function GuestView({ invitation }: any) {
           onCanPlay={() => setIsVideoReady(true)}
           onCanPlayThrough={() => setIsVideoReady(true)}
           initial={false}
-          animate={{ opacity: isVideoReady ? 1 : 0 }}
-          transition={{ duration: 0.8, ease: 'easeInOut' }}
+          animate={{ opacity: canShowOpeningVideo && isVideoReady ? 1 : 0 }}
+          transition={{ duration: 0.9, ease: 'easeInOut' }}
           className="absolute inset-0 w-full h-full object-cover"
         />
 
@@ -496,17 +529,25 @@ export function GuestView({ invitation }: any) {
     return (
       <motion.div
         initial={{ opacity: 0 }}
-        animate={isCodeFading ? { opacity: 0 } : { opacity: [0, 1, 1, 0] }}
+        animate={
+          isCodeFading
+            ? { opacity: 0 }
+            : canLoopBrand
+              ? { opacity: [0, 1, 1, 0] }
+              : { opacity: 1 }
+        }
         transition={
           isCodeFading
             ? { duration: OPENING_FADE_DURATION, ease: 'easeInOut' }
-            : {
-                duration: BRAND_LOOP_DURATION,
-                times: [0, 0.22, 0.78, 1],
-                repeat: Infinity,
-                repeatDelay: 0.15,
-                ease: 'easeInOut'
-              }
+            : canLoopBrand
+              ? {
+                  duration: BRAND_LOOP_DURATION,
+                  times: [0, 0.22, 0.78, 1],
+                  repeat: Infinity,
+                  repeatDelay: 0.15,
+                  ease: 'easeInOut'
+                }
+              : { duration: 0.9, ease: 'easeOut' }
         }
         className="relative"
       >
