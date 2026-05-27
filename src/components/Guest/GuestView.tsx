@@ -18,7 +18,7 @@ const SEAL_URL =
   'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png';
 
 const PIXEL_OPENING_VIDEO_URL =
-  'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/beat%20pixel%202.mp4';
+  'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/flower.mp4';
 
 const pick = (obj: any, keys: string[], fallback: any = undefined) => {
   for (const key of keys) {
