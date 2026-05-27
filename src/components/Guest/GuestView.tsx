@@ -289,7 +289,7 @@ export function GuestView({ invitation }: any) {
       return;
     }
 
-    const revealDelay = isFreeShutterOpening ? 1100 : 1900;
+    const revealDelay = isFreeShutterOpening ? 1100 : 2300;
 
     openingTimersRef.current.forEach(clearTimeout);
     openingTimersRef.current = [];
@@ -407,7 +407,13 @@ export function GuestView({ invitation }: any) {
         transition={
           isCodeFading
             ? { duration: 0.75, ease: 'easeInOut' }
-            : { duration: 3.4, times: [0, 0.26, 0.78, 1], ease: 'easeInOut' }
+            : {
+                duration: 3.6,
+                times: [0, 0.26, 0.78, 1],
+                repeat: Infinity,
+                repeatDelay: 0.25,
+                ease: 'easeInOut'
+              }
         }
         className="absolute top-[6.5vh] left-0 right-0 z-[85] flex justify-center pointer-events-none"
       >
@@ -449,7 +455,16 @@ export function GuestView({ invitation }: any) {
               <motion.rect
                 initial={{ width: 0 }}
                 animate={{ width: isCodeFading ? 1100 : [0, 1100, 1100, 1100] }}
-                transition={{ duration: isCodeFading ? 0.2 : 2.15, ease: [0.22, 1, 0.36, 1] }}
+                transition={
+                  isCodeFading
+                    ? { duration: 0.2, ease: 'easeOut' }
+                    : {
+                        duration: 2.2,
+                        repeat: Infinity,
+                        repeatDelay: 1.65,
+                        ease: [0.22, 1, 0.36, 1]
+                      }
+                }
                 x="0"
                 y="0"
                 height="300"
@@ -475,7 +490,7 @@ export function GuestView({ invitation }: any) {
           <motion.rect
             initial={{ x: -260, opacity: 0 }}
             animate={isCodeFading ? { opacity: 0 } : { x: 1120, opacity: [0, 0.75, 0] }}
-            transition={{ duration: 2.25, delay: 0.7, ease: 'easeInOut' }}
+            transition={{ duration: 2.25, delay: 0.7, repeat: Infinity, repeatDelay: 1.4, ease: 'easeInOut' }}
             y="26"
             width="160"
             height="230"
@@ -518,7 +533,7 @@ export function GuestView({ invitation }: any) {
       <motion.div
         initial={false}
         animate={{ opacity: isCodeFading ? 0 : 1 }}
-        transition={{ duration: 1.45, ease: 'easeInOut' }}
+        transition={{ duration: 1.9, ease: 'easeInOut' }}
         className="absolute inset-0 z-40 overflow-hidden bg-[#f8f4ec] pointer-events-none"
       >
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_38%,rgba(255,255,255,0.92),rgba(248,244,236,0.82)_42%,rgba(231,214,184,0.56)_100%)]" />
@@ -534,7 +549,7 @@ export function GuestView({ invitation }: any) {
           onCanPlay={() => setIsVideoReady(true)}
           onCanPlayThrough={() => setIsVideoReady(true)}
           initial={false}
-          animate={{ opacity: isVideoReady && !isCodeFading ? 1 : 0 }}
+          animate={{ opacity: isVideoReady ? 1 : 0 }}
           transition={{ duration: 1.15, ease: 'easeInOut' }}
           className="absolute inset-0 w-full h-full object-cover"
         />
@@ -547,18 +562,45 @@ export function GuestView({ invitation }: any) {
   const SealTrigger = () => {
     return (
       <motion.div
-        initial={{ opacity: 0, scale: 0.96 }}
+        initial={{ opacity: 0, scale: 0.96, filter: 'blur(5px)' }}
         animate={
           isCodeFading
             ? { opacity: 0, scale: 0.98, filter: 'blur(3px)' }
-            : { opacity: 1, scale: 1, filter: 'blur(0px)' }
+            : {
+                opacity: [0, 1, 1, 0],
+                scale: [0.96, 1, 1, 0.98],
+                filter: ['blur(5px)', 'blur(0px)', 'blur(0px)', 'blur(4px)']
+              }
         }
-        transition={{ duration: isCodeFading ? 0.9 : 1.05, ease: 'easeInOut' }}
+        transition={
+          isCodeFading
+            ? { duration: 0.9, ease: 'easeInOut' }
+            : {
+                duration: 4.2,
+                times: [0, 0.22, 0.78, 1],
+                repeat: Infinity,
+                repeatDelay: 0.2,
+                ease: 'easeInOut'
+              }
+        }
         className="relative"
       >
         <motion.div
-          animate={isCodeFading ? { opacity: 0 } : { opacity: [0.25, 0.45, 0.25] }}
-          transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut' }}
+          animate={
+            isCodeFading
+              ? { opacity: 0 }
+              : {
+                  opacity: [0, 0.42, 0.42, 0],
+                  scale: [0.9, 1, 1.02, 0.94]
+                }
+          }
+          transition={{
+            duration: 4.2,
+            times: [0, 0.22, 0.78, 1],
+            repeat: Infinity,
+            repeatDelay: 0.2,
+            ease: 'easeInOut'
+          }}
           className="absolute inset-8 rounded-full bg-amber-200/30 blur-2xl"
         />
 
