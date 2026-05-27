@@ -25,7 +25,6 @@ const METAL_OPENING_VIDEO_URL =
 
 const OPENING_FADE_DURATION = 1.2;
 const OPENING_REVEAL_DELAY = 1200;
-const BRAND_LOOP_DURATION = 4.4;
 const OPENING_VIDEO_DELAY = 1000;
 
 const pick = (obj: any, keys: string[], fallback: any = undefined) => {
@@ -51,7 +50,6 @@ export function GuestView({ invitation }: any) {
   const [isCodeFading, setIsCodeFading] = useState(false);
   const [isVideoReady, setIsVideoReady] = useState(false);
   const [canShowOpeningVideo, setCanShowOpeningVideo] = useState(false);
-  const [canLoopBrand, setCanLoopBrand] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const openingTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -107,6 +105,7 @@ export function GuestView({ invitation }: any) {
 
   const isFreeShutterOpening = containerOpen === 'envelope';
   const isVaultOpening = openingStyle === 'vault' && !isFreeShutterOpening;
+  const openingVideoVisible = canShowOpeningVideo && isVideoReady;
 
   const getPaperClass = () => {
     switch (effectivePaperType) {
@@ -205,26 +204,19 @@ export function GuestView({ invitation }: any) {
   useEffect(() => {
     setIsVideoReady(false);
     setCanShowOpeningVideo(false);
-    setCanLoopBrand(false);
   }, [openingVideoUrl]);
 
   useEffect(() => {
     if (isFreeShutterOpening || isOpened) return;
 
     setCanShowOpeningVideo(false);
-    setCanLoopBrand(false);
 
     const videoTimer = setTimeout(() => {
       setCanShowOpeningVideo(true);
     }, OPENING_VIDEO_DELAY);
 
-    const brandTimer = setTimeout(() => {
-      setCanLoopBrand(true);
-    }, OPENING_VIDEO_DELAY + 500);
-
     return () => {
       clearTimeout(videoTimer);
-      clearTimeout(brandTimer);
     };
   }, [isFreeShutterOpening, isOpened, openingVideoUrl]);
 
@@ -428,26 +420,8 @@ export function GuestView({ invitation }: any) {
     return (
       <motion.div
         initial={{ opacity: 0 }}
-        animate={
-          isCodeFading
-            ? { opacity: 0 }
-            : canLoopBrand
-              ? { opacity: [0, 1, 1, 0] }
-              : { opacity: 1 }
-        }
-        transition={
-          isCodeFading
-            ? { duration: OPENING_FADE_DURATION, ease: 'easeInOut' }
-            : canLoopBrand
-              ? {
-                  duration: BRAND_LOOP_DURATION,
-                  times: [0, 0.22, 0.78, 1],
-                  repeat: Infinity,
-                  repeatDelay: 0.15,
-                  ease: 'easeInOut'
-                }
-              : { duration: 0.9, ease: 'easeOut' }
-        }
+        animate={isCodeFading || openingVideoVisible ? { opacity: 0 } : { opacity: 1 }}
+        transition={{ duration: 0.85, ease: 'easeInOut' }}
         className="absolute top-[6.5vh] left-0 right-0 z-[85] flex justify-center pointer-events-none"
       >
         <svg viewBox="0 0 1100 300" className="w-[88vw] max-w-[560px] h-auto overflow-visible">
@@ -515,7 +489,7 @@ export function GuestView({ invitation }: any) {
           onCanPlay={() => setIsVideoReady(true)}
           onCanPlayThrough={() => setIsVideoReady(true)}
           initial={false}
-          animate={{ opacity: canShowOpeningVideo && isVideoReady ? 1 : 0 }}
+          animate={{ opacity: openingVideoVisible ? 1 : 0 }}
           transition={{ duration: 0.9, ease: 'easeInOut' }}
           className="absolute inset-0 w-full h-full object-cover"
         />
@@ -529,26 +503,8 @@ export function GuestView({ invitation }: any) {
     return (
       <motion.div
         initial={{ opacity: 0 }}
-        animate={
-          isCodeFading
-            ? { opacity: 0 }
-            : canLoopBrand
-              ? { opacity: [0, 1, 1, 0] }
-              : { opacity: 1 }
-        }
-        transition={
-          isCodeFading
-            ? { duration: OPENING_FADE_DURATION, ease: 'easeInOut' }
-            : canLoopBrand
-              ? {
-                  duration: BRAND_LOOP_DURATION,
-                  times: [0, 0.22, 0.78, 1],
-                  repeat: Infinity,
-                  repeatDelay: 0.15,
-                  ease: 'easeInOut'
-                }
-              : { duration: 0.9, ease: 'easeOut' }
-        }
+        animate={isCodeFading || openingVideoVisible ? { opacity: 0 } : { opacity: 1 }}
+        transition={{ duration: 0.85, ease: 'easeInOut' }}
         className="relative"
       >
         <div className="absolute inset-8 rounded-full bg-amber-200/30 blur-2xl" />
