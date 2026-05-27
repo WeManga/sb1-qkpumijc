@@ -20,6 +20,9 @@ const SEAL_URL =
 const DEFAULT_OPENING_VIDEO_URL =
   'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/flower.mp4';
 
+const METAL_OPENING_VIDEO_URL =
+  'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/Happy%20Birthday.mp4';
+
 const OPENING_FADE_DURATION = 1.2;
 const OPENING_REVEAL_DELAY = 1200;
 const BRAND_LOOP_DURATION = 4.4;
@@ -88,7 +91,8 @@ export function GuestView({ invitation }: any) {
   const premiumFinalText = pick(invitation, ['premium_final_text'], '');
   const premiumFinalPhotoUrl = pick(invitation, ['premium_final_photo_url'], '');
 
-  const openingVideoUrl = pick(invitation, ['opening_video_url', 'openingvideourl'], DEFAULT_OPENING_VIDEO_URL);
+  const defaultOpeningVideoUrl = containerOpen === 'metal_door' ? METAL_OPENING_VIDEO_URL : DEFAULT_OPENING_VIDEO_URL;
+  const openingVideoUrl = pick(invitation, ['opening_video_url', 'openingvideourl'], defaultOpeningVideoUrl);
 
   const effectivePaperType = isPremium || paperType === 'smooth' ? paperType : 'smooth';
   const cardPaperColor = isPremium ? paperColor : '#ffffff';
