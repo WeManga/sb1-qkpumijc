@@ -14,13 +14,11 @@ const THEME_EMOJIS: Record<string, string[]> = {
   default: ['✨', '🌟', '🤍']
 };
 
-const SEAL_URL = 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png';
+const SEAL_URL =
+  'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png';
 
 const PIXEL_OPENING_VIDEO_URL =
   'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/beat%20pixel%202.mp4';
-
-const PIXEL_OPENING_POSTER_URL =
-  'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/poster%20pixel.PNG';
 
 const pick = (obj: any, keys: string[], fallback: any = undefined) => {
   for (const key of keys) {
@@ -42,8 +40,7 @@ export function GuestView({ invitation }: any) {
   const [isVaultClicked, setIsVaultClicked] = useState(false);
   const [displayedCode, setDisplayedCode] = useState(['*', '*', '*', '*', '*', '*']);
   const [activeKey, setActiveKey] = useState<string | null>(null);
-
-  const [isOpening, setIsOpening] = useState(false);
+  const [isCodeFading, setIsCodeFading] = useState(false);
   const [isVideoReady, setIsVideoReady] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -87,8 +84,10 @@ export function GuestView({ invitation }: any) {
   const premiumFinalText = pick(invitation, ['premium_final_text'], '');
   const premiumFinalPhotoUrl = pick(invitation, ['premium_final_photo_url'], '');
 
-  const effectivePaperType = paperType || 'smooth';
-  const cardPaperColor = paperColor || '#ffffff';
+  const openingVideoUrl = pick(invitation, ['opening_video_url', 'openingvideourl'], PIXEL_OPENING_VIDEO_URL);
+
+  const effectivePaperType = isPremium || paperType === 'smooth' ? paperType : 'smooth';
+  const cardPaperColor = isPremium ? paperColor : '#ffffff';
   const pageBackgroundColor = isPremiumDecor && backgroundColor ? backgroundColor : '#ffffff';
 
   const mainPhotoPosX = pick(invitation, ['main_photo_url_pos_x', 'mainphotourlposx'], 0);
@@ -97,9 +96,6 @@ export function GuestView({ invitation }: any) {
 
   const isFreeShutterOpening = containerOpen === 'envelope';
   const isVaultOpening = openingStyle === 'vault' && !isFreeShutterOpening;
-
-  const openingVideoUrl = pick(invitation, ['opening_video_url', 'openingvideourl'], PIXEL_OPENING_VIDEO_URL);
-  const openingPosterUrl = pick(invitation, ['opening_poster_url', 'openingposterurl'], PIXEL_OPENING_POSTER_URL);
 
   const getPaperClass = () => {
     switch (effectivePaperType) {
@@ -197,7 +193,7 @@ export function GuestView({ invitation }: any) {
 
   useEffect(() => {
     setIsVideoReady(false);
-  }, [openingVideoUrl, openingPosterUrl]);
+  }, [openingVideoUrl]);
 
   useEffect(() => {
     const newGuests = Array.from({ length: guestCount }, (_, i) => guests[i] || { firstName: '', lastName: '' });
@@ -265,12 +261,12 @@ export function GuestView({ invitation }: any) {
         clearInterval(interval);
         setActiveKey(null);
         playSyntheticSound('lock');
-        setIsOpening(true);
+        setIsCodeFading(true);
 
         setTimeout(() => {
           triggerContainerOpening();
-        }, 900);
-      }, 4000);
+        }, 1200);
+      }, 4200);
     }
 
     return () => {
@@ -286,19 +282,19 @@ export function GuestView({ invitation }: any) {
   };
 
   const handleTriggerClick = () => {
-    if (isOpening) return;
-
-    openingTimersRef.current.forEach(clearTimeout);
-    openingTimersRef.current = [];
+    if (isCodeFading) return;
 
     if (isVaultOpening) {
       if (!isVaultClicked) setIsVaultClicked(true);
       return;
     }
 
-    setIsOpening(true);
+    const revealDelay = isFreeShutterOpening ? 900 : 1550;
 
-    const revealDelay = isFreeShutterOpening ? 900 : 1500;
+    openingTimersRef.current.forEach(clearTimeout);
+    openingTimersRef.current = [];
+
+    setIsCodeFading(true);
 
     const revealTimer = setTimeout(() => {
       triggerContainerOpening();
@@ -395,144 +391,283 @@ export function GuestView({ invitation }: any) {
     );
   };
 
-  const SealTrigger = () => (
-    <motion.img
-      src={SEAL_URL}
-      animate={
-        isOpening
-          ? { scale: 1.06, opacity: 0, filter: 'blur(2px)' }
-          : { scale: [1, 1.025, 1], opacity: [0.94, 1, 0.94], filter: 'blur(0px)' }
-      }
-      transition={
-        isOpening
-          ? { duration: 0.9, ease: 'easeInOut' }
-          : { duration: 2.6, repeat: Infinity, ease: 'easeInOut' }
-      }
-      className="w-[22rem] max-w-[76vw] h-auto object-contain drop-shadow-[0_22px_45px_rgba(0,0,0,0.35)]"
-      alt="Sceau"
-    />
-  );
+  const LuxuryCalligraphyIntro = () => {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: -12 }}
+        animate={
+          isCodeFading
+            ? { opacity: 0, y: -24, filter: 'blur(5px)' }
+            : {
+                opacity: [0, 1, 1, 0],
+                y: [-12, 0, 0, -10],
+                filter: ['blur(8px)', 'blur(0px)', 'blur(0px)', 'blur(5px)']
+              }
+        }
+        transition={
+          isCodeFading
+            ? { duration: 0.55, ease: 'easeInOut' }
+            : { duration: 3.4, times: [0, 0.26, 0.78, 1], ease: 'easeInOut' }
+        }
+        className="absolute top-[6.5vh] left-0 right-0 z-[85] flex justify-center pointer-events-none"
+      >
+        <svg viewBox="0 0 1100 300" className="w-[88vw] max-w-[560px] h-auto overflow-visible">
+          <defs>
+            <path id="invit-studio-curve" d="M 120 178 Q 550 58 980 178" />
 
-  const OpeningVideoLayer = () => (
-    <motion.div
-      initial={{ opacity: 1, scale: 1 }}
-      animate={isOpening ? { opacity: 0, scale: 1.025 } : { opacity: 1, scale: 1 }}
-      transition={{ duration: 1.35, ease: 'easeInOut' }}
-      className="absolute inset-0 w-full h-full overflow-hidden bg-[#09070f]"
-    >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.12),transparent_34%),linear-gradient(135deg,#160d2e,#09070f_48%,#2a0f24)]" />
+            <linearGradient id="invit-studio-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#5d3512" />
+              <stop offset="34%" stopColor="#9f6a24" />
+              <stop offset="54%" stopColor="#f4d58d" />
+              <stop offset="72%" stopColor="#b47a2a" />
+              <stop offset="100%" stopColor="#4b2a0f" />
+            </linearGradient>
 
-      <img
-        src={openingPosterUrl}
-        className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
-        style={{ opacity: isVideoReady ? 0 : 1 }}
-        alt=""
-      />
+            <linearGradient id="invit-studio-shine" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stopColor="transparent" />
+              <stop offset="45%" stopColor="white" stopOpacity="0" />
+              <stop offset="50%" stopColor="white" stopOpacity="0.95" />
+              <stop offset="55%" stopColor="white" stopOpacity="0" />
+              <stop offset="100%" stopColor="transparent" />
+            </linearGradient>
 
-      <video
-        src={openingVideoUrl}
-        poster={openingPosterUrl}
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="auto"
-        onLoadedData={() => setIsVideoReady(true)}
-        onCanPlay={() => setIsVideoReady(true)}
-        onCanPlayThrough={() => setIsVideoReady(true)}
-        className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
-        style={{ opacity: isVideoReady ? 1 : 0 }}
-      />
+            <filter id="invit-studio-glow" x="-25%" y="-45%" width="150%" height="190%">
+              <feGaussianBlur stdDeviation="2.2" result="blur" />
+              <feColorMatrix
+                in="blur"
+                type="matrix"
+                values="1 0 0 0 0.92  0 1 0 0 0.62  0 0 1 0 0.22  0 0 0 0.55 0"
+                result="goldBlur"
+              />
+              <feMerge>
+                <feMergeNode in="goldBlur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
 
-      <div className="absolute inset-0 bg-black/16" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.08)_48%,rgba(0,0,0,0.45)_100%)]" />
-    </motion.div>
-  );
+            <mask id="invit-studio-write-mask">
+              <motion.rect
+                initial={{ width: 0 }}
+                animate={{ width: isCodeFading ? 1100 : [0, 1100, 1100, 1100] }}
+                transition={{ duration: isCodeFading ? 0.2 : 2.15, ease: [0.22, 1, 0.36, 1] }}
+                x="0"
+                y="0"
+                height="300"
+                fill="white"
+              />
+            </mask>
+          </defs>
 
-  const VaultTrigger = () => (
-    <div className="relative w-[220px] h-[330px] flex flex-col items-center justify-start bg-neutral-950 border-[4px] border-neutral-800 rounded-[1.75rem] shadow-[0_20px_40px_rgba(0,0,0,0.8)] overflow-hidden p-4">
-      <img
-        src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/dgital.png"
-        className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-30 pointer-events-none"
-        alt=""
-      />
+          <motion.text
+            mask="url(#invit-studio-write-mask)"
+            filter="url(#invit-studio-glow)"
+            fill="url(#invit-studio-gold)"
+            fontSize="124"
+            fontFamily="'Pinyon Script', 'Great Vibes', 'Times New Roman', cursive"
+            textAnchor="middle"
+            letterSpacing="0"
+          >
+            <textPath href="#invit-studio-curve" startOffset="50%">
+              Invit Studio
+            </textPath>
+          </motion.text>
 
-      <div className="w-full h-16 bg-black/95 rounded-xl border border-neutral-800 p-2 flex flex-col items-center justify-center shadow-inner relative z-10 mb-5">
-        <span className="text-[7.5px] font-mono tracking-[0.25em] text-neutral-400 font-bold uppercase mb-0.5">Invit Studio</span>
-        <div className="flex gap-1">
-          {displayedCode.map((digit, index) => (
-            <motion.span
-              key={index}
-              initial={{ scale: 1.3 }}
-              animate={{ scale: 1 }}
-              className="text-sky-500 font-mono text-xl font-black drop-shadow-[0_0_8px_rgba(14,165,233,0.8)] tracking-wider"
-            >
-              {digit}
-            </motion.span>
-          ))}
-        </div>
-      </div>
+          <motion.rect
+            initial={{ x: -260, opacity: 0 }}
+            animate={isCodeFading ? { opacity: 0 } : { x: 1120, opacity: [0, 0.75, 0] }}
+            transition={{ duration: 2.25, delay: 0.7, ease: 'easeInOut' }}
+            y="26"
+            width="160"
+            height="230"
+            fill="url(#invit-studio-shine)"
+            style={{ mixBlendMode: 'screen' }}
+          />
 
-      <div className="grid grid-cols-3 gap-2 w-full max-w-[155px] relative z-10">
-        {['1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '0', '#'].map((key) => {
-          const isGlowing = activeKey === key;
-
-          return (
-            <motion.div
-              key={key}
+          {[0, 1, 2, 3, 4, 5, 6].map((spark) => (
+            <motion.circle
+              key={spark}
+              cx={210 + spark * 112}
+              cy={100 + (spark % 2) * 42}
+              r="3"
+              fill="#f8d98b"
+              initial={{ opacity: 0, scale: 0 }}
               animate={
-                isGlowing
-                  ? {
-                      backgroundColor: 'rgba(14, 165, 233, 0.35)',
-                      borderColor: '#38bdf8',
-                      boxShadow: '0 0 10px rgba(56, 189, 248, 0.7)',
-                      scale: 0.95
-                    }
+                isCodeFading
+                  ? { opacity: 0, scale: 0 }
                   : {
-                      backgroundColor: 'rgba(23, 23, 23, 0.85)',
-                      borderColor: 'rgba(63, 63, 70, 0.2)',
-                      boxShadow: 'none',
-                      scale: 1
+                      opacity: [0, 1, 0],
+                      scale: [0, 1.3, 0],
+                      y: [0, -14, -24]
                     }
               }
-              className="aspect-square flex items-center justify-center rounded-lg border font-mono font-bold text-sm text-neutral-400 transition-all select-none"
-            >
-              <span className={isGlowing ? 'text-sky-400 drop-shadow-[0_0_4px_rgba(56,189,248,0.9)]' : ''}>{key}</span>
-            </motion.div>
-          );
-        })}
-      </div>
+              transition={{
+                duration: 1.55,
+                repeat: Infinity,
+                delay: 0.65 + spark * 0.16,
+                ease: 'easeInOut'
+              }}
+            />
+          ))}
+        </svg>
+      </motion.div>
+    );
+  };
 
-      <div className="mt-3.5 font-mono text-[8px] tracking-widest text-neutral-500 animate-pulse uppercase">
-        {isVaultClicked ? 'CRACKING CODE...' : 'Tap Device to Unlock'}
-      </div>
-    </div>
-  );
+  const OpeningVideoLayer = () => {
+    return (
+      <motion.div
+        initial={{ opacity: 1 }}
+        animate={{ opacity: isCodeFading ? 0 : 1 }}
+        transition={{ duration: 1.15, ease: 'easeInOut' }}
+        className="absolute inset-0 z-40 overflow-hidden bg-[#f8f4ec] pointer-events-none"
+      >
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_38%,rgba(255,255,255,0.92),rgba(248,244,236,0.82)_42%,rgba(231,214,184,0.56)_100%)]" />
 
-  const FreeShutterLayer = () => (
-    <>
-      <motion.div
-        animate={isOpening ? { y: '-100%', opacity: 0.92 } : { y: '0%', opacity: 1 }}
-        transition={{ duration: 0.8, ease: [0.43, 0.13, 0.23, 0.96] }}
-        className="absolute inset-0 w-full h-full shadow-[0_20px_50px_rgba(0,0,0,0.6)] border-b border-black/10"
-        style={{
-          background:
-            typeof envelopeColor === 'string' && envelopeColor.includes('gradient')
-              ? envelopeColor
-              : `linear-gradient(145deg, ${envelopeColor}, #ffffff 48%, ${envelopeColor})`
-        }}
+        <motion.video
+          src={openingVideoUrl}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          onLoadedData={() => setIsVideoReady(true)}
+          onCanPlay={() => setIsVideoReady(true)}
+          onCanPlayThrough={() => setIsVideoReady(true)}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: isVideoReady ? 1 : 0 }}
+          transition={{ duration: 1.1, ease: 'easeInOut' }}
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+
+        <div className="absolute inset-0 bg-black/10" />
+      </motion.div>
+    );
+  };
+
+  const SealTrigger = () => {
+    return (
+      <motion.img
+        src={SEAL_URL}
+        initial={{ opacity: 0, scale: 0.92, y: 10 }}
+        animate={
+          isCodeFading
+            ? { opacity: 0, scale: 1.05, y: -8, filter: 'blur(2px)' }
+            : {
+                opacity: 1,
+                scale: [1, 1.025, 1],
+                y: 0,
+                filter: 'blur(0px)'
+              }
+        }
+        transition={
+          isCodeFading
+            ? { duration: 0.95, ease: 'easeInOut' }
+            : {
+                opacity: { duration: 0.95, ease: 'easeOut' },
+                y: { duration: 0.95, ease: 'easeOut' },
+                scale: { duration: 2.8, repeat: Infinity, ease: 'easeInOut' },
+                filter: { duration: 0.95, ease: 'easeInOut' }
+              }
+        }
+        className="w-[19rem] max-w-[68vw] h-auto object-contain drop-shadow-[0_22px_45px_rgba(0,0,0,0.35)] select-none"
+        alt="Sceau"
+        draggable={false}
       />
-      <motion.div
-        animate={isOpening ? { opacity: 0 } : { opacity: 1 }}
-        transition={{ duration: 0.5, ease: 'easeOut' }}
-        className="absolute inset-0 w-full h-full"
-        style={{
-          background:
-            'radial-gradient(circle at 50% 42%, rgba(255,255,255,0.24), transparent 30%), linear-gradient(180deg, rgba(0,0,0,0.08), rgba(0,0,0,0.22))'
-        }}
-      />
-    </>
-  );
+    );
+  };
+
+  const FreeShutterLayer = () => {
+    return (
+      <>
+        <motion.div
+          animate={isCodeFading ? { y: '-100%', opacity: 0.92 } : { y: '0%', opacity: 1 }}
+          transition={{ duration: 0.82, ease: [0.43, 0.13, 0.23, 0.96] }}
+          className="absolute inset-0 z-50 w-full h-full shadow-[0_20px_50px_rgba(0,0,0,0.42)] border-b border-black/10"
+          style={{
+            background:
+              typeof envelopeColor === 'string' && envelopeColor.includes('gradient')
+                ? envelopeColor
+                : `linear-gradient(145deg, ${envelopeColor}, #ffffff 48%, ${envelopeColor})`
+          }}
+        />
+        <motion.div
+          animate={isCodeFading ? { opacity: 0 } : { opacity: 1 }}
+          transition={{ duration: 0.55, ease: 'easeOut' }}
+          className="absolute inset-0 z-50 w-full h-full"
+          style={{
+            background:
+              'radial-gradient(circle at 50% 42%, rgba(255,255,255,0.24), transparent 30%), linear-gradient(180deg, rgba(0,0,0,0.08), rgba(0,0,0,0.22))'
+          }}
+        />
+      </>
+    );
+  };
+
+  const VaultTrigger = () => {
+    return (
+      <div className="relative w-[220px] h-[330px] flex flex-col items-center justify-start bg-neutral-950 border-[4px] border-neutral-800 rounded-[1.75rem] shadow-[0_20px_40px_rgba(0,0,0,0.8)] overflow-hidden p-4">
+        <img
+          src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/dgital.png"
+          className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-30 pointer-events-none"
+          alt=""
+        />
+
+        <div className="w-full h-16 bg-black/95 rounded-xl border border-neutral-800 p-2 flex flex-col items-center justify-center shadow-inner relative z-10 mb-5">
+          <span className="text-[7.5px] font-mono tracking-[0.25em] text-neutral-400 font-bold uppercase mb-0.5">
+            Invit Studio
+          </span>
+          <div className="flex gap-1">
+            {displayedCode.map((digit, index) => (
+              <motion.span
+                key={index}
+                initial={{ scale: 1.3 }}
+                animate={{ scale: 1 }}
+                className="text-sky-500 font-mono text-xl font-black drop-shadow-[0_0_8px_rgba(14,165,233,0.8)] tracking-wider"
+              >
+                {digit}
+              </motion.span>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-3 gap-2 w-full max-w-[155px] relative z-10">
+          {['1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '0', '#'].map((key) => {
+            const isGlowing = activeKey === key;
+
+            return (
+              <motion.div
+                key={key}
+                animate={
+                  isGlowing
+                    ? {
+                        backgroundColor: 'rgba(14, 165, 233, 0.35)',
+                        borderColor: '#38bdf8',
+                        boxShadow: '0 0 10px rgba(56, 189, 248, 0.7)',
+                        scale: 0.95
+                      }
+                    : {
+                        backgroundColor: 'rgba(23, 23, 23, 0.85)',
+                        borderColor: 'rgba(63, 63, 70, 0.2)',
+                        boxShadow: 'none',
+                        scale: 1
+                      }
+                }
+                className="aspect-square flex items-center justify-center rounded-lg border font-mono font-bold text-sm text-neutral-400 transition-all select-none"
+              >
+                <span className={isGlowing ? 'text-sky-400 drop-shadow-[0_0_4px_rgba(56,189,248,0.9)]' : ''}>
+                  {key}
+                </span>
+              </motion.div>
+            );
+          })}
+        </div>
+
+        <div className="mt-3.5 font-mono text-[8px] tracking-widest text-neutral-500 animate-pulse uppercase">
+          {isVaultClicked ? 'CRACKING CODE...' : 'Tap Device to Unlock'}
+        </div>
+      </div>
+    );
+  };
 
   const AutonomousDecor = () => {
     const theme = backgroundTheme;
@@ -768,6 +903,9 @@ export function GuestView({ invitation }: any) {
       <AnimatePresence mode="wait">
         {view === 'envelope' ? (
           <motion.div key="env" className="relative w-full h-full flex items-center justify-center" style={{ perspective: '1200px' }}>
+            {!isFreeShutterOpening && <OpeningVideoLayer />}
+            {!isFreeShutterOpening && !isVaultOpening && <LuxuryCalligraphyIntro />}
+
             {isOpened && invitation?.music_url && (
               <button onClick={toggleMute} className="absolute top-6 right-6 z-[70] w-10 h-10 bg-white/80 rounded-full flex items-center justify-center shadow-lg">
                 {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} className="animate-pulse" />}
@@ -869,26 +1007,29 @@ export function GuestView({ invitation }: any) {
               <AnimatePresence>
                 {!isOpened && (
                   <motion.div key="gate-container" exit={{ opacity: 1 }} className="w-full h-full relative flex items-center justify-center">
+                    <AnimatePresence>
+                      {!isCodeFading && (
+                        <motion.div
+                          key="visual-trigger"
+                          initial={{ opacity: 1 }}
+                          exit={{ opacity: 0, transition: { duration: 0.35, ease: 'easeInOut' } }}
+                          className="absolute inset-0 z-[70] flex flex-col items-center justify-center cursor-pointer"
+                          onClick={handleTriggerClick}
+                        >
+                          <div className="relative z-[80] w-full flex items-center justify-center">
+                            {isVaultOpening ? <VaultTrigger /> : <SealTrigger />}
+                          </div>
+
+                          <p className="absolute bottom-12 z-[80] text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse text-center w-full px-4 drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)]">
+                            {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? 'Tap to open invitation' : 'Nhấn để mở lời mời'}
+                          </p>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
                     <div className="absolute inset-0 z-50 w-full h-full flex" style={{ perspective: '2200px', transformStyle: 'preserve-3d' }}>
-                      {isFreeShutterOpening ? <FreeShutterLayer /> : <OpeningVideoLayer />}
+                      {isFreeShutterOpening && <FreeShutterLayer />}
                     </div>
-
-                    <motion.div
-                      key="visual-trigger"
-                      initial={{ opacity: 1 }}
-                      animate={isOpening && !isFreeShutterOpening ? { opacity: 0 } : { opacity: 1 }}
-                      transition={{ duration: 0.8, ease: 'easeInOut' }}
-                      className="absolute inset-0 z-[70] flex flex-col items-center justify-center cursor-pointer"
-                      onClick={handleTriggerClick}
-                    >
-                      <div className="relative w-full flex items-center justify-center">
-                        {isVaultOpening ? <VaultTrigger /> : <SealTrigger />}
-                      </div>
-
-                      <p className="absolute bottom-12 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse text-center w-full px-4">
-                        {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? 'Tap to open invitation' : 'Nhấn để mở lời mời'}
-                      </p>
-                    </motion.div>
                   </motion.div>
                 )}
               </AnimatePresence>
