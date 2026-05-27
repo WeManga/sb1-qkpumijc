@@ -21,7 +21,7 @@ const METAL_OPENING_VIDEO_URL =
   'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/Happy%20Birthday.mp4';
 
 const DEFAULT_OPENING_POSTER_URL =
-  'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/poster-removebg-preview.png';
+  'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/Gemini_Generated_Image_xoo4grxoo4grxoo4%20(1).png';
 
 const OPENING_FADE_DURATION = 0.95;
 const OPENING_REVEAL_DELAY = 620;
