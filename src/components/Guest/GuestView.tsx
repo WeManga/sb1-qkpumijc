@@ -20,6 +20,10 @@ const SEAL_URL =
 const DEFAULT_OPENING_VIDEO_URL =
   'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/flower.mp4';
 
+const OPENING_FADE_DURATION = 1.2;
+const OPENING_REVEAL_DELAY = 1200;
+const BRAND_LOOP_DURATION = 4.4;
+
 const pick = (obj: any, keys: string[], fallback: any = undefined) => {
   for (const key of keys) {
     if (obj?.[key] !== undefined && obj?.[key] !== null && obj?.[key] !== '') return obj[key];
@@ -265,7 +269,7 @@ export function GuestView({ invitation }: any) {
 
         setTimeout(() => {
           triggerContainerOpening();
-        }, 1500);
+        }, OPENING_REVEAL_DELAY);
       }, 4200);
     }
 
@@ -289,7 +293,7 @@ export function GuestView({ invitation }: any) {
       return;
     }
 
-    const revealDelay = isFreeShutterOpening ? 1100 : 2300;
+    const revealDelay = isFreeShutterOpening ? 900 : OPENING_REVEAL_DELAY;
 
     openingTimersRef.current.forEach(clearTimeout);
     openingTimersRef.current = [];
@@ -394,24 +398,16 @@ export function GuestView({ invitation }: any) {
   const LuxuryCalligraphyIntro = () => {
     return (
       <motion.div
-        initial={{ opacity: 0, y: -12 }}
-        animate={
-          isCodeFading
-            ? { opacity: 0, y: -24, filter: 'blur(5px)' }
-            : {
-                opacity: [0, 1, 1, 0],
-                y: [-12, 0, 0, -10],
-                filter: ['blur(8px)', 'blur(0px)', 'blur(0px)', 'blur(5px)']
-              }
-        }
+        initial={{ opacity: 0 }}
+        animate={isCodeFading ? { opacity: 0 } : { opacity: [0, 1, 1, 0] }}
         transition={
           isCodeFading
-            ? { duration: 0.75, ease: 'easeInOut' }
+            ? { duration: OPENING_FADE_DURATION, ease: 'easeInOut' }
             : {
-                duration: 3.6,
-                times: [0, 0.26, 0.78, 1],
+                duration: BRAND_LOOP_DURATION,
+                times: [0, 0.22, 0.78, 1],
                 repeat: Infinity,
-                repeatDelay: 0.25,
+                repeatDelay: 0.15,
                 ease: 'easeInOut'
               }
         }
@@ -429,20 +425,12 @@ export function GuestView({ invitation }: any) {
               <stop offset="100%" stopColor="#4b2a0f" />
             </linearGradient>
 
-            <linearGradient id="invit-studio-shine" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="transparent" />
-              <stop offset="45%" stopColor="white" stopOpacity="0" />
-              <stop offset="50%" stopColor="white" stopOpacity="0.95" />
-              <stop offset="55%" stopColor="white" stopOpacity="0" />
-              <stop offset="100%" stopColor="transparent" />
-            </linearGradient>
-
             <filter id="invit-studio-glow" x="-25%" y="-45%" width="150%" height="190%">
               <feGaussianBlur stdDeviation="2.2" result="blur" />
               <feColorMatrix
                 in="blur"
                 type="matrix"
-                values="1 0 0 0 0.92  0 1 0 0 0.62  0 0 1 0 0.22  0 0 0 0.55 0"
+                values="1 0 0 0 0.92  0 1 0 0 0.62  0 0 1 0 0.22  0 0 0 0.45 0"
                 result="goldBlur"
               />
               <feMerge>
@@ -450,31 +438,9 @@ export function GuestView({ invitation }: any) {
                 <feMergeNode in="SourceGraphic" />
               </feMerge>
             </filter>
-
-            <mask id="invit-studio-write-mask">
-              <motion.rect
-                initial={{ width: 0 }}
-                animate={{ width: isCodeFading ? 1100 : [0, 1100, 1100, 1100] }}
-                transition={
-                  isCodeFading
-                    ? { duration: 0.2, ease: 'easeOut' }
-                    : {
-                        duration: 2.2,
-                        repeat: Infinity,
-                        repeatDelay: 1.65,
-                        ease: [0.22, 1, 0.36, 1]
-                      }
-                }
-                x="0"
-                y="0"
-                height="300"
-                fill="white"
-              />
-            </mask>
           </defs>
 
-          <motion.text
-            mask="url(#invit-studio-write-mask)"
+          <text
             filter="url(#invit-studio-glow)"
             fill="url(#invit-studio-gold)"
             fontSize="124"
@@ -485,44 +451,7 @@ export function GuestView({ invitation }: any) {
             <textPath href="#invit-studio-curve" startOffset="50%">
               Invit Studio
             </textPath>
-          </motion.text>
-
-          <motion.rect
-            initial={{ x: -260, opacity: 0 }}
-            animate={isCodeFading ? { opacity: 0 } : { x: 1120, opacity: [0, 0.75, 0] }}
-            transition={{ duration: 2.25, delay: 0.7, repeat: Infinity, repeatDelay: 1.4, ease: 'easeInOut' }}
-            y="26"
-            width="160"
-            height="230"
-            fill="url(#invit-studio-shine)"
-            style={{ mixBlendMode: 'screen' }}
-          />
-
-          {[0, 1, 2, 3, 4, 5, 6].map((spark) => (
-            <motion.circle
-              key={spark}
-              cx={210 + spark * 112}
-              cy={100 + (spark % 2) * 42}
-              r="3"
-              fill="#f8d98b"
-              initial={{ opacity: 0, scale: 0 }}
-              animate={
-                isCodeFading
-                  ? { opacity: 0, scale: 0 }
-                  : {
-                      opacity: [0, 1, 0],
-                      scale: [0, 1.3, 0],
-                      y: [0, -14, -24]
-                    }
-              }
-              transition={{
-                duration: 1.55,
-                repeat: Infinity,
-                delay: 0.65 + spark * 0.16,
-                ease: 'easeInOut'
-              }}
-            />
-          ))}
+          </text>
         </svg>
       </motion.div>
     );
@@ -533,7 +462,7 @@ export function GuestView({ invitation }: any) {
       <motion.div
         initial={false}
         animate={{ opacity: isCodeFading ? 0 : 1 }}
-        transition={{ duration: 1.9, ease: 'easeInOut' }}
+        transition={{ duration: OPENING_FADE_DURATION, ease: 'easeInOut' }}
         className="absolute inset-0 z-40 overflow-hidden bg-[#f8f4ec] pointer-events-none"
       >
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_38%,rgba(255,255,255,0.92),rgba(248,244,236,0.82)_42%,rgba(231,214,184,0.56)_100%)]" />
@@ -550,7 +479,7 @@ export function GuestView({ invitation }: any) {
           onCanPlayThrough={() => setIsVideoReady(true)}
           initial={false}
           animate={{ opacity: isVideoReady ? 1 : 0 }}
-          transition={{ duration: 1.15, ease: 'easeInOut' }}
+          transition={{ duration: 0.8, ease: 'easeInOut' }}
           className="absolute inset-0 w-full h-full object-cover"
         />
 
@@ -562,47 +491,22 @@ export function GuestView({ invitation }: any) {
   const SealTrigger = () => {
     return (
       <motion.div
-        initial={{ opacity: 0, scale: 0.96, filter: 'blur(5px)' }}
-        animate={
-          isCodeFading
-            ? { opacity: 0, scale: 0.98, filter: 'blur(3px)' }
-            : {
-                opacity: [0, 1, 1, 0],
-                scale: [0.96, 1, 1, 0.98],
-                filter: ['blur(5px)', 'blur(0px)', 'blur(0px)', 'blur(4px)']
-              }
-        }
+        initial={{ opacity: 0 }}
+        animate={isCodeFading ? { opacity: 0 } : { opacity: [0, 1, 1, 0] }}
         transition={
           isCodeFading
-            ? { duration: 0.9, ease: 'easeInOut' }
+            ? { duration: OPENING_FADE_DURATION, ease: 'easeInOut' }
             : {
-                duration: 4.2,
+                duration: BRAND_LOOP_DURATION,
                 times: [0, 0.22, 0.78, 1],
                 repeat: Infinity,
-                repeatDelay: 0.2,
+                repeatDelay: 0.15,
                 ease: 'easeInOut'
               }
         }
         className="relative"
       >
-        <motion.div
-          animate={
-            isCodeFading
-              ? { opacity: 0 }
-              : {
-                  opacity: [0, 0.42, 0.42, 0],
-                  scale: [0.9, 1, 1.02, 0.94]
-                }
-          }
-          transition={{
-            duration: 4.2,
-            times: [0, 0.22, 0.78, 1],
-            repeat: Infinity,
-            repeatDelay: 0.2,
-            ease: 'easeInOut'
-          }}
-          className="absolute inset-8 rounded-full bg-amber-200/30 blur-2xl"
-        />
+        <div className="absolute inset-8 rounded-full bg-amber-200/30 blur-2xl" />
 
         <img
           src={SEAL_URL}
@@ -1051,8 +955,8 @@ export function GuestView({ invitation }: any) {
                   <motion.div
                     key="visual-trigger"
                     initial={{ opacity: 1 }}
-                    animate={isCodeFading ? { opacity: 0, scale: 0.985 } : { opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.85, ease: 'easeInOut' }}
+                    animate={isCodeFading ? { opacity: 0 } : { opacity: 1 }}
+                    transition={{ duration: OPENING_FADE_DURATION, ease: 'easeInOut' }}
                     className="absolute inset-0 z-[70] flex flex-col items-center justify-center cursor-pointer"
                     style={{ pointerEvents: isCodeFading ? 'none' : 'auto' }}
                     onClick={handleTriggerClick}
