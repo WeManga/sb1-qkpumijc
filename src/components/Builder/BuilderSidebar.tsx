@@ -86,6 +86,15 @@ const TEXTURES = [
   { id: 'velvet', name: 'Velvet', premium: true }
 ];
 
+const ALBUM_PHOTO_FIELDS = [
+  { key: 'album_photo_url_1', label: 'Album 1' },
+  { key: 'album_photo_url_2', label: 'Album 2' },
+  { key: 'album_photo_url_3', label: 'Album 3' },
+  { key: 'album_photo_url_4', label: 'Album 4' },
+  { key: 'album_photo_url_5', label: 'Album 5' },
+  { key: 'album_photo_url_6', label: 'Album 6' }
+];
+
 const IMAGE_ACCEPT = 'image/jpeg,image/png,image/webp,image/heic,image/heif,image/*';
 
 const compressImageFile = async (file: File): Promise<File> => {
@@ -152,6 +161,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     program: true,
     premiumStory: false,
     mainMedia: true,
+    albumMedia: true,
     adjustMedia: false,
     opening: true,
     look: true,
@@ -194,6 +204,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       info: 'Informations',
       program: 'Programme',
       media: 'Photos et musique',
+      album_photo: 'ALBUM PHOTO',
       adjust: 'Cadrage des photos',
       opening: 'Ouverture',
       look: 'Papier et couleurs',
@@ -238,6 +249,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       info: 'Information',
       program: 'Program',
       media: 'Photos and music',
+      album_photo: 'PHOTO ALBUM',
       adjust: 'Photo framing',
       opening: 'Opening',
       look: 'Paper and colors',
@@ -282,6 +294,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       info: 'Thông tin',
       program: 'Chương trình',
       media: 'Ảnh và nhạc',
+      album_photo: 'ALBUM ẢNH',
       adjust: 'Căn chỉnh ảnh',
       opening: 'Mở thiệp',
       look: 'Giấy và màu',
@@ -941,6 +954,22 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 </span>
                 <input type="file" className="hidden" accept=".mp3,audio/mpeg" onChange={e => uploadFile(e, 'music_url')} />
               </label>
+            </div>
+          </Section>
+
+          <Section id="albumMedia" title={localLabels.album_photo} icon={ImageIcon} premium>
+            <div className={`${!isPremium ? 'opacity-60 grayscale pointer-events-none' : ''} space-y-4`}>
+              <div className="grid grid-cols-2 gap-3">
+                {ALBUM_PHOTO_FIELDS.map((photo, index) => (
+                  <UploadBox
+                    key={photo.key}
+                    label={`${localLabels.album_photo} ${index + 1}`}
+                    value={invitation[photo.key]}
+                    premium
+                    onChange={(e: any) => uploadFile(e, photo.key)}
+                  />
+                ))}
+              </div>
             </div>
           </Section>
 
