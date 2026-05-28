@@ -21,6 +21,12 @@ import {
   ChevronDown
 } from 'lucide-react';
 import { PREMIUM_COLORS } from '../../constants/colors';
+import {
+  OPENING_CATEGORIES,
+  OPENING_THEMES,
+  DEFAULT_THEME_BY_CATEGORY,
+  DEFAULT_CATEGORY_BY_EVENT
+} from '../../constants/openingThemes';
 
 const COLOR_PALETTES = [
   { color: '#FEE2E2' },
@@ -79,113 +85,6 @@ const TEXTURES = [
   { id: 'silk', name: 'Silk', premium: true },
   { id: 'velvet', name: 'Velvet', premium: true }
 ];
-
-const OPENING_CATEGORIES = [
-  { id: 'birthday', label: 'Anniversaire' },
-  { id: 'wedding', label: 'Mariage' },
-  { id: 'party', label: 'Fêtes' },
-  { id: 'other', label: 'Autres thèmes' }
-];
-
-const OPENING_THEMES = [
-  {
-    id: 'wedding_just_married',
-    category: 'wedding',
-    label: 'Just Married'
-  },
-  {
-    id: 'wedding_fusion',
-    category: 'wedding',
-    label: 'Fusion'
-  },
-  {
-    id: 'wedding_ceremony',
-    category: 'wedding',
-    label: 'Cérémonie'
-  },
-  {
-    id: 'wedding_presentation',
-    category: 'wedding',
-    label: 'Présentation'
-  },
-  {
-    id: 'birthday_balloons',
-    category: 'birthday',
-    label: 'Ballons'
-  },
-  {
-    id: 'birthday_glitter',
-    category: 'birthday',
-    label: 'Paillettes'
-  },
-  {
-    id: 'birthday_pink',
-    category: 'birthday',
-    label: 'Pink'
-  },
-  {
-    id: 'birthday_baby',
-    category: 'birthday',
-    label: 'Bébé'
-  },
-  {
-    id: 'party_disco',
-    category: 'party',
-    label: 'Disco'
-  },
-  {
-    id: 'party_dance',
-    category: 'party',
-    label: 'Danse'
-  },
-  {
-    id: 'party_monkey',
-    category: 'party',
-    label: 'Monkey'
-  },
-  {
-    id: 'party_together',
-    category: 'party',
-    label: 'Together'
-  },
-  {
-    id: 'other_love_flowers',
-    category: 'other',
-    label: 'Love Fleurs'
-  },
-  {
-    id: 'other_spiritual',
-    category: 'other',
-    label: 'Spirituel'
-  },
-  {
-    id: 'other_new_year',
-    category: 'other',
-    label: 'Nouvel An'
-  },
-  {
-    id: 'other_memorial',
-    category: 'other',
-    label: 'Hommage'
-  }
-];
-
-const DEFAULT_THEME_BY_CATEGORY: Record<string, string> = {
-  birthday: 'birthday_pink',
-  wedding: 'wedding_just_married',
-  party: 'party_disco',
-  other: 'other_love_flowers'
-};
-
-const DEFAULT_CATEGORY_BY_EVENT: Record<string, string> = {
-  wedding: 'wedding',
-  birthday: 'birthday',
-  party: 'party',
-  baptism: 'other',
-  babyshower: 'other',
-  funeral: 'other',
-  default: 'other'
-};
 
 const IMAGE_ACCEPT = 'image/jpeg,image/png,image/webp,image/heic,image/heif,image/*';
 
@@ -275,6 +174,8 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
   const t = translations[lang].builder;
   const isPremium = invitation.plan_type === 'PREMIUM';
 
+  const openingMode = isPremium && invitation.container_open === 'video' ? 'video' : 'envelope';
+
   const selectedOpeningCategory =
     invitation.opening_category ||
     OPENING_THEMES.find(theme => theme.id === invitation.opening_theme)?.category ||
@@ -285,7 +186,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
   const selectedOpeningTheme =
     invitation.opening_theme && availableOpeningThemes.some(theme => theme.id === invitation.opening_theme)
       ? invitation.opening_theme
-      : DEFAULT_THEME_BY_CATEGORY[selectedOpeningCategory];
+      : DEFAULT_THEME_BY_CATEGORY[selectedOpeningCategory as keyof typeof DEFAULT_THEME_BY_CATEGORY];
 
   const localLabels = {
     fr: {
@@ -299,11 +200,11 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       ambiance: 'Ambiance',
       premium_badge: 'Premium',
       opening_type_label: "Animation après l'ouverture",
+      opening_mode_label: "Mode d'ouverture",
+      opening_mode_panel: 'Volet',
+      opening_mode_video: 'Vidéos',
       opening_category_label: 'Famille de vidéo',
       opening_theme_label: 'Thème vidéo',
-      opening_free_label: 'Ouverture gratuite',
-      opening_free_panel: 'Volet classique',
-      opening_premium_hint: 'Les vidéos premium utilisent le poster Invit Studio puis disparaissent en fondu.',
       premium_colors: 'Couleurs premium',
       alert_msg: 'Vous possédez un compte FREE, veuillez passer en PREMIUM pour débloquer cette fonctionnalité.',
       paper_section_label: 'Carte',
@@ -343,11 +244,11 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       ambiance: 'Ambiance',
       premium_badge: 'Premium',
       opening_type_label: 'Animation after opening',
+      opening_mode_label: 'Opening mode',
+      opening_mode_panel: 'Panel',
+      opening_mode_video: 'Videos',
       opening_category_label: 'Video family',
       opening_theme_label: 'Video theme',
-      opening_free_label: 'Free opening',
-      opening_free_panel: 'Classic panel',
-      opening_premium_hint: 'Premium videos use the Invit Studio poster, then fade out.',
       premium_colors: 'Premium colors',
       alert_msg: 'You have a FREE account, please upgrade to PREMIUM to unlock this feature.',
       paper_section_label: 'Card',
@@ -387,11 +288,11 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       ambiance: 'Không gian',
       premium_badge: 'Premium',
       opening_type_label: 'Hoạt ảnh sau khi mở',
+      opening_mode_label: 'Kiểu mở',
+      opening_mode_panel: 'Bảng',
+      opening_mode_video: 'Video',
       opening_category_label: 'Nhóm video',
       opening_theme_label: 'Chủ đề video',
-      opening_free_label: 'Mở miễn phí',
-      opening_free_panel: 'Bảng cổ điển',
-      opening_premium_hint: 'Video premium dùng poster Invit Studio rồi mờ dần.',
       premium_colors: 'Màu premium',
       alert_msg: 'Bạn đang sử dụng tài khoản MIỄN PHÍ, vui lòng nâng cấp lên PREMIUM để mở khóa tính năng này.',
       paper_section_label: 'Thẻ',
@@ -484,10 +385,32 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     onInvitationChange({ ...invitation, opening_type: typeId });
   };
 
+  const handleOpeningModeClick = (mode: 'envelope' | 'video') => {
+    if (mode === 'video' && !checkPremiumAccess(false)) return;
+
+    if (mode === 'envelope') {
+      onInvitationChange({
+        ...invitation,
+        container_open: 'envelope'
+      });
+      return;
+    }
+
+    const safeCategory = selectedOpeningCategory || DEFAULT_CATEGORY_BY_EVENT[invitation.event_type] || DEFAULT_CATEGORY_BY_EVENT.default;
+    const defaultTheme = DEFAULT_THEME_BY_CATEGORY[safeCategory as keyof typeof DEFAULT_THEME_BY_CATEGORY] || DEFAULT_THEME_BY_CATEGORY.other;
+
+    onInvitationChange({
+      ...invitation,
+      container_open: 'video',
+      opening_category: safeCategory,
+      opening_theme: selectedOpeningTheme || defaultTheme
+    });
+  };
+
   const handleOpeningCategoryChange = (categoryId: string) => {
     if (!checkPremiumAccess(false)) return;
 
-    const defaultTheme = DEFAULT_THEME_BY_CATEGORY[categoryId] || DEFAULT_THEME_BY_CATEGORY.other;
+    const defaultTheme = DEFAULT_THEME_BY_CATEGORY[categoryId as keyof typeof DEFAULT_THEME_BY_CATEGORY] || DEFAULT_THEME_BY_CATEGORY.other;
 
     onInvitationChange({
       ...invitation,
@@ -507,13 +430,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       opening_category: theme?.category || selectedOpeningCategory,
       opening_theme: themeId,
       container_open: 'video'
-    });
-  };
-
-  const handleFreeOpeningClick = () => {
-    onInvitationChange({
-      ...invitation,
-      container_open: 'envelope'
     });
   };
 
@@ -1080,62 +996,66 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             <div className="space-y-5">
               <div>
                 <label className="text-[10px] font-black uppercase text-gray-400 mb-2 block">
-                  {localLabels.opening_free_label}
+                  {localLabels.opening_mode_label}
                 </label>
 
-                <OptionButton
-                  active={!isPremium || invitation.container_open === 'envelope' || !invitation.container_open}
-                  icon={ImageIcon}
-                  label={localLabels.opening_free_panel}
-                  onClick={handleFreeOpeningClick}
-                />
+                <div className="grid grid-cols-2 gap-2">
+                  <OptionButton
+                    active={openingMode === 'envelope'}
+                    icon={ImageIcon}
+                    label={localLabels.opening_mode_panel}
+                    onClick={() => handleOpeningModeClick('envelope')}
+                  />
+
+                  <OptionButton
+                    active={openingMode === 'video'}
+                    premium
+                    icon={Film}
+                    label={localLabels.opening_mode_video}
+                    onClick={() => handleOpeningModeClick('video')}
+                  />
+                </div>
               </div>
 
-              <div className={`${!isPremium ? 'opacity-55 grayscale' : ''} space-y-4 rounded-2xl bg-gray-950 p-4 border border-amber-500/20`}>
-                <div className="flex items-center justify-between gap-3">
+              {openingMode === 'video' && (
+                <div className={`${!isPremium ? 'opacity-55 grayscale' : ''} space-y-4 rounded-2xl bg-amber-50/60 p-4 border border-amber-100`}>
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.16em] text-amber-100">Vidéos premium</p>
-                    <p className="text-[10px] font-bold text-white/35 mt-1 leading-relaxed">{localLabels.opening_premium_hint}</p>
+                    <label className="text-[10px] font-black uppercase text-gray-500 mb-2 block">
+                      {localLabels.opening_category_label}
+                    </label>
+                    <select
+                      value={selectedOpeningCategory}
+                      disabled={!isPremium}
+                      onChange={e => handleOpeningCategoryChange(e.target.value)}
+                      className="w-full h-12 bg-white border border-amber-100 rounded-xl px-4 text-sm font-bold text-gray-800 disabled:cursor-not-allowed outline-none"
+                    >
+                      {OPENING_CATEGORIES.map(category => (
+                        <option key={category.id} value={category.id}>
+                          {category.label}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                  {!isPremium && <Lock size={18} className="text-amber-200 shrink-0" />}
-                </div>
 
-                <div>
-                  <label className="text-[10px] font-black uppercase text-white/45 mb-2 block">
-                    {localLabels.opening_category_label}
-                  </label>
-                  <select
-                    value={selectedOpeningCategory}
-                    disabled={!isPremium}
-                    onChange={e => handleOpeningCategoryChange(e.target.value)}
-                    className="w-full h-12 bg-white/10 border border-white/10 rounded-xl px-4 text-sm font-bold text-white disabled:cursor-not-allowed outline-none"
-                  >
-                    {OPENING_CATEGORIES.map(category => (
-                      <option key={category.id} value={category.id} className="bg-gray-950 text-white">
-                        {category.label}
-                      </option>
-                    ))}
-                  </select>
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-gray-500 mb-2 block">
+                      {localLabels.opening_theme_label}
+                    </label>
+                    <select
+                      value={selectedOpeningTheme}
+                      disabled={!isPremium}
+                      onChange={e => handleOpeningThemeChange(e.target.value)}
+                      className="w-full h-12 bg-white border border-amber-100 rounded-xl px-4 text-sm font-bold text-gray-800 disabled:cursor-not-allowed outline-none"
+                    >
+                      {availableOpeningThemes.map(theme => (
+                        <option key={theme.id} value={theme.id}>
+                          {theme.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
-
-                <div>
-                  <label className="text-[10px] font-black uppercase text-white/45 mb-2 block">
-                    {localLabels.opening_theme_label}
-                  </label>
-                  <select
-                    value={selectedOpeningTheme}
-                    disabled={!isPremium}
-                    onChange={e => handleOpeningThemeChange(e.target.value)}
-                    className="w-full h-12 bg-white/10 border border-white/10 rounded-xl px-4 text-sm font-bold text-white disabled:cursor-not-allowed outline-none"
-                  >
-                    {availableOpeningThemes.map(theme => (
-                      <option key={theme.id} value={theme.id} className="bg-gray-950 text-white">
-                        {theme.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
+              )}
 
               <div>
                 <label className="text-[10px] font-black uppercase text-gray-400 mb-2 block">
