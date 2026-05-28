@@ -21,6 +21,7 @@ const THEME_EMOJIS: Record<string, string[]> = {
 
 const OPENING_FADE_DURATION = 0.85;
 const OPENING_REVEAL_DELAY = 420;
+const LEAF_FRAME_URL = '/images/watercolor-leaf-frame.png';
 
 const pick = (obj: any, keys: string[], fallback: any = undefined) => {
   for (const key of keys) {
@@ -575,6 +576,124 @@ export function GuestView({ invitation }: any) {
     );
   };
 
+  const PremiumPhotoCarousel = ({ photos }: any) => {
+    const [activeIndex, setActiveIndex] = useState(0);
+
+    useEffect(() => {
+      if (!photos || photos.length < 2) return;
+
+      const timer = setInterval(() => {
+        setActiveIndex((current) => (current + 1) % photos.length);
+      }, 3800);
+
+      return () => clearInterval(timer);
+    }, [photos]);
+
+    if (!photos || photos.length < 2) return null;
+
+    const previousIndex = (activeIndex - 1 + photos.length) % photos.length;
+    const nextIndex = (activeIndex + 1) % photos.length;
+    const activePhoto = photos[activeIndex];
+    const previousPhoto = photos[previousIndex];
+    const nextPhoto = photos[nextIndex];
+
+    const goTo = (index: number) => {
+      setActiveIndex(index);
+    };
+
+    return (
+      <motion.section
+        initial={{ opacity: 0, y: 36 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: '-80px' }}
+        transition={{ duration: 0.9, ease: 'easeOut' }}
+        className="relative overflow-hidden rounded-[2.75rem] border border-emerald-100 bg-white/80 px-4 py-8 shadow-[0_24px_70px_rgba(16,185,129,0.13)]"
+      >
+        <div
+          className="absolute inset-0 opacity-35 bg-cover bg-center pointer-events-none"
+          style={{ backgroundImage: `url("${LEAF_FRAME_URL}")` }}
+        />
+        <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-white/70 via-white/25 to-white/70" />
+        <div className="absolute left-8 top-8 w-20 h-20 rounded-full bg-emerald-200/20 blur-3xl pointer-events-none" />
+        <div className="absolute right-6 bottom-6 w-24 h-24 rounded-full bg-amber-200/20 blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 space-y-7">
+          <h3 className="text-[10px] font-black text-emerald-700 uppercase tracking-[0.3em] text-center flex items-center justify-center gap-2">
+            <Sparkles size={12} />
+            {lang === 'fr' ? 'Album souvenir' : lang === 'en' ? 'Memory album' : 'Album kỷ niệm'}
+            <Sparkles size={12} />
+          </h3>
+
+          <div className="relative h-[330px] flex items-center justify-center">
+            <motion.button
+              type="button"
+              onClick={() => goTo(previousIndex)}
+              className="absolute left-0 top-1/2 z-10 h-44 w-28 -translate-y-1/2 overflow-hidden rounded-[1.75rem] border-4 border-white bg-white shadow-lg"
+              initial={false}
+              animate={{ x: 0, scale: 0.86, opacity: 0.64, filter: 'blur(1.8px)' }}
+              whileTap={{ scale: 0.82 }}
+            >
+              <img src={previousPhoto.url} loading="lazy" className="h-full w-full object-cover" alt="" />
+              <div className="absolute inset-0 bg-white/20" />
+            </motion.button>
+
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activePhoto.url}
+                initial={{ opacity: 0, scale: 0.88, y: 18 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.92, y: -18 }}
+                transition={{ duration: 0.65, ease: 'easeOut' }}
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                onDragEnd={(_, info) => {
+                  if (info.offset.x < -60) goTo(nextIndex);
+                  if (info.offset.x > 60) goTo(previousIndex);
+                }}
+                className="relative z-20 w-[74%] max-w-[300px] overflow-hidden rounded-[2.35rem] border-[7px] border-white bg-white shadow-[0_28px_65px_rgba(15,23,42,0.22)]"
+              >
+                <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-tr from-black/10 via-transparent to-white/25" />
+                <img src={activePhoto.url} loading="lazy" className="aspect-[4/5] w-full object-cover" alt="" />
+
+                <div className="absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/55 to-transparent px-5 pb-5 pt-12">
+                  <p className="truncate text-center text-[9px] font-black uppercase tracking-[0.24em] text-white/90">
+                    {activePhoto.label}
+                  </p>
+                </div>
+              </motion.div>
+            </AnimatePresence>
+
+            <motion.button
+              type="button"
+              onClick={() => goTo(nextIndex)}
+              className="absolute right-0 top-1/2 z-10 h-44 w-28 -translate-y-1/2 overflow-hidden rounded-[1.75rem] border-4 border-white bg-white shadow-lg"
+              initial={false}
+              animate={{ x: 0, scale: 0.86, opacity: 0.64, filter: 'blur(1.8px)' }}
+              whileTap={{ scale: 0.82 }}
+            >
+              <img src={nextPhoto.url} loading="lazy" className="h-full w-full object-cover" alt="" />
+              <div className="absolute inset-0 bg-white/20" />
+            </motion.button>
+          </div>
+
+          <div className="flex justify-center gap-2">
+            {photos.map((photo: any, index: number) => (
+              <button
+                key={`${photo.url}-dot-${index}`}
+                type="button"
+                onClick={() => goTo(index)}
+                className={`h-2 rounded-full transition-all ${
+                  index === activeIndex ? 'w-7 bg-emerald-500' : 'w-2 bg-emerald-200'
+                }`}
+                aria-label={`Photo ${index + 1}`}
+              />
+            ))}
+          </div>
+        </div>
+      </motion.section>
+    );
+  };
+
   const showEmojiRain = isOpened && (planType !== 'PREMIUM' || premiumTriggerType === 'emoji' || !premiumTriggerType);
   const showPremiumDecor = isOpened && isPremiumDecor;
 
@@ -867,33 +986,7 @@ export function GuestView({ invitation }: any) {
 
               <PremiumStorySection title={premiumMidTitle} text={premiumMidText} imageUrl={premiumMidPhotoUrl} />
 
-              {isPremium && premiumGalleryPhotos.length >= 2 && (
-                <motion.section initial={{ opacity: 0, y: 36 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-80px' }} transition={{ duration: 0.9 }} className="space-y-6">
-                  <h3 className="text-[10px] font-black text-amber-600 uppercase tracking-[0.3em] text-center flex items-center justify-center gap-2">
-                    <Sparkles size={12} />
-                    {lang === 'fr' ? 'Album souvenir' : lang === 'en' ? 'Memory album' : 'Album kỷ niệm'}
-                    <Sparkles size={12} />
-                  </h3>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    {premiumGalleryPhotos.slice(0, 6).map((photo, index) => (
-                      <motion.div
-                        key={`${photo.url}-${index}`}
-                        initial={{ opacity: 0, y: 24, rotate: index % 2 === 0 ? -4 : 4 }}
-                        whileInView={{ opacity: 1, y: 0, rotate: index % 2 === 0 ? -2 : 2 }}
-                        viewport={{ once: true }}
-                        transition={{ duration: 0.75, delay: index * 0.08 }}
-                        className={`${index === 0 ? 'col-span-2' : ''} bg-white p-2 rounded-2xl shadow-xl border border-white overflow-hidden`}
-                      >
-                        <img src={photo.url} loading="lazy" className={`${index === 0 ? 'aspect-[16/10]' : 'aspect-square'} w-full object-cover rounded-xl`} alt="" />
-                        <div className="px-2 py-2 text-[9px] font-black uppercase tracking-widest text-gray-400 truncate">
-                          {photo.label}
-                        </div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </motion.section>
-              )}
+              {isPremium && premiumGalleryPhotos.length >= 2 && <PremiumPhotoCarousel photos={premiumGalleryPhotos.slice(0, 6)} />}
 
               {isPremium && endPhotoUrl && (
                 <motion.div initial={{ opacity: 0, y: 34, rotate: 0 }} whileInView={{ opacity: 1, y: 0, rotate: 1 }} viewport={{ once: true, margin: '-80px' }} transition={{ duration: 0.9 }} className="px-2">
