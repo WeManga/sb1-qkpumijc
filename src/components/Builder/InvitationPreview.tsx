@@ -51,13 +51,13 @@ export function InvitationPreview({ invitation }: any) {
 
   const paperType = pick(invitation, ['paper_type', 'papertype'], 'smooth');
   const openingType = pick(invitation, ['opening_type', 'openingtype'], 'vinyl');
+  const containerOpen = pick(invitation, ['container_open', 'containeropen'], 'envelope');
 
   const backgroundTheme = pick(invitation, ['background_theme', 'backgroundtheme'], '');
   const premiumTriggerType = pick(invitation, ['premium_trigger_type', 'premiumtriggertype'], 'emoji');
 
   const fontStyle = pick(invitation, ['font_style', 'fontstyle'], 'inherit');
   const paperColor = pick(invitation, ['paper_color', 'papercolor'], '#ffffff');
-  const envelopeColor = pick(invitation, ['envelope_color', 'envelopecolor'], '#FEE2E2');
   const backgroundColor = pick(invitation, ['background_color', 'backgroundcolor'], '#ffffff');
 
   const title = pick(invitation, ['title'], '');
@@ -105,7 +105,8 @@ export function InvitationPreview({ invitation }: any) {
   const mainPhotoPosY = pick(invitation, ['main_photo_url_pos_y', 'mainphotourlposy'], 0);
   const mainPhotoScale = pick(invitation, ['main_photo_url_scale', 'mainphotourlscale'], 1);
 
-  const isFreeShutterOpening = !isPremium;
+  const isVideoOpening = isPremium && containerOpen === 'video';
+  const isFreeShutterOpening = !isVideoOpening;
   const openingVideoVisible = isVideoReady && !isOpeningFading;
 
   const getPaperClass = () => {
@@ -296,24 +297,21 @@ export function InvitationPreview({ invitation }: any) {
     return (
       <>
         <motion.div
-          animate={isOpeningFading ? { y: '-100%', opacity: 0.92 } : { y: '0%', opacity: 1 }}
+          animate={isOpeningFading ? { y: '-100%', opacity: 0.96 } : { y: '0%', opacity: 1 }}
           transition={{ duration: 0.82, ease: [0.43, 0.13, 0.23, 0.96] }}
-          className="absolute inset-0 z-50 w-full h-full shadow-[0_20px_50px_rgba(0,0,0,0.42)] border-b border-black/10"
+          className="absolute inset-0 z-50 w-full h-full shadow-[0_20px_50px_rgba(0,0,0,0.42)] border-b border-black/10 bg-cover bg-center"
           style={{
-            background:
-              typeof envelopeColor === 'string' && envelopeColor.includes('gradient')
-                ? envelopeColor
-                : `linear-gradient(145deg, ${envelopeColor}, #ffffff 48%, ${envelopeColor})`
+            backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.05), rgba(0,0,0,0.22)), url("${openingPosterUrl}")`
           }}
         />
 
         <motion.div
           animate={isOpeningFading ? { opacity: 0 } : { opacity: 1 }}
           transition={{ duration: 0.55, ease: 'easeOut' }}
-          className="absolute inset-0 z-50 w-full h-full"
+          className="absolute inset-0 z-50 w-full h-full pointer-events-none"
           style={{
             background:
-              'radial-gradient(circle at 50% 42%, rgba(255,255,255,0.24), transparent 30%), linear-gradient(180deg, rgba(0,0,0,0.08), rgba(0,0,0,0.22))'
+              'radial-gradient(circle at 50% 42%, rgba(255,255,255,0.22), transparent 32%), linear-gradient(180deg, rgba(255,255,255,0.04), rgba(0,0,0,0.18))'
           }}
         />
       </>
@@ -557,7 +555,7 @@ export function InvitationPreview({ invitation }: any) {
       <AnimatePresence mode="wait">
         {view === 'envelope' ? (
           <motion.div key="env" className="relative w-full h-full flex items-center justify-center" style={{ perspective: '1200px' }}>
-            {!isFreeShutterOpening && !isOpened && <OpeningVideoLayer />}
+            {isVideoOpening && !isOpened && <OpeningVideoLayer />}
 
             {isOpened && musicUrl && (
               <button onClick={toggleMute} className="absolute top-6 right-6 z-[70] w-10 h-10 bg-white/80 rounded-full flex items-center justify-center shadow-lg">
@@ -614,6 +612,7 @@ export function InvitationPreview({ invitation }: any) {
                   style={{ background: 'radial-gradient(circle at 30% 30%, #2a2a2a, #0a0a0a)' }}
                 >
                   <div className="absolute inset-0 opacity-50 mix-blend-overlay pointer-events-none" style={{ background: 'repeating-radial-gradient(circle, #404040 0px, #1a1a1a 1px, #0d0d0d 2px)' }} />
+
                   <motion.div
                     animate={isOpened ? { rotate: -360 } : { rotate: 0 }}
                     transition={isOpened ? { repeat: Infinity, duration: 4, ease: 'linear', delay: 0.8 } : { duration: 0.5 }}
@@ -660,7 +659,7 @@ export function InvitationPreview({ invitation }: any) {
             {!isOpened && (
               <div className="absolute inset-0 z-50 overflow-hidden" style={{ perspective: '2200px', transformStyle: 'preserve-3d', pointerEvents: 'auto' }}>
                 <motion.div key="gate-container" className="w-full h-full relative flex items-center justify-center">
-                  {!isFreeShutterOpening && (
+                  {isVideoOpening && (
                     <motion.div
                       initial={false}
                       animate={isOpeningFading || openingVideoVisible ? { opacity: 0 } : { opacity: 1 }}
