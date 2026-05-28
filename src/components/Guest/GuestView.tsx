@@ -21,7 +21,8 @@ const THEME_EMOJIS: Record<string, string[]> = {
 
 const OPENING_FADE_DURATION = 0.85;
 const OPENING_REVEAL_DELAY = 420;
-const LEAF_FRAME_URL = '/images/watercolor-leaf-frame.png';
+const LEAF_FRAME_URL =
+  'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/feuille%20carousselle.png'
 
 const pick = (obj: any, keys: string[], fallback: any = undefined) => {
   for (const key of keys) {
