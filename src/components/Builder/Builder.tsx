@@ -17,12 +17,11 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
   const { user } = useAuth();
 
   const lang = (localStorage.getItem('invite_lang') as Language) || 'fr';
-  const t = translations[lang].builder;
   const tAuth = translations[lang].auth;
 
   const [invitation, setInvitation] = useState<Partial<Invitation>>({
     event_type: 'wedding',
-    title: t.theme_wedding,
+    title: translations[lang].builder.theme_wedding,
     host_names: 'John & Jane',
     event_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
     event_address: '',
@@ -39,8 +38,11 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
     is_published: false,
     language: lang,
     opening_type: 'vinyl',
-    opening_style: 'default',
     container_open: 'envelope',
+    opening_category: 'wedding',
+    opening_theme: 'wedding_just_married',
+    opening_video_url: '',
+    opening_poster_url: '',
     photo_url_2: '',
     photo_url_3: '',
     // @ts-ignore
@@ -79,9 +81,15 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
           background_theme: invData.background_theme || '',
           premium_trigger_type: invData.premium_trigger_type || 'emoji',
           opening_type: invData.opening_type || 'vinyl',
-          opening_style: invData.opening_style || 'default',
           container_open: invData.container_open || 'envelope',
+          opening_category: invData.opening_category || 'wedding',
+          opening_theme: invData.opening_theme || 'wedding_just_married',
+          opening_video_url: invData.opening_video_url || '',
+          opening_poster_url: invData.opening_poster_url || '',
+          photo_url_2: invData.photo_url_2 || '',
+          photo_url_3: invData.photo_url_3 || '',
           // À retirer quand les vrais plans FREE/PREMIUM seront branchés.
+          // @ts-ignore
           plan_type: 'PREMIUM'
         });
       }
@@ -114,8 +122,11 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
         background_theme: invitation.background_theme || '',
         premium_trigger_type: invitation.premium_trigger_type || 'emoji',
         opening_type: invitation.opening_type || 'vinyl',
-        opening_style: invitation.opening_style || 'default',
         container_open: invitation.container_open || 'envelope',
+        opening_category: invitation.opening_category || 'wedding',
+        opening_theme: invitation.opening_theme || 'wedding_just_married',
+        opening_video_url: invitation.opening_video_url || '',
+        opening_poster_url: invitation.opening_poster_url || '',
         photo_url_2: invitation.photo_url_2 || '',
         photo_url_3: invitation.photo_url_3 || '',
         updated_at: new Date().toISOString()
