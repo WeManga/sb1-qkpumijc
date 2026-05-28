@@ -183,10 +183,11 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     DEFAULT_CATEGORY_BY_EVENT.default;
 
   const availableOpeningThemes = OPENING_THEMES.filter(theme => theme.category === selectedOpeningCategory);
+
   const selectedOpeningTheme =
     invitation.opening_theme && availableOpeningThemes.some(theme => theme.id === invitation.opening_theme)
       ? invitation.opening_theme
-      : DEFAULT_THEME_BY_CATEGORY[selectedOpeningCategory as keyof typeof DEFAULT_THEME_BY_CATEGORY];
+      : DEFAULT_THEME_BY_CATEGORY[selectedOpeningCategory as keyof typeof DEFAULT_THEME_BY_CATEGORY] || DEFAULT_THEME_BY_CATEGORY.other;
 
   const localLabels = {
     fr: {
@@ -396,8 +397,14 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       return;
     }
 
-    const safeCategory = selectedOpeningCategory || DEFAULT_CATEGORY_BY_EVENT[invitation.event_type] || DEFAULT_CATEGORY_BY_EVENT.default;
-    const defaultTheme = DEFAULT_THEME_BY_CATEGORY[safeCategory as keyof typeof DEFAULT_THEME_BY_CATEGORY] || DEFAULT_THEME_BY_CATEGORY.other;
+    const safeCategory =
+      selectedOpeningCategory ||
+      DEFAULT_CATEGORY_BY_EVENT[invitation.event_type] ||
+      DEFAULT_CATEGORY_BY_EVENT.default;
+
+    const defaultTheme =
+      DEFAULT_THEME_BY_CATEGORY[safeCategory as keyof typeof DEFAULT_THEME_BY_CATEGORY] ||
+      DEFAULT_THEME_BY_CATEGORY.other;
 
     onInvitationChange({
       ...invitation,
@@ -410,7 +417,9 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
   const handleOpeningCategoryChange = (categoryId: string) => {
     if (!checkPremiumAccess(false)) return;
 
-    const defaultTheme = DEFAULT_THEME_BY_CATEGORY[categoryId as keyof typeof DEFAULT_THEME_BY_CATEGORY] || DEFAULT_THEME_BY_CATEGORY.other;
+    const defaultTheme =
+      DEFAULT_THEME_BY_CATEGORY[categoryId as keyof typeof DEFAULT_THEME_BY_CATEGORY] ||
+      DEFAULT_THEME_BY_CATEGORY.other;
 
     onInvitationChange({
       ...invitation,
@@ -435,7 +444,21 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
   const handleThemeClick = (themeId: string, premium: boolean) => {
     if (!checkPremiumAccess(!premium)) return;
-    onInvitationChange({ ...invitation, event_type: themeId });
+
+    const updates: any = { ...invitation, event_type: themeId };
+
+    if (openingMode === 'video') {
+      const nextCategory = DEFAULT_CATEGORY_BY_EVENT[themeId] || DEFAULT_CATEGORY_BY_EVENT.default;
+      const nextTheme =
+        DEFAULT_THEME_BY_CATEGORY[nextCategory as keyof typeof DEFAULT_THEME_BY_CATEGORY] ||
+        DEFAULT_THEME_BY_CATEGORY.other;
+
+      updates.opening_category = nextCategory;
+      updates.opening_theme = nextTheme;
+      updates.container_open = 'video';
+    }
+
+    onInvitationChange(updates);
   };
 
   const handleFontClick = (fontFamily: string, premium: boolean) => {
@@ -618,7 +641,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
               {title}
             </span>
             {premium && (
-              <span className="shrink-0 rounded-full bg-gray-950 text-amber-200 px-2 py-0.5 text-[8px] font-black uppercase">
+              <span className="shrink-0 rounded-full bg-amber-50 text-amber-700 border border-amber-100 px-2 py-0.5 text-[8px] font-black uppercase">
                 {localLabels.premium_badge}
               </span>
             )}
@@ -818,15 +841,15 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                   textPlaceholder: localLabels.premium_final_text_placeholder
                 }
               ].map(section => (
-                <div key={section.titleKey} className="space-y-3 bg-gray-950 rounded-2xl p-4 border border-amber-500/20">
-                  <label className="text-[10px] font-black uppercase text-amber-100">{section.title}</label>
+                <div key={section.titleKey} className="space-y-3 bg-amber-50/60 rounded-2xl p-4 border border-amber-100">
+                  <label className="text-[10px] font-black uppercase text-gray-600">{section.title}</label>
 
                   <input
                     type="text"
                     value={invitation[section.titleKey] || ''}
                     disabled={!isPremium}
                     onChange={e => onInvitationChange({ ...invitation, [section.titleKey]: e.target.value })}
-                    className="w-full bg-white/10 border border-white/10 h-12 px-4 rounded-xl text-sm text-white placeholder:text-white/35 disabled:cursor-not-allowed"
+                    className="w-full bg-white border border-amber-100 h-12 px-4 rounded-xl text-sm text-gray-800 placeholder:text-gray-400 disabled:cursor-not-allowed"
                     placeholder={section.titlePlaceholder || localLabels.premium_title_placeholder}
                   />
 
@@ -834,29 +857,29 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                     value={invitation[section.textKey] || ''}
                     disabled={!isPremium}
                     onChange={e => onInvitationChange({ ...invitation, [section.textKey]: e.target.value })}
-                    className="w-full bg-white/10 border border-white/10 p-4 rounded-xl text-sm text-white placeholder:text-white/35 min-h-[100px] resize-none disabled:cursor-not-allowed"
+                    className="w-full bg-white border border-amber-100 p-4 rounded-xl text-sm text-gray-800 placeholder:text-gray-400 min-h-[100px] resize-none disabled:cursor-not-allowed"
                     placeholder={section.textPlaceholder || localLabels.premium_text_placeholder}
                   />
 
-                  <label className={`flex items-center gap-3 p-3 bg-white/10 rounded-xl border border-white/10 cursor-pointer ${!isPremium ? 'pointer-events-none' : ''}`}>
-                    <div className="w-14 h-14 rounded-xl bg-black/20 flex items-center justify-center overflow-hidden border border-white/10">
+                  <label className={`flex items-center gap-3 p-3 bg-white rounded-xl border border-amber-100 cursor-pointer ${!isPremium ? 'pointer-events-none' : ''}`}>
+                    <div className="w-14 h-14 rounded-xl bg-amber-50 flex items-center justify-center overflow-hidden border border-amber-100">
                       {invitation[section.photoKey] ? (
                         <img src={invitation[section.photoKey]} className="w-full h-full object-cover" />
                       ) : (
-                        <ImageIcon size={18} className="text-amber-200/70" />
+                        <ImageIcon size={18} className="text-amber-500" />
                       )}
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <span className="block text-[10px] font-black uppercase text-amber-100 truncate">
+                      <span className="block text-[10px] font-black uppercase text-gray-700 truncate">
                         {localLabels.premium_photo}
                       </span>
-                      <span className="block text-[10px] font-bold text-white/40 truncate">
+                      <span className="block text-[10px] font-bold text-gray-400 truncate">
                         {invitation[section.photoKey] ? t.modify_photo : t.add_photo}
                       </span>
                     </div>
 
-                    {uploading ? <span className="text-[9px] font-black text-amber-200 uppercase">Upload...</span> : <Plus size={16} className="text-amber-200" />}
+                    {uploading ? <span className="text-[9px] font-black text-amber-600 uppercase">Upload...</span> : <Plus size={16} className="text-amber-500" />}
 
                     <input
                       type="file"
@@ -1113,14 +1136,14 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                     <button
                       type="button"
                       onClick={() => setPaperMode('texture')}
-                      className={`px-3 py-1 text-[9px] font-black uppercase rounded-md transition-all ${paperMode === 'texture' ? 'bg-gray-950 text-white' : 'text-gray-400'}`}
+                      className={`px-3 py-1 text-[9px] font-black uppercase rounded-md transition-all ${paperMode === 'texture' ? 'bg-amber-500 text-white' : 'text-gray-400'}`}
                     >
                       {localLabels.paper_mode_texture}
                     </button>
                     <button
                       type="button"
                       onClick={() => (isPremium ? setPaperMode('color') : checkPremiumAccess(false))}
-                      className={`px-3 py-1 text-[9px] font-black uppercase rounded-md transition-all flex items-center gap-1 ${paperMode === 'color' ? 'bg-gray-950 text-white' : 'text-gray-400'} ${!isPremium ? 'opacity-60' : ''}`}
+                      className={`px-3 py-1 text-[9px] font-black uppercase rounded-md transition-all flex items-center gap-1 ${paperMode === 'color' ? 'bg-amber-500 text-white' : 'text-gray-400'} ${!isPremium ? 'opacity-60' : ''}`}
                     >
                       {localLabels.paper_mode_color}
                       {!isPremium && <Lock size={10} />}
