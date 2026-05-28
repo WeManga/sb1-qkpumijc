@@ -13,6 +13,130 @@ const THEME_EMOJIS: Record<string, string[]> = {
   default: ['✨', '🌟', '🤍']
 };
 
+type OpeningCategory = 'birthday' | 'wedding' | 'party' | 'other';
+
+type OpeningTheme = {
+  id: string;
+  category: OpeningCategory;
+  label: string;
+  videoUrl: string;
+};
+
+const UNIVERSAL_OPENING_POSTER_URL =
+  'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/Gemini_Generated_Image_xoo4grxoo4grxoo4%20(1).png';
+
+const OPENING_THEMES: OpeningTheme[] = [
+  {
+    id: 'wedding_just_married',
+    category: 'wedding',
+    label: 'Mariage Just Married',
+    videoUrl: 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/just%20Married.mp4'
+  },
+  {
+    id: 'wedding_fusion',
+    category: 'wedding',
+    label: 'Mariage Fusion',
+    videoUrl: 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/Alliance%20Fusion.mp4'
+  },
+  {
+    id: 'wedding_ceremony',
+    category: 'wedding',
+    label: 'Mariage Cérémonie',
+    videoUrl: 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/Allance%20couple.mp4'
+  },
+  {
+    id: 'wedding_presentation',
+    category: 'wedding',
+    label: 'Mariage Présentation',
+    videoUrl: 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/aliance%20Presentaation.mp4'
+  },
+  {
+    id: 'birthday_balloons',
+    category: 'birthday',
+    label: 'Anniversaire Ballons',
+    videoUrl: 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/Aniv%20Ballons.mp4'
+  },
+  {
+    id: 'birthday_glitter',
+    category: 'birthday',
+    label: 'Anniversaire Paillettes',
+    videoUrl: 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/Aniv%20Paillettes.mp4'
+  },
+  {
+    id: 'birthday_pink',
+    category: 'birthday',
+    label: 'Anniversaire Pink',
+    videoUrl: 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/Anniv%20Pink.mp4'
+  },
+  {
+    id: 'birthday_baby',
+    category: 'birthday',
+    label: 'Anniversaire Bébé',
+    videoUrl: 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/Anniv%20baby.mp4'
+  },
+  {
+    id: 'party_disco',
+    category: 'party',
+    label: 'Fête Disco',
+    videoUrl: 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/Disco.mp4'
+  },
+  {
+    id: 'party_dance',
+    category: 'party',
+    label: 'Fête Danse',
+    videoUrl: 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/Grou.mp4'
+  },
+  {
+    id: 'party_monkey',
+    category: 'party',
+    label: 'Fête Monkey',
+    videoUrl: 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/Monkey.mp4'
+  },
+  {
+    id: 'party_together',
+    category: 'party',
+    label: 'Fête Together',
+    videoUrl: 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/Together.mp4'
+  },
+  {
+    id: 'other_love_flowers',
+    category: 'other',
+    label: 'Love Fleurs',
+    videoUrl: 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/Lov%20Flower.mp4'
+  },
+  {
+    id: 'other_spiritual',
+    category: 'other',
+    label: 'Spirituel',
+    videoUrl: 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/Sprituel.mp4'
+  },
+  {
+    id: 'other_new_year',
+    category: 'other',
+    label: 'Nouvel An',
+    videoUrl: 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/Nouvel%20an.mp4'
+  },
+  {
+    id: 'other_memorial',
+    category: 'other',
+    label: 'Hommage',
+    videoUrl: 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/Bougie.mp4'
+  }
+];
+
+const DEFAULT_THEME_BY_EVENT: Record<string, string> = {
+  wedding: 'wedding_just_married',
+  birthday: 'birthday_pink',
+  party: 'party_disco',
+  baptism: 'other_spiritual',
+  babyshower: 'birthday_baby',
+  funeral: 'other_memorial',
+  default: 'other_love_flowers'
+};
+
+const OPENING_FADE_DURATION = 0.85;
+const OPENING_REVEAL_DELAY = 420;
+
 const pick = (obj: any, keys: string[], fallback: any = undefined) => {
   for (const key of keys) {
     if (obj?.[key] !== undefined && obj?.[key] !== null && obj?.[key] !== '') return obj[key];
@@ -25,12 +149,11 @@ export function InvitationPreview({ invitation }: any) {
   const [isOpened, setIsOpened] = useState(false);
   const [view, setView] = useState<'envelope' | 'content'>('envelope');
   const [isMuted, setIsMuted] = useState(false);
-  const [isVaultClicked, setIsVaultClicked] = useState(false);
-  const [displayedCode, setDisplayedCode] = useState(['*', '*', '*', '*', '*', '*']);
-  const [activeKey, setActiveKey] = useState<string | null>(null);
-  const [isCodeFading, setIsCodeFading] = useState(false);
+  const [isOpeningFading, setIsOpeningFading] = useState(false);
+  const [isVideoReady, setIsVideoReady] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement>(null);
+  const openingTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
 
   const lang = (pick(invitation, ['language']) as Language) || (localStorage.getItem('invite_lang') as Language) || 'fr';
   const t = translations[lang].guest;
@@ -43,9 +166,7 @@ export function InvitationPreview({ invitation }: any) {
   const isPremium = planType === 'PREMIUM';
 
   const paperType = pick(invitation, ['paper_type', 'papertype'], 'smooth');
-  const openingStyle = pick(invitation, ['opening_style', 'openingstyle'], 'default');
   const openingType = pick(invitation, ['opening_type', 'openingtype'], 'vinyl');
-  const containerOpen = pick(invitation, ['container_open', 'containeropen'], 'envelope');
 
   const backgroundTheme = pick(invitation, ['background_theme', 'backgroundtheme'], '');
   const premiumTriggerType = pick(invitation, ['premium_trigger_type', 'premiumtriggertype'], 'emoji');
@@ -62,7 +183,6 @@ export function InvitationPreview({ invitation }: any) {
   const musicUrl = pick(invitation, ['music_url', 'musicurl'], '');
   const eventDate = pick(invitation, ['event_date', 'eventdate'], '');
   const eventAddress = pick(invitation, ['event_address', 'eventaddress'], '');
-  const vaultDate = pick(invitation, ['vault_date', 'vaultdate'], '');
   const endPhotoUrl = pick(invitation, ['end_photo_url', 'endphotourl'], '');
   const eventProgram = pick(invitation, ['event_program', 'eventprogram'], []);
   const photoUrl2 = pick(invitation, ['photo_url_2', 'photourl2'], '');
@@ -76,6 +196,21 @@ export function InvitationPreview({ invitation }: any) {
   const premiumFinalText = pick(invitation, ['premium_final_text'], '');
   const premiumFinalPhotoUrl = pick(invitation, ['premium_final_photo_url'], '');
 
+  const selectedOpeningThemeId = pick(
+    invitation,
+    ['opening_theme', 'openingtheme'],
+    DEFAULT_THEME_BY_EVENT[eventType] || DEFAULT_THEME_BY_EVENT.default
+  );
+
+  const selectedOpeningTheme =
+    OPENING_THEMES.find((theme) => theme.id === selectedOpeningThemeId) ||
+    OPENING_THEMES.find((theme) => theme.id === DEFAULT_THEME_BY_EVENT[eventType]) ||
+    OPENING_THEMES.find((theme) => theme.id === DEFAULT_THEME_BY_EVENT.default) ||
+    OPENING_THEMES[0];
+
+  const openingVideoUrl = pick(invitation, ['opening_video_url', 'openingvideourl'], selectedOpeningTheme.videoUrl);
+  const openingPosterUrl = pick(invitation, ['opening_poster_url', 'openingposterurl'], UNIVERSAL_OPENING_POSTER_URL);
+
   const isPremiumDecor = isPremium && premiumTriggerType === 'decor';
 
   const effectivePaperType = paperType || 'smooth';
@@ -85,6 +220,9 @@ export function InvitationPreview({ invitation }: any) {
   const mainPhotoPosX = pick(invitation, ['main_photo_url_pos_x', 'mainphotourlposx'], 0);
   const mainPhotoPosY = pick(invitation, ['main_photo_url_pos_y', 'mainphotourlposy'], 0);
   const mainPhotoScale = pick(invitation, ['main_photo_url_scale', 'mainphotourlscale'], 1);
+
+  const isFreeShutterOpening = !isPremium;
+  const openingVideoVisible = isVideoReady && !isOpeningFading;
 
   const getPaperClass = () => {
     switch (effectivePaperType) {
@@ -136,82 +274,16 @@ export function InvitationPreview({ invitation }: any) {
     tBuilder.end_photo
   ]);
 
-  const playSyntheticSound = (type: 'beep' | 'lock' | 'key' | 'open_door') => {
-    if (isMuted) return;
-
-    try {
-      const AudioContext = window.AudioContext || (window as any).webkitAudioContext;
-      if (!AudioContext) return;
-
-      const ctx = new AudioContext();
-
-      const playWavFile = async (path: string) => {
-        try {
-          const response = await fetch(path);
-          const arrayBuffer = await response.arrayBuffer();
-          const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
-          const source = ctx.createBufferSource();
-          source.buffer = audioBuffer;
-          source.connect(ctx.destination);
-          source.start();
-        } catch (err) {
-          console.error('Impossible de lire le fichier .wav :', path, err);
-        }
-      };
-
-      if (type === 'beep') {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(880, ctx.currentTime);
-        gain.gain.setValueAtTime(0.05, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.08);
-
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.08);
-      } else if (type === 'lock') {
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(1200, ctx.currentTime);
-        gain.gain.setValueAtTime(0.08, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.15);
-
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.15);
-      } else if (type === 'key') {
-        playWavFile('/sounds/key-turn.wav');
-      } else if (type === 'open_door') {
-        playWavFile('/sounds/door-open.wav');
-      }
-    } catch (e) {
-      console.error("Le système audio n'a pas pu s'initialiser", e);
-    }
-  };
+  useEffect(() => {
+    return () => {
+      openingTimersRef.current.forEach(clearTimeout);
+      openingTimersRef.current = [];
+    };
+  }, []);
 
   useEffect(() => {
-    if (isOpened || isCodeFading) return;
-
-    let loopInterval: ReturnType<typeof setInterval> | undefined;
-
-    if (openingStyle === 'key') {
-      playSyntheticSound('key');
-
-      loopInterval = setInterval(() => {
-        playSyntheticSound('key');
-      }, 2500);
-    }
-
-    return () => {
-      if (loopInterval) clearInterval(loopInterval);
-    };
-  }, [isOpened, isCodeFading, openingStyle, isMuted]);
+    setIsVideoReady(false);
+  }, [openingVideoUrl]);
 
   useEffect(() => {
     if (isOpened && musicUrl && audioRef.current) {
@@ -219,92 +291,26 @@ export function InvitationPreview({ invitation }: any) {
     }
   }, [isOpened, musicUrl]);
 
-  const targetCode = useMemo(() => {
-    const dateSource = vaultDate || eventDate;
-    if (!dateSource) return '123456';
-
-    const d = new Date(dateSource);
-    const day = String(d.getDate()).padStart(2, '0');
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const year = String(d.getFullYear()).slice(-2);
-
-    return `${day}${month}${year}`;
-  }, [vaultDate, eventDate]);
-
-  useEffect(() => {
-    if (!isOpened && openingStyle === 'vault') {
-      let currentDigitIndex = 0;
-
-      const interval = setInterval(() => {
-        setDisplayedCode((prev) => {
-          const next = [...prev];
-          const startIndex = isVaultClicked ? currentDigitIndex : 0;
-
-          for (let i = startIndex; i < 6; i++) {
-            next[i] = String(Math.floor(Math.random() * 10));
-          }
-
-          return next;
-        });
-
-        setActiveKey(String(Math.floor(Math.random() * 10)));
-      }, 75);
-
-      let digitLockTimers: ReturnType<typeof setTimeout>[] = [];
-      let endTimer: ReturnType<typeof setTimeout> | undefined;
-
-      if (isVaultClicked) {
-        digitLockTimers = Array.from({ length: 6 }).map((_, index) =>
-          setTimeout(() => {
-            currentDigitIndex = index + 1;
-
-            setDisplayedCode((prev) => {
-              const next = [...prev];
-              next[index] = targetCode[index];
-              return next;
-            });
-
-            setActiveKey(targetCode[index]);
-            playSyntheticSound('beep');
-          }, (index + 1) * 550)
-        );
-
-        endTimer = setTimeout(() => {
-          clearInterval(interval);
-          setActiveKey(null);
-          playSyntheticSound('lock');
-          setIsCodeFading(true);
-
-          setTimeout(() => {
-            triggerContainerOpening();
-          }, 600);
-        }, 4000);
-      }
-
-      return () => {
-        clearInterval(interval);
-        digitLockTimers.forEach(clearTimeout);
-        if (endTimer) clearTimeout(endTimer);
-      };
-    }
-  }, [isOpened, openingStyle, isVaultClicked, targetCode, containerOpen]);
-
   const triggerContainerOpening = () => {
-    if (containerOpen === 'wooden_door') {
-      playSyntheticSound('open_door');
-    }
-
     setIsOpened(true);
     audioRef.current?.play().catch(() => {});
   };
 
   const handleTriggerClick = () => {
-    if (openingStyle === 'vault') {
-      if (!isVaultClicked) setIsVaultClicked(true);
-    } else {
-      setIsCodeFading(true);
-      setTimeout(() => triggerContainerOpening(), 400);
-    }
+    if (isOpeningFading) return;
+
+    const revealDelay = isFreeShutterOpening ? 720 : OPENING_REVEAL_DELAY;
+
+    openingTimersRef.current.forEach(clearTimeout);
+    openingTimersRef.current = [];
+
+    setIsOpeningFading(true);
+
+    const revealTimer = setTimeout(() => {
+      triggerContainerOpening();
+    }, revealDelay);
+
+    openingTimersRef.current.push(revealTimer);
   };
 
   const toggleMute = (e: React.MouseEvent) => {
@@ -358,6 +364,75 @@ export function InvitationPreview({ invitation }: any) {
           </motion.span>
         ))}
       </div>
+    );
+  };
+
+  const OpeningVideoLayer = () => {
+    return (
+      <motion.div
+        initial={false}
+        animate={{ opacity: isOpeningFading ? 0 : 1 }}
+        transition={{ duration: OPENING_FADE_DURATION, ease: 'easeInOut' }}
+        className="absolute inset-0 z-40 overflow-hidden bg-[#f8f4ec] pointer-events-none"
+      >
+        <motion.img
+          src={openingPosterUrl}
+          initial={false}
+          animate={{ opacity: openingVideoVisible ? 0 : 1 }}
+          transition={{ duration: 0.75, ease: 'easeInOut' }}
+          className="absolute inset-0 w-full h-full object-cover"
+          alt=""
+          draggable={false}
+        />
+
+        <motion.video
+          key={openingVideoUrl}
+          src={openingVideoUrl}
+          poster={openingPosterUrl}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+          onLoadedData={() => setIsVideoReady(true)}
+          onCanPlay={() => setIsVideoReady(true)}
+          onCanPlayThrough={() => setIsVideoReady(true)}
+          initial={false}
+          animate={{ opacity: openingVideoVisible ? 1 : 0 }}
+          transition={{ duration: 0.75, ease: 'easeInOut' }}
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+
+        <div className="absolute inset-0 bg-black/10" />
+      </motion.div>
+    );
+  };
+
+  const FreeShutterLayer = () => {
+    return (
+      <>
+        <motion.div
+          animate={isOpeningFading ? { y: '-100%', opacity: 0.92 } : { y: '0%', opacity: 1 }}
+          transition={{ duration: 0.82, ease: [0.43, 0.13, 0.23, 0.96] }}
+          className="absolute inset-0 z-50 w-full h-full shadow-[0_20px_50px_rgba(0,0,0,0.42)] border-b border-black/10"
+          style={{
+            background:
+              typeof envelopeColor === 'string' && envelopeColor.includes('gradient')
+                ? envelopeColor
+                : `linear-gradient(145deg, ${envelopeColor}, #ffffff 48%, ${envelopeColor})`
+          }}
+        />
+
+        <motion.div
+          animate={isOpeningFading ? { opacity: 0 } : { opacity: 1 }}
+          transition={{ duration: 0.55, ease: 'easeOut' }}
+          className="absolute inset-0 z-50 w-full h-full"
+          style={{
+            background:
+              'radial-gradient(circle at 50% 42%, rgba(255,255,255,0.24), transparent 30%), linear-gradient(180deg, rgba(0,0,0,0.08), rgba(0,0,0,0.22))'
+          }}
+        />
+      </>
     );
   };
 
@@ -598,6 +673,8 @@ export function InvitationPreview({ invitation }: any) {
       <AnimatePresence mode="wait">
         {view === 'envelope' ? (
           <motion.div key="env" className="relative w-full h-full flex items-center justify-center" style={{ perspective: '1200px' }}>
+            {!isFreeShutterOpening && !isOpened && <OpeningVideoLayer />}
+
             {isOpened && musicUrl && (
               <button onClick={toggleMute} className="absolute top-6 right-6 z-[70] w-10 h-10 bg-white/80 rounded-full flex items-center justify-center shadow-lg">
                 {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} className="animate-pulse" />}
@@ -607,7 +684,7 @@ export function InvitationPreview({ invitation }: any) {
             <motion.div
               initial={{ y: 0, opacity: 0 }}
               animate={isOpened ? { y: openingType === 'filmstrip' ? -160 : -140, opacity: 1 } : { y: 0, opacity: 0 }}
-              transition={{ type: 'spring', damping: 25, delay: 0.2 }}
+              transition={{ type: 'spring', damping: 25, delay: 0.08 }}
               className="absolute z-20"
             >
               {openingType === 'filmstrip' ? (
@@ -659,8 +736,6 @@ export function InvitationPreview({ invitation }: any) {
                     className="absolute inset-0 opacity-25 pointer-events-none mix-blend-screen"
                     style={{ background: 'conic-gradient(from 0deg, transparent 0deg, rgba(255,255,255,0.5) 45deg, transparent 90deg, transparent 180deg, rgba(255,255,255,0.5) 225deg, transparent 270deg)' }}
                   />
-                  <div className="absolute inset-8 rounded-full border border-white/10 opacity-30 pointer-events-none" />
-                  <div className="absolute inset-12 rounded-full border border-white/5 opacity-20 pointer-events-none" />
 
                   <div className="w-24 h-24 bg-white rounded-full border-[6px] border-neutral-900 shadow-[0_8px_24px_rgba(0,0,0,0.8),_inset_0_2px_4px_rgba(255,255,255,0.3)] overflow-hidden relative z-10 flex items-center justify-center">
                     {mainPhotoUrl && (
@@ -678,9 +753,9 @@ export function InvitationPreview({ invitation }: any) {
             </motion.div>
 
             <motion.div
-              initial={{ scale: 0.8, y: 0 }}
-              animate={isOpened ? { scale: 1, y: 80 } : { y: 0 }}
-              transition={{ type: 'spring', damping: 20, delay: 0.4 }}
+              initial={{ scale: 0.8, y: 0, opacity: 0 }}
+              animate={isOpened ? { scale: 1, y: 80, opacity: 1 } : { y: 0, opacity: 0 }}
+              transition={{ type: 'spring', damping: 20, delay: 0.05 }}
               onClick={() => isOpened && setView('content')}
               className={`z-30 w-[310px] h-[370px] rounded-[3rem] shadow-2xl p-10 flex flex-col items-center justify-between border border-gray-100 cursor-pointer paper-container ${getPaperClass()}`}
               style={{ '--dynamic-color': cardPaperColor } as CSSProperties}
@@ -698,152 +773,42 @@ export function InvitationPreview({ invitation }: any) {
               </div>
             </motion.div>
 
-            <div
-              className="absolute inset-0 z-50 overflow-hidden"
-              style={{ perspective: '2200px', transformStyle: 'preserve-3d', pointerEvents: isOpened ? 'none' : 'auto' }}
-            >
-              <AnimatePresence>
-                {(!isOpened || containerOpen === 'metal_door' || containerOpen === 'wooden_door') && (
-                  <motion.div key="gate-container" exit={{ opacity: 1 }} className="w-full h-full relative flex items-center justify-center">
-                    <AnimatePresence>
-                      {!isCodeFading && (
-                        <motion.div
-                          key="visual-trigger"
-                          initial={{ opacity: 1 }}
-                          exit={containerOpen === 'metal_door' || containerOpen === 'wooden_door' ? {} : { opacity: 0, transition: { duration: 0.4, ease: 'easeInOut' } }}
-                          className="absolute inset-0 z-[70] flex flex-col items-center justify-center cursor-pointer"
-                          onClick={handleTriggerClick}
-                        >
-                          <div className="relative w-full flex items-center justify-center">
-                            {openingStyle === 'knock' ? (
-                              <motion.div
-                                animate={{ x: [0, -12, 4, -12, 4, 0], y: [0, -6, 2, -6, 2, 0], scale: [1, 1.05, 0.98, 1.05, 0.98, 1] }}
-                                transition={{ duration: 0.5, repeat: Infinity, repeatDelay: 1.5, ease: 'easeInOut' }}
-                                className="w-56 h-56 select-none flex items-center justify-center"
-                              >
-                                <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/main-qui-toque.PNG" className="w-full h-full object-contain drop-shadow-2xl" alt="Main qui toque" />
-                              </motion.div>
-                            ) : openingStyle === 'key' ? (
-                              <div className="select-none flex items-center justify-center relative w-[260px] h-[260px]">
-                                <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/cleserrure.png" className="absolute w-full h-full object-contain" alt="Serrure" />
-                                <motion.img
-                                  src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/cleserrure.png"
-                                  animate={{ rotate: [0, 45, 0] }}
-                                  transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1.0, ease: 'easeInOut' }}
-                                  className="absolute w-full h-full object-contain origin-center"
-                                  alt="Clé"
-                                />
-                              </div>
-                            ) : openingStyle === 'vault' ? (
-                              <div className="relative w-[220px] h-[330px] flex flex-col items-center justify-start bg-neutral-950 border-[4px] border-neutral-800 rounded-[1.75rem] shadow-[0_20px_40px_rgba(0,0,0,0.8)] overflow-hidden p-4">
-                                <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/dgital.png" className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-30 pointer-events-none" alt="" />
+            {!isOpened && (
+              <div className="absolute inset-0 z-50 overflow-hidden" style={{ perspective: '2200px', transformStyle: 'preserve-3d', pointerEvents: 'auto' }}>
+                <motion.div key="gate-container" className="w-full h-full relative flex items-center justify-center">
+                  {!isFreeShutterOpening && (
+                    <motion.div
+                      initial={false}
+                      animate={isOpeningFading || openingVideoVisible ? { opacity: 0 } : { opacity: 1 }}
+                      transition={{ duration: 0.45, ease: 'easeInOut' }}
+                      className="absolute bottom-12 z-[80] text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse text-center w-full px-4 drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)] pointer-events-none"
+                    >
+                      {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? 'Tap to open invitation' : 'Nhấn để mở lời mời'}
+                    </motion.div>
+                  )}
 
-                                <div className="w-full h-16 bg-black/95 rounded-xl border border-neutral-800 p-2 flex flex-col items-center justify-center shadow-inner relative z-10 mb-5">
-                                  <span className="text-[7.5px] font-mono tracking-[0.25em] text-neutral-400 font-bold uppercase mb-0.5">🔒 Invit Studio</span>
-                                  <div className="flex gap-1">
-                                    {displayedCode.map((digit, index) => (
-                                      <motion.span key={index} initial={{ scale: 1.3 }} animate={{ scale: 1 }} className="text-sky-500 font-mono text-xl font-black drop-shadow-[0_0_8px_rgba(14,165,233,0.8)] tracking-wider">
-                                        {digit}
-                                      </motion.span>
-                                    ))}
-                                  </div>
-                                </div>
-
-                                <div className="grid grid-cols-3 gap-2 w-full max-w-[155px] relative z-10">
-                                  {['1', '2', '3', '4', '5', '6', '7', '8', '9', '*', '0', '#'].map((key) => {
-                                    const isGlowing = activeKey === key;
-
-                                    return (
-                                      <motion.div
-                                        key={key}
-                                        animate={
-                                          isGlowing
-                                            ? {
-                                                backgroundColor: 'rgba(14, 165, 233, 0.35)',
-                                                borderColor: '#38bdf8',
-                                                boxShadow: '0 0 10px rgba(56, 189, 248, 0.7)',
-                                                scale: 0.95
-                                              }
-                                            : {
-                                                backgroundColor: 'rgba(23, 23, 23, 0.85)',
-                                                borderColor: 'rgba(63, 63, 70, 0.2)',
-                                                boxShadow: 'none',
-                                                scale: 1
-                                              }
-                                        }
-                                        className="aspect-square flex items-center justify-center rounded-lg border font-mono font-bold text-sm text-neutral-400 transition-all select-none"
-                                      >
-                                        <span className={isGlowing ? 'text-sky-400 drop-shadow-[0_0_4px_rgba(56,189,248,0.9)]' : ''}>{key}</span>
-                                      </motion.div>
-                                    );
-                                  })}
-                                </div>
-
-                                <div className="mt-3.5 font-mono text-[8px] tracking-widest text-neutral-500 animate-pulse uppercase">
-                                  {isVaultClicked ? 'CRACKING CODE...' : 'Tap Device to Unlock'}
-                                </div>
-                              </div>
-                            ) : (
-                              <img src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png" className="w-[32rem] h-[32rem] object-contain" alt="Sceau" />
-                            )}
-                          </div>
-
-                          <p className="absolute bottom-12 text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse text-center w-full px-4">
-                            {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? 'Tap to open invitation' : 'Nhấn de mở lời mời'}
-                          </p>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-
-                    <div className="absolute inset-0 z-50 w-full h-full flex" style={{ perspective: '2200px', transformStyle: 'preserve-3d' }}>
-                      {containerOpen === 'metal_door' ? (
-                        <motion.div
-                          animate={isOpened ? { x: '100%' } : { x: '0%' }}
-                          transition={{ duration: 1.6, ease: 'easeInOut' }}
-                          className="absolute inset-0 w-full h-full bg-cover bg-center shadow-2xl"
-                          style={{ backgroundImage: 'url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20noir.png")' }}
-                        />
-                      ) : containerOpen === 'wooden_door' ? (
-                        <>
-                          <motion.div
-                            initial={{ rotateY: 0, x: '0%', opacity: 1 }}
-                            animate={isOpened ? { rotateY: -112, x: '-7%', opacity: 0.88 } : { rotateY: 0, x: '0%', opacity: 1 }}
-                            transition={{ duration: 1.35, ease: [0.43, 0.13, 0.23, 0.96] }}
-                            className="w-1/2 h-full origin-left bg-cover bg-center shadow-[18px_0_36px_rgba(0,0,0,0.48)] border-r border-black/10"
-                            style={{
-                              backgroundImage: 'url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20gauche.png")',
-                              transformStyle: 'preserve-3d',
-                              backfaceVisibility: 'hidden'
-                            }}
-                          />
-
-                          <motion.div
-                            initial={{ rotateY: 0, x: '0%', opacity: 1 }}
-                            animate={isOpened ? { rotateY: 112, x: '7%', opacity: 0.88 } : { rotateY: 0, x: '0%', opacity: 1 }}
-                            transition={{ duration: 1.35, ease: [0.43, 0.13, 0.23, 0.96] }}
-                            className="w-1/2 h-full origin-right bg-cover bg-center shadow-[-18px_0_36px_rgba(0,0,0,0.48)] border-l border-black/10"
-                            style={{
-                              backgroundImage: 'url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/porte%20droite.png")',
-                              transformStyle: 'preserve-3d',
-                              backfaceVisibility: 'hidden'
-                            }}
-                          />
-                        </>
-                      ) : (
-                        <motion.div
-                          key="free-gate-panel"
-                          initial={{ y: '0%' }}
-                          exit={{ y: '-100%' }}
-                          transition={{ duration: 1.3, ease: [0.43, 0.13, 0.23, 0.96] }}
-                          className="absolute inset-0 w-full h-full shadow-[0_20px_50px_rgba(0,0,0,0.6)] border-b border-black/10"
-                          style={{ background: envelopeColor }}
-                        />
-                      )}
-                    </div>
+                  <motion.div
+                    key="visual-trigger"
+                    initial={{ opacity: 1 }}
+                    animate={isOpeningFading ? { opacity: 0 } : { opacity: 1 }}
+                    transition={{ duration: OPENING_FADE_DURATION, ease: 'easeInOut' }}
+                    className="absolute inset-0 z-[70] flex flex-col items-center justify-center cursor-pointer"
+                    style={{ pointerEvents: isOpeningFading ? 'none' : 'auto' }}
+                    onClick={handleTriggerClick}
+                  >
+                    {isFreeShutterOpening && (
+                      <p className="absolute bottom-12 z-[80] text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse text-center w-full px-4 drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)]">
+                        {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? 'Tap to open invitation' : 'Nhấn để mở lời mời'}
+                      </p>
+                    )}
                   </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
+
+                  <div className="absolute inset-0 z-50 w-full h-full flex" style={{ perspective: '2200px', transformStyle: 'preserve-3d' }}>
+                    {isFreeShutterOpening && <FreeShutterLayer />}
+                  </div>
+                </motion.div>
+              </div>
+            )}
           </motion.div>
         ) : (
           <motion.div
