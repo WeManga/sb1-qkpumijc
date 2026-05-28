@@ -22,7 +22,7 @@ const THEME_EMOJIS: Record<string, string[]> = {
 const OPENING_FADE_DURATION = 0.85;
 const OPENING_REVEAL_DELAY = 420;
 const LEAF_FRAME_URL =
-  'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/feuille%20carousselle.png'
+  'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/feuille%20carousselle.png';
 
 const pick = (obj: any, keys: string[], fallback: any = undefined) => {
   for (const key of keys) {
@@ -73,6 +73,13 @@ export function GuestView({ invitation }: any) {
   const photoUrl2 = pick(invitation, ['photo_url_2', 'photourl2'], '');
   const photoUrl3 = pick(invitation, ['photo_url_3', 'photourl3'], '');
   const endPhotoUrl = pick(invitation, ['end_photo_url', 'endphotourl'], '');
+
+  const albumPhotoUrl1 = pick(invitation, ['album_photo_url_1', 'albumphotourl1'], '');
+  const albumPhotoUrl2 = pick(invitation, ['album_photo_url_2', 'albumphotourl2'], '');
+  const albumPhotoUrl3 = pick(invitation, ['album_photo_url_3', 'albumphotourl3'], '');
+  const albumPhotoUrl4 = pick(invitation, ['album_photo_url_4', 'albumphotourl4'], '');
+  const albumPhotoUrl5 = pick(invitation, ['album_photo_url_5', 'albumphotourl5'], '');
+  const albumPhotoUrl6 = pick(invitation, ['album_photo_url_6', 'albumphotourl6'], '');
 
   const premiumMidTitle = pick(invitation, ['premium_mid_title'], '');
   const premiumMidText = pick(invitation, ['premium_mid_text'], '');
@@ -130,33 +137,23 @@ export function GuestView({ invitation }: any) {
     if (!isPremium) return [];
 
     const photos = [
-      { url: mainPhotoUrl, label: invitation?.title || 'Photo' },
-      { url: photoUrl2, label: 'Photo 2' },
-      { url: photoUrl3, label: 'Photo 3' },
-      { url: premiumMidPhotoUrl, label: premiumMidTitle || 'Moment' },
-      { url: premiumFinalPhotoUrl, label: premiumFinalTitle || 'Souvenir' },
-      { url: endPhotoUrl, label: t.end_photo || 'Final' }
+      { url: albumPhotoUrl1, label: 'Album 1' },
+      { url: albumPhotoUrl2, label: 'Album 2' },
+      { url: albumPhotoUrl3, label: 'Album 3' },
+      { url: albumPhotoUrl4, label: 'Album 4' },
+      { url: albumPhotoUrl5, label: 'Album 5' },
+      { url: albumPhotoUrl6, label: 'Album 6' }
     ];
 
-    const seen = new Set<string>();
-
-    return photos.filter((photo) => {
-      if (!photo.url || seen.has(photo.url)) return false;
-      seen.add(photo.url);
-      return true;
-    });
+    return photos.filter((photo) => photo.url);
   }, [
     isPremium,
-    mainPhotoUrl,
-    photoUrl2,
-    photoUrl3,
-    premiumMidPhotoUrl,
-    premiumFinalPhotoUrl,
-    endPhotoUrl,
-    premiumMidTitle,
-    premiumFinalTitle,
-    invitation?.title,
-    t.end_photo
+    albumPhotoUrl1,
+    albumPhotoUrl2,
+    albumPhotoUrl3,
+    albumPhotoUrl4,
+    albumPhotoUrl5,
+    albumPhotoUrl6
   ]);
 
   useEffect(() => {
@@ -171,7 +168,9 @@ export function GuestView({ invitation }: any) {
   }, [openingVideoUrl]);
 
   useEffect(() => {
-    setGuests((currentGuests) => Array.from({ length: guestCount }, (_, i) => currentGuests[i] || { firstName: '', lastName: '' }));
+    setGuests((currentGuests) =>
+      Array.from({ length: guestCount }, (_, i) => currentGuests[i] || { firstName: '', lastName: '' })
+    );
   }, [guestCount]);
 
   useEffect(() => {
@@ -290,71 +289,67 @@ export function GuestView({ invitation }: any) {
     );
   };
 
-  const OpeningVideoLayer = () => {
-    return (
-      <motion.div
+  const OpeningVideoLayer = () => (
+    <motion.div
+      initial={false}
+      animate={{ opacity: isOpeningFading ? 0 : 1 }}
+      transition={{ duration: OPENING_FADE_DURATION, ease: 'easeInOut' }}
+      className="absolute inset-0 z-40 overflow-hidden bg-[#f8f4ec] pointer-events-none"
+    >
+      <motion.img
+        src={openingPosterUrl}
         initial={false}
-        animate={{ opacity: isOpeningFading ? 0 : 1 }}
-        transition={{ duration: OPENING_FADE_DURATION, ease: 'easeInOut' }}
-        className="absolute inset-0 z-40 overflow-hidden bg-[#f8f4ec] pointer-events-none"
-      >
-        <motion.img
-          src={openingPosterUrl}
-          initial={false}
-          animate={{ opacity: openingVideoVisible ? 0 : 1 }}
-          transition={{ duration: 0.75, ease: 'easeInOut' }}
-          className="absolute inset-0 w-full h-full object-cover"
-          alt=""
-          draggable={false}
-        />
+        animate={{ opacity: openingVideoVisible ? 0 : 1 }}
+        transition={{ duration: 0.75, ease: 'easeInOut' }}
+        className="absolute inset-0 w-full h-full object-cover"
+        alt=""
+        draggable={false}
+      />
 
-        <motion.video
-          key={openingVideoUrl}
-          src={openingVideoUrl}
-          poster={openingPosterUrl}
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-          onLoadedData={() => setIsVideoReady(true)}
-          onCanPlay={() => setIsVideoReady(true)}
-          onCanPlayThrough={() => setIsVideoReady(true)}
-          initial={false}
-          animate={{ opacity: openingVideoVisible ? 1 : 0 }}
-          transition={{ duration: 0.75, ease: 'easeInOut' }}
-          className="absolute inset-0 w-full h-full object-cover"
-        />
+      <motion.video
+        key={openingVideoUrl}
+        src={openingVideoUrl}
+        poster={openingPosterUrl}
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+        onLoadedData={() => setIsVideoReady(true)}
+        onCanPlay={() => setIsVideoReady(true)}
+        onCanPlayThrough={() => setIsVideoReady(true)}
+        initial={false}
+        animate={{ opacity: openingVideoVisible ? 1 : 0 }}
+        transition={{ duration: 0.75, ease: 'easeInOut' }}
+        className="absolute inset-0 w-full h-full object-cover"
+      />
 
-        <div className="absolute inset-0 bg-black/10" />
-      </motion.div>
-    );
-  };
+      <div className="absolute inset-0 bg-black/10" />
+    </motion.div>
+  );
 
-  const FreeShutterLayer = () => {
-    return (
-      <>
-        <motion.div
-          animate={isOpeningFading ? { y: '-100%', opacity: 0.96 } : { y: '0%', opacity: 1 }}
-          transition={{ duration: 0.82, ease: [0.43, 0.13, 0.23, 0.96] }}
-          className="absolute inset-0 z-50 w-full h-full shadow-[0_20px_50px_rgba(0,0,0,0.42)] border-b border-black/10 bg-cover bg-center"
-          style={{
-            backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.05), rgba(0,0,0,0.22)), url("${openingPosterUrl}")`
-          }}
-        />
+  const FreeShutterLayer = () => (
+    <>
+      <motion.div
+        animate={isOpeningFading ? { y: '-100%', opacity: 0.96 } : { y: '0%', opacity: 1 }}
+        transition={{ duration: 0.82, ease: [0.43, 0.13, 0.23, 0.96] }}
+        className="absolute inset-0 z-50 w-full h-full shadow-[0_20px_50px_rgba(0,0,0,0.42)] border-b border-black/10 bg-cover bg-center"
+        style={{
+          backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.05), rgba(0,0,0,0.22)), url("${openingPosterUrl}")`
+        }}
+      />
 
-        <motion.div
-          animate={isOpeningFading ? { opacity: 0 } : { opacity: 1 }}
-          transition={{ duration: 0.55, ease: 'easeOut' }}
-          className="absolute inset-0 z-50 w-full h-full pointer-events-none"
-          style={{
-            background:
-              'radial-gradient(circle at 50% 42%, rgba(255,255,255,0.22), transparent 32%), linear-gradient(180deg, rgba(255,255,255,0.04), rgba(0,0,0,0.18))'
-          }}
-        />
-      </>
-    );
-  };
+      <motion.div
+        animate={isOpeningFading ? { opacity: 0 } : { opacity: 1 }}
+        transition={{ duration: 0.55, ease: 'easeOut' }}
+        className="absolute inset-0 z-50 w-full h-full pointer-events-none"
+        style={{
+          background:
+            'radial-gradient(circle at 50% 42%, rgba(255,255,255,0.22), transparent 32%), linear-gradient(180deg, rgba(255,255,255,0.04), rgba(0,0,0,0.18))'
+        }}
+      />
+    </>
+  );
 
   const AutonomousDecor = () => {
     const theme = backgroundTheme;
