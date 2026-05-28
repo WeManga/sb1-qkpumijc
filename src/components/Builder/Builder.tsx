@@ -45,6 +45,12 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
     opening_poster_url: '',
     photo_url_2: '',
     photo_url_3: '',
+    album_photo_url_1: '',
+    album_photo_url_2: '',
+    album_photo_url_3: '',
+    album_photo_url_4: '',
+    album_photo_url_5: '',
+    album_photo_url_6: '',
     // @ts-ignore
     plan_type: 'PREMIUM'
   });
@@ -88,6 +94,12 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
           opening_poster_url: invData.opening_poster_url || '',
           photo_url_2: invData.photo_url_2 || '',
           photo_url_3: invData.photo_url_3 || '',
+          album_photo_url_1: invData.album_photo_url_1 || '',
+          album_photo_url_2: invData.album_photo_url_2 || '',
+          album_photo_url_3: invData.album_photo_url_3 || '',
+          album_photo_url_4: invData.album_photo_url_4 || '',
+          album_photo_url_5: invData.album_photo_url_5 || '',
+          album_photo_url_6: invData.album_photo_url_6 || '',
           // À retirer quand les vrais plans FREE/PREMIUM seront branchés.
           // @ts-ignore
           plan_type: 'PREMIUM'
@@ -129,6 +141,12 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
         opening_poster_url: invitation.opening_poster_url || '',
         photo_url_2: invitation.photo_url_2 || '',
         photo_url_3: invitation.photo_url_3 || '',
+        album_photo_url_1: invitation.album_photo_url_1 || '',
+        album_photo_url_2: invitation.album_photo_url_2 || '',
+        album_photo_url_3: invitation.album_photo_url_3 || '',
+        album_photo_url_4: invitation.album_photo_url_4 || '',
+        album_photo_url_5: invitation.album_photo_url_5 || '',
+        album_photo_url_6: invitation.album_photo_url_6 || '',
         updated_at: new Date().toISOString()
       };
 
