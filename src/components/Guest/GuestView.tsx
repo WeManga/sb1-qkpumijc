@@ -3,6 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Calendar, MapPin, CheckCircle2, Clock, Sparkles, Film, Volume2, VolumeX } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { translations, Language } from '../../lib/i18n';
+import {
+  UNIVERSAL_OPENING_POSTER_URL,
+  OPENING_THEMES,
+  DEFAULT_THEME_BY_EVENT
+} from '../../constants/openingThemes';
 
 const THEME_EMOJIS: Record<string, string[]> = {
   wedding: ['🤍', '💍', '🕊️', '✨', '🌸'],
@@ -12,127 +17,6 @@ const THEME_EMOJIS: Record<string, string[]> = {
   babyshower: ['🍼', '🤍', '👶', '💖', '💙'],
   funeral: ['🙏', '🕊️', '🥀', '⚰️', '🤍'],
   default: ['✨', '🌟', '🤍']
-};
-
-type OpeningCategory = 'birthday' | 'wedding' | 'party' | 'other';
-
-type OpeningTheme = {
-  id: string;
-  category: OpeningCategory;
-  label: string;
-  videoUrl: string;
-};
-
-const UNIVERSAL_OPENING_POSTER_URL =
-  'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/Gemini_Generated_Image_xoo4grxoo4grxoo4%20(1).png';
-
-const OPENING_THEMES: OpeningTheme[] = [
-  {
-    id: 'wedding_just_married',
-    category: 'wedding',
-    label: 'Mariage Just Married',
-    videoUrl: 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/just%20Married.mp4'
-  },
-  {
-    id: 'wedding_fusion',
-    category: 'wedding',
-    label: 'Mariage Fusion',
-    videoUrl: 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/Alliance%20Fusion.mp4'
-  },
-  {
-    id: 'wedding_ceremony',
-    category: 'wedding',
-    label: 'Mariage Cérémonie',
-    videoUrl: 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/Allance%20couple.mp4'
-  },
-  {
-    id: 'wedding_presentation',
-    category: 'wedding',
-    label: 'Mariage Présentation',
-    videoUrl: 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/aliance%20Presentaation.mp4'
-  },
-  {
-    id: 'birthday_balloons',
-    category: 'birthday',
-    label: 'Anniversaire Ballons',
-    videoUrl: 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/Aniv%20Ballons.mp4'
-  },
-  {
-    id: 'birthday_glitter',
-    category: 'birthday',
-    label: 'Anniversaire Paillettes',
-    videoUrl: 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/Aniv%20Paillettes.mp4'
-  },
-  {
-    id: 'birthday_pink',
-    category: 'birthday',
-    label: 'Anniversaire Pink',
-    videoUrl: 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/Anniv%20Pink.mp4'
-  },
-  {
-    id: 'birthday_baby',
-    category: 'birthday',
-    label: 'Anniversaire Bébé',
-    videoUrl: 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/Anniv%20baby.mp4'
-  },
-  {
-    id: 'party_disco',
-    category: 'party',
-    label: 'Fête Disco',
-    videoUrl: 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/Disco.mp4'
-  },
-  {
-    id: 'party_dance',
-    category: 'party',
-    label: 'Fête Danse',
-    videoUrl: 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/Grou.mp4'
-  },
-  {
-    id: 'party_monkey',
-    category: 'party',
-    label: 'Fête Monkey',
-    videoUrl: 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/Monkey.mp4'
-  },
-  {
-    id: 'party_together',
-    category: 'party',
-    label: 'Fête Together',
-    videoUrl: 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/Together.mp4'
-  },
-  {
-    id: 'other_love_flowers',
-    category: 'other',
-    label: 'Love Fleurs',
-    videoUrl: 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/Lov%20Flower.mp4'
-  },
-  {
-    id: 'other_spiritual',
-    category: 'other',
-    label: 'Spirituel',
-    videoUrl: 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/Sprituel.mp4'
-  },
-  {
-    id: 'other_new_year',
-    category: 'other',
-    label: 'Nouvel An',
-    videoUrl: 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/Nouvel%20an.mp4'
-  },
-  {
-    id: 'other_memorial',
-    category: 'other',
-    label: 'Hommage',
-    videoUrl: 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/Bougie.mp4'
-  }
-];
-
-const DEFAULT_THEME_BY_EVENT: Record<string, string> = {
-  wedding: 'wedding_just_married',
-  birthday: 'birthday_pink',
-  party: 'party_disco',
-  baptism: 'other_spiritual',
-  babyshower: 'birthday_baby',
-  funeral: 'other_memorial',
-  default: 'other_love_flowers'
 };
 
 const OPENING_FADE_DURATION = 0.85;
