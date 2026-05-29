@@ -136,16 +136,14 @@ export function GuestView({ invitation }: any) {
   const premiumGalleryPhotos = useMemo(() => {
     if (!isPremium) return [];
 
-    const photos = [
+    return [
       { url: albumPhotoUrl1, label: 'Album 1' },
       { url: albumPhotoUrl2, label: 'Album 2' },
       { url: albumPhotoUrl3, label: 'Album 3' },
       { url: albumPhotoUrl4, label: 'Album 4' },
       { url: albumPhotoUrl5, label: 'Album 5' },
       { url: albumPhotoUrl6, label: 'Album 6' }
-    ];
-
-    return photos.filter((photo) => photo.url);
+    ].filter((photo) => photo.url);
   }, [
     isPremium,
     albumPhotoUrl1,
@@ -572,6 +570,53 @@ export function GuestView({ invitation }: any) {
     );
   };
 
+  const PremiumSingleAlbumPhoto = ({ photo }: any) => {
+    if (!photo?.url) return null;
+
+    return (
+      <motion.section
+        initial={{ opacity: 0, y: 36 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: '-80px' }}
+        transition={{ duration: 0.9, ease: 'easeOut' }}
+        className="relative overflow-hidden rounded-[2.75rem] border border-emerald-100 bg-white/80 px-5 py-8 shadow-[0_24px_70px_rgba(16,185,129,0.13)]"
+      >
+        <div
+          className="absolute inset-0 opacity-35 bg-cover bg-center pointer-events-none"
+          style={{ backgroundImage: `url("${LEAF_FRAME_URL}")` }}
+        />
+        <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-white/75 via-white/25 to-white/75" />
+        <div className="absolute left-8 top-8 w-20 h-20 rounded-full bg-emerald-200/20 blur-3xl pointer-events-none" />
+        <div className="absolute right-6 bottom-6 w-24 h-24 rounded-full bg-amber-200/20 blur-3xl pointer-events-none" />
+
+        <div className="relative z-10 space-y-7">
+          <h3 className="text-[10px] font-black text-emerald-700 uppercase tracking-[0.3em] text-center flex items-center justify-center gap-2">
+            <Sparkles size={12} />
+            {lang === 'fr' ? 'Album souvenir' : lang === 'en' ? 'Memory album' : 'Album kỷ niệm'}
+            <Sparkles size={12} />
+          </h3>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.92, rotate: -1.5 }}
+            whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.85, ease: 'easeOut' }}
+            className="relative mx-auto w-full max-w-[310px] overflow-hidden rounded-[2.4rem] border-[7px] border-white bg-white shadow-[0_28px_65px_rgba(15,23,42,0.2)]"
+          >
+            <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-tr from-black/10 via-transparent to-white/25" />
+            <img src={photo.url} loading="lazy" className="aspect-[4/5] w-full object-cover" alt="" />
+
+            <div className="absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/50 to-transparent px-5 pb-5 pt-12">
+              <p className="truncate text-center text-[9px] font-black uppercase tracking-[0.24em] text-white/90">
+                {photo.label}
+              </p>
+            </div>
+          </motion.div>
+        </div>
+      </motion.section>
+    );
+  };
+
   const PremiumPhotoCarousel = ({ photos }: any) => {
     const [activeIndex, setActiveIndex] = useState(0);
 
@@ -982,6 +1027,7 @@ export function GuestView({ invitation }: any) {
 
               <PremiumStorySection title={premiumMidTitle} text={premiumMidText} imageUrl={premiumMidPhotoUrl} />
 
+              {isPremium && premiumGalleryPhotos.length === 1 && <PremiumSingleAlbumPhoto photo={premiumGalleryPhotos[0]} />}
               {isPremium && premiumGalleryPhotos.length >= 2 && <PremiumPhotoCarousel photos={premiumGalleryPhotos.slice(0, 6)} />}
 
               {isPremium && endPhotoUrl && (
