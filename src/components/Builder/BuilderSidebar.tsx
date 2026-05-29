@@ -1,18 +1,7 @@
 import { useState, useRef, useEffect, type WheelEvent } from 'react';
 import { supabase } from '../../lib/supabase';
 import { translations, Language } from '../../lib/i18n';
-import {
-  Heart,
-  PartyPopper,
-  Baby,
-  MapPin,
-  Plus,
-  X,
-  Skull,
-  Milk,
-  Lock,
-  ChevronDown
-} from 'lucide-react';
+import { Plus, X, Lock, ChevronDown } from 'lucide-react';
 import { PREMIUM_COLORS } from '../../constants/colors';
 import {
   OPENING_CATEGORIES,
@@ -58,21 +47,21 @@ const FONTS = [
 ];
 
 const TEXTURES = [
-  { id: 'smooth', name: 'Smooth' },
-  { id: 'parchment', name: 'Parchment' },
-  { id: 'grainy', name: 'Grainy' },
-  { id: 'cotton', name: 'Cotton' },
-  { id: 'silk', name: 'Silk' },
-  { id: 'velvet', name: 'Velvet' }
+  { id: 'smooth', labelKey: 'texture_smooth', premium: false },
+  { id: 'parchment', labelKey: 'texture_parchment', premium: true },
+  { id: 'grainy', labelKey: 'texture_grainy', premium: true },
+  { id: 'cotton', labelKey: 'texture_cotton', premium: true },
+  { id: 'silk', labelKey: 'texture_silk', premium: true },
+  { id: 'velvet', labelKey: 'texture_velvet', premium: true }
 ];
 
 const ALBUM_PHOTO_FIELDS = [
-  { key: 'album_photo_url_1', label: 'Album 1' },
-  { key: 'album_photo_url_2', label: 'Album 2' },
-  { key: 'album_photo_url_3', label: 'Album 3' },
-  { key: 'album_photo_url_4', label: 'Album 4' },
-  { key: 'album_photo_url_5', label: 'Album 5' },
-  { key: 'album_photo_url_6', label: 'Album 6' }
+  { key: 'album_photo_url_1' },
+  { key: 'album_photo_url_2' },
+  { key: 'album_photo_url_3' },
+  { key: 'album_photo_url_4' },
+  { key: 'album_photo_url_5' },
+  { key: 'album_photo_url_6' }
 ];
 
 const IMAGE_ACCEPT = 'image/jpeg,image/png,image/webp,image/heic,image/heif,image/*';
@@ -183,20 +172,19 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       info: 'Informations',
       program: 'Programme',
       media: 'Photos et musique',
-      album_photo: 'ALBUM PHOTO',
+      album_photo: 'Album photo',
       adjust: 'Cadrage des photos',
       opening: 'Ouverture',
       paper_texture: 'Texture papier',
       fonts: 'Police',
       ambiance: 'Ambiance',
-      premium_badge: 'Premium',
       opening_type_label: "Animation après l'ouverture",
       opening_mode_label: "Mode d'ouverture",
       opening_mode_panel: 'Volet',
       opening_mode_video: 'Vidéos',
       opening_category_label: 'Famille de vidéo',
       opening_theme_label: 'Thème vidéo',
-      alert_msg: 'Vous possédez un compte FREE, veuillez passer en PREMIUM pour débloquer cette fonctionnalité.',
+      premium_locked_msg: 'Disponible avec Premium',
       trigger_mode_emoji: 'Émojis',
       trigger_mode_decor: 'Décor',
       bg_color_label: 'Fond',
@@ -206,7 +194,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       bg_stars: 'Étoiles',
       filmstrip_photo_2: 'Pellicule 2',
       filmstrip_photo_3: 'Pellicule 3',
-      premium_story_label: 'Sections premium',
+      premium_story_label: 'Messages personnalisés',
       premium_mid_label: 'Après le programme',
       premium_final_label: 'Section finale',
       premium_title_placeholder: 'Titre de la section',
@@ -218,26 +206,31 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       premium_photo: 'Photo de section',
       main_photo: "Photo d'ouverture",
       end_photo: 'Photo finale',
-      music: 'Musique'
+      music: 'Musique',
+      texture_smooth: 'Lisse',
+      texture_parchment: 'Parchemin',
+      texture_grainy: 'Grainé',
+      texture_cotton: 'Coton',
+      texture_silk: 'Soie',
+      texture_velvet: 'Velours'
     },
     en: {
       info: 'Information',
       program: 'Program',
       media: 'Photos and music',
-      album_photo: 'PHOTO ALBUM',
+      album_photo: 'Photo album',
       adjust: 'Photo framing',
       opening: 'Opening',
       paper_texture: 'Paper texture',
       fonts: 'Font',
       ambiance: 'Ambiance',
-      premium_badge: 'Premium',
       opening_type_label: 'Animation after opening',
       opening_mode_label: 'Opening mode',
       opening_mode_panel: 'Panel',
       opening_mode_video: 'Videos',
       opening_category_label: 'Video family',
       opening_theme_label: 'Video theme',
-      alert_msg: 'You have a FREE account, please upgrade to PREMIUM to unlock this feature.',
+      premium_locked_msg: 'Available with Premium',
       trigger_mode_emoji: 'Emoji',
       trigger_mode_decor: 'Decor',
       bg_color_label: 'Background',
@@ -247,7 +240,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       bg_stars: 'Stars',
       filmstrip_photo_2: 'Filmstrip 2',
       filmstrip_photo_3: 'Filmstrip 3',
-      premium_story_label: 'Premium sections',
+      premium_story_label: 'Personalized messages',
       premium_mid_label: 'After program',
       premium_final_label: 'Final section',
       premium_title_placeholder: 'Section title',
@@ -259,26 +252,31 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       premium_photo: 'Section photo',
       main_photo: 'Opening photo',
       end_photo: 'Final photo',
-      music: 'Music'
+      music: 'Music',
+      texture_smooth: 'Smooth',
+      texture_parchment: 'Parchment',
+      texture_grainy: 'Grainy',
+      texture_cotton: 'Cotton',
+      texture_silk: 'Silk',
+      texture_velvet: 'Velvet'
     },
     vi: {
       info: 'Thông tin',
       program: 'Chương trình',
       media: 'Ảnh và nhạc',
-      album_photo: 'ALBUM ẢNH',
+      album_photo: 'Album ảnh',
       adjust: 'Căn chỉnh ảnh',
       opening: 'Mở thiệp',
       paper_texture: 'Kết cấu giấy',
       fonts: 'Phông chữ',
       ambiance: 'Không gian',
-      premium_badge: 'Premium',
       opening_type_label: 'Hoạt ảnh sau khi mở',
       opening_mode_label: 'Kiểu mở',
       opening_mode_panel: 'Bảng',
       opening_mode_video: 'Video',
       opening_category_label: 'Nhóm video',
       opening_theme_label: 'Chủ đề video',
-      alert_msg: 'Bạn đang sử dụng tài khoản MIỄN PHÍ, vui lòng nâng cấp lên PREMIUM để mở khóa tính năng này.',
+      premium_locked_msg: 'Có sẵn với Premium',
       trigger_mode_emoji: 'Emoji',
       trigger_mode_decor: 'Trang trí',
       bg_color_label: 'Nền',
@@ -288,7 +286,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       bg_stars: 'Sao',
       filmstrip_photo_2: 'Ảnh phim 2',
       filmstrip_photo_3: 'Ảnh phim 3',
-      premium_story_label: 'Mục premium',
+      premium_story_label: 'Tin nhắn cá nhân',
       premium_mid_label: 'Sau chương trình',
       premium_final_label: 'Mục cuối',
       premium_title_placeholder: 'Tiêu đề mục',
@@ -300,7 +298,13 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       premium_photo: 'Ảnh của mục',
       main_photo: 'Ảnh mở đầu',
       end_photo: 'Ảnh cuối',
-      music: 'Nhạc'
+      music: 'Nhạc',
+      texture_smooth: 'Mịn',
+      texture_parchment: 'Giấy da',
+      texture_grainy: 'Có hạt',
+      texture_cotton: 'Cotton',
+      texture_silk: 'Lụa',
+      texture_velvet: 'Nhung'
     }
   }[lang];
 
@@ -313,7 +317,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
   const checkPremiumAccess = (condition: boolean) => {
     if (!condition && !isPremium) {
-      alert(localLabels.alert_msg);
+      alert(localLabels.premium_locked_msg);
       return false;
     }
 
@@ -431,8 +435,8 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     onInvitationChange({ ...invitation, font_style: fontFamily });
   };
 
-  const handleTextureClick = (textureId: string) => {
-    if (!checkPremiumAccess(false)) return;
+  const handleTextureClick = (textureId: string, premium: boolean) => {
+    if (!checkPremiumAccess(!premium)) return;
     onInvitationChange({ ...invitation, paper_type: textureId });
   };
 
@@ -590,7 +594,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     });
   };
 
-  const Section = ({ id, title, premium, children }: any) => {
+  const Section = ({ id, title, children }: any) => {
     const isOpen = openSections[id];
 
     return (
@@ -600,15 +604,8 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
           onClick={() => toggleSection(id)}
           className="w-full h-14 px-4 flex items-center justify-between text-left"
         >
-          <span className="flex items-center gap-3 min-w-0">
-            <span className="text-[11px] font-black uppercase tracking-[0.16em] text-gray-700 truncate">
-              {title}
-            </span>
-            {premium && (
-              <span className="shrink-0 rounded-full bg-amber-50 text-amber-700 border border-amber-100 px-2 py-0.5 text-[8px] font-black uppercase">
-                {localLabels.premium_badge}
-              </span>
-            )}
+          <span className="text-[11px] font-black uppercase tracking-[0.16em] text-gray-700 truncate">
+            {title}
           </span>
 
           <ChevronDown
@@ -719,16 +716,13 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
               placeholder={t.description_placeholder}
             />
 
-            <div className="relative">
-              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 w-4 h-4" />
-              <input
-                type="text"
-                value={invitation.event_address || ''}
-                onChange={e => onInvitationChange({ ...invitation, event_address: e.target.value })}
-                className="w-full bg-gray-50 border border-gray-100 h-12 pl-11 pr-4 rounded-xl text-sm"
-                placeholder={t.address_placeholder}
-              />
-            </div>
+            <input
+              type="text"
+              value={invitation.event_address || ''}
+              onChange={e => onInvitationChange({ ...invitation, event_address: e.target.value })}
+              className="w-full bg-gray-50 border border-gray-100 h-12 px-4 rounded-xl text-sm"
+              placeholder={t.address_placeholder}
+            />
 
             <input
               type="date"
@@ -785,7 +779,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </Section>
 
-          <Section id="premiumStory" title={localLabels.premium_story_label} premium>
+          <Section id="premiumStory" title={localLabels.premium_story_label}>
             <div className={`${!isPremium ? 'opacity-60 grayscale' : ''} space-y-4`}>
               {[
                 {
@@ -907,7 +901,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </Section>
 
-          <Section id="albumMedia" title={localLabels.album_photo} premium>
+          <Section id="albumMedia" title={localLabels.album_photo}>
             <div className={`${!isPremium ? 'opacity-60 grayscale pointer-events-none' : ''} space-y-4`}>
               <div className="grid grid-cols-2 gap-3">
                 {ALBUM_PHOTO_FIELDS.map((photo, index) => (
@@ -994,7 +988,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
       {activeTab === 'style' && (
         <>
-          <Section id="opening" title={localLabels.opening} premium>
+          <Section id="opening" title={localLabels.opening}>
             <div className="space-y-5">
               <div>
                 <label className="text-[10px] font-black uppercase text-gray-400 mb-2 block">
@@ -1078,19 +1072,17 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </Section>
 
-          <Section id="paperTexture" title={localLabels.paper_texture} premium>
-            <div className={`${!isPremium ? 'opacity-60 grayscale pointer-events-none' : ''}`}>
-              <div className="grid grid-cols-2 gap-2">
-                {TEXTURES.map(texture => (
-                  <OptionButton
-                    key={texture.id}
-                    active={invitation.paper_type === texture.id}
-                    premium
-                    label={texture.name}
-                    onClick={() => handleTextureClick(texture.id)}
-                  />
-                ))}
-              </div>
+          <Section id="paperTexture" title={localLabels.paper_texture}>
+            <div className="grid grid-cols-2 gap-2">
+              {TEXTURES.map(texture => (
+                <OptionButton
+                  key={texture.id}
+                  active={invitation.paper_type === texture.id}
+                  premium={texture.premium}
+                  label={localLabels[texture.labelKey as keyof typeof localLabels]}
+                  onClick={() => handleTextureClick(texture.id, texture.premium)}
+                />
+              ))}
             </div>
           </Section>
 
