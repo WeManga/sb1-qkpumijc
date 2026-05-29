@@ -4,21 +4,13 @@ import { translations, Language } from '../../lib/i18n';
 import {
   Heart,
   PartyPopper,
-  Sparkles,
   Baby,
   MapPin,
-  Music,
-  Image as ImageIcon,
-  Calendar,
   Plus,
   X,
-  Move,
   Skull,
   Milk,
   Lock,
-  Disc,
-  Film,
-  Video,
   ChevronDown
 } from 'lucide-react';
 import { PREMIUM_COLORS } from '../../constants/colors';
@@ -46,19 +38,6 @@ const COLOR_PALETTES = [
   { color: '#8B4513' }
 ];
 
-const PAPER_COLOR_PALETTES = [
-  { color: '#FFFFFF' },
-  { color: '#FFF8F0' },
-  { color: '#F8EFE2' },
-  { color: '#F5E6D3' },
-  { color: '#F2ECE4' },
-  { color: '#EEF3F0' },
-  { color: '#F6EEF2' },
-  { color: '#EFEAF6' },
-  { color: '#F7F3E8' },
-  { color: '#EDF2F7' }
-];
-
 const PREMIUM_PALETTES = [
   { id: 'satin_gold', name: 'Satin Gold', gradient: PREMIUM_COLORS.satin_gold },
   { id: 'satin_silver', name: 'Satin Silver', gradient: PREMIUM_COLORS.satin_silver },
@@ -79,12 +58,12 @@ const FONTS = [
 ];
 
 const TEXTURES = [
-  { id: 'smooth', name: 'Smooth', premium: false },
-  { id: 'parchment', name: 'Parchment', premium: true },
-  { id: 'grainy', name: 'Grainy', premium: true },
-  { id: 'cotton', name: 'Cotton', premium: true },
-  { id: 'silk', name: 'Silk', premium: true },
-  { id: 'velvet', name: 'Velvet', premium: true }
+  { id: 'smooth', name: 'Smooth' },
+  { id: 'parchment', name: 'Parchment' },
+  { id: 'grainy', name: 'Grainy' },
+  { id: 'cotton', name: 'Cotton' },
+  { id: 'silk', name: 'Silk' },
+  { id: 'velvet', name: 'Velvet' }
 ];
 
 const ALBUM_PHOTO_FIELDS = [
@@ -155,7 +134,6 @@ const compressImageFile = async (file: File): Promise<File> => {
 export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: any) {
   const [uploading, setUploading] = useState(false);
   const [selectedPhotoKey, setSelectedPhotoKey] = useState('main_photo_url');
-  const [paperMode, setPaperMode] = useState<'color' | 'texture'>('texture');
   const [triggerMode, setTriggerMode] = useState<'emoji' | 'decor'>(invitation.premium_trigger_type || 'emoji');
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     info: true,
@@ -165,7 +143,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     albumMedia: true,
     adjustMedia: false,
     opening: true,
-    look: true,
+    paperTexture: true,
     ambiance: true,
     fonts: false
   });
@@ -208,7 +186,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       album_photo: 'ALBUM PHOTO',
       adjust: 'Cadrage des photos',
       opening: 'Ouverture',
-      look: 'Papier et couleurs',
+      paper_texture: 'Texture papier',
       fonts: 'Police',
       ambiance: 'Ambiance',
       premium_badge: 'Premium',
@@ -219,9 +197,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       opening_category_label: 'Famille de vidéo',
       opening_theme_label: 'Thème vidéo',
       alert_msg: 'Vous possédez un compte FREE, veuillez passer en PREMIUM pour débloquer cette fonctionnalité.',
-      paper_section_label: 'Carte',
-      paper_mode_texture: 'Texture',
-      paper_mode_color: 'Couleur',
       trigger_mode_emoji: 'Émojis',
       trigger_mode_decor: 'Décor',
       bg_color_label: 'Fond',
@@ -252,7 +227,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       album_photo: 'PHOTO ALBUM',
       adjust: 'Photo framing',
       opening: 'Opening',
-      look: 'Paper and colors',
+      paper_texture: 'Paper texture',
       fonts: 'Font',
       ambiance: 'Ambiance',
       premium_badge: 'Premium',
@@ -263,9 +238,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       opening_category_label: 'Video family',
       opening_theme_label: 'Video theme',
       alert_msg: 'You have a FREE account, please upgrade to PREMIUM to unlock this feature.',
-      paper_section_label: 'Card',
-      paper_mode_texture: 'Texture',
-      paper_mode_color: 'Color',
       trigger_mode_emoji: 'Emoji',
       trigger_mode_decor: 'Decor',
       bg_color_label: 'Background',
@@ -296,7 +268,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       album_photo: 'ALBUM ẢNH',
       adjust: 'Căn chỉnh ảnh',
       opening: 'Mở thiệp',
-      look: 'Giấy và màu',
+      paper_texture: 'Kết cấu giấy',
       fonts: 'Phông chữ',
       ambiance: 'Không gian',
       premium_badge: 'Premium',
@@ -307,9 +279,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       opening_category_label: 'Nhóm video',
       opening_theme_label: 'Chủ đề video',
       alert_msg: 'Bạn đang sử dụng tài khoản MIỄN PHÍ, vui lòng nâng cấp lên PREMIUM để mở khóa tính năng này.',
-      paper_section_label: 'Thẻ',
-      paper_mode_texture: 'Kết cấu',
-      paper_mode_color: 'Màu',
       trigger_mode_emoji: 'Emoji',
       trigger_mode_decor: 'Trang trí',
       bg_color_label: 'Nền',
@@ -349,16 +318,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     }
 
     return true;
-  };
-
-  const handlePaperColorClick = (colorValue: string) => {
-    if (!checkPremiumAccess(false)) return;
-    onInvitationChange({ ...invitation, paper_color: colorValue });
-  };
-
-  const handlePaperPremiumClick = (colorValue: string) => {
-    if (!checkPremiumAccess(false)) return;
-    onInvitationChange({ ...invitation, paper_color: colorValue });
   };
 
   const handleBackgroundPremiumClick = (colorValue: string) => {
@@ -472,18 +431,18 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     onInvitationChange({ ...invitation, font_style: fontFamily });
   };
 
-  const handleTextureClick = (textureId: string, premium: boolean) => {
-    if (!checkPremiumAccess(!premium)) return;
+  const handleTextureClick = (textureId: string) => {
+    if (!checkPremiumAccess(false)) return;
     onInvitationChange({ ...invitation, paper_type: textureId });
   };
 
   const EVENT_TYPES = [
-    { id: 'wedding', name: t.theme_wedding, icon: Heart, premium: false },
-    { id: 'birthday', name: t.theme_birthday, icon: PartyPopper, premium: false },
-    { id: 'party', name: t.theme_party, icon: Sparkles, premium: false },
-    { id: 'baptism', name: t.theme_baptism, icon: Baby, premium: true },
-    { id: 'babyshower', name: t.theme_babyshower, icon: Milk, premium: true },
-    { id: 'funeral', name: t.theme_funeral, icon: Skull, premium: true }
+    { id: 'wedding', name: t.theme_wedding, premium: false },
+    { id: 'birthday', name: t.theme_birthday, premium: false },
+    { id: 'party', name: t.theme_party, premium: false },
+    { id: 'baptism', name: t.theme_baptism, premium: true },
+    { id: 'babyshower', name: t.theme_babyshower, premium: true },
+    { id: 'funeral', name: t.theme_funeral, premium: true }
   ];
 
   const uploadFile = async (e: any, field: string) => {
@@ -631,7 +590,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     });
   };
 
-  const Section = ({ id, title, icon: Icon, premium, children }: any) => {
+  const Section = ({ id, title, premium, children }: any) => {
     const isOpen = openSections[id];
 
     return (
@@ -642,7 +601,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
           className="w-full h-14 px-4 flex items-center justify-between text-left"
         >
           <span className="flex items-center gap-3 min-w-0">
-            {Icon && <Icon size={17} className="text-amber-500 shrink-0" />}
             <span className="text-[11px] font-black uppercase tracking-[0.16em] text-gray-700 truncate">
               {title}
             </span>
@@ -674,19 +632,18 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     );
   };
 
-  const OptionButton = ({ active, premium, icon: Icon, label, onClick }: any) => {
+  const OptionButton = ({ active, premium, label, onClick }: any) => {
     const locked = premium && !isPremium;
 
     return (
       <button
         type="button"
         onClick={onClick}
-        className={`relative min-h-12 rounded-xl border px-3 py-3 flex items-center gap-2 text-left transition-all ${
+        className={`relative min-h-12 rounded-xl border px-3 py-3 flex items-center text-left transition-all ${
           active ? 'border-amber-400 bg-amber-50 text-gray-950 shadow-sm' : 'border-gray-100 bg-gray-50 text-gray-600'
         } ${locked ? 'opacity-50 grayscale' : ''}`}
       >
-        {Icon && <Icon size={16} className={active ? 'text-amber-500 shrink-0' : 'text-gray-400 shrink-0'} />}
-        <span className="text-[10px] font-black uppercase leading-tight">{label}</span>
+        <span className="text-[10px] font-black uppercase leading-tight pr-5">{label}</span>
         <PremiumMark locked={locked} />
       </button>
     );
@@ -721,7 +678,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
         {value ? (
           <img src={value} className="w-full h-full object-cover opacity-35" />
         ) : (
-          <ImageIcon className="text-gray-400 mb-2" />
+          <span className="text-[10px] font-black uppercase text-gray-300">Photo</span>
         )}
 
         <span className="absolute inset-0 flex flex-col items-center justify-center gap-1 text-[10px] font-black text-gray-600 uppercase bg-white/45 text-center px-2">
@@ -738,7 +695,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     <div className="w-full space-y-4 pb-10">
       {activeTab === 'content' && (
         <>
-          <Section id="info" title={localLabels.info} icon={Calendar}>
+          <Section id="info" title={localLabels.info}>
             <input
               type="text"
               value={invitation.title || ''}
@@ -773,18 +730,15 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
               />
             </div>
 
-            <div className="relative">
-              <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 w-4 h-4 pointer-events-none z-10" />
-              <input
-                type="date"
-                value={invitation.event_date?.split('T')[0] || ''}
-                onChange={e => onInvitationChange({ ...invitation, event_date: e.target.value })}
-                className="w-full bg-gray-50 border border-gray-100 h-12 pl-11 pr-4 rounded-xl text-sm appearance-none"
-              />
-            </div>
+            <input
+              type="date"
+              value={invitation.event_date?.split('T')[0] || ''}
+              onChange={e => onInvitationChange({ ...invitation, event_date: e.target.value })}
+              className="w-full bg-gray-50 border border-gray-100 h-12 px-4 rounded-xl text-sm appearance-none"
+            />
           </Section>
 
-          <Section id="program" title={localLabels.program} icon={Sparkles}>
+          <Section id="program" title={localLabels.program}>
             <div className="flex items-center justify-between">
               <span className="text-[10px] font-bold uppercase text-gray-400">{t.program_title}</span>
               <button type="button" onClick={addProgramStep} className="p-2 bg-amber-50 text-amber-600 rounded-lg">
@@ -816,7 +770,11 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
                   <label className={`flex items-center gap-3 p-2 bg-white rounded-xl cursor-pointer border border-gray-100 ${!isPremium ? 'opacity-50 grayscale pointer-events-none' : ''}`}>
                     <div className="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center overflow-hidden">
-                      {step.image_url ? <img src={step.image_url} className="w-full h-full object-cover" /> : <ImageIcon size={14} className="text-gray-300" />}
+                      {step.image_url ? (
+                        <img src={step.image_url} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-[8px] font-black uppercase text-gray-300">Photo</span>
+                      )}
                     </div>
                     <span className="text-[10px] font-bold text-gray-500 uppercase">{step.image_url ? t.modify_photo : t.add_photo}</span>
                     {!isPremium && <Lock size={12} className="ml-auto text-gray-400" />}
@@ -827,7 +785,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </Section>
 
-          <Section id="premiumStory" title={localLabels.premium_story_label} icon={Sparkles} premium>
+          <Section id="premiumStory" title={localLabels.premium_story_label} premium>
             <div className={`${!isPremium ? 'opacity-60 grayscale' : ''} space-y-4`}>
               {[
                 {
@@ -872,7 +830,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                       {invitation[section.photoKey] ? (
                         <img src={invitation[section.photoKey]} className="w-full h-full object-cover" />
                       ) : (
-                        <ImageIcon size={18} className="text-amber-500" />
+                        <span className="text-[8px] font-black uppercase text-amber-400">Photo</span>
                       )}
                     </div>
 
@@ -907,7 +865,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
       {activeTab === 'media' && (
         <>
-          <Section id="mainMedia" title={localLabels.media} icon={ImageIcon}>
+          <Section id="mainMedia" title={localLabels.media}>
             <div className="grid grid-cols-2 gap-3">
               <UploadBox
                 label={localLabels.main_photo}
@@ -941,7 +899,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
               )}
 
               <label className="col-span-2 flex items-center gap-3 p-4 bg-gray-50 rounded-xl border border-dashed border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors">
-                <Music className="text-gray-400 shrink-0" size={20} />
                 <span className="text-[10px] font-black text-gray-500 uppercase truncate">
                   {invitation.music_url ? t.music_loaded : t.upload_music}
                 </span>
@@ -950,7 +907,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </Section>
 
-          <Section id="albumMedia" title={localLabels.album_photo} icon={ImageIcon} premium>
+          <Section id="albumMedia" title={localLabels.album_photo} premium>
             <div className={`${!isPremium ? 'opacity-60 grayscale pointer-events-none' : ''} space-y-4`}>
               <div className="grid grid-cols-2 gap-3">
                 {ALBUM_PHOTO_FIELDS.map((photo, index) => (
@@ -967,7 +924,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
           </Section>
 
           {(invitation.main_photo_url || invitation.end_photo_url || invitation.photo_url_2 || invitation.photo_url_3) && (
-            <Section id="adjustMedia" title={localLabels.adjust} icon={Move}>
+            <Section id="adjustMedia" title={localLabels.adjust}>
               <div className="flex flex-wrap gap-2">
                 <button type="button" onClick={() => setSelectedPhotoKey('main_photo_url')} className={`px-3 py-1 rounded-full text-[9px] font-black uppercase transition-all ${selectedPhotoKey === 'main_photo_url' ? 'bg-amber-500 text-white shadow-sm' : 'bg-white text-amber-800 border border-amber-200'}`}>
                   {localLabels.main_photo}
@@ -1037,7 +994,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
       {activeTab === 'style' && (
         <>
-          <Section id="opening" title={localLabels.opening} icon={Video} premium>
+          <Section id="opening" title={localLabels.opening} premium>
             <div className="space-y-5">
               <div>
                 <label className="text-[10px] font-black uppercase text-gray-400 mb-2 block">
@@ -1047,7 +1004,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 <div className="grid grid-cols-2 gap-2">
                   <OptionButton
                     active={openingMode === 'envelope'}
-                    icon={ImageIcon}
                     label={localLabels.opening_mode_panel}
                     onClick={() => handleOpeningModeClick('envelope')}
                   />
@@ -1055,7 +1011,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                   <OptionButton
                     active={openingMode === 'video'}
                     premium
-                    icon={Video}
                     label={localLabels.opening_mode_video}
                     onClick={() => handleOpeningModeClick('video')}
                   />
@@ -1109,14 +1064,12 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 <div className="grid grid-cols-2 gap-2">
                   <OptionButton
                     active={invitation.opening_type === 'vinyl' || !invitation.opening_type}
-                    icon={Disc}
                     label={translations[lang].opening_types.vinyl}
                     onClick={() => handleOpeningTypeClick('vinyl', false)}
                   />
                   <OptionButton
                     active={invitation.opening_type === 'filmstrip'}
                     premium
-                    icon={Film}
                     label={translations[lang].opening_types.filmstrip}
                     onClick={() => handleOpeningTypeClick('filmstrip', true)}
                   />
@@ -1125,71 +1078,23 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </Section>
 
-          <Section id="look" title={localLabels.look} icon={Sparkles}>
-            <div className="space-y-5">
-              <div className="rounded-xl bg-amber-50/50 border border-amber-100 p-3 space-y-3">
-                <div className="flex items-center justify-between">
-                  <label className="text-[10px] font-black uppercase text-gray-500">{localLabels.paper_section_label}</label>
-                  <div className="flex bg-white p-1 rounded-lg border border-amber-100">
-                    <button
-                      type="button"
-                      onClick={() => setPaperMode('texture')}
-                      className={`px-3 py-1 text-[9px] font-black uppercase rounded-md transition-all ${paperMode === 'texture' ? 'bg-amber-500 text-white' : 'text-gray-400'}`}
-                    >
-                      {localLabels.paper_mode_texture}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => (isPremium ? setPaperMode('color') : checkPremiumAccess(false))}
-                      className={`px-3 py-1 text-[9px] font-black uppercase rounded-md transition-all flex items-center gap-1 ${paperMode === 'color' ? 'bg-amber-500 text-white' : 'text-gray-400'} ${!isPremium ? 'opacity-60' : ''}`}
-                    >
-                      {localLabels.paper_mode_color}
-                      {!isPremium && <Lock size={10} />}
-                    </button>
-                  </div>
-                </div>
-
-                {paperMode === 'texture' ? (
-                  <div className="grid grid-cols-2 gap-2">
-                    {TEXTURES.map(texture => (
-                      <OptionButton
-                        key={texture.id}
-                        active={invitation.paper_type === texture.id}
-                        premium={texture.premium}
-                        label={texture.name}
-                        onClick={() => handleTextureClick(texture.id, texture.premium)}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    <div className="flex gap-3 overflow-x-auto pt-1 pb-2 px-1 scrollbar-hide">
-                      {PAPER_COLOR_PALETTES.map(p => (
-                        <Swatch
-                          key={p.color}
-                          value={p.color}
-                          selected={invitation.paper_color === p.color}
-                          onClick={() => handlePaperColorClick(p.color)}
-                        />
-                      ))}
-                      {PREMIUM_PALETTES.map(p => (
-                        <Swatch
-                          key={p.id}
-                          value={p.gradient}
-                          gradient
-                          premium
-                          selected={invitation.paper_color === p.gradient}
-                          onClick={() => handlePaperPremiumClick(p.gradient)}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                )}
+          <Section id="paperTexture" title={localLabels.paper_texture} premium>
+            <div className={`${!isPremium ? 'opacity-60 grayscale pointer-events-none' : ''}`}>
+              <div className="grid grid-cols-2 gap-2">
+                {TEXTURES.map(texture => (
+                  <OptionButton
+                    key={texture.id}
+                    active={invitation.paper_type === texture.id}
+                    premium
+                    label={texture.name}
+                    onClick={() => handleTextureClick(texture.id)}
+                  />
+                ))}
               </div>
             </div>
           </Section>
 
-          <Section id="ambiance" title={localLabels.ambiance} icon={PartyPopper}>
+          <Section id="ambiance" title={localLabels.ambiance}>
             <div className="flex bg-gray-100 p-1 rounded-xl">
               <button
                 type="button"
@@ -1216,10 +1121,10 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             {triggerMode === 'decor' ? (
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-2">
-                  <OptionButton active={invitation.background_theme === 'balloons'} premium icon={PartyPopper} label={localLabels.bg_balloons} onClick={() => handleBackgroundThemeClick('balloons', true)} />
-                  <OptionButton active={invitation.background_theme === 'flowers'} premium icon={Heart} label={localLabels.bg_flowers} onClick={() => handleBackgroundThemeClick('flowers', true)} />
-                  <OptionButton active={invitation.background_theme === 'butterflies'} premium icon={Sparkles} label={localLabels.bg_butterflies} onClick={() => handleBackgroundThemeClick('butterflies', true)} />
-                  <OptionButton active={invitation.background_theme === 'stars'} premium icon={Sparkles} label={localLabels.bg_stars} onClick={() => handleBackgroundThemeClick('stars', true)} />
+                  <OptionButton active={invitation.background_theme === 'balloons'} premium label={localLabels.bg_balloons} onClick={() => handleBackgroundThemeClick('balloons', true)} />
+                  <OptionButton active={invitation.background_theme === 'flowers'} premium label={localLabels.bg_flowers} onClick={() => handleBackgroundThemeClick('flowers', true)} />
+                  <OptionButton active={invitation.background_theme === 'butterflies'} premium label={localLabels.bg_butterflies} onClick={() => handleBackgroundThemeClick('butterflies', true)} />
+                  <OptionButton active={invitation.background_theme === 'stars'} premium label={localLabels.bg_stars} onClick={() => handleBackgroundThemeClick('stars', true)} />
                 </div>
 
                 <div>
@@ -1254,7 +1159,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                     key={type.id}
                     active={invitation.event_type === type.id}
                     premium={type.premium}
-                    icon={type.icon}
                     label={type.name}
                     onClick={() => handleThemeClick(type.id, type.premium)}
                   />
@@ -1263,7 +1167,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             )}
           </Section>
 
-          <Section id="fonts" title={localLabels.fonts} icon={Sparkles}>
+          <Section id="fonts" title={localLabels.fonts}>
             <div className="space-y-2">
               {FONTS.map(f => (
                 <button
