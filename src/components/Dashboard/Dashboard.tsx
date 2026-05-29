@@ -34,6 +34,8 @@ const brandTitleStyle: CSSProperties = {
     '0 1px 0 rgba(255,255,255,0.45), 0 2px 6px rgba(92,62,28,0.28), 0 10px 22px rgba(0,0,0,0.16)'
 };
 
+const isAndroidDevice = () => /Android/i.test(navigator.userAgent);
+
 // Extension locale des traductions pour la PWA, le compte, les plans et le paiement
 const translations: any = {
   ...allTranslations,
@@ -111,7 +113,14 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     loadAccountStatus();
 
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('openPlans') === 'true') {
+    const shouldOpenAccount = urlParams.get('openAccount') === 'true';
+    const shouldOpenPlans = urlParams.get('openPlans') === 'true';
+
+    if (shouldOpenAccount || (shouldOpenPlans && isAndroidDevice())) {
+      setAccountStep('PROFILE');
+      setIsAccountOpen(true);
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (shouldOpenPlans) {
       setAccountStep('PLANS');
       setIsAccountOpen(true);
       window.history.replaceState({}, document.title, window.location.pathname);
@@ -285,15 +294,13 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   const handleManageAccountClick = (e: MouseEvent) => {
     e.preventDefault();
 
-    const isAndroid = /Android/i.test(navigator.userAgent);
-
-    if (isAndroid) {
+    if (isAndroidDevice()) {
       setIsAccountOpen(false);
-      const webDashboardUrl = 'https://invitstudio.vercel.app/dashboard?openPlans=true';
-      window.open(webDashboardUrl, '_blank');
-    } else {
-      setAccountStep('PLANS');
+      window.open('https://invitstudio.vercel.app/dashboard?openAccount=true', '_blank');
+      return;
     }
+
+    setAccountStep('PLANS');
   };
 
   const handleSelectPlan = (plan: any) => {
