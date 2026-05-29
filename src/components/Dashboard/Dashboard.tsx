@@ -1,3 +1,7 @@
+Oui. Voici les deux fichiers complets avec Pinyon Script, plus proche du “S” du poster.
+
+Dashboard complet
+
 import { useState, useEffect, type CSSProperties, type FormEvent, type MouseEvent } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
@@ -24,9 +28,10 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 
 const BRAND_FONT_LINK_ID = 'invit-studio-brand-font';
+const BRAND_FONT_URL = 'https://fonts.googleapis.com/css2?family=Pinyon+Script&display=swap';
 
 const brandTitleStyle: CSSProperties = {
-  fontFamily: '"Great Vibes", cursive',
+  fontFamily: '"Pinyon Script", cursive',
   fontWeight: 400,
   letterSpacing: '0',
   color: '#c7a068',
@@ -34,7 +39,6 @@ const brandTitleStyle: CSSProperties = {
     '0 1px 0 rgba(255,255,255,0.45), 0 2px 6px rgba(92,62,28,0.28), 0 10px 22px rgba(0,0,0,0.16)'
 };
 
-// Extension locale des traductions pour la PWA, le compte, les plans et le paiement
 const translations: any = {
   ...allTranslations,
   en: {
@@ -82,28 +86,28 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   const [selectedResponses, setSelectedResponses] = useState<GuestResponse[] | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [showIOSPrompt, setShowIOSPrompt] = useState(false);
-
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [accountStep, setAccountStep] = useState<'PROFILE' | 'PLANS' | 'CHECKOUT'>('PROFILE');
-
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [accountStatus, setAccountStatus] = useState<'FREE' | 'PREMIUM'>('FREE');
   const [premiumDuration, setPremiumDuration] = useState<string>('');
   const [activationCode, setActivationCode] = useState('');
   const [activationLoading, setActivationLoading] = useState(false);
-
-  const [lang, setLang] = useState<Language>(
-    (localStorage.getItem('invite_lang') as Language) || 'en'
-  );
+  const [lang, setLang] = useState<Language>((localStorage.getItem('invite_lang') as Language) || 'en');
 
   useEffect(() => {
-    if (!document.getElementById(BRAND_FONT_LINK_ID)) {
-      const link = document.createElement('link');
-      link.id = BRAND_FONT_LINK_ID;
-      link.rel = 'stylesheet';
-      link.href = 'https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap';
-      document.head.appendChild(link);
+    const existingLink = document.getElementById(BRAND_FONT_LINK_ID) as HTMLLinkElement | null;
+
+    if (existingLink) {
+      existingLink.href = BRAND_FONT_URL;
+      return;
     }
+
+    const link = document.createElement('link');
+    link.id = BRAND_FONT_LINK_ID;
+    link.rel = 'stylesheet';
+    link.href = BRAND_FONT_URL;
+    document.head.appendChild(link);
   }, []);
 
   useEffect(() => {
@@ -289,8 +293,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
 
     if (isAndroid) {
       setIsAccountOpen(false);
-      const webDashboardUrl = 'https://invitstudio.vercel.app/dashboard?openPlans=true';
-      window.open(webDashboardUrl, '_blank');
+      window.open('https://invitstudio.vercel.app/dashboard?openPlans=true', '_blank');
     } else {
       setAccountStep('PLANS');
     }
@@ -340,10 +343,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
             />
           </div>
 
-          <h1
-            className="text-[2.65rem] sm:text-[3.15rem] leading-none whitespace-nowrap"
-            style={brandTitleStyle}
-          >
+          <h1 className="text-[2.8rem] sm:text-[3.35rem] leading-none whitespace-nowrap" style={brandTitleStyle}>
             Invit Studio
           </h1>
 
@@ -378,7 +378,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
               <div className="w-14 h-14 sm:w-16 sm:h-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center group-hover:bg-amber-400 group-hover:text-white transition-all shadow-sm">
                 <Plus className="w-7 h-7 sm:w-8 sm:h-8" />
               </div>
-
               <span className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-[0.2em]">
                 {t.new_creation}
               </span>
@@ -408,39 +407,23 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                 </div>
 
                 <div className="p-6 sm:p-8 flex flex-col flex-1">
-                  <h3 className="text-base sm:text-lg font-semibold text-gray-800 truncate mb-2">
-                    {invitation.title}
-                  </h3>
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-800 truncate mb-2">{invitation.title}</h3>
 
                   <div className="mt-auto space-y-3">
                     <div className="grid grid-cols-4 gap-2">
-                      <button
-                        onClick={() => onEdit(invitation.id)}
-                        className="col-span-2 py-3 bg-gray-900 text-white rounded-2xl text-[9px] font-bold uppercase tracking-widest flex items-center justify-center gap-2"
-                      >
+                      <button onClick={() => onEdit(invitation.id)} className="col-span-2 py-3 bg-gray-900 text-white rounded-2xl text-[9px] font-bold uppercase tracking-widest flex items-center justify-center gap-2">
                         <Edit className="w-3 h-3" />
                         {t.edit}
                       </button>
-
-                      <button
-                        onClick={() => window.open(`/invite/${invitation.id}`, '_blank')}
-                        className="py-3 bg-gray-50 text-gray-400 rounded-2xl flex items-center justify-center hover:bg-gray-100 border border-gray-100"
-                      >
+                      <button onClick={() => window.open(`/invite/${invitation.id}`, '_blank')} className="py-3 bg-gray-50 text-gray-400 rounded-2xl flex items-center justify-center hover:bg-gray-100 border border-gray-100">
                         <Eye className="w-4 h-4" />
                       </button>
-
-                      <button
-                        onClick={() => handleDelete(invitation.id)}
-                        className="py-3 bg-rose-50 text-rose-300 rounded-2xl flex items-center justify-center hover:bg-rose-100 hover:text-rose-600 border border-rose-100"
-                      >
+                      <button onClick={() => handleDelete(invitation.id)} className="py-3 bg-rose-50 text-rose-300 rounded-2xl flex items-center justify-center hover:bg-rose-100 hover:text-rose-600 border border-rose-100">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
 
-                    <button
-                      onClick={() => handleCopyLink(invitation.id)}
-                      className="w-full py-2.5 bg-amber-50 text-amber-700 rounded-xl text-[9px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-amber-100 border border-amber-100"
-                    >
+                    <button onClick={() => handleCopyLink(invitation.id)} className="w-full py-2.5 bg-amber-50 text-amber-700 rounded-xl text-[9px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-amber-100 border border-amber-100">
                       <Copy className="w-3 h-3" />
                       {t.share}
                     </button>
@@ -454,10 +437,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
         <AnimatePresence>
           {isAccountOpen && (
             <div className="fixed inset-0 z-[150] flex flex-col justify-end">
-              <div
-                className="absolute inset-0 bg-black/50 backdrop-blur-xs"
-                onClick={() => setIsAccountOpen(false)}
-              />
+              <div className="absolute inset-0 bg-black/50 backdrop-blur-xs" onClick={() => setIsAccountOpen(false)} />
 
               <div className="relative z-10 w-full max-w-xl mx-auto bg-white rounded-t-[2.5rem] shadow-2xl flex flex-col max-h-[85vh] border-t border-gray-100 overflow-hidden">
                 <div className="w-full flex justify-center py-3 shrink-0 bg-gray-50/30">
@@ -482,7 +462,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                         {accountStep === 'PLANS' && tPln.title}
                         {accountStep === 'CHECKOUT' && tChk.title}
                       </h3>
-
                       <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest">
                         {accountStep === 'PROFILE' && user?.email}
                         {accountStep === 'PLANS' && tPln.subtitle}
@@ -491,11 +470,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                     </div>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setIsAccountOpen(false)}
-                    className="p-2 bg-gray-100 rounded-full text-gray-400 hover:bg-gray-200 transition-colors"
-                  >
+                  <button type="button" onClick={() => setIsAccountOpen(false)} className="p-2 bg-gray-100 rounded-full text-gray-400 hover:bg-gray-200 transition-colors">
                     <X size={16} />
                   </button>
                 </div>
@@ -505,14 +480,10 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                     <div className="space-y-6">
                       <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
                         <div>
-                          <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">
-                            {tAcc.status}
-                          </p>
-
+                          <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">{tAcc.status}</p>
                           <p className={`text-xl font-black ${accountStatus === 'PREMIUM' ? 'text-amber-500' : 'text-gray-500'}`}>
                             {accountStatus}
                           </p>
-
                           {accountStatus === 'PREMIUM' && premiumDuration && (
                             <p className="text-[10px] text-gray-400 font-bold mt-1">
                               {tAcc.duration} <span className="text-gray-700 font-black">{premiumDuration}</span>
@@ -526,11 +497,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                       </div>
 
                       <div className="text-center">
-                        <button
-                          type="button"
-                          onClick={handleManageAccountClick}
-                          className="text-xs font-black text-amber-600 hover:text-amber-700 uppercase tracking-widest underline decoration-2 underline-offset-4"
-                        >
+                        <button type="button" onClick={handleManageAccountClick} className="text-xs font-black text-amber-600 hover:text-amber-700 uppercase tracking-widest underline decoration-2 underline-offset-4">
                           {tAcc.manage}
                         </button>
                       </div>
@@ -539,7 +506,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                         <form onSubmit={handleActivateCode} className="space-y-3">
                           <div className="relative">
                             <Ticket className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 w-4 h-4" />
-
                             <input
                               type="text"
                               required
@@ -549,7 +515,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                               className="w-full bg-gray-50 border-none h-12 pl-12 pr-4 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-amber-300 outline-none transition-all"
                             />
                           </div>
-
                           <button
                             type="submit"
                             disabled={activationLoading || !activationCode.trim()}
@@ -573,17 +538,13 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                         >
                           <div className="space-y-1">
                             <div className="flex items-center gap-2">
-                              <h4 className="text-sm font-black text-gray-900 uppercase tracking-tight">
-                                {plan.duration}
-                              </h4>
-
+                              <h4 className="text-sm font-black text-gray-900 uppercase tracking-tight">{plan.duration}</h4>
                               {plan.discount && (
                                 <span className="px-1.5 py-0.5 bg-rose-100 text-rose-600 rounded text-[9px] font-black">
                                   {plan.discount}
                                 </span>
                               )}
                             </div>
-
                             <p className="text-[10px] text-gray-400 font-bold uppercase">
                               Total: <span className="text-gray-700 font-black">{plan.totalPrice}</span>
                             </p>
@@ -596,7 +557,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                                 <span className="text-[10px] text-gray-400 font-normal">/mo</span>
                               </p>
                             </div>
-
                             <button
                               type="button"
                               onClick={() => handleSelectPlan(plan)}
@@ -622,11 +582,8 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                         <div className="w-11 h-11 bg-white rounded-xl flex items-center justify-center shadow-sm text-gray-700 group-hover:text-amber-500 group-hover:shadow-md transition-all">
                           <QrCode size={20} />
                         </div>
-
                         <div>
-                          <p className="text-sm font-black text-gray-900 uppercase tracking-tight">
-                            {tChk.qr}
-                          </p>
+                          <p className="text-sm font-black text-gray-900 uppercase tracking-tight">{tChk.qr}</p>
                         </div>
                       </button>
 
@@ -638,11 +595,8 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                         <div className="w-11 h-11 bg-white rounded-xl flex items-center justify-center shadow-sm text-gray-700 group-hover:text-amber-500 group-hover:shadow-md transition-all">
                           <CreditCard size={20} />
                         </div>
-
                         <div>
-                          <p className="text-sm font-black text-gray-900 uppercase tracking-tight">
-                            {tChk.cb}
-                          </p>
+                          <p className="text-sm font-black text-gray-900 uppercase tracking-tight">{tChk.cb}</p>
                         </div>
                       </button>
                     </div>
@@ -658,13 +612,8 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
             <div className="bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in duration-300">
               <div className="p-8 border-b border-gray-100 flex items-center justify-between bg-amber-50/50">
                 <div>
-                  <h3 className="text-xl font-black text-gray-900 uppercase tracking-tighter">
-                    {t.responses_title}
-                  </h3>
-
-                  <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest">
-                    {t.responses_subtitle}
-                  </p>
+                  <h3 className="text-xl font-black text-gray-900 uppercase tracking-tighter">{t.responses_title}</h3>
+                  <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest">{t.responses_subtitle}</p>
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -677,7 +626,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                       {lang === 'fr' ? 'Copier la liste' : lang === 'vi' ? 'Sao chép danh sách' : 'Copy list'}
                     </button>
                   )}
-
                   <button onClick={() => setIsViewModalOpen(false)} className="p-2 hover:bg-white rounded-full transition-colors">
                     <X />
                   </button>
@@ -686,9 +634,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
 
               <div className="p-6 max-h-[60vh] overflow-y-auto space-y-4">
                 {selectedResponses?.length === 0 ? (
-                  <p className="text-center py-10 text-gray-400 font-medium">
-                    {t.no_responses}
-                  </p>
+                  <p className="text-center py-10 text-gray-400 font-medium">{t.no_responses}</p>
                 ) : (
                   selectedResponses?.map((resp, i) => (
                     <div key={i} className="flex flex-col p-4 bg-gray-50 rounded-2xl border border-gray-100 gap-2">
@@ -699,7 +645,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                             {resp.total_guests} {t.person_unit}
                           </p>
                         </div>
-
                         <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
                           <Users className="w-4 h-4 text-amber-500" />
                         </div>
@@ -737,10 +682,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                 </div>
 
                 <div className="flex-1">
-                  <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight">
-                    {tPwa.title}
-                  </h3>
-
+                  <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight">{tPwa.title}</h3>
                   <p className="text-[11px] text-gray-500 leading-snug mt-1 flex items-center flex-wrap">
                     {tPwa.desc}
                     <Share size={14} className="inline mx-1 text-blue-500" />
