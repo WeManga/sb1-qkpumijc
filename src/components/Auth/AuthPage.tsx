@@ -6,10 +6,9 @@ import { LanguageSelector } from '../LanguageSelector';
 import { supabase } from '../../lib/supabase';
 
 const BRAND_FONT_LINK_ID = 'invit-studio-brand-font';
-const BRAND_FONT_URL = 'https://fonts.googleapis.com/css2?family=Pinyon+Script&display=swap';
 
 const brandTitleStyle: CSSProperties = {
-  fontFamily: '"Pinyon Script", cursive',
+  fontFamily: '"Great Vibes", cursive',
   fontWeight: 400,
   letterSpacing: '0',
   color: '#c7a068',
@@ -31,18 +30,13 @@ export function AuthPage() {
   );
 
   useEffect(() => {
-    const existingLink = document.getElementById(BRAND_FONT_LINK_ID) as HTMLLinkElement | null;
-
-    if (existingLink) {
-      existingLink.href = BRAND_FONT_URL;
-      return;
+    if (!document.getElementById(BRAND_FONT_LINK_ID)) {
+      const link = document.createElement('link');
+      link.id = BRAND_FONT_LINK_ID;
+      link.rel = 'stylesheet';
+      link.href = 'https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap';
+      document.head.appendChild(link);
     }
-
-    const link = document.createElement('link');
-    link.id = BRAND_FONT_LINK_ID;
-    link.rel = 'stylesheet';
-    link.href = BRAND_FONT_URL;
-    document.head.appendChild(link);
   }, []);
 
   const handleLangChange = (newLang: Language) => {
@@ -112,7 +106,10 @@ export function AuthPage() {
             />
           </div>
 
-          <h1 className="text-[4.5rem] sm:text-[5rem] leading-none -mt-16 mb-2 relative z-10" style={brandTitleStyle}>
+          <h1
+            className="text-[4.25rem] sm:text-[4.75rem] leading-none -mt-16 mb-2 relative z-10"
+            style={brandTitleStyle}
+          >
             Invit Studio
           </h1>
 
