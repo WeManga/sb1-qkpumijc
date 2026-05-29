@@ -471,7 +471,7 @@ export function InvitationPreview({ invitation }: any) {
 
   const paperType = pick(invitation, ['paper_type', 'papertype'], 'smooth');
   const paperColor = pick(invitation, ['paper_color', 'papercolor'], '#ffffff');
-  const openingType = pick(invitation, ['opening_type', 'openingtype'], 'vinyl');
+  const openingType = isPremium ? pick(invitation, ['opening_type', 'openingtype'], 'vinyl') : 'vinyl';
   const containerOpen = pick(invitation, ['container_open', 'containeropen'], 'envelope');
 
   const backgroundTheme = pick(invitation, ['background_theme', 'backgroundtheme'], '');
@@ -898,7 +898,7 @@ export function InvitationPreview({ invitation }: any) {
                         >
                           <div className="w-[45%]">
                             <div className={`overflow-hidden bg-white/65 backdrop-blur-sm rounded-2xl border border-amber-100 shadow-lg ${isEven ? 'text-right' : 'text-left'}`}>
-                              {step.image_url && (
+                              {isPremium && step.image_url && (
                                 <div className="w-full aspect-video overflow-hidden">
                                   <img
                                     src={step.image_url}
