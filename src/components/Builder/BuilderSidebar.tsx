@@ -18,6 +18,7 @@ import {
   Lock,
   Disc,
   Film,
+  Video,
   ChevronDown
 } from 'lucide-react';
 import { PREMIUM_COLORS } from '../../constants/colors';
@@ -217,7 +218,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       opening_mode_video: 'Vidéos',
       opening_category_label: 'Famille de vidéo',
       opening_theme_label: 'Thème vidéo',
-      premium_colors: 'Couleurs premium',
       alert_msg: 'Vous possédez un compte FREE, veuillez passer en PREMIUM pour débloquer cette fonctionnalité.',
       paper_section_label: 'Carte',
       paper_mode_texture: 'Texture',
@@ -262,7 +262,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       opening_mode_video: 'Videos',
       opening_category_label: 'Video family',
       opening_theme_label: 'Video theme',
-      premium_colors: 'Premium colors',
       alert_msg: 'You have a FREE account, please upgrade to PREMIUM to unlock this feature.',
       paper_section_label: 'Card',
       paper_mode_texture: 'Texture',
@@ -307,7 +306,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       opening_mode_video: 'Video',
       opening_category_label: 'Nhóm video',
       opening_theme_label: 'Chủ đề video',
-      premium_colors: 'Màu premium',
       alert_msg: 'Bạn đang sử dụng tài khoản MIỄN PHÍ, vui lòng nâng cấp lên PREMIUM để mở khóa tính năng này.',
       paper_section_label: 'Thẻ',
       paper_mode_texture: 'Kết cấu',
@@ -351,11 +349,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     }
 
     return true;
-  };
-
-  const handlePremiumClick = (colorValue: string) => {
-    if (!checkPremiumAccess(false)) return;
-    onInvitationChange({ ...invitation, envelope_color: colorValue });
   };
 
   const handlePaperColorClick = (colorValue: string) => {
@@ -1044,7 +1037,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
       {activeTab === 'style' && (
         <>
-          <Section id="opening" title={localLabels.opening} icon={Film} premium>
+          <Section id="opening" title={localLabels.opening} icon={Video} premium>
             <div className="space-y-5">
               <div>
                 <label className="text-[10px] font-black uppercase text-gray-400 mb-2 block">
@@ -1062,7 +1055,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                   <OptionButton
                     active={openingMode === 'video'}
                     premium
-                    icon={Film}
+                    icon={Video}
                     label={localLabels.opening_mode_video}
                     onClick={() => handleOpeningModeClick('video')}
                   />
@@ -1134,30 +1127,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
           <Section id="look" title={localLabels.look} icon={Sparkles}>
             <div className="space-y-5">
-              <div>
-                <label className="text-[10px] font-black uppercase text-gray-400 mb-2 block">{t.envelope_color}</label>
-                <div className="flex gap-3 overflow-x-auto pt-1 pb-2 px-1 scrollbar-hide">
-                  {COLOR_PALETTES.map(p => (
-                    <Swatch
-                      key={p.color}
-                      value={p.color}
-                      selected={invitation.envelope_color === p.color}
-                      onClick={() => onInvitationChange({ ...invitation, envelope_color: p.color })}
-                    />
-                  ))}
-                  {PREMIUM_PALETTES.map(p => (
-                    <Swatch
-                      key={p.id}
-                      value={p.gradient}
-                      gradient
-                      premium
-                      selected={invitation.envelope_color === p.gradient}
-                      onClick={() => handlePremiumClick(p.gradient)}
-                    />
-                  ))}
-                </div>
-              </div>
-
               <div className="rounded-xl bg-amber-50/50 border border-amber-100 p-3 space-y-3">
                 <div className="flex items-center justify-between">
                   <label className="text-[10px] font-black uppercase text-gray-500">{localLabels.paper_section_label}</label>
