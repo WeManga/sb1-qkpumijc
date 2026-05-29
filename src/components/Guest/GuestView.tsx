@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef, type CSSProperties, type FormEvent, type MouseEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, MapPin, CheckCircle2, Clock, Film, Volume2, VolumeX } from 'lucide-react';
+import { X, Calendar, MapPin, CheckCircle2, Film, Volume2, VolumeX } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { translations, Language } from '../../lib/i18n';
 import {
@@ -36,6 +36,46 @@ const getAlbumTitle = (lang: Language) => {
   if (lang === 'en') return 'Memory album';
   if (lang === 'vi') return 'Album kỷ niệm';
   return 'Album souvenir';
+};
+
+const EmojiRain = ({ emojis }: { emojis: string[] }) => {
+  const particles = useMemo(
+    () =>
+      Array.from({ length: 30 }).map((_, i) => ({
+        id: i,
+        emoji: emojis[i % emojis.length],
+        left: `${2 + i * 3.4 + Math.random() * 2.5}%`,
+        delay: Math.random() * 1.2,
+        duration: 2.6 + Math.random() * 1.2,
+        size: 24 + Math.random() * 12,
+        drift: -28 + Math.random() * 56,
+        rotate: -18 + Math.random() * 36
+      })),
+    [emojis]
+  );
+
+  return (
+    <div className="absolute inset-0 z-[60] pointer-events-none overflow-hidden">
+      {particles.map((p) => (
+        <motion.span
+          key={p.id}
+          initial={{ y: -90, x: 0, opacity: 0, rotate: p.rotate, scale: 0.8 }}
+          animate={{
+            y: '118vh',
+            x: p.drift,
+            opacity: [0, 1, 1, 0],
+            rotate: p.rotate + 38,
+            scale: [0.8, 1, 1, 0.9]
+          }}
+          transition={{ duration: p.duration, repeat: Infinity, delay: p.delay, ease: 'linear' }}
+          className="absolute leading-none select-none"
+          style={{ left: p.left, fontSize: p.size }}
+        >
+          {p.emoji}
+        </motion.span>
+      ))}
+    </div>
+  );
 };
 
 const ContentOrnaments = () => {
@@ -603,46 +643,6 @@ export function GuestView({ invitation }: any) {
     }
   };
 
-  const EmojiRain = () => {
-    const particles = useMemo(
-      () =>
-        Array.from({ length: 30 }).map((_, i) => ({
-          id: i,
-          emoji: emojis[i % emojis.length],
-          left: `${2 + i * 3.4 + Math.random() * 2.5}%`,
-          delay: Math.random() * 1.2,
-          duration: 2.6 + Math.random() * 1.2,
-          size: 24 + Math.random() * 12,
-          drift: -28 + Math.random() * 56,
-          rotate: -18 + Math.random() * 36
-        })),
-      []
-    );
-
-    return (
-      <div className="absolute inset-0 z-[60] pointer-events-none overflow-hidden">
-        {particles.map((p) => (
-          <motion.span
-            key={p.id}
-            initial={{ y: -90, x: 0, opacity: 0, rotate: p.rotate, scale: 0.8 }}
-            animate={{
-              y: '118vh',
-              x: p.drift,
-              opacity: [0, 1, 1, 0],
-              rotate: p.rotate + 38,
-              scale: [0.8, 1, 1, 0.9]
-            }}
-            transition={{ duration: p.duration, repeat: Infinity, delay: p.delay, ease: 'linear' }}
-            className="absolute leading-none select-none"
-            style={{ left: p.left, fontSize: p.size }}
-          >
-            {p.emoji}
-          </motion.span>
-        ))}
-      </div>
-    );
-  };
-
   const OpeningVideoLayer = () => (
     <motion.div
       initial={false}
@@ -712,7 +712,7 @@ export function GuestView({ invitation }: any) {
     <div className="fixed inset-0 flex items-center justify-center overflow-hidden touch-none" style={{ fontFamily: fontStyle, backgroundColor: pageBackgroundColor }}>
       {invitation?.music_url && <audio ref={audioRef} src={invitation.music_url} loop />}
 
-      {showEmojiRain && <EmojiRain />}
+      {showEmojiRain && <EmojiRain emojis={emojis} />}
       {showPremiumDecor && <AutonomousDecor theme={backgroundTheme} isPremiumDecor={isPremiumDecor} />}
 
       <AnimatePresence mode="wait">
