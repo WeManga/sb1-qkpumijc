@@ -1,7 +1,3 @@
-Oui. Voici les deux fichiers complets avec Pinyon Script, plus proche du “S” du poster.
-
-Dashboard complet
-
 import { useState, useEffect, type CSSProperties, type FormEvent, type MouseEvent } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
