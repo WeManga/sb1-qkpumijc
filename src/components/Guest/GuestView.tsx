@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef, type CSSProperties, type FormEvent, type MouseEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, MapPin, CheckCircle2, Clock, Sparkles, Film, Volume2, VolumeX } from 'lucide-react';
+import { X, Calendar, MapPin, CheckCircle2, Clock, Film, Volume2, VolumeX } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { translations, Language } from '../../lib/i18n';
 import {
@@ -30,6 +30,362 @@ const pick = (obj: any, keys: string[], fallback: any = undefined) => {
   }
 
   return fallback;
+};
+
+const getAlbumTitle = (lang: Language) => {
+  if (lang === 'en') return 'Memory album';
+  if (lang === 'vi') return 'Album kỷ niệm';
+  return 'Album souvenir';
+};
+
+const ContentOrnaments = () => {
+  const threads = useMemo(
+    () =>
+      Array.from({ length: 8 }).map((_, i) => ({
+        id: i,
+        left: `${8 + Math.random() * 84}%`,
+        top: `${8 + Math.random() * 86}%`,
+        rotate: `${-28 + Math.random() * 56}deg`,
+        delay: Math.random() * 2.4,
+        duration: 4 + Math.random() * 2
+      })),
+    []
+  );
+
+  const sparks = useMemo(
+    () =>
+      Array.from({ length: 14 }).map((_, i) => ({
+        id: i,
+        left: `${6 + Math.random() * 88}%`,
+        top: `${6 + Math.random() * 88}%`,
+        delay: Math.random() * 2.8,
+        duration: 2.8 + Math.random() * 2.2,
+        scale: 0.65 + Math.random() * 0.75
+      })),
+    []
+  );
+
+  return (
+    <div className="invitation-ornament-layer">
+      {threads.map((thread) => (
+        <motion.span
+          key={`thread-${thread.id}`}
+          className="gold-thread"
+          style={{ left: thread.left, top: thread.top, rotate: thread.rotate }}
+          animate={{ opacity: [0.08, 0.38, 0.08], x: [0, 8, 0] }}
+          transition={{ duration: thread.duration, repeat: Infinity, delay: thread.delay, ease: 'easeInOut' }}
+        />
+      ))}
+
+      {sparks.map((spark) => (
+        <motion.span
+          key={`spark-${spark.id}`}
+          className="gold-spark"
+          style={{ left: spark.left, top: spark.top, scale: spark.scale }}
+          animate={{ opacity: [0, 0.85, 0], rotate: [0, 45, 90], y: [0, -8, 0] }}
+          transition={{ duration: spark.duration, repeat: Infinity, delay: spark.delay, ease: 'easeInOut' }}
+        />
+      ))}
+    </div>
+  );
+};
+
+const AutonomousDecor = ({ theme, isPremiumDecor }: { theme: string; isPremiumDecor: boolean }) => {
+  const ballons = useMemo(
+    () =>
+      Array.from({ length: 6 }).map((_, i) => ({
+        id: i,
+        left: `${15 + i * 14 + Math.random() * 4}%`,
+        delay: i * 0.5,
+        duration: 6 + Math.random() * 3
+      })),
+    []
+  );
+
+  const papillonsConfig = useMemo(
+    () => [
+      { id: 1, size: 0.85, flapSpeed: 0.2, duration: 7, initX: -50, initY: 100, pathX: [120, 240, 400], pathY: [80, 220, 150] },
+      { id: 2, size: 0.5, flapSpeed: 0.16, duration: 5, initX: 420, initY: 200, pathX: [280, 140, -60], pathY: [250, 90, 180] },
+      { id: 3, size: 0.7, flapSpeed: 0.24, duration: 8, initX: 180, initY: -60, pathX: [220, 100, 160], pathY: [150, 380, 700] },
+      { id: 4, size: 0.6, flapSpeed: 0.18, duration: 6, initX: 250, initY: 680, pathX: [120, 300, 200], pathY: [480, 200, -60] },
+      { id: 5, size: 0.9, flapSpeed: 0.22, duration: 7.5, initX: -50, initY: 450, pathX: [150, 80, 420], pathY: [350, 120, 50] },
+      { id: 6, size: 0.45, flapSpeed: 0.14, duration: 4.5, initX: 420, initY: 400, pathX: [200, 310, -50], pathY: [300, 520, 380] }
+    ],
+    []
+  );
+
+  const etoilesPluie = useMemo(
+    () =>
+      Array.from({ length: 48 }).map((_, i) => ({
+        id: i,
+        left: `${2 + Math.random() * 96}%`,
+        delay: Math.random() * 3.5,
+        duration: 2.4 + Math.random() * 1.8,
+        sizeClass: i % 3 === 0 ? 'w-3 h-auto' : 'w-2 h-auto',
+        rotate: Math.random() * 180
+      })),
+    []
+  );
+
+  return (
+    <div className="absolute inset-0 z-[15] pointer-events-none overflow-hidden">
+      {theme === 'flowers' && (
+        <>
+          <div
+            className="absolute -top-8 -right-8 w-56 h-56 bg-contain bg-no-repeat bg-right-top z-20"
+            style={{ backgroundImage: 'url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleurs%20haut%20droite.png")' }}
+          />
+          <div
+            className="absolute -bottom-8 -left-8 w-56 h-56 bg-contain bg-no-repeat bg-left-bottom z-20"
+            style={{ backgroundImage: 'url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleurs%20bas%20gauche.png")' }}
+          />
+        </>
+      )}
+
+      {theme === 'balloons' &&
+        ballons.map((b) => (
+          <motion.img
+            key={`ballon-${b.id}`}
+            src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/ballons.png"
+            initial={{ y: 680, opacity: 0 }}
+            animate={{ y: -120, opacity: [0, 1, 1, 0] }}
+            transition={{ duration: b.duration, repeat: Infinity, delay: b.delay, ease: 'linear' }}
+            className="absolute w-10 h-auto"
+            style={{ left: b.left }}
+            alt=""
+          />
+        ))}
+
+      {theme === 'butterflies' &&
+        isPremiumDecor &&
+        papillonsConfig.map((p) => (
+          <motion.div
+            key={`pap-infinite-${p.id}`}
+            initial={{ x: p.initX, y: p.initY, opacity: 0 }}
+            animate={{ x: p.pathX, y: p.pathY, opacity: [0, 1, 1, 1, 0] }}
+            transition={{ duration: p.duration, repeat: Infinity, ease: 'linear' }}
+            className="absolute"
+            style={{ scale: p.size }}
+          >
+            <motion.img
+              src={
+                p.id % 2 === 0
+                  ? 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/papillions.png'
+                  : 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/papillion%202.png'
+              }
+              animate={{ scaleX: [1, -1, 1] }}
+              transition={{ duration: p.flapSpeed, repeat: Infinity, ease: 'linear' }}
+              className="w-8 h-auto origin-center"
+              alt=""
+            />
+          </motion.div>
+        ))}
+
+      {theme === 'stars' && (
+        <>
+          {etoilesPluie.map((e) => (
+            <motion.img
+              key={`etoile-dense-${e.id}`}
+              src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/etoile.png"
+              initial={{ y: -40, opacity: 0, scale: 0.55, rotate: e.rotate }}
+              animate={{
+                y: '106vh',
+                opacity: [0, 1, 1, 0.9, 0],
+                scale: [0.55, 1, 0.95, 0.7],
+                rotate: e.rotate + 120
+              }}
+              transition={{
+                duration: e.duration,
+                times: [0, 0.18, 0.72, 0.9, 1],
+                repeat: Infinity,
+                delay: e.delay,
+                ease: 'easeIn'
+              }}
+              className={`absolute ${e.sizeClass} drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]`}
+              style={{ left: e.left }}
+              alt=""
+            />
+          ))}
+          <div className="star-pile" />
+        </>
+      )}
+    </div>
+  );
+};
+
+const PremiumStorySection = ({ isPremium, title, text, imageUrl, fontStyle }: any) => {
+  if (!isPremium || (!title && !text && !imageUrl)) return null;
+
+  return (
+    <section className="relative">
+      <div className="flex flex-col items-center text-center gap-5">
+        {imageUrl && (
+          <div className="w-full overflow-hidden rounded-[2.25rem] border-4 border-white shadow-2xl bg-white">
+            <img src={imageUrl} loading="lazy" className="w-full aspect-[4/3] object-cover" alt="" />
+          </div>
+        )}
+
+        <div className="relative w-full bg-white/55 backdrop-blur-sm border border-amber-100 rounded-[2rem] p-6 shadow-lg">
+          <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-amber-300/20 blur-md" />
+
+          {title && (
+            <h3 className="text-2xl font-semibold mb-3 leading-tight text-center" style={{ fontFamily: fontStyle }}>
+              {title}
+            </h3>
+          )}
+
+          {text && (
+            <p className="text-[14px] leading-relaxed whitespace-pre-wrap opacity-80 italic text-center" style={{ fontFamily: fontStyle }}>
+              {text}
+            </p>
+          )}
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const PremiumSingleAlbumPhoto = ({ photo, lang }: any) => {
+  if (!photo?.url) return null;
+
+  return (
+    <section className="relative overflow-hidden rounded-[2.75rem] border border-emerald-100 bg-white/80 px-5 py-8 shadow-[0_24px_70px_rgba(16,185,129,0.13)]">
+      <div
+        className="absolute inset-0 opacity-35 bg-cover bg-center pointer-events-none"
+        style={{ backgroundImage: `url("${LEAF_FRAME_URL}")` }}
+      />
+      <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-white/75 via-white/25 to-white/75" />
+      <div className="absolute left-8 top-8 w-20 h-20 rounded-full bg-emerald-200/20 blur-3xl pointer-events-none" />
+      <div className="absolute right-6 bottom-6 w-24 h-24 rounded-full bg-amber-200/20 blur-3xl pointer-events-none" />
+
+      <div className="relative z-10 space-y-7">
+        <h3 className="text-[13px] font-semibold text-emerald-700 text-center">
+          {getAlbumTitle(lang)}
+        </h3>
+
+        <div className="relative mx-auto w-full max-w-[310px] overflow-hidden rounded-[2.4rem] border-[7px] border-white bg-white shadow-[0_28px_65px_rgba(15,23,42,0.2)]">
+          <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-tr from-black/10 via-transparent to-white/25" />
+          <img src={photo.url} loading="lazy" className="aspect-[4/5] w-full object-cover" alt="" />
+
+          <div className="absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/50 to-transparent px-5 pb-5 pt-12">
+            <p className="truncate text-center text-[11px] font-medium text-white/90">
+              {photo.label}
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const PremiumPhotoCarousel = ({ photos, lang }: any) => {
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  useEffect(() => {
+    if (!photos || photos.length < 2) return;
+
+    const timer = setInterval(() => {
+      setActiveIndex((current) => (current + 1) % photos.length);
+    }, 3800);
+
+    return () => clearInterval(timer);
+  }, [photos]);
+
+  if (!photos || photos.length < 2) return null;
+
+  const previousIndex = (activeIndex - 1 + photos.length) % photos.length;
+  const nextIndex = (activeIndex + 1) % photos.length;
+  const activePhoto = photos[activeIndex];
+  const previousPhoto = photos[previousIndex];
+  const nextPhoto = photos[nextIndex];
+
+  const goTo = (index: number) => {
+    setActiveIndex(index);
+  };
+
+  return (
+    <section className="relative overflow-hidden rounded-[2.75rem] border border-emerald-100 bg-white/80 px-4 py-8 shadow-[0_24px_70px_rgba(16,185,129,0.13)]">
+      <div
+        className="absolute inset-0 opacity-35 bg-cover bg-center pointer-events-none"
+        style={{ backgroundImage: `url("${LEAF_FRAME_URL}")` }}
+      />
+      <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-white/70 via-white/25 to-white/70" />
+      <div className="absolute left-8 top-8 w-20 h-20 rounded-full bg-emerald-200/20 blur-3xl pointer-events-none" />
+      <div className="absolute right-6 bottom-6 w-24 h-24 rounded-full bg-amber-200/20 blur-3xl pointer-events-none" />
+
+      <div className="relative z-10 space-y-7">
+        <h3 className="text-[13px] font-semibold text-emerald-700 text-center">
+          {getAlbumTitle(lang)}
+        </h3>
+
+        <div className="relative h-[330px] flex items-center justify-center">
+          <motion.button
+            type="button"
+            onClick={() => goTo(previousIndex)}
+            className="absolute left-0 top-1/2 z-10 h-44 w-28 -translate-y-1/2 overflow-hidden rounded-[1.75rem] border-4 border-white bg-white shadow-lg"
+            initial={false}
+            animate={{ x: 0, scale: 0.86, opacity: 0.64, filter: 'blur(1.8px)' }}
+            whileTap={{ scale: 0.82 }}
+          >
+            <img src={previousPhoto.url} loading="lazy" className="h-full w-full object-cover" alt="" />
+            <div className="absolute inset-0 bg-white/20" />
+          </motion.button>
+
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activePhoto.url}
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.98 }}
+              transition={{ duration: 0.35, ease: 'easeOut' }}
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              onDragEnd={(_, info) => {
+                if (info.offset.x < -60) goTo(nextIndex);
+                if (info.offset.x > 60) goTo(previousIndex);
+              }}
+              className="relative z-20 w-[74%] max-w-[300px] overflow-hidden rounded-[2.35rem] border-[7px] border-white bg-white shadow-[0_28px_65px_rgba(15,23,42,0.22)]"
+            >
+              <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-tr from-black/10 via-transparent to-white/25" />
+              <img src={activePhoto.url} loading="lazy" className="aspect-[4/5] w-full object-cover" alt="" />
+
+              <div className="absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/55 to-transparent px-5 pb-5 pt-12">
+                <p className="truncate text-center text-[11px] font-medium text-white/90">
+                  {activePhoto.label}
+                </p>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+
+          <motion.button
+            type="button"
+            onClick={() => goTo(nextIndex)}
+            className="absolute right-0 top-1/2 z-10 h-44 w-28 -translate-y-1/2 overflow-hidden rounded-[1.75rem] border-4 border-white bg-white shadow-lg"
+            initial={false}
+            animate={{ x: 0, scale: 0.86, opacity: 0.64, filter: 'blur(1.8px)' }}
+            whileTap={{ scale: 0.82 }}
+          >
+            <img src={nextPhoto.url} loading="lazy" className="h-full w-full object-cover" alt="" />
+            <div className="absolute inset-0 bg-white/20" />
+          </motion.button>
+        </div>
+
+        <div className="flex justify-center gap-2">
+          {photos.map((photo: any, index: number) => (
+            <button
+              key={`${photo.url}-dot-${index}`}
+              type="button"
+              onClick={() => goTo(index)}
+              className={`h-2 rounded-full transition-all ${
+                index === activeIndex ? 'w-7 bg-emerald-500' : 'w-2 bg-emerald-200'
+              }`}
+              aria-label={`Photo ${index + 1}`}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
 };
 
 export function GuestView({ invitation }: any) {
@@ -116,23 +472,6 @@ export function GuestView({ invitation }: any) {
   const isFreeShutterOpening = !isVideoOpening;
   const openingVideoVisible = isVideoReady && !isOpeningFading;
 
-  const getPaperClass = () => {
-    switch (effectivePaperType) {
-      case 'parchment':
-        return 'paper-parchment';
-      case 'grainy':
-        return 'paper-grainy';
-      case 'cotton':
-        return 'paper-cotton';
-      case 'silk':
-        return 'paper-silk';
-      case 'velvet':
-        return 'paper-velvet';
-      default:
-        return 'paper-smooth';
-    }
-  };
-
   const premiumGalleryPhotos = useMemo(() => {
     if (!isPremium) return [];
 
@@ -176,6 +515,23 @@ export function GuestView({ invitation }: any) {
       audioRef.current.play().catch(() => {});
     }
   }, [isOpened, invitation?.music_url]);
+
+  const getPaperClass = () => {
+    switch (effectivePaperType) {
+      case 'parchment':
+        return 'paper-parchment';
+      case 'grainy':
+        return 'paper-grainy';
+      case 'cotton':
+        return 'paper-cotton';
+      case 'silk':
+        return 'paper-silk';
+      case 'velvet':
+        return 'paper-velvet';
+      default:
+        return 'paper-smooth';
+    }
+  };
 
   const triggerContainerOpening = () => {
     setIsOpened(true);
@@ -260,7 +616,7 @@ export function GuestView({ invitation }: any) {
           drift: -28 + Math.random() * 56,
           rotate: -18 + Math.random() * 36
         })),
-      [emojis]
+      []
     );
 
     return (
@@ -349,392 +705,6 @@ export function GuestView({ invitation }: any) {
     </>
   );
 
-  const AutonomousDecor = () => {
-    const theme = backgroundTheme;
-
-    const ballons = useMemo(
-      () =>
-        Array.from({ length: 6 }).map((_, i) => ({
-          id: i,
-          left: `${15 + i * 14 + Math.random() * 4}%`,
-          delay: i * 0.5,
-          duration: 6 + Math.random() * 3
-        })),
-      []
-    );
-
-    const papillonsConfig = useMemo(
-      () => [
-        { id: 1, size: 0.85, flapSpeed: 0.2, duration: 7, initX: -50, initY: 100, pathX: [120, 240, 400], pathY: [80, 220, 150] },
-        { id: 2, size: 0.5, flapSpeed: 0.16, duration: 5, initX: 420, initY: 200, pathX: [280, 140, -60], pathY: [250, 90, 180] },
-        { id: 3, size: 0.7, flapSpeed: 0.24, duration: 8, initX: 180, initY: -60, pathX: [220, 100, 160], pathY: [150, 380, 700] },
-        { id: 4, size: 0.6, flapSpeed: 0.18, duration: 6, initX: 250, initY: 680, pathX: [120, 300, 200], pathY: [480, 200, -60] },
-        { id: 5, size: 0.9, flapSpeed: 0.22, duration: 7.5, initX: -50, initY: 450, pathX: [150, 80, 420], pathY: [350, 120, 50] },
-        { id: 6, size: 0.45, flapSpeed: 0.14, duration: 4.5, initX: 420, initY: 400, pathX: [200, 310, -50], pathY: [300, 520, 380] }
-      ],
-      []
-    );
-
-    const etoilesPluie = useMemo(
-      () =>
-        Array.from({ length: 48 }).map((_, i) => ({
-          id: i,
-          left: `${2 + Math.random() * 96}%`,
-          delay: Math.random() * 3.5,
-          duration: 2.4 + Math.random() * 1.8,
-          sizeClass: i % 3 === 0 ? 'w-3 h-auto' : 'w-2 h-auto',
-          rotate: Math.random() * 180
-        })),
-      []
-    );
-
-    return (
-      <div className="absolute inset-0 z-[15] pointer-events-none overflow-hidden">
-        {theme === 'flowers' && (
-          <>
-            <div
-              className="absolute -top-8 -right-8 w-56 h-56 bg-contain bg-no-repeat bg-right-top z-20"
-              style={{ backgroundImage: 'url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleurs%20haut%20droite.png")' }}
-            />
-            <div
-              className="absolute -bottom-8 -left-8 w-56 h-56 bg-contain bg-no-repeat bg-left-bottom z-20"
-              style={{ backgroundImage: 'url("https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/fleurs%20bas%20gauche.png")' }}
-            />
-          </>
-        )}
-
-        {theme === 'balloons' &&
-          ballons.map((b) => (
-            <motion.img
-              key={`ballon-${b.id}`}
-              src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/ballons.png"
-              initial={{ y: 680, opacity: 0 }}
-              animate={{ y: -120, opacity: [0, 1, 1, 0] }}
-              transition={{ duration: b.duration, repeat: Infinity, delay: b.delay, ease: 'linear' }}
-              className="absolute w-10 h-auto"
-              style={{ left: b.left }}
-              alt=""
-            />
-          ))}
-
-        {theme === 'butterflies' &&
-          isPremiumDecor &&
-          papillonsConfig.map((p) => (
-            <motion.div
-              key={`pap-infinite-${p.id}`}
-              initial={{ x: p.initX, y: p.initY, opacity: 0 }}
-              animate={{ x: p.pathX, y: p.pathY, opacity: [0, 1, 1, 1, 0] }}
-              transition={{ duration: p.duration, repeat: Infinity, ease: 'linear' }}
-              className="absolute"
-              style={{ scale: p.size }}
-            >
-              <motion.img
-                src={
-                  p.id % 2 === 0
-                    ? 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/papillions.png'
-                    : 'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/papillion%202.png'
-                }
-                animate={{ scaleX: [1, -1, 1] }}
-                transition={{ duration: p.flapSpeed, repeat: Infinity, ease: 'linear' }}
-                className="w-8 h-auto origin-center"
-                alt=""
-              />
-            </motion.div>
-          ))}
-
-        {theme === 'stars' && (
-          <>
-            {etoilesPluie.map((e) => (
-              <motion.img
-                key={`etoile-dense-${e.id}`}
-                src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/etoile.png"
-                initial={{ y: -40, opacity: 0, scale: 0.55, rotate: e.rotate }}
-                animate={{
-                  y: '106vh',
-                  opacity: [0, 1, 1, 0.9, 0],
-                  scale: [0.55, 1, 0.95, 0.7],
-                  rotate: e.rotate + 120
-                }}
-                transition={{
-                  duration: e.duration,
-                  times: [0, 0.18, 0.72, 0.9, 1],
-                  repeat: Infinity,
-                  delay: e.delay,
-                  ease: 'easeIn'
-                }}
-                className={`absolute ${e.sizeClass} drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]`}
-                style={{ left: e.left }}
-                alt=""
-              />
-            ))}
-            <div className="star-pile" />
-          </>
-        )}
-      </div>
-    );
-  };
-
-  const ContentOrnaments = () => {
-    const threads = useMemo(
-      () =>
-        Array.from({ length: 8 }).map((_, i) => ({
-          id: i,
-          left: `${8 + Math.random() * 84}%`,
-          top: `${8 + Math.random() * 86}%`,
-          rotate: `${-28 + Math.random() * 56}deg`,
-          delay: Math.random() * 2.4,
-          duration: 4 + Math.random() * 2
-        })),
-      []
-    );
-
-    const sparks = useMemo(
-      () =>
-        Array.from({ length: 14 }).map((_, i) => ({
-          id: i,
-          left: `${6 + Math.random() * 88}%`,
-          top: `${6 + Math.random() * 88}%`,
-          delay: Math.random() * 2.8,
-          duration: 2.8 + Math.random() * 2.2,
-          scale: 0.65 + Math.random() * 0.75
-        })),
-      []
-    );
-
-    return (
-      <div className="invitation-ornament-layer">
-        {threads.map((thread) => (
-          <motion.span
-            key={`thread-${thread.id}`}
-            className="gold-thread"
-            style={{ left: thread.left, top: thread.top, rotate: thread.rotate }}
-            animate={{ opacity: [0.08, 0.38, 0.08], x: [0, 8, 0] }}
-            transition={{ duration: thread.duration, repeat: Infinity, delay: thread.delay, ease: 'easeInOut' }}
-          />
-        ))}
-
-        {sparks.map((spark) => (
-          <motion.span
-            key={`spark-${spark.id}`}
-            className="gold-spark"
-            style={{ left: spark.left, top: spark.top, scale: spark.scale }}
-            animate={{ opacity: [0, 0.85, 0], rotate: [0, 45, 90], y: [0, -8, 0] }}
-            transition={{ duration: spark.duration, repeat: Infinity, delay: spark.delay, ease: 'easeInOut' }}
-          />
-        ))}
-      </div>
-    );
-  };
-
-  const PremiumStorySection = ({ title, text, imageUrl, reverse }: any) => {
-    if (!isPremium || (!title && !text && !imageUrl)) return null;
-
-    return (
-      <motion.section
-        initial={{ opacity: 0, y: 36 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: '-80px' }}
-        transition={{ duration: 0.9, ease: 'easeOut' }}
-        className="relative"
-      >
-        <div className={`flex flex-col gap-5 ${reverse ? 'items-end text-right' : 'items-start text-left'}`}>
-          {imageUrl && (
-            <motion.div
-              initial={{ opacity: 0, rotate: reverse ? 3 : -3, scale: 0.94 }}
-              whileInView={{ opacity: 1, rotate: reverse ? 1.5 : -1.5, scale: 1 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.9, delay: 0.15 }}
-              className="w-full overflow-hidden rounded-[2.25rem] border-4 border-white shadow-2xl bg-white"
-            >
-              <img src={imageUrl} loading="lazy" className="w-full aspect-[4/3] object-cover" alt="" />
-            </motion.div>
-          )}
-
-          <div className="relative bg-white/55 backdrop-blur-sm border border-amber-100 rounded-[2rem] p-6 shadow-lg">
-            <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-amber-300/20 blur-md" />
-
-            {title && (
-              <h3 className="text-xl font-black mb-3 leading-tight" style={{ fontFamily: fontStyle }}>
-                {title}
-              </h3>
-            )}
-
-            {text && (
-              <p className="text-[13px] leading-relaxed whitespace-pre-wrap opacity-75 italic" style={{ fontFamily: fontStyle }}>
-                {text}
-              </p>
-            )}
-          </div>
-        </div>
-      </motion.section>
-    );
-  };
-
-  const PremiumSingleAlbumPhoto = ({ photo }: any) => {
-    if (!photo?.url) return null;
-
-    return (
-      <motion.section
-        initial={{ opacity: 0, y: 36 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: '-80px' }}
-        transition={{ duration: 0.9, ease: 'easeOut' }}
-        className="relative overflow-hidden rounded-[2.75rem] border border-emerald-100 bg-white/80 px-5 py-8 shadow-[0_24px_70px_rgba(16,185,129,0.13)]"
-      >
-        <div
-          className="absolute inset-0 opacity-35 bg-cover bg-center pointer-events-none"
-          style={{ backgroundImage: `url("${LEAF_FRAME_URL}")` }}
-        />
-        <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-white/75 via-white/25 to-white/75" />
-        <div className="absolute left-8 top-8 w-20 h-20 rounded-full bg-emerald-200/20 blur-3xl pointer-events-none" />
-        <div className="absolute right-6 bottom-6 w-24 h-24 rounded-full bg-amber-200/20 blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 space-y-7">
-          <h3 className="text-[10px] font-black text-emerald-700 uppercase tracking-[0.3em] text-center flex items-center justify-center gap-2">
-            <Sparkles size={12} />
-            {lang === 'fr' ? 'Album souvenir' : lang === 'en' ? 'Memory album' : 'Album kỷ niệm'}
-            <Sparkles size={12} />
-          </h3>
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.92, rotate: -1.5 }}
-            whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.85, ease: 'easeOut' }}
-            className="relative mx-auto w-full max-w-[310px] overflow-hidden rounded-[2.4rem] border-[7px] border-white bg-white shadow-[0_28px_65px_rgba(15,23,42,0.2)]"
-          >
-            <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-tr from-black/10 via-transparent to-white/25" />
-            <img src={photo.url} loading="lazy" className="aspect-[4/5] w-full object-cover" alt="" />
-
-            <div className="absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/50 to-transparent px-5 pb-5 pt-12">
-              <p className="truncate text-center text-[9px] font-black uppercase tracking-[0.24em] text-white/90">
-                {photo.label}
-              </p>
-            </div>
-          </motion.div>
-        </div>
-      </motion.section>
-    );
-  };
-
-  const PremiumPhotoCarousel = ({ photos }: any) => {
-    const [activeIndex, setActiveIndex] = useState(0);
-
-    useEffect(() => {
-      if (!photos || photos.length < 2) return;
-
-      const timer = setInterval(() => {
-        setActiveIndex((current) => (current + 1) % photos.length);
-      }, 3800);
-
-      return () => clearInterval(timer);
-    }, [photos]);
-
-    if (!photos || photos.length < 2) return null;
-
-    const previousIndex = (activeIndex - 1 + photos.length) % photos.length;
-    const nextIndex = (activeIndex + 1) % photos.length;
-    const activePhoto = photos[activeIndex];
-    const previousPhoto = photos[previousIndex];
-    const nextPhoto = photos[nextIndex];
-
-    const goTo = (index: number) => {
-      setActiveIndex(index);
-    };
-
-    return (
-      <motion.section
-        initial={{ opacity: 0, y: 36 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: '-80px' }}
-        transition={{ duration: 0.9, ease: 'easeOut' }}
-        className="relative overflow-hidden rounded-[2.75rem] border border-emerald-100 bg-white/80 px-4 py-8 shadow-[0_24px_70px_rgba(16,185,129,0.13)]"
-      >
-        <div
-          className="absolute inset-0 opacity-35 bg-cover bg-center pointer-events-none"
-          style={{ backgroundImage: `url("${LEAF_FRAME_URL}")` }}
-        />
-        <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-white/70 via-white/25 to-white/70" />
-        <div className="absolute left-8 top-8 w-20 h-20 rounded-full bg-emerald-200/20 blur-3xl pointer-events-none" />
-        <div className="absolute right-6 bottom-6 w-24 h-24 rounded-full bg-amber-200/20 blur-3xl pointer-events-none" />
-
-        <div className="relative z-10 space-y-7">
-          <h3 className="text-[10px] font-black text-emerald-700 uppercase tracking-[0.3em] text-center flex items-center justify-center gap-2">
-            <Sparkles size={12} />
-            {lang === 'fr' ? 'Album souvenir' : lang === 'en' ? 'Memory album' : 'Album kỷ niệm'}
-            <Sparkles size={12} />
-          </h3>
-
-          <div className="relative h-[330px] flex items-center justify-center">
-            <motion.button
-              type="button"
-              onClick={() => goTo(previousIndex)}
-              className="absolute left-0 top-1/2 z-10 h-44 w-28 -translate-y-1/2 overflow-hidden rounded-[1.75rem] border-4 border-white bg-white shadow-lg"
-              initial={false}
-              animate={{ x: 0, scale: 0.86, opacity: 0.64, filter: 'blur(1.8px)' }}
-              whileTap={{ scale: 0.82 }}
-            >
-              <img src={previousPhoto.url} loading="lazy" className="h-full w-full object-cover" alt="" />
-              <div className="absolute inset-0 bg-white/20" />
-            </motion.button>
-
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activePhoto.url}
-                initial={{ opacity: 0, scale: 0.88, y: 18 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.92, y: -18 }}
-                transition={{ duration: 0.65, ease: 'easeOut' }}
-                drag="x"
-                dragConstraints={{ left: 0, right: 0 }}
-                onDragEnd={(_, info) => {
-                  if (info.offset.x < -60) goTo(nextIndex);
-                  if (info.offset.x > 60) goTo(previousIndex);
-                }}
-                className="relative z-20 w-[74%] max-w-[300px] overflow-hidden rounded-[2.35rem] border-[7px] border-white bg-white shadow-[0_28px_65px_rgba(15,23,42,0.22)]"
-              >
-                <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-tr from-black/10 via-transparent to-white/25" />
-                <img src={activePhoto.url} loading="lazy" className="aspect-[4/5] w-full object-cover" alt="" />
-
-                <div className="absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/55 to-transparent px-5 pb-5 pt-12">
-                  <p className="truncate text-center text-[9px] font-black uppercase tracking-[0.24em] text-white/90">
-                    {activePhoto.label}
-                  </p>
-                </div>
-              </motion.div>
-            </AnimatePresence>
-
-            <motion.button
-              type="button"
-              onClick={() => goTo(nextIndex)}
-              className="absolute right-0 top-1/2 z-10 h-44 w-28 -translate-y-1/2 overflow-hidden rounded-[1.75rem] border-4 border-white bg-white shadow-lg"
-              initial={false}
-              animate={{ x: 0, scale: 0.86, opacity: 0.64, filter: 'blur(1.8px)' }}
-              whileTap={{ scale: 0.82 }}
-            >
-              <img src={nextPhoto.url} loading="lazy" className="h-full w-full object-cover" alt="" />
-              <div className="absolute inset-0 bg-white/20" />
-            </motion.button>
-          </div>
-
-          <div className="flex justify-center gap-2">
-            {photos.map((photo: any, index: number) => (
-              <button
-                key={`${photo.url}-dot-${index}`}
-                type="button"
-                onClick={() => goTo(index)}
-                className={`h-2 rounded-full transition-all ${
-                  index === activeIndex ? 'w-7 bg-emerald-500' : 'w-2 bg-emerald-200'
-                }`}
-                aria-label={`Photo ${index + 1}`}
-              />
-            ))}
-          </div>
-        </div>
-      </motion.section>
-    );
-  };
-
   const showEmojiRain = isOpened && (planType !== 'PREMIUM' || premiumTriggerType === 'emoji' || !premiumTriggerType);
   const showPremiumDecor = isOpened && isPremiumDecor;
 
@@ -743,7 +713,7 @@ export function GuestView({ invitation }: any) {
       {invitation?.music_url && <audio ref={audioRef} src={invitation.music_url} loop />}
 
       {showEmojiRain && <EmojiRain />}
-      {showPremiumDecor && <AutonomousDecor />}
+      {showPremiumDecor && <AutonomousDecor theme={backgroundTheme} isPremiumDecor={isPremiumDecor} />}
 
       <AnimatePresence mode="wait">
         {view === 'envelope' ? (
@@ -835,14 +805,14 @@ export function GuestView({ invitation }: any) {
               style={{ '--dynamic-color': cardPaperColor } as CSSProperties}
             >
               <div className="text-center pt-14 w-full">
-                <h2 className="text-2xl font-black uppercase tracking-tighter mb-4 break-words" style={{ fontFamily: fontStyle }}>
+                <h2 className="text-2xl font-semibold mb-4 break-words leading-tight" style={{ fontFamily: fontStyle }}>
                   {invitation?.title || tBuilder.title_placeholder}
                 </h2>
                 <div className="w-8 h-1 bg-amber-400 mx-auto mb-4" />
-                <p className="opacity-60 text-[9px] font-bold uppercase tracking-[0.3em]">{t.tap_open}</p>
+                <p className="opacity-60 text-[11px] font-medium">{t.tap_open}</p>
               </div>
 
-              <div className="w-full py-4 bg-gray-900 text-white rounded-2xl text-[10px] font-black uppercase text-center tracking-widest">
+              <div className="w-full py-4 bg-gray-900 text-white rounded-2xl text-[12px] font-semibold text-center">
                 {lang === 'vi' ? 'Xem chi tiết' : lang === 'en' ? 'See details' : 'Voir les détails'}
               </div>
             </motion.div>
@@ -855,9 +825,9 @@ export function GuestView({ invitation }: any) {
                       initial={false}
                       animate={isOpeningFading || openingVideoVisible ? { opacity: 0 } : { opacity: 1 }}
                       transition={{ duration: 0.45, ease: 'easeInOut' }}
-                      className="absolute bottom-12 z-[80] text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse text-center w-full px-4 drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)] pointer-events-none"
+                      className="absolute bottom-12 z-[80] text-white font-semibold text-[12px] animate-pulse text-center w-full px-4 drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)] pointer-events-none"
                     >
-                      {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? 'Tap to open invitation' : 'Nhấn để mở lời mời'}
+                      {t.tap_open}
                     </motion.div>
                   )}
 
@@ -871,8 +841,8 @@ export function GuestView({ invitation }: any) {
                     onClick={handleTriggerClick}
                   >
                     {isFreeShutterOpening && (
-                      <p className="absolute bottom-12 z-[80] text-white font-black text-[10px] uppercase tracking-[0.3em] animate-pulse text-center w-full px-4 drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)]">
-                        {lang === 'fr' ? "Appuyez pour ouvrir l'invitation" : lang === 'en' ? 'Tap to open invitation' : 'Nhấn để mở lời mời'}
+                      <p className="absolute bottom-12 z-[80] text-white font-semibold text-[12px] animate-pulse text-center w-full px-4 drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)]">
+                        {t.tap_open}
                       </p>
                     )}
                   </motion.div>
@@ -894,14 +864,11 @@ export function GuestView({ invitation }: any) {
           >
             <ContentOrnaments />
 
-            <motion.div initial={{ opacity: 0, scale: 1.08 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 1.1, ease: 'easeOut' }} className="h-[32%] relative overflow-hidden shrink-0">
+            <div className="h-[32%] relative overflow-hidden shrink-0">
               {mainPhotoUrl && (
-                <motion.img
+                <img
                   src={mainPhotoUrl}
                   className="w-full h-full object-cover"
-                  initial={{ scale: 1.08 }}
-                  animate={{ scale: 1 }}
-                  transition={{ duration: 1.4, ease: 'easeOut' }}
                   style={{ transform: `translate(${mainPhotoPosX}px, ${mainPhotoPosY}px) scale(${mainPhotoScale})` }}
                   alt=""
                 />
@@ -912,15 +879,15 @@ export function GuestView({ invitation }: any) {
               <button onClick={() => setView('envelope')} className="absolute top-6 left-6 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-md">
                 <X size={20} />
               </button>
-            </motion.div>
+            </div>
 
             <div className="relative flex-1 p-8 space-y-14">
-              <motion.div initial={{ opacity: 0, y: 28 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.85, delay: 0.15 }} className="text-center">
-                <motion.h2 initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.25 }} className="text-3xl font-black mb-4 leading-tight" style={{ fontFamily: fontStyle }}>
+              <div className="text-center">
+                <h2 className="text-3xl font-semibold mb-4 leading-tight" style={{ fontFamily: fontStyle }}>
                   {invitation?.host_names || tBuilder.hosts_placeholder}
-                </motion.h2>
+                </h2>
 
-                <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.75, delay: 0.45 }} className="flex flex-col items-center gap-2 opacity-70 font-bold text-[10px] uppercase tracking-widest text-gray-700">
+                <div className="flex flex-col items-center gap-2 opacity-70 font-medium text-[12px] text-gray-700">
                   <div className="flex items-center gap-2">
                     <Calendar size={14} className="text-amber-500" />
                     {invitation.event_date
@@ -932,67 +899,53 @@ export function GuestView({ invitation }: any) {
                       : t.save_date}
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <MapPin size={14} className="text-amber-500" />
+                  <div className="flex items-center gap-2 text-center">
+                    <MapPin size={14} className="text-amber-500 shrink-0" />
                     {invitation.event_address || tBuilder.address_placeholder}
                   </div>
-                </motion.div>
+                </div>
 
-                <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, delay: 0.65 }} className="mt-6 flex justify-center gap-4">
+                <div className="mt-6 flex justify-center gap-4">
                   <button onClick={addToCalendar} className="p-3 bg-amber-50 rounded-full shadow-sm active:scale-95 transition-transform">
                     <Calendar size={18} className="text-amber-600" />
                   </button>
                   <button onClick={openMaps} className="p-3 bg-amber-50 rounded-full shadow-sm active:scale-95 transition-transform">
                     <MapPin size={18} className="text-amber-600" />
                   </button>
-                </motion.div>
-              </motion.div>
+                </div>
+              </div>
 
               {invitation.description && (
-                <motion.div initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.85 }} className="text-center italic opacity-85" style={{ fontFamily: fontStyle }}>
-                  <p className="text-[13px] leading-relaxed px-4 whitespace-pre-wrap">{invitation.description}</p>
+                <div className="text-center italic opacity-85" style={{ fontFamily: fontStyle }}>
+                  <p className="text-[14px] leading-relaxed px-4 whitespace-pre-wrap">{invitation.description}</p>
                   <div className="w-12 h-[1px] bg-amber-200 mx-auto mt-6" />
-                </motion.div>
+                </div>
               )}
 
               <div className="space-y-12">
-                <motion.h3 initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.75 }} className="text-[10px] font-black text-amber-600 uppercase tracking-[0.3em] text-center flex items-center justify-center gap-2">
-                  <Sparkles size={12} /> {tBuilder.program_title} <Sparkles size={12} />
-                </motion.h3>
+                <h3 className="text-[14px] font-semibold text-amber-600 text-center">
+                  {tBuilder.program_title}
+                </h3>
 
                 <div className="relative flex flex-col items-center">
-                  <motion.div
-                    initial={{ scaleY: 0, opacity: 0 }}
-                    whileInView={{ scaleY: 1, opacity: 1 }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 3.0, ease: 'easeInOut' }}
-                    className="absolute top-0 w-[2px] h-full bg-gradient-to-b from-amber-100 via-amber-500 to-amber-100 origin-top shadow-[0_0_16px_rgba(245,158,11,0.55)]"
-                  />
+                  <div className="absolute top-0 w-[2px] h-full bg-gradient-to-b from-amber-100 via-amber-500 to-amber-100 origin-top shadow-[0_0_16px_rgba(245,158,11,0.55)]" />
 
                   <div className="relative space-y-12 w-full">
                     {(invitation.event_program || []).map((step: any, i: number) => {
                       const isEven = i % 2 === 0;
 
                       return (
-                        <motion.div
+                        <div
                           key={i}
-                          initial={{ opacity: 0, x: isEven ? -42 : 42, y: 16 }}
-                          whileInView={{ opacity: 1, x: 0, y: 0 }}
-                          viewport={{ once: true, margin: '-60px' }}
-                          transition={{ duration: 0.9, delay: 0.05, ease: 'easeOut' }}
                           className={`flex items-center w-full relative ${isEven ? 'flex-row' : 'flex-row-reverse'}`}
                         >
                           <div className="w-[45%]">
                             <div className={`overflow-hidden bg-white/65 backdrop-blur-sm rounded-2xl border border-amber-100 shadow-lg ${isEven ? 'text-right' : 'text-left'}`}>
                               {step.image_url && (
                                 <div className="w-full aspect-video overflow-hidden">
-                                  <motion.img
+                                  <img
                                     src={step.image_url}
                                     loading="lazy"
-                                    initial={{ scale: 1.08 }}
-                                    whileInView={{ scale: 1 }}
-                                    viewport={{ once: true }}
-                                    transition={{ duration: 1.1 }}
                                     className="w-full h-full object-cover"
                                     alt=""
                                   />
@@ -1000,40 +953,44 @@ export function GuestView({ invitation }: any) {
                               )}
 
                               <div className="p-4">
-                                <div className={`text-[9px] font-black text-amber-600 mb-1 flex items-center gap-1 ${isEven ? 'justify-start' : 'justify-end'}`}>
-                                  <Clock size={8} /> {step.time}
-                                </div>
-                                <div className="text-[11px] font-bold uppercase tracking-tight leading-tight" style={{ fontFamily: fontStyle }}>
+                                <div className="text-[13px] font-medium leading-tight" style={{ fontFamily: fontStyle }}>
                                   {step.activity}
                                 </div>
                               </div>
                             </div>
                           </div>
 
-                          <div className="w-[10%] flex justify-center">
-                            <motion.div initial={{ scale: 0 }} whileInView={{ scale: 1 }} viewport={{ once: true }} transition={{ type: 'spring', damping: 12 }} className="relative z-10">
+                          <div className="w-[10%] flex flex-col items-center justify-center gap-2">
+                            <div className="text-[10px] font-semibold text-amber-600 leading-none whitespace-nowrap">
+                              {step.time}
+                            </div>
+                            <div className="relative z-10">
                               <div className="w-3 h-3 bg-amber-500 rounded-full ring-4 ring-white shadow-sm" />
-                              <motion.div animate={{ scale: [1, 2.2, 1], opacity: [0.45, 0, 0.45] }} transition={{ duration: 2.4, repeat: Infinity, delay: i * 0.15 }} className="absolute inset-0 rounded-full bg-amber-400" />
-                            </motion.div>
+                              <motion.div
+                                animate={{ scale: [1, 2.2, 1], opacity: [0.45, 0, 0.45] }}
+                                transition={{ duration: 2.4, repeat: Infinity, delay: i * 0.15 }}
+                                className="absolute inset-0 rounded-full bg-amber-400"
+                              />
+                            </div>
                           </div>
 
                           <div className="w-[45%]" />
-                        </motion.div>
+                        </div>
                       );
                     })}
                   </div>
                 </div>
               </div>
 
-              <PremiumStorySection title={premiumMidTitle} text={premiumMidText} imageUrl={premiumMidPhotoUrl} />
+              <PremiumStorySection isPremium={isPremium} title={premiumMidTitle} text={premiumMidText} imageUrl={premiumMidPhotoUrl} fontStyle={fontStyle} />
 
-              {isPremium && premiumGalleryPhotos.length === 1 && <PremiumSingleAlbumPhoto photo={premiumGalleryPhotos[0]} />}
-              {isPremium && premiumGalleryPhotos.length >= 2 && <PremiumPhotoCarousel photos={premiumGalleryPhotos.slice(0, 6)} />}
+              {isPremium && premiumGalleryPhotos.length === 1 && <PremiumSingleAlbumPhoto photo={premiumGalleryPhotos[0]} lang={lang} />}
+              {isPremium && premiumGalleryPhotos.length >= 2 && <PremiumPhotoCarousel photos={premiumGalleryPhotos.slice(0, 6)} lang={lang} />}
 
               {isPremium && endPhotoUrl && (
-                <motion.div initial={{ opacity: 0, y: 34, rotate: 0 }} whileInView={{ opacity: 1, y: 0, rotate: 1 }} viewport={{ once: true, margin: '-80px' }} transition={{ duration: 0.9 }} className="px-2">
+                <div className="px-2">
                   <div className="text-center mb-5">
-                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-amber-600">
+                    <p className="text-[13px] font-semibold text-amber-600">
                       {lang === 'fr' ? 'Un souvenir à garder' : lang === 'en' ? 'A memory to keep' : 'Một kỷ niệm để giữ'}
                     </p>
                   </div>
@@ -1050,31 +1007,25 @@ export function GuestView({ invitation }: any) {
                       alt=""
                     />
                   </div>
-                </motion.div>
+                </div>
               )}
 
-              <PremiumStorySection title={premiumFinalTitle} text={premiumFinalText} imageUrl={premiumFinalPhotoUrl} reverse />
+              <PremiumStorySection isPremium={isPremium} title={premiumFinalTitle} text={premiumFinalText} imageUrl={premiumFinalPhotoUrl} fontStyle={fontStyle} />
 
-              <motion.div
-                initial={{ opacity: 0, y: 36 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-80px' }}
-                transition={{ duration: 0.9 }}
-                className="relative bg-gray-900 rounded-[3rem] p-8 shadow-2xl border border-amber-300/20 overflow-hidden"
-              >
+              <div className="relative bg-gray-900 rounded-[3rem] p-8 shadow-2xl border border-amber-300/20 overflow-hidden">
                 <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.22),transparent_42%)]" />
                 <div className="absolute -top-10 -right-10 w-32 h-32 bg-amber-400/10 rounded-full blur-3xl" />
 
                 {!isSubmitted ? (
                   <form onSubmit={handleRSVP} className="relative z-10 space-y-6">
-                    <h3 className="font-black uppercase tracking-widest text-xs text-white text-center">{t.confirm_rsvp}</h3>
+                    <h3 className="font-semibold text-sm text-white text-center">{t.confirm_rsvp}</h3>
 
                     <div className="flex items-center justify-between bg-white/5 p-2 rounded-2xl border border-white/10">
-                      <button type="button" onClick={() => setGuestCount(Math.max(1, guestCount - 1))} className="w-12 h-12 bg-white/10 text-white rounded-xl font-black active:scale-95 transition-transform">
+                      <button type="button" onClick={() => setGuestCount(Math.max(1, guestCount - 1))} className="w-12 h-12 bg-white/10 text-white rounded-xl font-semibold active:scale-95 transition-transform">
                         -
                       </button>
-                      <span className="text-white font-black text-2xl">{guestCount}</span>
-                      <button type="button" onClick={() => setGuestCount(guestCount + 1)} className="w-12 h-12 bg-white/10 text-white rounded-xl font-black active:scale-95 transition-transform">
+                      <span className="text-white font-semibold text-2xl">{guestCount}</span>
+                      <button type="button" onClick={() => setGuestCount(guestCount + 1)} className="w-12 h-12 bg-white/10 text-white rounded-xl font-semibold active:scale-95 transition-transform">
                         +
                       </button>
                     </div>
@@ -1106,18 +1057,18 @@ export function GuestView({ invitation }: any) {
                       </div>
                     ))}
 
-                    <motion.button type="submit" disabled={isSubmitting} whileTap={{ scale: 0.97 }} className="w-full h-14 bg-white text-gray-900 rounded-2xl font-black uppercase text-xs shadow-xl transition-all disabled:opacity-60">
+                    <motion.button type="submit" disabled={isSubmitting} whileTap={{ scale: 0.97 }} className="w-full h-14 bg-white text-gray-900 rounded-2xl font-semibold text-sm shadow-xl transition-all disabled:opacity-60">
                       {isSubmitting ? '...' : t.send}
                     </motion.button>
                   </form>
                 ) : (
                   <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.55 }} className="relative z-10 py-8 text-center space-y-4">
                     <CheckCircle2 size={46} className="text-amber-400 mx-auto drop-shadow-[0_0_12px_rgba(251,191,36,0.5)]" />
-                    <p className="text-white font-black uppercase text-sm">{t.thank_you}</p>
-                    <p className="text-white/45 text-[11px] font-bold uppercase tracking-widest">{t.success_msg}</p>
+                    <p className="text-white font-semibold text-sm">{t.thank_you}</p>
+                    <p className="text-white/45 text-[12px] font-medium">{t.success_msg}</p>
                   </motion.div>
                 )}
-              </motion.div>
+              </div>
             </div>
           </motion.div>
         )}
