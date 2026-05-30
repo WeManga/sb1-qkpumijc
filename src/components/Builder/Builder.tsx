@@ -7,6 +7,9 @@ import { Loader2 } from 'lucide-react';
 import { translations, Language } from '../../lib/i18n';
 
 type Invitation = Database['public']['Tables']['invitations']['Row'];
+type BuilderInvitation = Partial<Invitation> & {
+  plan_type?: 'FREE' | 'PREMIUM';
+};
 
 interface BuilderProps {
   invitationId?: string;
@@ -19,7 +22,9 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
   const lang = (localStorage.getItem('invite_lang') as Language) || 'fr';
   const tAuth = translations[lang].auth;
 
-  const [invitation, setInvitation] = useState<Partial<Invitation>>({
+  const [accountPlanType, setAccountPlanType] = useState<'FREE' | 'PREMIUM'>('FREE');
+
+  const [invitation, setInvitation] = useState<BuilderInvitation>({
     event_type: 'wedding',
     title: translations[lang].builder.theme_wedding,
     host_names: 'John & Jane',
@@ -51,22 +56,72 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
     album_photo_url_4: '',
     album_photo_url_5: '',
     album_photo_url_6: '',
-    // @ts-ignore
-    plan_type: 'PREMIUM'
+    plan_type: 'FREE'
   });
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
+    initialiseBuilder();
+  }, [invitationId, user]);
+
+  const getEffectivePlanType = async (): Promise<'FREE' | 'PREMIUM'> => {
+    if (!user) return 'FREE';
+
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('plan_type, premium_expires_at')
+        .eq('id', user.id)
+        .single();
+
+      if (error || !data) return 'FREE';
+
+      const profile: any = data;
+      const expiresAt = profile.premium_expires_at ? new Date(profile.premium_expires_at) : null;
+      const isPremiumActive = profile.plan_type === 'PREMIUM' && expiresAt && expiresAt > new Date();
+
+      if (isPremiumActive) {
+        return 'PREMIUM';
+      }
+
+      if (profile.plan_type === 'PREMIUM' && expiresAt && expiresAt <= new Date()) {
+        await supabase
+          .from('profiles')
+          .update({
+            plan_type: 'FREE',
+            premium_duration_months: null,
+            premium_expires_at: null
+          } as any)
+          .eq('id', user.id);
+      }
+
+      return 'FREE';
+    } catch (error) {
+      console.error('Erreur lecture profil:', error);
+      return 'FREE';
+    }
+  };
+
+  const initialiseBuilder = async () => {
+    setLoading(true);
+
+    const effectivePlanType = await getEffectivePlanType();
+    setAccountPlanType(effectivePlanType);
+
     if (invitationId) {
-      loadInvitation();
+      await loadInvitation(effectivePlanType);
     } else {
+      setInvitation((current) => ({
+        ...current,
+        plan_type: effectivePlanType
+      }));
       setLoading(false);
     }
-  }, [invitationId]);
+  };
 
-  const loadInvitation = async () => {
+  const loadInvitation = async (effectivePlanType: 'FREE' | 'PREMIUM') => {
     if (!invitationId) return;
 
     try {
@@ -100,9 +155,7 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
           album_photo_url_4: invData.album_photo_url_4 || '',
           album_photo_url_5: invData.album_photo_url_5 || '',
           album_photo_url_6: invData.album_photo_url_6 || '',
-          // À retirer quand les vrais plans FREE/PREMIUM seront branchés.
-          // @ts-ignore
-          plan_type: 'PREMIUM'
+          plan_type: effectivePlanType
         });
       }
     } catch (error) {
@@ -122,6 +175,9 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
     setSaving(true);
 
     try {
+      const effectivePlanType = await getEffectivePlanType();
+      setAccountPlanType(effectivePlanType);
+
       const payload = {
         ...invitation,
         user_id: user.id,
@@ -147,6 +203,7 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
         album_photo_url_4: invitation.album_photo_url_4 || '',
         album_photo_url_5: invitation.album_photo_url_5 || '',
         album_photo_url_6: invitation.album_photo_url_6 || '',
+        plan_type: effectivePlanType,
         updated_at: new Date().toISOString()
       };
 
@@ -164,6 +221,11 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
 
         if (error) throw error;
       }
+
+      setInvitation((current) => ({
+        ...current,
+        plan_type: effectivePlanType
+      }));
 
       const successMsg =
         lang === 'fr'
@@ -191,7 +253,10 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
 
   return (
     <MobileApp
-      invitation={invitation}
+      invitation={{
+        ...invitation,
+        plan_type: accountPlanType
+      }}
       onInvitationChange={setInvitation}
       onSave={handleSave}
       onBack={onBack}
