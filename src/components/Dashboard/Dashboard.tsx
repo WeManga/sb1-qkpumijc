@@ -36,7 +36,6 @@ const brandTitleStyle: CSSProperties = {
 
 const isAndroidDevice = () => /Android/i.test(navigator.userAgent);
 
-// Extension locale des traductions pour la PWA, le compte, les plans et le paiement
 const translations: any = {
   ...allTranslations,
   en: {
@@ -93,6 +92,12 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   const [premiumDuration, setPremiumDuration] = useState<string>('');
   const [activationCode, setActivationCode] = useState('');
   const [activationLoading, setActivationLoading] = useState(false);
+
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+  const [checkoutError, setCheckoutError] = useState('');
+  const [sepayPayment, setSepayPayment] = useState<any>(null);
+  const [generatedActivationCode, setGeneratedActivationCode] = useState<any>(null);
+  const [generatedReceipt, setGeneratedReceipt] = useState<any>(null);
 
   const [lang, setLang] = useState<Language>(
     (localStorage.getItem('invite_lang') as Language) || 'en'
@@ -155,21 +160,63 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     setShowIOSPrompt(false);
   };
 
+  const getDurationLabel = (months?: number, days?: number) => {
+    if (days && days > 0) {
+      if (lang === 'fr') return `${days} jour${days > 1 ? 's' : ''}`;
+      if (lang === 'vi') return `${days} ngày`;
+      return `${days} day${days > 1 ? 's' : ''}`;
+    }
+
+    const safeMonths = months || 0;
+
+    if (lang === 'fr') return `${safeMonths} mois`;
+    if (lang === 'vi') return `${safeMonths} tháng`;
+    return `${safeMonths} month${safeMonths > 1 ? 's' : ''}`;
+  };
+
   const loadAccountStatus = async () => {
     if (!user) return;
 
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('plan_type, premium_duration_months')
+        .select('plan_type, premium_duration_months, premium_expires_at')
         .eq('id', user.id)
         .single();
 
       if (!error && data) {
-        setAccountStatus(data.plan_type || 'FREE');
+        const profile: any = data;
+        const expiresAt = profile.premium_expires_at ? new Date(profile.premium_expires_at) : null;
+        const isPremiumActive = profile.plan_type === 'PREMIUM' && expiresAt && expiresAt > new Date();
 
-        if (data.premium_duration_months) {
-          setPremiumDuration(`${data.premium_duration_months} ${lang === 'fr' ? 'mois' : lang === 'vi' ? 'tháng' : 'months'}`);
+        if (isPremiumActive) {
+          setAccountStatus('PREMIUM');
+
+          if (profile.premium_duration_months) {
+            setPremiumDuration(getDurationLabel(profile.premium_duration_months, 0));
+          } else {
+            setPremiumDuration(
+              lang === 'fr'
+                ? `Jusqu'au ${expiresAt.toLocaleDateString('fr-FR')}`
+                : lang === 'vi'
+                  ? `Đến ${expiresAt.toLocaleDateString('vi-VN')}`
+                  : `Until ${expiresAt.toLocaleDateString('en-US')}`
+            );
+          }
+        } else {
+          setAccountStatus('FREE');
+          setPremiumDuration('');
+
+          if (profile.plan_type === 'PREMIUM' && expiresAt && expiresAt <= new Date()) {
+            await supabase
+              .from('profiles')
+              .update({
+                plan_type: 'FREE',
+                premium_duration_months: null,
+                premium_expires_at: null
+              } as any)
+              .eq('id', user.id);
+          }
         }
       }
     } catch (err) {
@@ -273,17 +320,26 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     setActivationLoading(true);
 
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ plan_type: 'PREMIUM', premium_duration_months: 12 })
-        .eq('id', user.id);
+      const { data, error } = await supabase.functions.invoke('activate-code', {
+        body: { code: activationCode.trim() }
+      });
 
       if (error) throw error;
+      if (!data?.ok) throw new Error(data?.error || 'Code invalide');
 
       setAccountStatus('PREMIUM');
-      setPremiumDuration(lang === 'fr' ? '12 mois' : lang === 'vi' ? '12 tháng' : '12 months');
+      setPremiumDuration(getDurationLabel(data.plan_months, data.plan_days));
       setActivationCode('');
-      alert(lang === 'fr' ? 'Félicitations ! Votre compte est maintenant PREMIUM ✨' : 'Success! Your account is now PREMIUM ✨');
+
+      alert(
+        lang === 'fr'
+          ? 'Code activé ! Votre compte est maintenant PREMIUM.'
+          : lang === 'vi'
+            ? 'Đã kích hoạt mã! Tài khoản của bạn hiện là PREMIUM.'
+            : 'Code activated! Your account is now PREMIUM.'
+      );
+
+      loadAccountStatus();
     } catch (err: any) {
       alert('Erreur: ' + err.message);
     } finally {
@@ -303,12 +359,104 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     setAccountStep('PLANS');
   };
 
+  const resetCheckout = () => {
+    setCheckoutLoading(false);
+    setCheckoutError('');
+    setSepayPayment(null);
+    setGeneratedActivationCode(null);
+    setGeneratedReceipt(null);
+  };
+
   const handleSelectPlan = (plan: any) => {
     setSelectedPlan(plan);
+    resetCheckout();
     setAccountStep('CHECKOUT');
   };
 
+  const handleCreateSepayCheckout = async (forcedPlanId?: string) => {
+    const planId = forcedPlanId || selectedPlan?.id;
+
+    if (!planId) return;
+
+    setCheckoutLoading(true);
+    setCheckoutError('');
+    setSepayPayment(null);
+    setGeneratedActivationCode(null);
+    setGeneratedReceipt(null);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('create-sepay-checkout', {
+        body: { plan_id: planId }
+      });
+
+      if (error) throw error;
+      if (!data?.ok) throw new Error(data?.error || 'Impossible de créer le paiement');
+
+      setSepayPayment(data.payment);
+    } catch (err: any) {
+      setCheckoutError(err.message || 'Erreur de paiement');
+    } finally {
+      setCheckoutLoading(false);
+    }
+  };
+
+  const checkPaymentStatus = async () => {
+    if (!sepayPayment?.id) return;
+
+    try {
+      const { data, error } = await supabase.functions.invoke('get-payment-status', {
+        body: { payment_id: sepayPayment.id }
+      });
+
+      if (error) throw error;
+      if (!data?.ok) return;
+
+      setSepayPayment(data.payment);
+
+      if (data.payment?.status === 'paid') {
+        setGeneratedActivationCode(data.activation_code || null);
+        setGeneratedReceipt(data.receipt || null);
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const copyGeneratedCode = () => {
+    if (!generatedActivationCode?.code) return;
+
+    navigator.clipboard.writeText(generatedActivationCode.code);
+    alert(lang === 'fr' ? 'Code copié !' : lang === 'vi' ? 'Đã sao chép mã!' : 'Code copied!');
+  };
+
+  const useGeneratedCode = () => {
+    if (!generatedActivationCode?.code) return;
+
+    setActivationCode(generatedActivationCode.code);
+    setAccountStep('PROFILE');
+  };
+
+  useEffect(() => {
+    if (!isAccountOpen || accountStep !== 'CHECKOUT' || !sepayPayment?.id || sepayPayment.status === 'paid') {
+      return;
+    }
+
+    const timer = setInterval(() => {
+      checkPaymentStatus();
+    }, 3500);
+
+    return () => clearInterval(timer);
+  }, [isAccountOpen, accountStep, sepayPayment?.id, sepayPayment?.status]);
+
   const paymentPlans = [
+    {
+      id: 'test_1_day',
+      duration: lang === 'fr' ? 'Test 1 jour' : lang === 'vi' ? 'Test 1 ngày' : 'Test 1 day',
+      totalPrice: '1 VND',
+      monthlyPrice: '1 VND',
+      discount: null,
+      tag: 'TEST'
+    },
     {
       id: '1_month',
       duration: `1 ${tPln.month}`,
@@ -589,6 +737,12 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                                   {plan.discount}
                                 </span>
                               )}
+
+                              {plan.tag && (
+                                <span className="px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded text-[9px] font-black">
+                                  {plan.tag}
+                                </span>
+                              )}
                             </div>
 
                             <p className="text-[10px] text-gray-400 font-bold uppercase">
@@ -600,7 +754,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                             <div className="text-right">
                               <p className="text-base font-black text-gray-900 tracking-tight">
                                 {plan.monthlyPrice}
-                                <span className="text-[10px] text-gray-400 font-normal">/mo</span>
+                                {plan.id !== 'test_1_day' && <span className="text-[10px] text-gray-400 font-normal">/mo</span>}
                               </p>
                             </div>
 
@@ -620,38 +774,133 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                   )}
 
                   {accountStep === 'CHECKOUT' && (
-                    <div className="space-y-3">
-                      <button
-                        type="button"
-                        onClick={() => alert(lang === 'fr' ? 'Ouverture du module de paiement QR Code...' : 'Opening QR Code payment module...')}
-                        className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl flex items-center gap-4 transition-all hover:bg-amber-50/40 border-transparent hover:border-amber-300 group text-left"
-                      >
-                        <div className="w-11 h-11 bg-white rounded-xl flex items-center justify-center shadow-sm text-gray-700 group-hover:text-amber-500 group-hover:shadow-md transition-all">
-                          <QrCode size={20} />
+                    <div className="space-y-5">
+                      {checkoutError && (
+                        <div className="p-4 bg-rose-50 border border-rose-100 rounded-2xl text-rose-600 text-xs font-bold">
+                          {checkoutError}
                         </div>
+                      )}
 
-                        <div>
-                          <p className="text-sm font-black text-gray-900 uppercase tracking-tight">
-                            {tChk.qr}
-                          </p>
-                        </div>
-                      </button>
+                      {!sepayPayment && (
+                        <div className="space-y-3">
+                          <button
+                            type="button"
+                            onClick={() => handleCreateSepayCheckout()}
+                            disabled={checkoutLoading}
+                            className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl flex items-center gap-4 transition-all hover:bg-amber-50/40 hover:border-amber-300 group text-left disabled:opacity-60"
+                          >
+                            <div className="w-11 h-11 bg-white rounded-xl flex items-center justify-center shadow-sm text-gray-700 group-hover:text-amber-500 group-hover:shadow-md transition-all">
+                              {checkoutLoading ? <Loader2 size={20} className="animate-spin" /> : <QrCode size={20} />}
+                            </div>
 
-                      <button
-                        type="button"
-                        onClick={() => alert(lang === 'fr' ? 'Ouverture de la passerelle CB (Paypal/Stripe)...' : 'Opening Credit Card gateway...')}
-                        className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl flex items-center gap-4 transition-all hover:bg-amber-50/40 border-transparent hover:border-amber-300 group text-left"
-                      >
-                        <div className="w-11 h-11 bg-white rounded-xl flex items-center justify-center shadow-sm text-gray-700 group-hover:text-amber-500 group-hover:shadow-md transition-all">
-                          <CreditCard size={20} />
-                        </div>
+                            <div>
+                              <p className="text-sm font-black text-gray-900 uppercase tracking-tight">
+                                {tChk.qr}
+                              </p>
+                              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                                VietQR / SePay
+                              </p>
+                            </div>
+                          </button>
 
-                        <div>
-                          <p className="text-sm font-black text-gray-900 uppercase tracking-tight">
-                            {tChk.cb}
-                          </p>
+                          <button
+                            type="button"
+                            onClick={() => alert(lang === 'fr' ? 'Le paiement CB sera ajouté avec PayPal ensuite.' : 'Card payment will be added with PayPal later.')}
+                            className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl flex items-center gap-4 transition-all hover:bg-amber-50/40 hover:border-amber-300 group text-left"
+                          >
+                            <div className="w-11 h-11 bg-white rounded-xl flex items-center justify-center shadow-sm text-gray-700 group-hover:text-amber-500 group-hover:shadow-md transition-all">
+                              <CreditCard size={20} />
+                            </div>
+
+                            <div>
+                              <p className="text-sm font-black text-gray-900 uppercase tracking-tight">
+                                {tChk.cb}
+                              </p>
+                              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                                PayPal bientôt
+                              </p>
+                            </div>
+                          </button>
                         </div>
-                      </button>
+                      )}
+
+                      {sepayPayment && !generatedActivationCode && (
+                        <div className="space-y-5 text-center">
+                          <div className="bg-white border border-gray-100 rounded-[2rem] p-5 shadow-sm">
+                            <img
+                              src={sepayPayment.qr_code_url}
+                              alt="QR Code SePay"
+                              className="w-full max-w-[260px] mx-auto rounded-2xl"
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <p className="text-xs text-gray-400 font-black uppercase tracking-widest">
+                              {lang === 'fr' ? 'Montant à payer' : lang === 'vi' ? 'Số tiền cần thanh toán' : 'Amount to pay'}
+                            </p>
+                            <p className="text-2xl font-black text-gray-900">
+                              {Number(sepayPayment.amount).toLocaleString('vi-VN')} VND
+                            </p>
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest break-all">
+                              {sepayPayment.provider_reference}
+                            </p>
+                          </div>
+
+                          <div className="flex items-center justify-center gap-2 text-amber-600 text-xs font-bold uppercase tracking-widest">
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            {lang === 'fr' ? 'En attente du paiement' : lang === 'vi' ? 'Đang chờ thanh toán' : 'Waiting for payment'}
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={checkPaymentStatus}
+                            className="w-full h-12 bg-gray-100 text-gray-700 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-gray-200 transition-all"
+                          >
+                            {lang === 'fr' ? 'Vérifier maintenant' : lang === 'vi' ? 'Kiểm tra ngay' : 'Check now'}
+                          </button>
+                        </div>
+                      )}
+
+                      {generatedActivationCode && (
+                        <div className="space-y-5 text-center">
+                          <div className="py-4">
+                            <ShieldCheck className="w-12 h-12 text-amber-500 mx-auto mb-3" />
+                            <h4 className="text-lg font-black text-gray-900 uppercase tracking-tight">
+                              {lang === 'fr' ? 'Paiement confirmé' : lang === 'vi' ? 'Thanh toán thành công' : 'Payment confirmed'}
+                            </h4>
+                            <p className="text-[11px] text-gray-400 font-bold uppercase tracking-widest">
+                              {generatedReceipt?.receipt_number || ''}
+                            </p>
+                          </div>
+
+                          <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
+                            <p className="text-[10px] text-amber-700 font-black uppercase tracking-widest mb-2">
+                              {lang === 'fr' ? 'Votre code PREMIUM' : lang === 'vi' ? 'Mã PREMIUM của bạn' : 'Your PREMIUM code'}
+                            </p>
+                            <p className="text-xl font-black text-gray-900 tracking-widest break-all">
+                              {generatedActivationCode.code}
+                            </p>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3">
+                            <button
+                              type="button"
+                              onClick={copyGeneratedCode}
+                              className="h-12 bg-gray-100 text-gray-800 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-gray-200 transition-all"
+                            >
+                              {lang === 'fr' ? 'Copier' : lang === 'vi' ? 'Sao chép' : 'Copy'}
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={useGeneratedCode}
+                              className="h-12 bg-gray-900 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-gray-800 transition-all"
+                            >
+                              {lang === 'fr' ? 'Utiliser' : lang === 'vi' ? 'Sử dụng' : 'Use'}
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
