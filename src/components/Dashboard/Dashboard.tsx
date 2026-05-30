@@ -160,6 +160,18 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     setShowIOSPrompt(false);
   };
 
+  const getFunctionErrorMessage = async (error: any) => {
+    let message = error?.message || 'Erreur inconnue';
+
+    const context = error?.context;
+    if (context) {
+      const errorBody = await context.json().catch(() => null);
+      message = errorBody?.error || message;
+    }
+
+    return message;
+  };
+
   const getDurationLabel = (months?: number, days?: number) => {
     if (days && days > 0) {
       if (lang === 'fr') return `${days} jour${days > 1 ? 's' : ''}`;
@@ -182,7 +194,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
         .from('profiles')
         .select('plan_type, premium_duration_months, premium_expires_at')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
       if (!error && data) {
         const profile: any = data;
@@ -218,6 +230,9 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
               .eq('id', user.id);
           }
         }
+      } else {
+        setAccountStatus('FREE');
+        setPremiumDuration('');
       }
     } catch (err) {
       console.error(err);
@@ -288,9 +303,9 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
 
     let textList = '';
 
-    if (lang === 'fr') textList += '📋 LISTE DES INVITÉS CONFIRMÉS\n\n';
-    else if (lang === 'vi') textList += '📋 DANH SÁCH KHÁCH MỜI XÁC NHẬN\n\n';
-    else textList += '📋 CONFIRMED GUEST LIST\n\n';
+    if (lang === 'fr') textList += 'LISTE DES INVITES CONFIRMES\n\n';
+    else if (lang === 'vi') textList += 'DANH SACH KHACH MOI XAC NHAN\n\n';
+    else textList += 'CONFIRMED GUEST LIST\n\n';
 
     selectedResponses.forEach((resp, index) => {
       textList += `${index + 1}. ${resp.group_leader_name} (${resp.total_guests} ${t.person_unit})\n`;
@@ -298,7 +313,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
       if (Array.isArray(resp.guest_details) && resp.guest_details.length > 0) {
         resp.guest_details.forEach((guest: any) => {
           if (guest.firstName || guest.lastName) {
-            textList += `   ▪ ${guest.firstName || ''} ${guest.lastName || ''}\n`;
+            textList += `   - ${guest.firstName || ''} ${guest.lastName || ''}\n`;
           }
         });
       }
@@ -324,7 +339,10 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
         body: { code: activationCode.trim() }
       });
 
-      if (error) throw error;
+      if (error) {
+        throw new Error(await getFunctionErrorMessage(error));
+      }
+
       if (!data?.ok) throw new Error(data?.error || 'Code invalide');
 
       setAccountStatus('PREMIUM');
@@ -389,7 +407,10 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
         body: { plan_id: planId }
       });
 
-      if (error) throw error;
+      if (error) {
+        throw new Error(await getFunctionErrorMessage(error));
+      }
+
       if (!data?.ok) throw new Error(data?.error || 'Impossible de créer le paiement');
 
       setSepayPayment(data.payment);
@@ -401,24 +422,44 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   };
 
   const checkPaymentStatus = async () => {
-    if (!sepayPayment?.id) return;
+    if (!sepayPayment?.id && !sepayPayment?.provider_reference) return;
+
+    setCheckoutError('');
 
     try {
       const { data, error } = await supabase.functions.invoke('get-payment-status', {
-        body: { payment_id: sepayPayment.id }
+        body: {
+          payment_id: sepayPayment?.id,
+          provider_reference: sepayPayment?.provider_reference
+        }
       });
 
-      if (error) throw error;
-      if (!data?.ok) return;
+      if (error) {
+        throw new Error(await getFunctionErrorMessage(error));
+      }
+
+      if (!data?.ok) {
+        throw new Error(data?.error || 'Impossible de vérifier le paiement');
+      }
 
       setSepayPayment(data.payment);
 
       if (data.payment?.status === 'paid') {
-        setGeneratedActivationCode(data.activation_code || null);
-        setGeneratedReceipt(data.receipt || null);
+        if (data.activation_code?.code) {
+          setGeneratedActivationCode(data.activation_code);
+          setGeneratedReceipt(data.receipt || null);
+        } else {
+          setCheckoutError(
+            lang === 'fr'
+              ? 'Paiement confirmé, mais aucun code trouvé. Vérifie la table activation_codes.'
+              : lang === 'vi'
+                ? 'Thanh toán thành công nhưng chưa tìm thấy mã.'
+                : 'Payment confirmed, but no code was found.'
+          );
+        }
       }
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      setCheckoutError(err.message || 'Erreur de vérification du paiement');
     }
   };
 
@@ -495,10 +536,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
             />
           </div>
 
-          <h1
-            className="text-[2.65rem] sm:text-[3.15rem] leading-none whitespace-nowrap"
-            style={brandTitleStyle}
-          >
+          <h1 className="text-[2.65rem] sm:text-[3.15rem] leading-none whitespace-nowrap" style={brandTitleStyle}>
             Invit Studio
           </h1>
 
@@ -641,7 +679,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                       <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest">
                         {accountStep === 'PROFILE' && user?.email}
                         {accountStep === 'PLANS' && tPln.subtitle}
-                        {accountStep === 'CHECKOUT' && `${selectedPlan?.duration} • ${selectedPlan?.totalPrice}`}
+                        {accountStep === 'CHECKOUT' && `${selectedPlan?.duration} - ${selectedPlan?.totalPrice}`}
                       </p>
                     </div>
                   </div>
@@ -847,8 +885,17 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                           </div>
 
                           <div className="flex items-center justify-center gap-2 text-amber-600 text-xs font-bold uppercase tracking-widest">
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            {lang === 'fr' ? 'En attente du paiement' : lang === 'vi' ? 'Đang chờ thanh toán' : 'Waiting for payment'}
+                            {sepayPayment?.status === 'paid' ? (
+                              <>
+                                <ShieldCheck className="w-4 h-4" />
+                                {lang === 'fr' ? 'Paiement confirmé' : lang === 'vi' ? 'Thanh toán thành công' : 'Payment confirmed'}
+                              </>
+                            ) : (
+                              <>
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                                {lang === 'fr' ? 'En attente du paiement' : lang === 'vi' ? 'Đang chờ thanh toán' : 'Waiting for payment'}
+                              </>
+                            )}
                           </div>
 
                           <button
