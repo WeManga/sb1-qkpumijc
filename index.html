@@ -2,7 +2,7 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
 
     <title>Invit Studio</title>
 
@@ -30,12 +30,11 @@
         min-height: 100%;
         margin: 0;
         padding: 0;
-        background: #070b0f;
+        background: #ffffff;
       }
 
       body {
         min-height: 100vh;
-        min-height: 100dvh;
         overflow-x: hidden;
       }
 
@@ -60,21 +59,8 @@
       .creathings-splash-image {
         width: 100%;
         height: 100%;
-        object-fit: cover;
+        object-fit: contain;
         object-position: center;
-        animation: creathingsSplashIn 900ms ease both;
-      }
-
-      @keyframes creathingsSplashIn {
-        from {
-          opacity: 0;
-          transform: scale(1.015);
-        }
-
-        to {
-          opacity: 1;
-          transform: scale(1);
-        }
       }
     </style>
   </head>
@@ -82,7 +68,7 @@
   <body>
     <div id="creathings-splash">
       <img
-        src="public/images/creathings-splash.png"
+        src="puublic/images/creathings-splash.png"
         alt="CréaTHINGS - Think. Create. Share."
         class="creathings-splash-image"
       />
