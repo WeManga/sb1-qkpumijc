@@ -68,11 +68,17 @@
   <body>
     <div id="creathings-splash">
       <img
-        src="public/images/creathings-splash.png"
+        src="/images/creathings-splash.png"
         alt="CréaTHINGS - Think. Create. Share."
         class="creathings-splash-image"
       />
     </div>
+
+    <script>
+      if (window.location.pathname.startsWith('/invite/')) {
+        document.getElementById('creathings-splash')?.remove();
+      }
+    </script>
 
     <div id="root"></div>
 
