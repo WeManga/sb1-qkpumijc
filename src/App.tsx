@@ -64,6 +64,14 @@ function AppContent() {
   const { navigate } = useRouter();
   const [editingInvitationId, setEditingInvitationId] = useState<string | undefined>();
 
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      document.getElementById('creathings-splash')?.classList.add('creathings-hidden');
+    }, 1300);
+
+    return () => window.clearTimeout(timer);
+  }, []);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-amber-50 flex items-center justify-center">
