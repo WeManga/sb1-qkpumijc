@@ -49,7 +49,7 @@ const translations: any = {
     ...allTranslations.fr,
     pwa: { title: "Installez l'App Studio", desc: 'Gérez vos invitations facilement. Appuyez sur', then: 'puis sur', action: "Sur l'écran d'accueil" },
     account: { title: 'Mon Compte', manage: 'Gérer Mon Compte', placeholder: 'Entrez votre code unique', activate: 'Activer', status: 'Statut du compte', duration: "Durée de l'abonnement :" },
-    plans: { title: 'Passer au PREMIUM', subtitle: 'Débloquez tous les modèles, messages personnalisés, textures de papier, albums photo et plein d’autres fonctionnalités.', month: 'mois', months: 'mois', popular: 'Le plus populaire', best: 'Meilleure offre', save: 'Économisez', current: '/mois', buy: 'Sélectionner' },
+    plans: { title: 'Passez au PREMIUM', subtitle: 'Accédez à toute l’expérience Invit Studio : designs exclusifs, messages personnalisés, albums enrichis et finitions haut de gamme.', month: 'mois', months: 'mois', popular: 'Le plus populaire', best: 'Meilleure offre', save: 'Économisez', current: '/mois', buy: 'Sélectionner' },
     checkout: { title: 'Choisir le moyen de paiement', subtitle: 'Sélectionnez votre mode de règlement pour activer PREMIUM automatiquement.', qr: 'Payer par QR Code', cb: 'Payer par CB' }
   },
   vi: {
