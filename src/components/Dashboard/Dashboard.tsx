@@ -42,22 +42,22 @@ const translations: any = {
     ...allTranslations.en,
     pwa: { title: 'Install Studio App', desc: 'Manage invitations easily. Tap', then: 'then', action: 'Add to Home Screen' },
     account: { title: 'My Account', manage: 'Manage My Account', placeholder: 'Enter activation code', activate: 'Activate', status: 'Account Status', duration: 'Subscription duration:' },
-    plans: { title: 'Upgrade to PREMIUM', subtitle: 'Unlock all templates, custom music, text style, and high fidelity albums.', month: 'month', months: 'months', popular: 'Most Popular', best: 'Best Value', save: 'Save', current: '/mo', buy: 'Buy a code' },
-    checkout: { title: 'Select Payment Method', subtitle: 'Choose how you want to purchase your single-use activation code.', qr: 'Pay by QR Code', cb: 'Pay by Credit Card' }
+    plans: { title: 'Upgrade to PREMIUM', subtitle: 'Unlock all templates, personalized messages, paper textures, photo albums and many more features.', month: 'month', months: 'months', popular: 'Most Popular', best: 'Best Value', save: 'Save', current: '/mo', buy: 'Select' },
+    checkout: { title: 'Select Payment Method', subtitle: 'Choose your payment method to activate PREMIUM automatically.', qr: 'Pay by QR Code', cb: 'Pay by Credit Card' }
   },
   fr: {
     ...allTranslations.fr,
     pwa: { title: "Installez l'App Studio", desc: 'Gérez vos invitations facilement. Appuyez sur', then: 'puis sur', action: "Sur l'écran d'accueil" },
     account: { title: 'Mon Compte', manage: 'Gérer Mon Compte', placeholder: 'Entrez votre code unique', activate: 'Activer', status: 'Statut du compte', duration: "Durée de l'abonnement :" },
-    plans: { title: 'Passer au PREMIUM', subtitle: 'Débloquez tous les modèles, musiques personnalisées, textures de papier et albums haute fidélité.', month: 'mois', months: 'mois', popular: 'Le plus populaire', best: 'Meilleure offre', save: 'Économisez', current: '/mois', buy: 'Acheter un code' },
-    checkout: { title: 'Choisir le moyen de paiement', subtitle: "Sélectionnez votre mode de règlement pour obtenir votre code d'activation unique.", qr: 'Payer par QR Code', cb: 'Payer par CB' }
+    plans: { title: 'Passer au PREMIUM', subtitle: 'Débloquez tous les modèles, messages personnalisés, textures de papier, albums photo et plein d’autres fonctionnalités.', month: 'mois', months: 'mois', popular: 'Le plus populaire', best: 'Meilleure offre', save: 'Économisez', current: '/mois', buy: 'Sélectionner' },
+    checkout: { title: 'Choisir le moyen de paiement', subtitle: 'Sélectionnez votre mode de règlement pour activer PREMIUM automatiquement.', qr: 'Payer par QR Code', cb: 'Payer par CB' }
   },
   vi: {
     ...allTranslations.vi,
     pwa: { title: 'Cài đặt App Studio', desc: 'Quản lý lời mời dễ dàng hơn. Nhấn vào', then: 'sau đó chọn', action: 'Thêm vào MH chính' },
     account: { title: 'Tài khoản của tôi', manage: 'Quản lý tài khoản', placeholder: 'Nhập mã kích hoạt', activate: 'Kích hoạt', status: 'Trạng thái tài khoản', duration: 'Thời hạn gói:' },
-    plans: { title: 'Nâng cấp lên PREMIUM', subtitle: 'Mở khóa toàn bộ giao diện, nhạc nền tự chọn, chất liệu giấy cao cấp và album ảnh.', month: 'tháng', months: 'tháng', popular: 'Phổ biến', best: 'Tiết kiệm nhất', save: 'Tiết kiệm', current: '/tháng', buy: 'Mua mã kích hoạt' },
-    checkout: { title: 'Chọn phương thức thanh toán', subtitle: 'Chọn cách thức thanh toán để nhận mã kích hoạt sử dụng một lần.', qr: 'Thanh toán qua mã QR', cb: 'Thanh toán thẻ ngân hàng' }
+    plans: { title: 'Nâng cấp lên PREMIUM', subtitle: 'Mở khóa toàn bộ giao diện, tin nhắn cá nhân, chất liệu giấy, album ảnh và nhiều tính năng khác.', month: 'tháng', months: 'tháng', popular: 'Phổ biến', best: 'Tiết kiệm nhất', save: 'Tiết kiệm', current: '/tháng', buy: 'Chọn' },
+    checkout: { title: 'Chọn phương thức thanh toán', subtitle: 'Chọn cách thanh toán để tự động kích hoạt PREMIUM.', qr: 'Thanh toán qua mã QR', cb: 'Thanh toán thẻ ngân hàng' }
   }
 };
 
@@ -96,7 +96,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState('');
   const [sepayPayment, setSepayPayment] = useState<any>(null);
-  const [generatedActivationCode, setGeneratedActivationCode] = useState<any>(null);
+  const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const [generatedReceipt, setGeneratedReceipt] = useState<any>(null);
 
   const [lang, setLang] = useState<Language>(
@@ -357,7 +357,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
             : 'Code activated! Your account is now PREMIUM.'
       );
 
-      loadAccountStatus();
+      await loadAccountStatus();
     } catch (err: any) {
       alert('Erreur: ' + err.message);
     } finally {
@@ -381,7 +381,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     setCheckoutLoading(false);
     setCheckoutError('');
     setSepayPayment(null);
-    setGeneratedActivationCode(null);
+    setPaymentConfirmed(false);
     setGeneratedReceipt(null);
   };
 
@@ -389,6 +389,23 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     setSelectedPlan(plan);
     resetCheckout();
     setAccountStep('CHECKOUT');
+  };
+
+  const handleBackButton = async () => {
+    if (accountStep === 'CHECKOUT' && paymentConfirmed) {
+      await loadAccountStatus();
+      resetCheckout();
+      setAccountStep('PROFILE');
+      return;
+    }
+
+    setAccountStep(accountStep === 'CHECKOUT' ? 'PLANS' : 'PROFILE');
+  };
+
+  const returnToAccount = async () => {
+    await loadAccountStatus();
+    resetCheckout();
+    setAccountStep('PROFILE');
   };
 
   const handleCreateSepayCheckout = async (forcedPlanId?: string) => {
@@ -399,7 +416,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     setCheckoutLoading(true);
     setCheckoutError('');
     setSepayPayment(null);
-    setGeneratedActivationCode(null);
+    setPaymentConfirmed(false);
     setGeneratedReceipt(null);
 
     try {
@@ -445,40 +462,17 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
       setSepayPayment(data.payment);
 
       if (data.payment?.status === 'paid') {
-        if (data.activation_code?.code) {
-          setGeneratedActivationCode(data.activation_code);
-          setGeneratedReceipt(data.receipt || null);
-        } else {
-          setCheckoutError(
-            lang === 'fr'
-              ? 'Paiement confirmé, mais aucun code trouvé. Vérifie la table activation_codes.'
-              : lang === 'vi'
-                ? 'Thanh toán thành công nhưng chưa tìm thấy mã.'
-                : 'Payment confirmed, but no code was found.'
-          );
-        }
+        setPaymentConfirmed(true);
+        setGeneratedReceipt(data.receipt || null);
+        await loadAccountStatus();
       }
     } catch (err: any) {
       setCheckoutError(err.message || 'Erreur de vérification du paiement');
     }
   };
 
-  const copyGeneratedCode = () => {
-    if (!generatedActivationCode?.code) return;
-
-    navigator.clipboard.writeText(generatedActivationCode.code);
-    alert(lang === 'fr' ? 'Code copié !' : lang === 'vi' ? 'Đã sao chép mã!' : 'Code copied!');
-  };
-
-  const useGeneratedCode = () => {
-    if (!generatedActivationCode?.code) return;
-
-    setActivationCode(generatedActivationCode.code);
-    setAccountStep('PROFILE');
-  };
-
   useEffect(() => {
-    if (!isAccountOpen || accountStep !== 'CHECKOUT' || !sepayPayment?.id || sepayPayment.status === 'paid') {
+    if (!isAccountOpen || accountStep !== 'CHECKOUT' || !sepayPayment?.id || sepayPayment.status === 'paid' || paymentConfirmed) {
       return;
     }
 
@@ -487,7 +481,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     }, 3500);
 
     return () => clearInterval(timer);
-  }, [isAccountOpen, accountStep, sepayPayment?.id, sepayPayment?.status]);
+  }, [isAccountOpen, accountStep, sepayPayment?.id, sepayPayment?.status, paymentConfirmed]);
 
   const paymentPlans = [
     {
@@ -545,6 +539,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
               onClick={() => {
                 setAccountStep('PROFILE');
                 setIsAccountOpen(true);
+                loadAccountStatus();
               }}
               className="flex items-center gap-2 text-gray-400 hover:text-amber-500 transition-colors text-[10px] sm:text-[11px] font-bold uppercase tracking-widest px-2 py-2 border-r border-gray-100 pr-4"
             >
@@ -662,7 +657,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                     {accountStep !== 'PROFILE' && (
                       <button
                         type="button"
-                        onClick={() => setAccountStep(accountStep === 'CHECKOUT' ? 'PLANS' : 'PROFILE')}
+                        onClick={handleBackButton}
                         className="p-2 hover:bg-white rounded-full transition-colors border border-gray-200/50 bg-white shadow-xs"
                       >
                         <ArrowLeft size={16} />
@@ -803,7 +798,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                                 plan.tag ? 'bg-amber-500 text-white hover:bg-amber-600 shadow-sm' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
                               }`}
                             >
-                              {tPln.buy || 'Code'}
+                              {tPln.buy || 'Sélectionner'}
                             </button>
                           </div>
                         </div>
@@ -819,7 +814,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                         </div>
                       )}
 
-                      {!sepayPayment && (
+                      {!sepayPayment && !paymentConfirmed && (
                         <div className="space-y-3">
                           <button
                             type="button"
@@ -862,7 +857,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                         </div>
                       )}
 
-                      {sepayPayment && !generatedActivationCode && (
+                      {sepayPayment && !paymentConfirmed && (
                         <div className="space-y-5 text-center">
                           <div className="bg-white border border-gray-100 rounded-[2rem] p-5 shadow-sm">
                             <img
@@ -885,17 +880,8 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                           </div>
 
                           <div className="flex items-center justify-center gap-2 text-amber-600 text-xs font-bold uppercase tracking-widest">
-                            {sepayPayment?.status === 'paid' ? (
-                              <>
-                                <ShieldCheck className="w-4 h-4" />
-                                {lang === 'fr' ? 'Paiement confirmé' : lang === 'vi' ? 'Thanh toán thành công' : 'Payment confirmed'}
-                              </>
-                            ) : (
-                              <>
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                                {lang === 'fr' ? 'En attente du paiement' : lang === 'vi' ? 'Đang chờ thanh toán' : 'Waiting for payment'}
-                              </>
-                            )}
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            {lang === 'fr' ? 'En attente du paiement' : lang === 'vi' ? 'Đang chờ thanh toán' : 'Waiting for payment'}
                           </div>
 
                           <button
@@ -908,44 +894,44 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                         </div>
                       )}
 
-                      {generatedActivationCode && (
+                      {paymentConfirmed && (
                         <div className="space-y-5 text-center">
                           <div className="py-4">
-                            <ShieldCheck className="w-12 h-12 text-amber-500 mx-auto mb-3" />
+                            <ShieldCheck className="w-14 h-14 text-amber-500 mx-auto mb-3" />
                             <h4 className="text-lg font-black text-gray-900 uppercase tracking-tight">
-                              {lang === 'fr' ? 'Paiement confirmé' : lang === 'vi' ? 'Thanh toán thành công' : 'Payment confirmed'}
+                              {lang === 'fr' ? 'Compte PREMIUM activé' : lang === 'vi' ? 'Tài khoản PREMIUM đã kích hoạt' : 'PREMIUM account activated'}
                             </h4>
                             <p className="text-[11px] text-gray-400 font-bold uppercase tracking-widest">
-                              {generatedReceipt?.receipt_number || ''}
+                              {lang === 'fr' ? 'Paiement confirmé avec succès' : lang === 'vi' ? 'Thanh toán đã được xác nhận' : 'Payment confirmed successfully'}
                             </p>
                           </div>
 
                           <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
                             <p className="text-[10px] text-amber-700 font-black uppercase tracking-widest mb-2">
-                              {lang === 'fr' ? 'Votre code PREMIUM' : lang === 'vi' ? 'Mã PREMIUM của bạn' : 'Your PREMIUM code'}
+                              {lang === 'fr' ? 'Votre accès Premium est maintenant disponible' : lang === 'vi' ? 'Quyền truy cập Premium hiện đã sẵn sàng' : 'Your Premium access is now available'}
                             </p>
-                            <p className="text-xl font-black text-gray-900 tracking-widest break-all">
-                              {generatedActivationCode.code}
+                            <p className="text-sm font-bold text-gray-700 leading-snug">
+                              {lang === 'fr'
+                                ? 'Vous pouvez utiliser les modèles, messages personnalisés, textures de papier et autres fonctionnalités Premium.'
+                                : lang === 'vi'
+                                  ? 'Bạn có thể sử dụng giao diện, tin nhắn cá nhân, chất liệu giấy và các tính năng Premium khác.'
+                                  : 'You can now use templates, personalized messages, paper textures and other Premium features.'}
                             </p>
                           </div>
 
-                          <div className="grid grid-cols-2 gap-3">
-                            <button
-                              type="button"
-                              onClick={copyGeneratedCode}
-                              className="h-12 bg-gray-100 text-gray-800 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-gray-200 transition-all"
-                            >
-                              {lang === 'fr' ? 'Copier' : lang === 'vi' ? 'Sao chép' : 'Copy'}
-                            </button>
+                          {generatedReceipt?.receipt_number && (
+                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                              {generatedReceipt.receipt_number}
+                            </p>
+                          )}
 
-                            <button
-                              type="button"
-                              onClick={useGeneratedCode}
-                              className="h-12 bg-gray-900 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-gray-800 transition-all"
-                            >
-                              {lang === 'fr' ? 'Utiliser' : lang === 'vi' ? 'Sử dụng' : 'Use'}
-                            </button>
-                          </div>
+                          <button
+                            type="button"
+                            onClick={returnToAccount}
+                            className="w-full h-12 bg-gray-900 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-gray-800 transition-all"
+                          >
+                            {lang === 'fr' ? 'Voir mon compte' : lang === 'vi' ? 'Xem tài khoản' : 'View my account'}
+                          </button>
                         </div>
                       )}
                     </div>
