@@ -3,27 +3,76 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-    
+
     <title>Invit Studio</title>
-    
+
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Invit Studio">
-    
+
     <link rel="icon" type="image/png" href="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/nouveau%20logo.PNG?v=1" />
-    
+
     <link rel="apple-touch-icon" href="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/nouveau%20logo.PNG?v=1" />
-    
+
     <meta property="og:title" content="Invit Studio" />
     <meta property="og:description" content="Créez des invitations digitales inoubliables" />
     <meta property="og:image" content="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/nouveau%20logo.PNG" />
-    
+
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/nouveau%20logo.PNG" />
 
+    <style>
+      #creathings-splash {
+        position: fixed;
+        inset: 0;
+        z-index: 999999;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #070b0f;
+        overflow: hidden;
+        transition: opacity 650ms ease, visibility 650ms ease;
+      }
+
+      #creathings-splash.creathings-hidden {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+      }
+
+      .creathings-splash-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        animation: creathingsSplashIn 900ms ease both;
+      }
+
+      @keyframes creathingsSplashIn {
+        from {
+          opacity: 0;
+          transform: scale(1.015);
+        }
+
+        to {
+          opacity: 1;
+          transform: scale(1);
+        }
+      }
+    </style>
   </head>
+
   <body>
+    <div id="creathings-splash">
+      <img
+        src="/images/creathings-splash.png"
+        alt="CréaTHINGS - Think. Create. Share."
+        class="creathings-splash-image"
+      />
+    </div>
+
     <div id="root"></div>
+
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
