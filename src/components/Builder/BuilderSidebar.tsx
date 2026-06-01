@@ -594,18 +594,20 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     });
   };
 
-  const Section = ({ id, title, children }: any) => {
+  const Section = ({ id, title, children, premium = false }: any) => {
     const isOpen = openSections[id];
+    const locked = premium && !isPremium;
 
     return (
-      <div className="rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+      <div className={`rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden ${locked ? 'opacity-90' : ''}`}>
         <button
           type="button"
           onClick={() => toggleSection(id)}
           className="w-full h-14 px-4 flex items-center justify-between text-left"
         >
-          <span className="text-[11px] font-black uppercase tracking-[0.16em] text-gray-700 truncate">
+          <span className="text-[11px] font-black uppercase tracking-[0.16em] text-gray-700 truncate flex items-center gap-2">
             {title}
+            {locked && <Lock size={13} className="text-gray-400 shrink-0" />}
           </span>
 
           <ChevronDown
@@ -779,7 +781,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </Section>
 
-          <Section id="premiumStory" title={localLabels.premium_story_label}>
+          <Section id="premiumStory" title={localLabels.premium_story_label} premium>
             <div className={`${!isPremium ? 'opacity-60 grayscale' : ''} space-y-4`}>
               {[
                 {
@@ -901,7 +903,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </Section>
 
-          <Section id="albumMedia" title={localLabels.album_photo}>
+          <Section id="albumMedia" title={localLabels.album_photo} premium>
             <div className={`${!isPremium ? 'opacity-60 grayscale pointer-events-none' : ''} space-y-4`}>
               <div className="grid grid-cols-2 gap-3">
                 {ALBUM_PHOTO_FIELDS.map((photo, index) => (
