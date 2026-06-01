@@ -2,10 +2,11 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover">
 
     <title>Invit Studio</title>
 
+    <meta name="theme-color" content="#070b0f">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Invit Studio">
@@ -22,6 +23,22 @@
     <meta name="twitter:image" content="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/nouveau%20logo.PNG" />
 
     <style>
+      html,
+      body,
+      #root {
+        width: 100%;
+        min-height: 100%;
+        margin: 0;
+        padding: 0;
+        background: #070b0f;
+      }
+
+      body {
+        min-height: 100vh;
+        min-height: 100dvh;
+        overflow-x: hidden;
+      }
+
       #creathings-splash {
         position: fixed;
         inset: 0;
@@ -65,7 +82,7 @@
   <body>
     <div id="creathings-splash">
       <img
-        src="public/images/creathings-splash.png"
+        src="/images/creathings-splash.png"
         alt="CréaTHINGS - Think. Create. Share."
         class="creathings-splash-image"
       />
