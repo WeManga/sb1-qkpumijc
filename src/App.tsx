@@ -10,7 +10,7 @@ import { supabase } from './lib/supabase';
 // --- COMPOSANT DE CHARGEMENT POUR L'INVITÉ ---
 // Ce composant s'occupe de récupérer les infos de l'invitation via l'ID du lien
 function GuestViewLoader() {
-  const { slug } = useParams(); // Récupère l'ID dans l'URL /invite/:slug
+  const { slug } = useParams();
   const [invitation, setInvitation] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -54,7 +54,6 @@ function GuestViewLoader() {
     );
   }
 
-  // Si tout est ok, on affiche la vue invité avec les données
   return <GuestView invitation={invitation} />;
 }
 
@@ -65,12 +64,23 @@ function AppContent() {
   const [editingInvitationId, setEditingInvitationId] = useState<string | undefined>();
 
   useEffect(() => {
+    const splash = document.getElementById('creathings-splash');
+
+    if (!splash) return;
+
+    if (window.location.pathname.startsWith('/invite/')) {
+      splash.remove();
+      return;
+    }
+
+    if (loading) return;
+
     const timer = window.setTimeout(() => {
-      document.getElementById('creathings-splash')?.classList.add('creathings-hidden');
-    }, 1300);
+      splash.classList.add('creathings-hidden');
+    }, 700);
 
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [loading]);
 
   if (loading) {
     return (
