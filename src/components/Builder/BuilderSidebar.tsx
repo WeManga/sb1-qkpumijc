@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, type WheelEvent } from 'react';
+import { useState, useRef, useEffect, useCallback, type WheelEvent } from 'react';
 import { supabase } from '../../lib/supabase';
 import { translations, Language } from '../../lib/i18n';
 import { Plus, X, Lock, ChevronDown } from 'lucide-react';
@@ -311,9 +311,43 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
   const filmstripPhoto2Label = (t as any).filmstrip_photo_2 || localLabels.filmstrip_photo_2;
   const filmstripPhoto3Label = (t as any).filmstrip_photo_3 || localLabels.filmstrip_photo_3;
 
-  const toggleSection = (id: string) => {
-    setOpenSections(prev => ({ ...prev, [id]: !prev[id] }));
+  const translateOpeningLabel = (label: string) => {
+    const maps: Record<string, Record<string, string>> = {
+      fr: {
+        Wedding: 'Mariage',
+        Birthday: 'Anniversaire',
+        Party: 'Fête',
+        Baptism: 'Baptême',
+        'Baby shower': 'Baby shower',
+        Funeral: 'Obsèques',
+        Other: 'Autre'
+      },
+      en: {
+        Wedding: 'Wedding',
+        Birthday: 'Birthday',
+        Party: 'Party',
+        Baptism: 'Baptism',
+        'Baby shower': 'Baby shower',
+        Funeral: 'Funeral',
+        Other: 'Other'
+      },
+      vi: {
+        Wedding: 'Đám cưới',
+        Birthday: 'Sinh nhật',
+        Party: 'Bữa tiệc',
+        Baptism: 'Lễ rửa tội',
+        'Baby shower': 'Tiệc mừng em bé',
+        Funeral: 'Tang lễ',
+        Other: 'Khác'
+      }
+    };
+
+    return maps[lang]?.[label] || label;
   };
+
+  const toggleSection = useCallback((id: string) => {
+    setOpenSections(prev => ({ ...prev, [id]: !prev[id] }));
+  }, []);
 
   const checkPremiumAccess = (condition: boolean) => {
     if (!condition && !isPremium) {
@@ -594,7 +628,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     });
   };
 
-  const Section = ({ id, title, children, premium = false }: any) => {
+  const Section = useCallback(({ id, title, children, premium = false }: any) => {
     const isOpen = openSections[id];
     const locked = premium && !isPremium;
 
@@ -619,7 +653,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
         {isOpen && <div className="px-4 pb-4 space-y-4">{children}</div>}
       </div>
     );
-  };
+  }, [openSections, isPremium, toggleSection]);
 
   const PremiumMark = ({ locked }: { locked: boolean }) => {
     if (!locked) return null;
@@ -750,16 +784,16 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                       type="time"
                       value={step.time}
                       onChange={e => updateProgramStep(index, 'time', e.target.value)}
-                      className="w-24 bg-white border border-gray-100 h-10 px-2 rounded-lg text-[11px] font-bold"
+                      className="w-[8.5rem] min-w-[8.5rem] bg-white border border-gray-100 h-10 px-3 rounded-lg text-sm font-bold"
                     />
                     <input
                       type="text"
                       value={step.activity}
                       onChange={e => updateProgramStep(index, 'activity', e.target.value)}
                       placeholder={t.activity_placeholder}
-                      className="flex-1 bg-white border border-gray-100 h-10 px-3 rounded-lg text-[11px]"
+                      className="flex-1 min-w-0 bg-white border border-gray-100 h-10 px-3 rounded-lg text-[11px]"
                     />
-                    <button type="button" onClick={() => removeProgramStep(index)} className="p-1.5 bg-red-50 text-red-500 rounded-full">
+                    <button type="button" onClick={() => removeProgramStep(index)} className="p-1.5 bg-red-50 text-red-500 rounded-full shrink-0">
                       <X size={14} />
                     </button>
                   </div>
@@ -1027,7 +1061,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                     >
                       {OPENING_CATEGORIES.map(category => (
                         <option key={category.id} value={category.id}>
-                          {category.label}
+                          {translateOpeningLabel(category.label)}
                         </option>
                       ))}
                     </select>
@@ -1045,7 +1079,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                     >
                       {availableOpeningThemes.map(theme => (
                         <option key={theme.id} value={theme.id}>
-                          {theme.label}
+                          {translateOpeningLabel(theme.label)}
                         </option>
                       ))}
                     </select>
