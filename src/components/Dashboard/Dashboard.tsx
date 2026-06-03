@@ -25,6 +25,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const BRAND_FONT_LINK_ID = 'invit-studio-brand-font';
 
+type AppChannel = 'web' | 'android_apk' | 'android_play';
+
+const APP_CHANNEL = ((import.meta as any).env?.VITE_APP_CHANNEL || 'web') as AppChannel;
+const APK_DOWNLOAD_URL = ((import.meta as any).env?.VITE_APK_DOWNLOAD_URL || '') as string;
+
+const isAndroidPlayChannel = APP_CHANNEL === 'android_play';
+const canUseExternalPayments = APP_CHANNEL === 'web' || APP_CHANNEL === 'android_apk';
+
 const brandTitleStyle: CSSProperties = {
   fontFamily: '"Great Vibes", cursive',
   fontWeight: 400,
@@ -103,6 +111,8 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     (localStorage.getItem('invite_lang') as Language) || 'en'
   );
 
+  const canShowApkDownload = APP_CHANNEL === 'web' && isAndroidDevice() && Boolean(APK_DOWNLOAD_URL);
+
   useEffect(() => {
     if (!document.getElementById(BRAND_FONT_LINK_ID)) {
       const link = document.createElement('link');
@@ -121,11 +131,11 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     const shouldOpenAccount = urlParams.get('openAccount') === 'true';
     const shouldOpenPlans = urlParams.get('openPlans') === 'true';
 
-    if (shouldOpenAccount || (shouldOpenPlans && isAndroidDevice())) {
+    if (shouldOpenAccount || (shouldOpenPlans && !canUseExternalPayments)) {
       setAccountStep('PROFILE');
       setIsAccountOpen(true);
       window.history.replaceState({}, document.title, window.location.pathname);
-    } else if (shouldOpenPlans) {
+    } else if (shouldOpenPlans && canUseExternalPayments) {
       setAccountStep('PLANS');
       setIsAccountOpen(true);
       window.history.replaceState({}, document.title, window.location.pathname);
@@ -368,9 +378,8 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   const handleManageAccountClick = (e: MouseEvent) => {
     e.preventDefault();
 
-    if (isAndroidDevice()) {
-      setIsAccountOpen(false);
-      window.open('https://invitstudio.vercel.app/dashboard?openAccount=true', '_blank');
+    if (!canUseExternalPayments || isAndroidPlayChannel) {
+      setAccountStep('PROFILE');
       return;
     }
 
@@ -386,6 +395,11 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   };
 
   const handleSelectPlan = (plan: any) => {
+    if (!canUseExternalPayments) {
+      setAccountStep('PROFILE');
+      return;
+    }
+
     setSelectedPlan(plan);
     resetCheckout();
     setAccountStep('CHECKOUT');
@@ -409,6 +423,8 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   };
 
   const handleCreateSepayCheckout = async (forcedPlanId?: string) => {
+    if (!canUseExternalPayments) return;
+
     const planId = forcedPlanId || selectedPlan?.id;
 
     if (!planId) return;
@@ -557,6 +573,41 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
           </div>
         </div>
 
+        {canShowApkDownload && (
+          <div className="relative z-10 mb-6 rounded-2xl border border-amber-100 bg-amber-50 px-5 py-4 shadow-sm">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <p className="text-sm font-black text-gray-900 uppercase tracking-tight">
+                  {lang === 'fr'
+                    ? 'Application Android disponible'
+                    : lang === 'vi'
+                      ? 'Ứng dụng Android đã sẵn sàng'
+                      : 'Android app available'}
+                </p>
+
+                <p className="text-xs text-gray-500 font-semibold mt-1 leading-snug">
+                  {lang === 'fr'
+                    ? 'Téléchargez la version Android officielle pour une expérience plus fluide.'
+                    : lang === 'vi'
+                      ? 'Tải phiên bản Android chính thức để sử dụng mượt hơn.'
+                      : 'Download the official Android version for a smoother experience.'}
+                </p>
+              </div>
+
+              <a
+                href={APK_DOWNLOAD_URL}
+                className="h-11 px-5 bg-gray-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center hover:bg-gray-800 transition-all"
+              >
+                {lang === 'fr'
+                  ? 'Télécharger APK'
+                  : lang === 'vi'
+                    ? 'Tải APK'
+                    : 'Download APK'}
+              </a>
+            </div>
+          </div>
+        )}
+
         {!loading && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 relative z-10">
             <button
@@ -667,14 +718,14 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                     <div>
                       <h3 className="text-lg font-black text-gray-900 uppercase tracking-tight">
                         {accountStep === 'PROFILE' && tAcc.title}
-                        {accountStep === 'PLANS' && tPln.title}
-                        {accountStep === 'CHECKOUT' && tChk.title}
+                        {accountStep === 'PLANS' && canUseExternalPayments && tPln.title}
+                        {accountStep === 'CHECKOUT' && canUseExternalPayments && tChk.title}
                       </h3>
 
                       <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest">
                         {accountStep === 'PROFILE' && user?.email}
-                        {accountStep === 'PLANS' && tPln.subtitle}
-                        {accountStep === 'CHECKOUT' && `${selectedPlan?.duration} - ${selectedPlan?.totalPrice}`}
+                        {accountStep === 'PLANS' && canUseExternalPayments && tPln.subtitle}
+                        {accountStep === 'CHECKOUT' && canUseExternalPayments && `${selectedPlan?.duration} - ${selectedPlan?.totalPrice}`}
                       </p>
                     </div>
                   </div>
@@ -713,15 +764,29 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                         </div>
                       </div>
 
-                      <div className="text-center">
-                        <button
-                          type="button"
-                          onClick={handleManageAccountClick}
-                          className="text-xs font-black text-amber-600 hover:text-amber-700 uppercase tracking-widest underline decoration-2 underline-offset-4"
-                        >
-                          {tAcc.manage}
-                        </button>
-                      </div>
+                      {canUseExternalPayments && (
+                        <div className="text-center">
+                          <button
+                            type="button"
+                            onClick={handleManageAccountClick}
+                            className="text-xs font-black text-amber-600 hover:text-amber-700 uppercase tracking-widest underline decoration-2 underline-offset-4"
+                          >
+                            {tAcc.manage}
+                          </button>
+                        </div>
+                      )}
+
+                      {!canUseExternalPayments && (
+                        <div className="p-4 bg-gray-50 border border-gray-100 rounded-2xl text-center">
+                          <p className="text-[11px] text-gray-500 font-bold uppercase tracking-widest leading-snug">
+                            {lang === 'fr'
+                              ? 'Les codes promo restent disponibles depuis cette version.'
+                              : lang === 'vi'
+                                ? 'Mã khuyến mãi vẫn có thể sử dụng trong phiên bản này.'
+                                : 'Promo codes remain available in this version.'}
+                          </p>
+                        </div>
+                      )}
 
                       <div className="border-t border-gray-100 pt-6 space-y-3">
                         <form onSubmit={handleActivateCode} className="space-y-3">
@@ -750,7 +815,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                     </div>
                   )}
 
-                  {accountStep === 'PLANS' && (
+                  {accountStep === 'PLANS' && canUseExternalPayments && (
                     <div className="space-y-4">
                       {paymentPlans.map((plan, idx) => (
                         <div
@@ -806,7 +871,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                     </div>
                   )}
 
-                  {accountStep === 'CHECKOUT' && (
+                  {accountStep === 'CHECKOUT' && canUseExternalPayments && (
                     <div className="space-y-5">
                       {checkoutError && (
                         <div className="p-4 bg-rose-50 border border-rose-100 rounded-2xl text-rose-600 text-xs font-bold">
