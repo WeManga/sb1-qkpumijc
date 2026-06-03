@@ -174,9 +174,32 @@
     </div>
 
     <script>
-      if (window.location.pathname.startsWith('/invite/')) {
-        document.getElementById('creathings-splash')?.remove();
-      }
+      (function () {
+        function hideCreathingsSplash() {
+          var splash = document.getElementById('creathings-splash');
+
+          if (!splash) return;
+
+          splash.classList.add('creathings-hidden');
+
+          window.setTimeout(function () {
+            if (splash && splash.parentNode) {
+              splash.parentNode.removeChild(splash);
+            }
+          }, 700);
+        }
+
+        if (window.location.pathname.startsWith('/invite/')) {
+          hideCreathingsSplash();
+          return;
+        }
+
+        window.addEventListener('load', function () {
+          window.setTimeout(hideCreathingsSplash, 3000);
+        });
+
+        window.setTimeout(hideCreathingsSplash, 5000);
+      })();
     </script>
 
     <div id="root"></div>
