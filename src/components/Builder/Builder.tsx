@@ -7,6 +7,7 @@ import { Loader2 } from 'lucide-react';
 import { translations, Language } from '../../lib/i18n';
 
 type Invitation = Database['public']['Tables']['invitations']['Row'];
+
 type BuilderInvitation = Partial<Invitation> & {
   plan_type?: 'FREE' | 'PREMIUM';
 };
@@ -65,6 +66,26 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
   useEffect(() => {
     initialiseBuilder();
   }, [invitationId, user]);
+
+  const getBackConfirmMessage = () => {
+    if (lang === 'en') {
+      return 'Are you sure you want to go back without saving? Your latest changes may be lost.';
+    }
+
+    if (lang === 'vi') {
+      return 'Bạn có chắc muốn quay lại mà chưa lưu không? Những thay đổi mới nhất có thể bị mất.';
+    }
+
+    return 'Êtes-vous sûr de vouloir revenir sans enregistrer ? Vos dernières modifications peuvent être perdues.';
+  };
+
+  const handleBackRequest = () => {
+    const confirmed = window.confirm(getBackConfirmMessage());
+
+    if (!confirmed) return;
+
+    onBack();
+  };
 
   const getEffectivePlanType = async (): Promise<'FREE' | 'PREMIUM'> => {
     if (!user) return 'FREE';
@@ -259,7 +280,7 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
       }}
       onInvitationChange={setInvitation}
       onSave={handleSave}
-      onBack={onBack}
+      onBack={handleBackRequest}
       saving={saving}
     />
   );
