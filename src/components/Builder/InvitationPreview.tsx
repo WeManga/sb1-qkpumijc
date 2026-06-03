@@ -8,8 +8,7 @@ import {
   MapPin,
   Film,
   CheckCircle2,
-  RotateCcw,
-  AlertTriangle
+  RotateCcw
 } from 'lucide-react';
 import { translations, Language } from '../../lib/i18n';
 import {
@@ -30,6 +29,7 @@ const THEME_EMOJIS: Record<string, string[]> = {
 
 const OPENING_FADE_DURATION = 0.85;
 const OPENING_REVEAL_DELAY = 420;
+const CONTENT_TRANSITION_DURATION = 0.95;
 const LEAF_FRAME_URL =
   'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/feuille%20carousselle.png';
 
@@ -75,33 +75,6 @@ const getReplayLabel = (lang: Language) => {
   if (lang === 'en') return 'Replay opening';
   if (lang === 'vi') return 'Xem lại mở thiệp';
   return "Revoir l'ouverture";
-};
-
-const getExitCopy = (lang: Language) => {
-  if (lang === 'en') {
-    return {
-      title: 'Leave this page?',
-      message: 'Are you sure you want to leave before saving your response?',
-      cancel: 'Continue',
-      confirm: 'Leave'
-    };
-  }
-
-  if (lang === 'vi') {
-    return {
-      title: 'Rời khỏi trang?',
-      message: 'Bạn có chắc muốn rời đi trước khi lưu câu trả lời không?',
-      cancel: 'Tiếp tục',
-      confirm: 'Rời đi'
-    };
-  }
-
-  return {
-    title: 'Quitter cette page ?',
-    message: 'Êtes-vous sûr de vouloir quitter sans enregistrer votre réponse ?',
-    cancel: 'Continuer',
-    confirm: 'Quitter'
-  };
 };
 
 const EmojiRain = ({ emojis }: { emojis: string[] }) => {
@@ -515,7 +488,6 @@ export function InvitationPreview({ invitation }: any) {
   const [isOpeningFading, setIsOpeningFading] = useState(false);
   const [isVideoReady, setIsVideoReady] = useState(false);
   const [openingReplayKey, setOpeningReplayKey] = useState(0);
-  const [showExitConfirm, setShowExitConfirm] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const openingTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -523,7 +495,6 @@ export function InvitationPreview({ invitation }: any) {
   const lang = (pick(invitation, ['language']) as Language) || (localStorage.getItem('invite_lang') as Language) || 'fr';
   const t = translations[lang].guest;
   const tBuilder = translations[lang].builder;
-  const exitCopy = getExitCopy(lang);
 
   const eventType = pick(invitation, ['event_type', 'eventtype'], 'wedding');
   const emojis = THEME_EMOJIS[eventType] || THEME_EMOJIS.default;
@@ -672,17 +643,11 @@ export function InvitationPreview({ invitation }: any) {
       audioRef.current.currentTime = 0;
     }
 
-    setShowExitConfirm(false);
     setView('envelope');
     setIsOpened(false);
     setIsOpeningFading(false);
     setIsVideoReady(false);
     setOpeningReplayKey((current) => current + 1);
-  };
-
-  const handleConfirmExit = () => {
-    setShowExitConfirm(false);
-    setView('envelope');
   };
 
   const toggleMute = (e: MouseEvent) => {
@@ -770,56 +735,6 @@ export function InvitationPreview({ invitation }: any) {
       {showEmojiRain && <EmojiRain emojis={emojis} />}
       {showPremiumDecor && <AutonomousDecor theme={backgroundTheme} isPremiumDecor={isPremiumDecor} />}
 
-      <AnimatePresence>
-        {showExitConfirm && (
-          <motion.div
-            key="exit-confirm"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 z-[220] flex items-center justify-center bg-black/45 backdrop-blur-sm px-6"
-          >
-            <motion.div
-              initial={{ opacity: 0, y: 18, scale: 0.96 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 10, scale: 0.98 }}
-              transition={{ duration: 0.25, ease: 'easeOut' }}
-              className="w-full max-w-[300px] rounded-[2rem] bg-white p-6 text-center shadow-2xl border border-amber-100"
-            >
-              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-600">
-                <AlertTriangle size={22} />
-              </div>
-
-              <h3 className="text-base font-black text-gray-900 mb-2">
-                {exitCopy.title}
-              </h3>
-
-              <p className="text-xs font-medium text-gray-500 leading-relaxed mb-5">
-                {exitCopy.message}
-              </p>
-
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => setShowExitConfirm(false)}
-                  className="h-11 rounded-xl bg-gray-100 text-[11px] font-black uppercase tracking-wider text-gray-700"
-                >
-                  {exitCopy.cancel}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={handleConfirmExit}
-                  className="h-11 rounded-xl bg-gray-900 text-[11px] font-black uppercase tracking-wider text-white"
-                >
-                  {exitCopy.confirm}
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
       <AnimatePresence mode="wait">
         {view === 'envelope' ? (
           <motion.div
@@ -836,6 +751,17 @@ export function InvitationPreview({ invitation }: any) {
                 className="absolute top-6 right-6 z-[70] w-10 h-10 bg-white/80 rounded-full flex items-center justify-center shadow-lg"
               >
                 {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} className="animate-pulse" />}
+              </button>
+            )}
+
+            {isOpened && isVideoOpening && (
+              <button
+                type="button"
+                onClick={handleReplayOpening}
+                className="absolute top-6 left-6 z-[70] h-10 px-3 bg-white/90 rounded-full flex items-center gap-1.5 justify-center shadow-md text-[10px] font-black uppercase tracking-wider text-gray-700"
+              >
+                <RotateCcw size={14} />
+                <span>{getReplayLabel(lang)}</span>
               </button>
             )}
 
@@ -972,10 +898,10 @@ export function InvitationPreview({ invitation }: any) {
         ) : (
           <motion.div
             key="content"
-            initial={{ opacity: 0, rotateY: -18, scale: 0.96, x: 28 }}
+            initial={{ opacity: 0, rotateY: -24, scale: 0.94, x: 38 }}
             animate={{ opacity: 1, rotateY: 0, scale: 1, x: 0 }}
-            exit={{ opacity: 0, rotateY: 14, scale: 0.98, x: -16 }}
-            transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+            exit={{ opacity: 0, rotateY: 18, scale: 0.97, x: -22 }}
+            transition={{ duration: CONTENT_TRANSITION_DURATION, ease: [0.16, 1, 0.3, 1] }}
             className={`w-full h-full z-[100] flex flex-col overflow-y-auto paper-container ${getPaperClass(effectivePaperType)}`}
             style={
               {
@@ -1001,9 +927,8 @@ export function InvitationPreview({ invitation }: any) {
 
               <button
                 type="button"
-                onClick={() => setShowExitConfirm(true)}
+                onClick={() => setView('envelope')}
                 className="absolute top-6 left-6 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-md"
-                aria-label={exitCopy.confirm}
               >
                 <X size={20} />
               </button>
