@@ -64,22 +64,30 @@ function AppContent() {
   const [editingInvitationId, setEditingInvitationId] = useState<string | undefined>();
 
   useEffect(() => {
-    const splash = document.getElementById('creathings-splash');
+    const hideSplash = () => {
+      const splash = document.getElementById('creathings-splash');
 
-    if (!splash) return;
+      if (!splash) return;
+
+      splash.classList.add('creathings-hidden');
+
+      window.setTimeout(() => {
+        splash.remove();
+      }, 700);
+    };
 
     if (window.location.pathname.startsWith('/invite/')) {
-      splash.remove();
+      hideSplash();
       return;
     }
 
-    if (loading) return;
+    if (!loading) {
+      const timer = window.setTimeout(hideSplash, 700);
+      return () => window.clearTimeout(timer);
+    }
 
-    const timer = window.setTimeout(() => {
-      splash.classList.add('creathings-hidden');
-    }, 700);
-
-    return () => window.clearTimeout(timer);
+    const fallbackTimer = window.setTimeout(hideSplash, 3500);
+    return () => window.clearTimeout(fallbackTimer);
   }, [loading]);
 
   if (loading) {
