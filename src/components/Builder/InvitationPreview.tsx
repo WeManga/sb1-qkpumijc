@@ -1,6 +1,16 @@
 import { useState, useMemo, useEffect, useRef, type CSSProperties, type MouseEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, Volume2, VolumeX, MapPin, Film, CheckCircle2 } from 'lucide-react';
+import {
+  X,
+  Calendar,
+  Volume2,
+  VolumeX,
+  MapPin,
+  Film,
+  CheckCircle2,
+  RotateCcw,
+  AlertTriangle
+} from 'lucide-react';
 import { translations, Language } from '../../lib/i18n';
 import {
   UNIVERSAL_OPENING_POSTER_URL,
@@ -14,7 +24,7 @@ const THEME_EMOJIS: Record<string, string[]> = {
   party: ['✨', '🎸', '🥂', '🕺', '🌟'],
   baptism: ['👼', '☁️', '🤍', '✨', '🕊️'],
   babyshower: ['🍼', '🤍', '👶', '💖', '💙'],
-  funeral: ['🙏', '🕊️', '🥀', '⚰️', '🤍'],
+  funeral: ['🙏', '🕊️', '🥀', '🤍', '✨'],
   default: ['✨', '🌟', '🤍']
 };
 
@@ -22,6 +32,13 @@ const OPENING_FADE_DURATION = 0.85;
 const OPENING_REVEAL_DELAY = 420;
 const LEAF_FRAME_URL =
   'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/feuille%20carousselle.png';
+
+const isAndroidDevice = () =>
+  typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent);
+
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' &&
+  window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
 const pick = (obj: any, keys: string[], fallback: any = undefined) => {
   for (const key of keys) {
@@ -54,21 +71,61 @@ const getAlbumTitle = (lang: Language) => {
   return 'Album souvenir';
 };
 
+const getReplayLabel = (lang: Language) => {
+  if (lang === 'en') return 'Replay opening';
+  if (lang === 'vi') return 'Xem lại mở thiệp';
+  return "Revoir l'ouverture";
+};
+
+const getExitCopy = (lang: Language) => {
+  if (lang === 'en') {
+    return {
+      title: 'Leave this page?',
+      message: 'Are you sure you want to leave before saving your response?',
+      cancel: 'Continue',
+      confirm: 'Leave'
+    };
+  }
+
+  if (lang === 'vi') {
+    return {
+      title: 'Rời khỏi trang?',
+      message: 'Bạn có chắc muốn rời đi trước khi lưu câu trả lời không?',
+      cancel: 'Tiếp tục',
+      confirm: 'Rời đi'
+    };
+  }
+
+  return {
+    title: 'Quitter cette page ?',
+    message: 'Êtes-vous sûr de vouloir quitter sans enregistrer votre réponse ?',
+    cancel: 'Continuer',
+    confirm: 'Quitter'
+  };
+};
+
 const EmojiRain = ({ emojis }: { emojis: string[] }) => {
-  const particles = useMemo(
-    () =>
-      Array.from({ length: 26 }).map((_, i) => ({
-        id: i,
-        emoji: emojis[i % emojis.length],
-        left: `${2 + i * 3.8 + Math.random() * 2.4}%`,
-        delay: Math.random() * 1.2,
-        duration: 2.5 + Math.random() * 1.2,
-        size: 22 + Math.random() * 10,
-        drift: -22 + Math.random() * 44,
-        rotate: -18 + Math.random() * 36
-      })),
-    [emojis]
-  );
+  const particles = useMemo(() => {
+    if (prefersReducedMotion()) return [];
+
+    const android = isAndroidDevice();
+    const count = android ? 12 : 26;
+    const safeEmojis = emojis.length > 0 ? emojis : THEME_EMOJIS.default;
+
+    return Array.from({ length: count }).map((_, i) => ({
+      id: i,
+      emoji: safeEmojis[i % safeEmojis.length],
+      left: `${4 + i * (android ? 7.5 : 3.8) + Math.random() * 2.4}%`,
+      delay: Math.random() * 1.4,
+      duration: android ? 3.4 + Math.random() * 1.4 : 2.5 + Math.random() * 1.2,
+      size: android ? 18 + Math.random() * 7 : 22 + Math.random() * 10,
+      drift: -18 + Math.random() * 36,
+      rotate: -18 + Math.random() * 36,
+      travelY: android ? 680 : 760
+    }));
+  }, [emojis]);
+
+  if (particles.length === 0) return null;
 
   return (
     <div className="absolute inset-0 z-[14] pointer-events-none overflow-hidden">
@@ -77,7 +134,7 @@ const EmojiRain = ({ emojis }: { emojis: string[] }) => {
           key={p.id}
           initial={{ y: -80, x: 0, opacity: 0, rotate: p.rotate, scale: 0.8 }}
           animate={{
-            y: 760,
+            y: p.travelY,
             x: p.drift,
             opacity: [0, 1, 1, 0],
             rotate: p.rotate + 38,
@@ -89,7 +146,7 @@ const EmojiRain = ({ emojis }: { emojis: string[] }) => {
             delay: p.delay,
             ease: 'linear'
           }}
-          className="absolute leading-none select-none"
+          className="absolute leading-none select-none will-change-transform"
           style={{ left: p.left, fontSize: p.size }}
         >
           {p.emoji}
@@ -100,15 +157,17 @@ const EmojiRain = ({ emojis }: { emojis: string[] }) => {
 };
 
 const AutonomousDecor = ({ theme, isPremiumDecor }: { theme: string; isPremiumDecor: boolean }) => {
+  const android = isAndroidDevice();
+
   const ballons = useMemo(
     () =>
-      Array.from({ length: 6 }).map((_, i) => ({
+      Array.from({ length: android ? 4 : 6 }).map((_, i) => ({
         id: i,
         left: `${15 + i * 14 + Math.random() * 4}%`,
         delay: i * 0.5,
         duration: 6 + Math.random() * 3
       })),
-    []
+    [android]
   );
 
   const papillonsConfig = useMemo(
@@ -125,7 +184,7 @@ const AutonomousDecor = ({ theme, isPremiumDecor }: { theme: string; isPremiumDe
 
   const etoilesPluie = useMemo(
     () =>
-      Array.from({ length: 48 }).map((_, i) => ({
+      Array.from({ length: android ? 24 : 48 }).map((_, i) => ({
         id: i,
         left: `${2 + Math.random() * 96}%`,
         delay: Math.random() * 3.5,
@@ -133,7 +192,7 @@ const AutonomousDecor = ({ theme, isPremiumDecor }: { theme: string; isPremiumDe
         sizeClass: i % 3 === 0 ? 'w-3 h-auto' : 'w-2 h-auto',
         rotate: Math.random() * 180
       })),
-    []
+    [android]
   );
 
   return (
@@ -159,7 +218,7 @@ const AutonomousDecor = ({ theme, isPremiumDecor }: { theme: string; isPremiumDe
             initial={{ y: 680, opacity: 0 }}
             animate={{ y: -120, opacity: [0, 1, 1, 0] }}
             transition={{ duration: b.duration, repeat: Infinity, delay: b.delay, ease: 'linear' }}
-            className="absolute w-10 h-auto"
+            className="absolute w-10 h-auto will-change-transform"
             style={{ left: b.left }}
             alt=""
           />
@@ -167,13 +226,13 @@ const AutonomousDecor = ({ theme, isPremiumDecor }: { theme: string; isPremiumDe
 
       {theme === 'butterflies' &&
         isPremiumDecor &&
-        papillonsConfig.map((p) => (
+        papillonsConfig.slice(0, android ? 3 : papillonsConfig.length).map((p) => (
           <motion.div
             key={`pap-infinite-${p.id}`}
             initial={{ x: p.initX, y: p.initY, opacity: 0 }}
             animate={{ x: p.pathX, y: p.pathY, opacity: [0, 1, 1, 1, 0] }}
             transition={{ duration: p.duration, repeat: Infinity, ease: 'linear' }}
-            className="absolute"
+            className="absolute will-change-transform"
             style={{ scale: p.size }}
           >
             <motion.img
@@ -210,7 +269,7 @@ const AutonomousDecor = ({ theme, isPremiumDecor }: { theme: string; isPremiumDe
                 delay: e.delay,
                 ease: 'easeIn'
               }}
-              className={`absolute ${e.sizeClass} drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]`}
+              className={`absolute ${e.sizeClass} drop-shadow-[0_0_8px_rgba(251,191,36,0.8)] will-change-transform`}
               style={{ left: e.left }}
               alt=""
             />
@@ -455,6 +514,8 @@ export function InvitationPreview({ invitation }: any) {
   const [isMuted, setIsMuted] = useState(false);
   const [isOpeningFading, setIsOpeningFading] = useState(false);
   const [isVideoReady, setIsVideoReady] = useState(false);
+  const [openingReplayKey, setOpeningReplayKey] = useState(0);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const openingTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -462,6 +523,7 @@ export function InvitationPreview({ invitation }: any) {
   const lang = (pick(invitation, ['language']) as Language) || (localStorage.getItem('invite_lang') as Language) || 'fr';
   const t = translations[lang].guest;
   const tBuilder = translations[lang].builder;
+  const exitCopy = getExitCopy(lang);
 
   const eventType = pick(invitation, ['event_type', 'eventtype'], 'wedding');
   const emojis = THEME_EMOJIS[eventType] || THEME_EMOJIS.default;
@@ -556,16 +618,20 @@ export function InvitationPreview({ invitation }: any) {
     albumPhotoUrl6
   ]);
 
+  const clearOpeningTimers = () => {
+    openingTimersRef.current.forEach(clearTimeout);
+    openingTimersRef.current = [];
+  };
+
   useEffect(() => {
     return () => {
-      openingTimersRef.current.forEach(clearTimeout);
-      openingTimersRef.current = [];
+      clearOpeningTimers();
     };
   }, []);
 
   useEffect(() => {
     setIsVideoReady(false);
-  }, [openingVideoUrl]);
+  }, [openingVideoUrl, openingReplayKey]);
 
   useEffect(() => {
     if (isOpened && musicUrl && audioRef.current) {
@@ -583,9 +649,7 @@ export function InvitationPreview({ invitation }: any) {
 
     const revealDelay = isFreeShutterOpening ? 720 : OPENING_REVEAL_DELAY;
 
-    openingTimersRef.current.forEach(clearTimeout);
-    openingTimersRef.current = [];
-
+    clearOpeningTimers();
     setIsOpeningFading(true);
 
     const revealTimer = setTimeout(() => {
@@ -593,6 +657,32 @@ export function InvitationPreview({ invitation }: any) {
     }, revealDelay);
 
     openingTimersRef.current.push(revealTimer);
+  };
+
+  const handleOpenContent = () => {
+    if (!isOpened) return;
+    setView('content');
+  };
+
+  const handleReplayOpening = () => {
+    clearOpeningTimers();
+
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+
+    setShowExitConfirm(false);
+    setView('envelope');
+    setIsOpened(false);
+    setIsOpeningFading(false);
+    setIsVideoReady(false);
+    setOpeningReplayKey((current) => current + 1);
+  };
+
+  const handleConfirmExit = () => {
+    setShowExitConfirm(false);
+    setView('envelope');
   };
 
   const toggleMute = (e: MouseEvent) => {
@@ -606,6 +696,7 @@ export function InvitationPreview({ invitation }: any) {
 
   const OpeningVideoLayer = () => (
     <motion.div
+      key={`opening-layer-${openingReplayKey}`}
       initial={false}
       animate={{ opacity: isOpeningFading ? 0 : 1 }}
       transition={{ duration: OPENING_FADE_DURATION, ease: 'easeInOut' }}
@@ -622,7 +713,7 @@ export function InvitationPreview({ invitation }: any) {
       />
 
       <motion.video
-        key={openingVideoUrl}
+        key={`${openingVideoUrl}-${openingReplayKey}`}
         src={openingVideoUrl}
         poster={openingPosterUrl}
         autoPlay
@@ -679,13 +770,71 @@ export function InvitationPreview({ invitation }: any) {
       {showEmojiRain && <EmojiRain emojis={emojis} />}
       {showPremiumDecor && <AutonomousDecor theme={backgroundTheme} isPremiumDecor={isPremiumDecor} />}
 
+      <AnimatePresence>
+        {showExitConfirm && (
+          <motion.div
+            key="exit-confirm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-[220] flex items-center justify-center bg-black/45 backdrop-blur-sm px-6"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 18, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 10, scale: 0.98 }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
+              className="w-full max-w-[300px] rounded-[2rem] bg-white p-6 text-center shadow-2xl border border-amber-100"
+            >
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-50 text-amber-600">
+                <AlertTriangle size={22} />
+              </div>
+
+              <h3 className="text-base font-black text-gray-900 mb-2">
+                {exitCopy.title}
+              </h3>
+
+              <p className="text-xs font-medium text-gray-500 leading-relaxed mb-5">
+                {exitCopy.message}
+              </p>
+
+              <div className="grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowExitConfirm(false)}
+                  className="h-11 rounded-xl bg-gray-100 text-[11px] font-black uppercase tracking-wider text-gray-700"
+                >
+                  {exitCopy.cancel}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleConfirmExit}
+                  className="h-11 rounded-xl bg-gray-900 text-[11px] font-black uppercase tracking-wider text-white"
+                >
+                  {exitCopy.confirm}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <AnimatePresence mode="wait">
         {view === 'envelope' ? (
-          <motion.div key="env" className="relative w-full h-full flex items-center justify-center" style={{ perspective: '1200px' }}>
+          <motion.div
+            key="env"
+            className="relative w-full h-full flex items-center justify-center"
+            style={{ perspective: '1200px' }}
+          >
             {isVideoOpening && !isOpened && <OpeningVideoLayer />}
 
             {isOpened && musicUrl && (
-              <button onClick={toggleMute} className="absolute top-6 right-6 z-[70] w-10 h-10 bg-white/80 rounded-full flex items-center justify-center shadow-lg">
+              <button
+                type="button"
+                onClick={toggleMute}
+                className="absolute top-6 right-6 z-[70] w-10 h-10 bg-white/80 rounded-full flex items-center justify-center shadow-lg"
+              >
                 {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} className="animate-pulse" />}
               </button>
             )}
@@ -766,7 +915,7 @@ export function InvitationPreview({ invitation }: any) {
               initial={{ scale: 0.8, y: 0, opacity: 0 }}
               animate={isOpened ? { scale: 1, y: 80, opacity: 1 } : { y: 0, opacity: 0 }}
               transition={{ type: 'spring', damping: 20, delay: 0.05 }}
-              onClick={() => isOpened && setView('content')}
+              onClick={handleOpenContent}
               className={`z-30 w-[310px] h-[370px] rounded-[3rem] shadow-2xl p-10 flex flex-col items-center justify-between border border-gray-100 cursor-pointer paper-container ${getPaperClass(effectivePaperType)}`}
               style={{ '--dynamic-color': cardPaperColor } as CSSProperties}
             >
@@ -823,10 +972,18 @@ export function InvitationPreview({ invitation }: any) {
         ) : (
           <motion.div
             key="content"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            initial={{ opacity: 0, rotateY: -18, scale: 0.96, x: 28 }}
+            animate={{ opacity: 1, rotateY: 0, scale: 1, x: 0 }}
+            exit={{ opacity: 0, rotateY: 14, scale: 0.98, x: -16 }}
+            transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
             className={`w-full h-full z-[100] flex flex-col overflow-y-auto paper-container ${getPaperClass(effectivePaperType)}`}
-            style={{ '--dynamic-color': cardPaperColor } as CSSProperties}
+            style={
+              {
+                '--dynamic-color': cardPaperColor,
+                transformStyle: 'preserve-3d',
+                transformOrigin: 'center right'
+              } as CSSProperties
+            }
           >
             <ContentOrnaments />
 
@@ -842,9 +999,25 @@ export function InvitationPreview({ invitation }: any) {
 
               <div className="absolute inset-0 bg-gradient-to-t from-white/85 via-white/20 to-transparent pointer-events-none" />
 
-              <button onClick={() => setView('envelope')} className="absolute top-6 left-6 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-md">
+              <button
+                type="button"
+                onClick={() => setShowExitConfirm(true)}
+                className="absolute top-6 left-6 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-md"
+                aria-label={exitCopy.confirm}
+              >
                 <X size={20} />
               </button>
+
+              {isVideoOpening && (
+                <button
+                  type="button"
+                  onClick={handleReplayOpening}
+                  className="absolute top-6 right-6 h-10 px-3 bg-white/90 rounded-full flex items-center gap-1.5 justify-center shadow-md text-[10px] font-black uppercase tracking-wider text-gray-700"
+                >
+                  <RotateCcw size={14} />
+                  <span>{getReplayLabel(lang)}</span>
+                </button>
+              )}
             </div>
 
             <div className="relative flex-1 p-8 space-y-14">
