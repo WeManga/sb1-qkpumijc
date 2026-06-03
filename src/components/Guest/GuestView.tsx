@@ -15,14 +15,22 @@ const THEME_EMOJIS: Record<string, string[]> = {
   party: ['✨', '🎸', '🥂', '🕺', '🌟'],
   baptism: ['👼', '☁️', '🤍', '✨', '🕊️'],
   babyshower: ['🍼', '🤍', '👶', '💖', '💙'],
-  funeral: ['🙏', '🕊️', '🥀', '⚰️', '🤍'],
+  funeral: ['🙏', '🕊️', '🥀', '🤍', '✨'],
   default: ['✨', '🌟', '🤍']
 };
 
 const OPENING_FADE_DURATION = 0.85;
 const OPENING_REVEAL_DELAY = 420;
+const CONTENT_TRANSITION_DURATION = 0.95;
 const LEAF_FRAME_URL =
   'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/feuille%20carousselle.png';
+
+const isAndroidDevice = () =>
+  typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent);
+
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' &&
+  window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
 const pick = (obj: any, keys: string[], fallback: any = undefined) => {
   for (const key of keys) {
@@ -38,21 +46,40 @@ const getAlbumTitle = (lang: Language) => {
   return 'Album souvenir';
 };
 
+const getKeepsakeText = (lang: Language) => {
+  if (lang === 'en') return 'A memory to keep';
+  if (lang === 'vi') return 'Một kỷ niệm để giữ';
+  return 'Un souvenir à garder';
+};
+
+const getDetailsLabel = (lang: Language) => {
+  if (lang === 'en') return 'See details';
+  if (lang === 'vi') return 'Xem chi tiết';
+  return 'Voir les détails';
+};
+
 const EmojiRain = ({ emojis }: { emojis: string[] }) => {
-  const particles = useMemo(
-    () =>
-      Array.from({ length: 30 }).map((_, i) => ({
-        id: i,
-        emoji: emojis[i % emojis.length],
-        left: `${2 + i * 3.4 + Math.random() * 2.5}%`,
-        delay: Math.random() * 1.2,
-        duration: 2.6 + Math.random() * 1.2,
-        size: 24 + Math.random() * 12,
-        drift: -28 + Math.random() * 56,
-        rotate: -18 + Math.random() * 36
-      })),
-    [emojis]
-  );
+  const particles = useMemo(() => {
+    if (prefersReducedMotion()) return [];
+
+    const android = isAndroidDevice();
+    const count = android ? 12 : 24;
+    const safeEmojis = emojis.length > 0 ? emojis : THEME_EMOJIS.default;
+
+    return Array.from({ length: count }).map((_, i) => ({
+      id: i,
+      emoji: safeEmojis[i % safeEmojis.length],
+      left: `${4 + i * (android ? 7.5 : 4) + Math.random() * 2.4}%`,
+      delay: Math.random() * 1.5,
+      duration: android ? 3.6 + Math.random() * 1.4 : 2.8 + Math.random() * 1.2,
+      size: android ? 18 + Math.random() * 7 : 22 + Math.random() * 10,
+      drift: android ? -16 + Math.random() * 32 : -24 + Math.random() * 48,
+      rotate: -18 + Math.random() * 36,
+      travelY: android ? '108vh' : '118vh'
+    }));
+  }, [emojis]);
+
+  if (particles.length === 0) return null;
 
   return (
     <div className="absolute inset-0 z-[60] pointer-events-none overflow-hidden">
@@ -61,14 +88,14 @@ const EmojiRain = ({ emojis }: { emojis: string[] }) => {
           key={p.id}
           initial={{ y: -90, x: 0, opacity: 0, rotate: p.rotate, scale: 0.8 }}
           animate={{
-            y: '118vh',
+            y: p.travelY,
             x: p.drift,
             opacity: [0, 1, 1, 0],
             rotate: p.rotate + 38,
             scale: [0.8, 1, 1, 0.9]
           }}
           transition={{ duration: p.duration, repeat: Infinity, delay: p.delay, ease: 'linear' }}
-          className="absolute leading-none select-none"
+          className="absolute leading-none select-none will-change-transform"
           style={{ left: p.left, fontSize: p.size }}
         >
           {p.emoji}
@@ -131,15 +158,17 @@ const ContentOrnaments = () => {
 };
 
 const AutonomousDecor = ({ theme, isPremiumDecor }: { theme: string; isPremiumDecor: boolean }) => {
+  const android = isAndroidDevice();
+
   const ballons = useMemo(
     () =>
-      Array.from({ length: 6 }).map((_, i) => ({
+      Array.from({ length: android ? 4 : 6 }).map((_, i) => ({
         id: i,
         left: `${15 + i * 14 + Math.random() * 4}%`,
         delay: i * 0.5,
         duration: 6 + Math.random() * 3
       })),
-    []
+    [android]
   );
 
   const papillonsConfig = useMemo(
@@ -156,7 +185,7 @@ const AutonomousDecor = ({ theme, isPremiumDecor }: { theme: string; isPremiumDe
 
   const etoilesPluie = useMemo(
     () =>
-      Array.from({ length: 48 }).map((_, i) => ({
+      Array.from({ length: android ? 24 : 48 }).map((_, i) => ({
         id: i,
         left: `${2 + Math.random() * 96}%`,
         delay: Math.random() * 3.5,
@@ -164,7 +193,7 @@ const AutonomousDecor = ({ theme, isPremiumDecor }: { theme: string; isPremiumDe
         sizeClass: i % 3 === 0 ? 'w-3 h-auto' : 'w-2 h-auto',
         rotate: Math.random() * 180
       })),
-    []
+    [android]
   );
 
   return (
@@ -190,7 +219,7 @@ const AutonomousDecor = ({ theme, isPremiumDecor }: { theme: string; isPremiumDe
             initial={{ y: 680, opacity: 0 }}
             animate={{ y: -120, opacity: [0, 1, 1, 0] }}
             transition={{ duration: b.duration, repeat: Infinity, delay: b.delay, ease: 'linear' }}
-            className="absolute w-10 h-auto"
+            className="absolute w-10 h-auto will-change-transform"
             style={{ left: b.left }}
             alt=""
           />
@@ -198,13 +227,13 @@ const AutonomousDecor = ({ theme, isPremiumDecor }: { theme: string; isPremiumDe
 
       {theme === 'butterflies' &&
         isPremiumDecor &&
-        papillonsConfig.map((p) => (
+        papillonsConfig.slice(0, android ? 3 : papillonsConfig.length).map((p) => (
           <motion.div
             key={`pap-infinite-${p.id}`}
             initial={{ x: p.initX, y: p.initY, opacity: 0 }}
             animate={{ x: p.pathX, y: p.pathY, opacity: [0, 1, 1, 1, 0] }}
             transition={{ duration: p.duration, repeat: Infinity, ease: 'linear' }}
-            className="absolute"
+            className="absolute will-change-transform"
             style={{ scale: p.size }}
           >
             <motion.img
@@ -241,7 +270,7 @@ const AutonomousDecor = ({ theme, isPremiumDecor }: { theme: string; isPremiumDe
                 delay: e.delay,
                 ease: 'easeIn'
               }}
-              className={`absolute ${e.sizeClass} drop-shadow-[0_0_8px_rgba(251,191,36,0.8)]`}
+              className={`absolute ${e.sizeClass} drop-shadow-[0_0_8px_rgba(251,191,36,0.8)] will-change-transform`}
               style={{ left: e.left }}
               alt=""
             />
@@ -813,7 +842,7 @@ export function GuestView({ invitation }: any) {
               </div>
 
               <div className="w-full py-4 bg-gray-900 text-white rounded-2xl text-[12px] font-semibold text-center">
-                {lang === 'vi' ? 'Xem chi tiết' : lang === 'en' ? 'See details' : 'Voir les détails'}
+                {getDetailsLabel(lang)}
               </div>
             </motion.div>
 
@@ -857,10 +886,18 @@ export function GuestView({ invitation }: any) {
         ) : (
           <motion.div
             key="content"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
+            initial={{ opacity: 0, rotateY: -24, scale: 0.94, x: 38 }}
+            animate={{ opacity: 1, rotateY: 0, scale: 1, x: 0 }}
+            exit={{ opacity: 0, rotateY: 18, scale: 0.97, x: -22 }}
+            transition={{ duration: CONTENT_TRANSITION_DURATION, ease: [0.16, 1, 0.3, 1] }}
             className={`w-full h-full z-[100] flex flex-col overflow-y-auto paper-container ${getPaperClass()}`}
-            style={{ '--dynamic-color': cardPaperColor } as CSSProperties}
+            style={
+              {
+                '--dynamic-color': cardPaperColor,
+                transformStyle: 'preserve-3d',
+                transformOrigin: 'center right'
+              } as CSSProperties
+            }
           >
             <ContentOrnaments />
 
@@ -991,7 +1028,7 @@ export function GuestView({ invitation }: any) {
                 <div className="px-2">
                   <div className="text-center mb-5">
                     <p className="text-[13px] font-semibold text-amber-600">
-                      {lang === 'fr' ? 'Un souvenir à garder' : lang === 'en' ? 'A memory to keep' : 'Một kỷ niệm để giữ'}
+                      {getKeepsakeText(lang)}
                     </p>
                   </div>
 
