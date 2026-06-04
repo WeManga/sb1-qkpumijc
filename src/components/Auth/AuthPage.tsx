@@ -22,6 +22,12 @@ const authSlogans: Record<Language, string> = {
   vi: 'Tạo thiệp dễ dàng, mời khách tinh tế.'
 };
 
+const privacyLinkLabels: Record<Language, string> = {
+  en: 'Privacy Policy',
+  fr: 'Politique de confidentialité',
+  vi: 'Chính sách quyền riêng tư'
+};
+
 export function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
@@ -62,6 +68,7 @@ export function AuthPage() {
         : 'Continuer avec Google');
 
   const slogan = authSlogans[lang] || authSlogans.en;
+  const privacyLabel = privacyLinkLabels[lang] || privacyLinkLabels.en;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -231,6 +238,14 @@ export function AuthPage() {
                 alt="Google"
               />
               {textGoogle}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => window.location.href = '/privacy-policy'}
+              className="w-full text-center text-[10px] font-bold uppercase tracking-widest text-gray-400 hover:text-amber-600 transition-colors pt-2"
+            >
+              {privacyLabel}
             </button>
           </form>
         </div>
