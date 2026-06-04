@@ -19,7 +19,10 @@ import {
   Ticket,
   QrCode,
   CreditCard,
-  ArrowLeft
+  ArrowLeft,
+  MessageCircle,
+  MoreVertical,
+  Home
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -28,7 +31,7 @@ const BRAND_FONT_LINK_ID = 'invit-studio-brand-font';
 type AppChannel = 'web' | 'android_apk' | 'android_play';
 
 const APP_CHANNEL = ((import.meta as any).env?.VITE_APP_CHANNEL || 'web') as AppChannel;
-const APK_DOWNLOAD_URL = ((import.meta as any).env?.VITE_APK_DOWNLOAD_URL || '') as string;
+const ZALO_PHONE_NUMBER = '';
 
 const isAndroidPlayChannel = APP_CHANNEL === 'android_play';
 const canUseExternalPayments = APP_CHANNEL === 'web' || APP_CHANNEL === 'android_apk';
@@ -43,29 +46,113 @@ const brandTitleStyle: CSSProperties = {
 };
 
 const isAndroidDevice = () => /Android/i.test(navigator.userAgent);
+const isIOSDevice = () => /iPad|iPhone|iPod/.test(navigator.userAgent);
+const isStandaloneApp = () =>
+  window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
 
 const translations: any = {
   ...allTranslations,
   en: {
     ...allTranslations.en,
-    pwa: { title: 'Install Studio App', desc: 'Manage invitations easily. Tap', then: 'then', action: 'Add to Home Screen' },
-    account: { title: 'My Account', manage: 'Manage My Account', placeholder: 'Enter activation code', activate: 'Activate', status: 'Account Status', duration: 'Subscription duration:' },
-    plans: { title: 'Upgrade to PREMIUM', subtitle: 'Unlock all templates, personalized messages, paper textures, photo albums and many more features.', month: 'month', months: 'months', popular: 'Most Popular', best: 'Best Value', save: 'Save', current: '/mo', buy: 'Select' },
-    checkout: { title: 'Select Payment Method', subtitle: 'Choose your payment method to activate PREMIUM automatically.', qr: 'Pay by QR Code', cb: 'Pay by Credit Card' }
+    pwa: {
+      title: 'Install Studio App',
+      desc: 'Manage invitations easily. Tap',
+      then: 'then',
+      action: 'Add to Home Screen'
+    },
+    account: {
+      title: 'My Account',
+      manage: 'Manage My Account',
+      placeholder: 'Enter activation code',
+      activate: 'Activate',
+      status: 'Account Status',
+      duration: 'Subscription duration:'
+    },
+    plans: {
+      title: 'Upgrade to PREMIUM',
+      subtitle: 'Unlock all templates, personalized messages, paper textures, photo albums and many more features.',
+      month: 'month',
+      months: 'months',
+      popular: 'Most Popular',
+      best: 'Best Value',
+      save: 'Save',
+      current: '/mo',
+      buy: 'Select'
+    },
+    checkout: {
+      title: 'Select Payment Method',
+      subtitle: 'Choose your payment method to activate PREMIUM automatically.',
+      qr: 'Pay by QR Code',
+      cb: 'Pay by Credit Card'
+    }
   },
   fr: {
     ...allTranslations.fr,
-    pwa: { title: "Installez l'App Studio", desc: 'Gérez vos invitations facilement. Appuyez sur', then: 'puis sur', action: "Sur l'écran d'accueil" },
-    account: { title: 'Mon Compte', manage: 'Gérer Mon Compte', placeholder: 'Entrez votre code unique', activate: 'Activer', status: 'Statut du compte', duration: "Durée de l'abonnement :" },
-    plans: { title: 'Passez au PREMIUM', subtitle: 'Accédez à toute l’expérience Invit Studio : designs exclusifs, messages personnalisés, albums enrichis et finitions haut de gamme.', month: 'mois', months: 'mois', popular: 'Le plus populaire', best: 'Meilleure offre', save: 'Économisez', current: '/mois', buy: 'Sélectionner' },
-    checkout: { title: 'Choisir le moyen de paiement', subtitle: 'Sélectionnez votre mode de règlement pour activer PREMIUM automatiquement.', qr: 'Payer par QR Code', cb: 'Payer par CB' }
+    pwa: {
+      title: "Installez l'App Studio",
+      desc: 'Gérez vos invitations facilement. Appuyez sur',
+      then: 'puis sur',
+      action: "Sur l'écran d'accueil"
+    },
+    account: {
+      title: 'Mon Compte',
+      manage: 'Gérer Mon Compte',
+      placeholder: 'Entrez votre code unique',
+      activate: 'Activer',
+      status: 'Statut du compte',
+      duration: "Durée de l'abonnement :"
+    },
+    plans: {
+      title: 'Passez au PREMIUM',
+      subtitle: "Accédez à toute l'expérience Invit Studio : designs exclusifs, messages personnalisés, albums enrichis et finitions haut de gamme.",
+      month: 'mois',
+      months: 'mois',
+      popular: 'Le plus populaire',
+      best: 'Meilleure offre',
+      save: 'Économisez',
+      current: '/mois',
+      buy: 'Sélectionner'
+    },
+    checkout: {
+      title: 'Choisir le moyen de paiement',
+      subtitle: 'Sélectionnez votre mode de règlement pour activer PREMIUM automatiquement.',
+      qr: 'Payer par QR Code',
+      cb: 'Payer par CB'
+    }
   },
   vi: {
     ...allTranslations.vi,
-    pwa: { title: 'Cài đặt App Studio', desc: 'Quản lý lời mời dễ dàng hơn. Nhấn vào', then: 'sau đó chọn', action: 'Thêm vào MH chính' },
-    account: { title: 'Tài khoản của tôi', manage: 'Quản lý tài khoản', placeholder: 'Nhập mã kích hoạt', activate: 'Kích hoạt', status: 'Trạng thái tài khoản', duration: 'Thời hạn gói:' },
-    plans: { title: 'Nâng cấp lên PREMIUM', subtitle: 'Mở khóa toàn bộ giao diện, tin nhắn cá nhân, chất liệu giấy, album ảnh và nhiều tính năng khác.', month: 'tháng', months: 'tháng', popular: 'Phổ biến', best: 'Tiết kiệm nhất', save: 'Tiết kiệm', current: '/tháng', buy: 'Chọn' },
-    checkout: { title: 'Chọn phương thức thanh toán', subtitle: 'Chọn cách thanh toán để tự động kích hoạt PREMIUM.', qr: 'Thanh toán qua mã QR', cb: 'Thanh toán thẻ ngân hàng' }
+    pwa: {
+      title: 'Cài đặt App Studio',
+      desc: 'Quản lý lời mời dễ dàng hơn. Nhấn vào',
+      then: 'sau đó chọn',
+      action: 'Thêm vào màn hình chính'
+    },
+    account: {
+      title: 'Tài khoản của tôi',
+      manage: 'Quản lý tài khoản',
+      placeholder: 'Nhập mã kích hoạt',
+      activate: 'Kích hoạt',
+      status: 'Trạng thái tài khoản',
+      duration: 'Thời hạn gói:'
+    },
+    plans: {
+      title: 'Nâng cấp lên PREMIUM',
+      subtitle: 'Mở khóa toàn bộ giao diện, tin nhắn cá nhân, chất liệu giấy, album ảnh và nhiều tính năng khác.',
+      month: 'tháng',
+      months: 'tháng',
+      popular: 'Phổ biến',
+      best: 'Tiết kiệm nhất',
+      save: 'Tiết kiệm',
+      current: '/tháng',
+      buy: 'Chọn'
+    },
+    checkout: {
+      title: 'Chọn phương thức thanh toán',
+      subtitle: 'Chọn cách thanh toán để tự động kích hoạt PREMIUM.',
+      qr: 'Thanh toán qua mã QR',
+      cb: 'Thanh toán thẻ ngân hàng'
+    }
   }
 };
 
@@ -91,6 +178,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   const [selectedResponses, setSelectedResponses] = useState<GuestResponse[] | null>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [showIOSPrompt, setShowIOSPrompt] = useState(false);
+  const [showAndroidPrompt, setShowAndroidPrompt] = useState(false);
 
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [accountStep, setAccountStep] = useState<'PROFILE' | 'PLANS' | 'CHECKOUT'>('PROFILE');
@@ -110,8 +198,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   const [lang, setLang] = useState<Language>(
     (localStorage.getItem('invite_lang') as Language) || 'en'
   );
-
-  const canShowApkDownload = APP_CHANNEL === 'web' && isAndroidDevice() && Boolean(APK_DOWNLOAD_URL);
 
   useEffect(() => {
     if (!document.getElementById(BRAND_FONT_LINK_ID)) {
@@ -141,12 +227,17 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
       window.history.replaceState({}, document.title, window.location.pathname);
     }
 
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-    const hasDismissed = localStorage.getItem('pwa_prompt_dismissed');
-
-    if (isIOS && !isStandalone && !hasDismissed) {
+    if (isIOSDevice() && !isStandaloneApp() && !localStorage.getItem('pwa_prompt_dismissed')) {
       setShowIOSPrompt(true);
+    }
+
+    if (
+      APP_CHANNEL === 'web' &&
+      isAndroidDevice() &&
+      !isStandaloneApp() &&
+      !localStorage.getItem('android_pwa_prompt_dismissed')
+    ) {
+      setShowAndroidPrompt(true);
     }
 
     const handleStorageChange = () => {
@@ -165,9 +256,52 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   const tPln = translations[lang].plans || translations.en.plans;
   const tChk = translations[lang].checkout || translations.en.checkout;
 
-  const dismissPrompt = () => {
+  const androidPwaCopy = {
+    en: {
+      title: 'Install Invit Studio',
+      desc: 'Keep the app on your home screen for faster access.',
+      step1: 'Tap',
+      menu: 'the menu',
+      step2: 'then choose',
+      action: 'Add to Home screen',
+      step3: 'Confirm installation'
+    },
+    fr: {
+      title: 'Installez Invit Studio',
+      desc: "Gardez l'app sur votre écran d'accueil pour y accéder plus vite.",
+      step1: 'Appuyez sur',
+      menu: 'le menu',
+      step2: 'puis choisissez',
+      action: "Ajouter à l'écran d'accueil",
+      step3: "Validez l'installation"
+    },
+    vi: {
+      title: 'Cài đặt Invit Studio',
+      desc: 'Giữ ứng dụng trên màn hình chính để mở nhanh hơn.',
+      step1: 'Nhấn vào',
+      menu: 'menu',
+      step2: 'rồi chọn',
+      action: 'Thêm vào màn hình chính',
+      step3: 'Xác nhận cài đặt'
+    }
+  }[lang] || {
+    title: 'Install Invit Studio',
+    desc: 'Keep the app on your home screen for faster access.',
+    step1: 'Tap',
+    menu: 'the menu',
+    step2: 'then choose',
+    action: 'Add to Home screen',
+    step3: 'Confirm installation'
+  };
+
+  const dismissIOSPrompt = () => {
     localStorage.setItem('pwa_prompt_dismissed', 'true');
     setShowIOSPrompt(false);
+  };
+
+  const dismissAndroidPrompt = () => {
+    localStorage.setItem('android_pwa_prompt_dismissed', 'true');
+    setShowAndroidPrompt(false);
   };
 
   const getFunctionErrorMessage = async (error: any) => {
@@ -333,7 +467,13 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
 
     navigator.clipboard.writeText(textList.trim());
 
-    const alertMsg = lang === 'fr' ? 'Liste copiée dans le presse-papiers !' : lang === 'vi' ? 'Đã sao chép danh sách!' : 'List copied to clipboard!';
+    const alertMsg =
+      lang === 'fr'
+        ? 'Liste copiée dans le presse-papiers !'
+        : lang === 'vi'
+          ? 'Đã sao chép danh sách!'
+          : 'List copied to clipboard!';
+
     alert(alertMsg);
   };
 
@@ -384,6 +524,21 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     }
 
     setAccountStep('PLANS');
+  };
+
+  const handleZaloClick = () => {
+    if (!ZALO_PHONE_NUMBER.trim()) {
+      alert(
+        lang === 'fr'
+          ? 'Zalo sera bientôt disponible.'
+          : lang === 'vi'
+            ? 'Zalo sẽ sớm khả dụng.'
+            : 'Zalo will be available soon.'
+      );
+      return;
+    }
+
+    window.open(`https://zalo.me/${ZALO_PHONE_NUMBER.trim()}`, '_blank');
   };
 
   const resetCheckout = () => {
@@ -501,14 +656,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
 
   const paymentPlans = [
     {
-      id: 'test_1_day',
-      duration: lang === 'fr' ? 'Test 1 jour' : lang === 'vi' ? 'Test 1 ngày' : 'Test 1 day',
-      totalPrice: '1 VND',
-      monthlyPrice: '1 VND',
-      discount: null,
-      tag: 'TEST'
-    },
-    {
       id: '1_month',
       duration: `1 ${tPln.month}`,
       totalPrice: lang === 'vi' ? '199.000 VND' : lang === 'fr' ? '6,67 €' : '$7.55',
@@ -572,41 +719,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
             </button>
           </div>
         </div>
-
-        {canShowApkDownload && (
-          <div className="relative z-10 mb-6 rounded-2xl border border-amber-100 bg-amber-50 px-5 py-4 shadow-sm">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <div>
-                <p className="text-sm font-black text-gray-900 uppercase tracking-tight">
-                  {lang === 'fr'
-                    ? 'Application Android disponible'
-                    : lang === 'vi'
-                      ? 'Ứng dụng Android đã sẵn sàng'
-                      : 'Android app available'}
-                </p>
-
-                <p className="text-xs text-gray-500 font-semibold mt-1 leading-snug">
-                  {lang === 'fr'
-                    ? 'Téléchargez la version Android officielle pour une expérience plus fluide.'
-                    : lang === 'vi'
-                      ? 'Tải phiên bản Android chính thức để sử dụng mượt hơn.'
-                      : 'Download the official Android version for a smoother experience.'}
-                </p>
-              </div>
-
-              <a
-                href={APK_DOWNLOAD_URL}
-                className="h-11 px-5 bg-gray-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center hover:bg-gray-800 transition-all"
-              >
-                {lang === 'fr'
-                  ? 'Télécharger APK'
-                  : lang === 'vi'
-                    ? 'Tải APK'
-                    : 'Download APK'}
-              </a>
-            </div>
-          </div>
-        )}
 
         {!loading && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 relative z-10">
@@ -689,6 +801,17 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
             ))}
           </div>
         )}
+
+        <button
+          type="button"
+          onClick={handleZaloClick}
+          className={`fixed right-4 z-[420] w-14 h-14 rounded-full bg-[#0068ff] text-white shadow-2xl flex items-center justify-center hover:scale-105 transition-all ${
+            showIOSPrompt || showAndroidPrompt ? 'bottom-40' : 'bottom-6'
+          }`}
+          aria-label="Zalo"
+        >
+          <MessageCircle className="w-7 h-7" />
+        </button>
 
         <AnimatePresence>
           {isAccountOpen && (
@@ -852,7 +975,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                             <div className="text-right">
                               <p className="text-base font-black text-gray-900 tracking-tight">
                                 {plan.monthlyPrice}
-                                {plan.id !== 'test_1_day' && <span className="text-[10px] text-gray-400 font-normal">/mo</span>}
+                                <span className="text-[10px] text-gray-400 font-normal">{tPln.current}</span>
                               </p>
                             </div>
 
@@ -903,7 +1026,15 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
 
                           <button
                             type="button"
-                            onClick={() => alert(lang === 'fr' ? 'Le paiement CB sera ajouté avec PayPal ensuite.' : 'Card payment will be added with PayPal later.')}
+                            onClick={() =>
+                              alert(
+                                lang === 'fr'
+                                  ? 'Le paiement CB sera ajouté avec PayPal ensuite.'
+                                  : lang === 'vi'
+                                    ? 'Thanh toán thẻ sẽ được thêm với PayPal sau.'
+                                    : 'Card payment will be added with PayPal later.'
+                              )
+                            }
                             className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl flex items-center gap-4 transition-all hover:bg-amber-50/40 hover:border-amber-300 group text-left"
                           >
                             <div className="w-11 h-11 bg-white rounded-xl flex items-center justify-center shadow-sm text-gray-700 group-hover:text-amber-500 group-hover:shadow-md transition-all">
@@ -1105,7 +1236,67 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                   </p>
                 </div>
 
-                <button onClick={dismissPrompt} className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full text-gray-400">
+                <button onClick={dismissIOSPrompt} className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full text-gray-400">
+                  <X size={18} />
+                </button>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {showAndroidPrompt && (
+            <motion.div
+              initial={{ y: 110, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 110, opacity: 0 }}
+              className="fixed bottom-10 left-4 right-4 z-[500] bg-white/95 backdrop-blur-xl shadow-2xl rounded-[2rem] p-5 border border-blue-100"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-[#0068ff] rounded-2xl flex items-center justify-center text-white shadow-lg shrink-0">
+                  <Home size={24} />
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight">
+                    {androidPwaCopy.title}
+                  </h3>
+
+                  <p className="text-[11px] text-gray-500 leading-snug mt-1">
+                    {androidPwaCopy.desc}
+                  </p>
+
+                  <div className="grid grid-cols-3 gap-2 mt-4">
+                    <div className="bg-gray-50 border border-gray-100 rounded-2xl p-3 text-center">
+                      <div className="w-9 h-9 rounded-xl bg-white shadow-sm mx-auto flex items-center justify-center text-gray-700">
+                        <MoreVertical size={18} />
+                      </div>
+                      <p className="text-[9px] text-gray-500 font-black uppercase mt-2 leading-tight">
+                        {androidPwaCopy.step1} {androidPwaCopy.menu}
+                      </p>
+                    </div>
+
+                    <div className="bg-gray-50 border border-gray-100 rounded-2xl p-3 text-center">
+                      <div className="w-9 h-9 rounded-xl bg-white shadow-sm mx-auto flex items-center justify-center text-blue-600">
+                        <Plus size={18} />
+                      </div>
+                      <p className="text-[9px] text-gray-500 font-black uppercase mt-2 leading-tight">
+                        {androidPwaCopy.step2} {androidPwaCopy.action}
+                      </p>
+                    </div>
+
+                    <div className="bg-gray-50 border border-gray-100 rounded-2xl p-3 text-center">
+                      <div className="w-9 h-9 rounded-xl bg-white shadow-sm mx-auto flex items-center justify-center text-amber-600">
+                        <Home size={18} />
+                      </div>
+                      <p className="text-[9px] text-gray-500 font-black uppercase mt-2 leading-tight">
+                        {androidPwaCopy.step3}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <button onClick={dismissAndroidPrompt} className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full text-gray-400 shrink-0">
                   <X size={18} />
                 </button>
               </div>
