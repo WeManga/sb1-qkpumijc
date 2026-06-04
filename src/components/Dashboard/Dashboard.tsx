@@ -1,4 +1,4 @@
-import { useState, useEffect, type CSSProperties, type FormEvent, type MouseEvent } from 'react';
+import { useState, useEffect, type CSSProperties, type FormEvent, type MouseEvent as ReactMouseEvent } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { Database } from '../../lib/database.types';
@@ -49,6 +49,26 @@ const isAndroidDevice = () => /Android/i.test(navigator.userAgent);
 const isIOSDevice = () => /iPad|iPhone|iPod/.test(navigator.userAgent);
 const isStandaloneApp = () =>
   window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
+
+const getInitialZaloPosition = () => {
+  if (typeof window === 'undefined') return { x: 24, y: 520 };
+
+  const savedPosition = localStorage.getItem('zalo_button_position');
+
+  if (savedPosition) {
+    try {
+      const parsed = JSON.parse(savedPosition) as { x: number; y: number };
+      return {
+        x: Math.min(Math.max(12, parsed.x), window.innerWidth - 76),
+        y: Math.min(Math.max(12, parsed.y), window.innerHeight - 76)
+      };
+    } catch {
+      return { x: window.innerWidth - 88, y: window.innerHeight - 96 };
+    }
+  }
+
+  return { x: window.innerWidth - 88, y: window.innerHeight - 96 };
+};
 
 const translations: any = {
   ...allTranslations,
@@ -195,6 +215,11 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const [generatedReceipt, setGeneratedReceipt] = useState<any>(null);
 
+  const [zaloPosition, setZaloPosition] = useState(getInitialZaloPosition);
+  const [zaloDragOffset, setZaloDragOffset] = useState({ x: 0, y: 0 });
+  const [isDraggingZalo, setIsDraggingZalo] = useState(false);
+  const [zaloWasDragged, setZaloWasDragged] = useState(false);
+
   const [lang, setLang] = useState<Language>(
     (localStorage.getItem('invite_lang') as Language) || 'en'
   );
@@ -249,12 +274,54 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, [user]);
 
+  useEffect(() => {
+    localStorage.setItem('zalo_button_position', JSON.stringify(zaloPosition));
+  }, [zaloPosition]);
+
+  useEffect(() => {
+    if (!isDraggingZalo) return;
+
+    const handlePointerMove = (event: PointerEvent) => {
+      const nextX = Math.min(
+        Math.max(12, event.clientX - zaloDragOffset.x),
+        window.innerWidth - 76
+      );
+
+      const nextY = Math.min(
+        Math.max(12, event.clientY - zaloDragOffset.y),
+        window.innerHeight - 76
+      );
+
+      setZaloWasDragged(true);
+      setZaloPosition({ x: nextX, y: nextY });
+    };
+
+    const handlePointerUp = () => {
+      setIsDraggingZalo(false);
+    };
+
+    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointerup', handlePointerUp);
+
+    return () => {
+      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('pointerup', handlePointerUp);
+    };
+  }, [isDraggingZalo, zaloDragOffset]);
+
   const t = translations[lang].dashboard;
   const tAuth = translations[lang].sidebar;
   const tPwa = translations[lang].pwa;
   const tAcc = translations[lang].account;
   const tPln = translations[lang].plans || translations.en.plans;
   const tChk = translations[lang].checkout || translations.en.checkout;
+
+  const privacyLabel =
+    lang === 'fr'
+      ? 'Politique de confidentialité'
+      : lang === 'vi'
+        ? 'Chính sách quyền riêng tư'
+        : 'Privacy Policy';
 
   const androidPwaCopy = {
     en: {
@@ -515,7 +582,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     }
   };
 
-  const handleManageAccountClick = (e: MouseEvent) => {
+  const handleManageAccountClick = (e: ReactMouseEvent) => {
     e.preventDefault();
 
     if (!canUseExternalPayments || isAndroidPlayChannel) {
@@ -804,16 +871,31 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
 
         <button
           type="button"
-          onClick={handleZaloClick}
-          className={`fixed right-4 z-[420] w-16 h-16 rounded-full bg-white shadow-2xl border border-blue-100 flex items-center justify-center overflow-hidden hover:scale-105 hover:shadow-blue-200/70 transition-all ${
-            showIOSPrompt || showAndroidPrompt ? 'bottom-40' : 'bottom-6'
-          }`}
+          onPointerDown={(event) => {
+            setIsDraggingZalo(true);
+            setZaloWasDragged(false);
+            setZaloDragOffset({
+              x: event.clientX - zaloPosition.x,
+              y: event.clientY - zaloPosition.y
+            });
+          }}
+          onClick={() => {
+            if (zaloWasDragged) return;
+            handleZaloClick();
+          }}
+          style={{
+            left: `${zaloPosition.x}px`,
+            top: `${zaloPosition.y}px`,
+            touchAction: 'none'
+          }}
+          className="fixed z-[420] w-16 h-16 p-0 bg-transparent border-none rounded-full flex items-center justify-center cursor-grab active:cursor-grabbing hover:scale-105 transition-transform"
           aria-label="Zalo"
         >
           <img
             src={ZALO_LOGO_SRC}
             alt="Zalo"
-            className="w-16 h-16 object-contain rounded-full"
+            draggable={false}
+            className="w-16 h-16 object-contain select-none pointer-events-none drop-shadow-2xl"
           />
         </button>
 
@@ -902,6 +984,19 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                           </button>
                         </div>
                       )}
+
+                      <div className="text-center">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setIsAccountOpen(false);
+                            window.location.href = '/privacy-policy';
+                          }}
+                          className="text-[10px] font-black text-gray-400 hover:text-amber-600 uppercase tracking-widest underline decoration-1 underline-offset-4"
+                        >
+                          {privacyLabel}
+                        </button>
+                      </div>
 
                       {!canUseExternalPayments && (
                         <div className="p-4 bg-gray-50 border border-gray-100 rounded-2xl text-center">
@@ -1033,10 +1128,10 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                             onClick={() =>
                               alert(
                                 lang === 'fr'
-                                  ? 'Le paiement CB sera ajouté avec PayPal ensuite.'
+                                  ? 'Le paiement par carte bancaire sera bientôt disponible.'
                                   : lang === 'vi'
-                                    ? 'Thanh toán thẻ sẽ được thêm với PayPal sau.'
-                                    : 'Card payment will be added with PayPal later.'
+                                    ? 'Thanh toán bằng thẻ ngân hàng sẽ sớm khả dụng.'
+                                    : 'Card payment will be available soon.'
                               )
                             }
                             className="w-full p-4 bg-gray-50 border border-gray-100 rounded-2xl flex items-center gap-4 transition-all hover:bg-amber-50/40 hover:border-amber-300 group text-left"
@@ -1050,7 +1145,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                                 {tChk.cb}
                               </p>
                               <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-                                Bientôt
+                                {lang === 'fr' ? 'Bientôt' : lang === 'vi' ? 'Sắp ra mắt' : 'Coming soon'}
                               </p>
                             </div>
                           </button>
@@ -1062,7 +1157,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                           <div className="bg-white border border-gray-100 rounded-[2rem] p-5 shadow-sm">
                             <img
                               src={sepayPayment.qr_code_url}
-                              alt="QR Code SePay"
+                              alt="QR Code VietQR"
                               className="w-full max-w-[260px] mx-auto rounded-2xl"
                             />
                           </div>
