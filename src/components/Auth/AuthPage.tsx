@@ -16,6 +16,12 @@ const brandTitleStyle: CSSProperties = {
     '0 1px 0 rgba(255,255,255,0.45), 0 2px 6px rgba(92,62,28,0.28), 0 10px 22px rgba(0,0,0,0.16)'
 };
 
+const authSlogans: Record<Language, string> = {
+  en: 'Create with ease, invite with elegance.',
+  fr: 'Créez facilement, invitez avec élégance.',
+  vi: 'Tạo thiệp dễ dàng, mời khách tinh tế.'
+};
+
 export function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
@@ -54,6 +60,8 @@ export function AuthPage() {
       : lang === 'en'
         ? 'Continue with Google'
         : 'Continuer avec Google');
+
+  const slogan = authSlogans[lang] || authSlogans.en;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -114,7 +122,7 @@ export function AuthPage() {
           </h1>
 
           <p className="text-gray-500 font-light italic tracking-widest text-sm mb-12">
-            {t.subtitle}
+            {slogan}
           </p>
         </div>
 
