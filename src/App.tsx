@@ -5,6 +5,7 @@ import { AuthPage } from './components/Auth/AuthPage';
 import { Dashboard } from './components/Dashboard/Dashboard';
 import { Builder } from './components/Builder/Builder';
 import { GuestView } from './components/Guest/GuestView';
+import { PrivacyPolicy } from './components/Privacy/PrivacyPolicy';
 import { supabase } from './lib/supabase';
 
 // --- COMPOSANT DE CHARGEMENT POUR L'INVITÉ ---
@@ -115,6 +116,12 @@ function AppContent() {
 
   return (
     <Routes>
+      {/* ROUTE PUBLIQUE : Politique de confidentialité */}
+      <Route
+        path="/privacy-policy"
+        element={<PrivacyPolicy onBack={() => navigate('/')} />}
+      />
+
       {/* ROUTE PUBLIQUE : Accessible par tout le monde via le lien partagé */}
       <Route
         path="/invite/:slug"
