@@ -20,7 +20,6 @@ import {
   QrCode,
   CreditCard,
   ArrowLeft,
-  MessageCircle,
   MoreVertical,
   Home
 } from 'lucide-react';
@@ -32,6 +31,7 @@ type AppChannel = 'web' | 'android_apk' | 'android_play';
 
 const APP_CHANNEL = ((import.meta as any).env?.VITE_APP_CHANNEL || 'web') as AppChannel;
 const ZALO_PHONE_NUMBER = '';
+const ZALO_LOGO_SRC = '/public/images/logo%20zalo.png';
 
 const isAndroidPlayChannel = APP_CHANNEL === 'android_play';
 const canUseExternalPayments = APP_CHANNEL === 'web' || APP_CHANNEL === 'android_apk';
@@ -805,12 +805,27 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
         <button
           type="button"
           onClick={handleZaloClick}
-          className={`fixed right-4 z-[420] w-14 h-14 rounded-full bg-[#0068ff] text-white shadow-2xl flex items-center justify-center hover:scale-105 transition-all ${
+          className={`fixed right-4 z-[420] h-16 pl-3 pr-5 rounded-full bg-white text-gray-900 shadow-2xl border border-blue-100 flex items-center gap-3 hover:scale-105 hover:shadow-blue-200/70 transition-all ${
             showIOSPrompt || showAndroidPrompt ? 'bottom-40' : 'bottom-6'
           }`}
           aria-label="Zalo"
         >
-          <MessageCircle className="w-7 h-7" />
+          <span className="w-11 h-11 rounded-full bg-[#0068ff] flex items-center justify-center shadow-md overflow-hidden">
+            <img
+              src={ZALO_LOGO_SRC}
+              alt="Zalo"
+              className="w-9 h-9 object-contain"
+            />
+          </span>
+
+          <span className="flex flex-col items-start leading-none">
+            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+              Support
+            </span>
+            <span className="text-sm font-black text-[#0068ff]">
+              Zalo
+            </span>
+          </span>
         </button>
 
         <AnimatePresence>
