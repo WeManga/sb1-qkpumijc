@@ -31,7 +31,7 @@ type AppChannel = 'web' | 'android_apk' | 'android_play';
 
 const APP_CHANNEL = ((import.meta as any).env?.VITE_APP_CHANNEL || 'web') as AppChannel;
 const ZALO_PHONE_NUMBER = '';
-const ZALO_LOGO_SRC = 'public/public/images/logo%20zalo.png';
+const ZALO_LOGO_SRC = '/public/public/images/logo%20zalo.png';
 
 const isAndroidPlayChannel = APP_CHANNEL === 'android_play';
 const canUseExternalPayments = APP_CHANNEL === 'web' || APP_CHANNEL === 'android_apk';
