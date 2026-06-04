@@ -33,6 +33,9 @@ const APP_CHANNEL = ((import.meta as any).env?.VITE_APP_CHANNEL || 'web') as App
 const ZALO_PHONE_NUMBER = '';
 const ZALO_LOGO_SRC = '/public/images/logo%20zalo.png';
 
+const ZALO_SIZE = 64;
+const ZALO_EDGE_MARGIN = 12;
+
 const isAndroidPlayChannel = APP_CHANNEL === 'android_play';
 const canUseExternalPayments = APP_CHANNEL === 'web' || APP_CHANNEL === 'android_apk';
 
@@ -50,6 +53,34 @@ const isIOSDevice = () => /iPad|iPhone|iPod/.test(navigator.userAgent);
 const isStandaloneApp = () =>
   window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone === true;
 
+const clampZaloPosition = (position: { x: number; y: number }) => {
+  if (typeof window === 'undefined') return position;
+
+  return {
+    x: Math.min(
+      Math.max(ZALO_EDGE_MARGIN, position.x),
+      window.innerWidth - ZALO_SIZE - ZALO_EDGE_MARGIN
+    ),
+    y: Math.min(
+      Math.max(ZALO_EDGE_MARGIN, position.y),
+      window.innerHeight - ZALO_SIZE - ZALO_EDGE_MARGIN
+    )
+  };
+};
+
+const snapZaloToEdge = (position: { x: number; y: number }) => {
+  if (typeof window === 'undefined') return position;
+
+  const clamped = clampZaloPosition(position);
+  const middle = window.innerWidth / 2;
+  const shouldSnapLeft = clamped.x + ZALO_SIZE / 2 < middle;
+
+  return {
+    x: shouldSnapLeft ? ZALO_EDGE_MARGIN : window.innerWidth - ZALO_SIZE - ZALO_EDGE_MARGIN,
+    y: clamped.y
+  };
+};
+
 const getInitialZaloPosition = () => {
   if (typeof window === 'undefined') return { x: 24, y: 520 };
 
@@ -58,16 +89,19 @@ const getInitialZaloPosition = () => {
   if (savedPosition) {
     try {
       const parsed = JSON.parse(savedPosition) as { x: number; y: number };
-      return {
-        x: Math.min(Math.max(12, parsed.x), window.innerWidth - 76),
-        y: Math.min(Math.max(12, parsed.y), window.innerHeight - 76)
-      };
+      return snapZaloToEdge(parsed);
     } catch {
-      return { x: window.innerWidth - 88, y: window.innerHeight - 96 };
+      return {
+        x: window.innerWidth - ZALO_SIZE - ZALO_EDGE_MARGIN,
+        y: window.innerHeight - ZALO_SIZE - 96
+      };
     }
   }
 
-  return { x: window.innerWidth - 88, y: window.innerHeight - 96 };
+  return {
+    x: window.innerWidth - ZALO_SIZE - ZALO_EDGE_MARGIN,
+    y: window.innerHeight - ZALO_SIZE - 96
+  };
 };
 
 const translations: any = {
@@ -219,6 +253,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   const [zaloDragOffset, setZaloDragOffset] = useState({ x: 0, y: 0 });
   const [isDraggingZalo, setIsDraggingZalo] = useState(false);
   const [zaloWasDragged, setZaloWasDragged] = useState(false);
+  const [zaloIsSettling, setZaloIsSettling] = useState(false);
 
   const [lang, setLang] = useState<Language>(
     (localStorage.getItem('invite_lang') as Language) || 'en'
@@ -279,25 +314,39 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   }, [zaloPosition]);
 
   useEffect(() => {
+    const handleResize = () => {
+      setZaloPosition((current) => snapZaloToEdge(current));
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
     if (!isDraggingZalo) return;
 
     const handlePointerMove = (event: PointerEvent) => {
-      const nextX = Math.min(
-        Math.max(12, event.clientX - zaloDragOffset.x),
-        window.innerWidth - 76
-      );
-
-      const nextY = Math.min(
-        Math.max(12, event.clientY - zaloDragOffset.y),
-        window.innerHeight - 76
-      );
+      const nextPosition = clampZaloPosition({
+        x: event.clientX - zaloDragOffset.x,
+        y: event.clientY - zaloDragOffset.y
+      });
 
       setZaloWasDragged(true);
-      setZaloPosition({ x: nextX, y: nextY });
+      setZaloPosition(nextPosition);
     };
 
     const handlePointerUp = () => {
       setIsDraggingZalo(false);
+      setZaloPosition((current) => snapZaloToEdge(current));
+      setZaloIsSettling(true);
+
+      if ('vibrate' in navigator) {
+        navigator.vibrate?.(18);
+      }
+
+      window.setTimeout(() => {
+        setZaloIsSettling(false);
+      }, 260);
     };
 
     window.addEventListener('pointermove', handlePointerMove);
@@ -605,6 +654,10 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
       return;
     }
 
+    if ('vibrate' in navigator) {
+      navigator.vibrate?.(12);
+    }
+
     window.open(`https://zalo.me/${ZALO_PHONE_NUMBER.trim()}`, '_blank');
   };
 
@@ -888,14 +941,24 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
             top: `${zaloPosition.y}px`,
             touchAction: 'none'
           }}
-          className="fixed z-[420] w-16 h-16 p-0 bg-transparent border-none rounded-full flex items-center justify-center cursor-grab active:cursor-grabbing hover:scale-105 transition-transform"
+          className={`fixed z-[420] w-16 h-16 p-0 bg-transparent border-none rounded-full flex items-center justify-center cursor-grab active:cursor-grabbing transition-all duration-300 ${
+            isDraggingZalo ? 'scale-110' : zaloIsSettling ? 'scale-95' : 'hover:scale-105'
+          }`}
           aria-label="Zalo"
         >
+          {!isDraggingZalo && (
+            <span className="absolute inset-1 rounded-full bg-blue-400/20 animate-ping" />
+          )}
+
+          <span className="absolute inset-0 rounded-full bg-blue-300/10 blur-md animate-pulse" />
+
           <img
             src={ZALO_LOGO_SRC}
             alt="Zalo"
             draggable={false}
-            className="w-16 h-16 object-contain select-none pointer-events-none drop-shadow-2xl"
+            className={`relative z-10 w-16 h-16 object-contain select-none pointer-events-none drop-shadow-2xl transition-transform duration-300 ${
+              isDraggingZalo ? 'rotate-6' : 'animate-pulse'
+            }`}
           />
         </button>
 
