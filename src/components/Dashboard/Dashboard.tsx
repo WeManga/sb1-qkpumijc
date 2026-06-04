@@ -805,27 +805,16 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
         <button
           type="button"
           onClick={handleZaloClick}
-          className={`fixed right-4 z-[420] h-16 pl-3 pr-5 rounded-full bg-white text-gray-900 shadow-2xl border border-blue-100 flex items-center gap-3 hover:scale-105 hover:shadow-blue-200/70 transition-all ${
+          className={`fixed right-4 z-[420] w-16 h-16 rounded-full bg-white shadow-2xl border border-blue-100 flex items-center justify-center overflow-hidden hover:scale-105 hover:shadow-blue-200/70 transition-all ${
             showIOSPrompt || showAndroidPrompt ? 'bottom-40' : 'bottom-6'
           }`}
           aria-label="Zalo"
         >
-          <span className="w-11 h-11 rounded-full bg-[#0068ff] flex items-center justify-center shadow-md overflow-hidden">
-            <img
-              src={ZALO_LOGO_SRC}
-              alt="Zalo"
-              className="w-9 h-9 object-contain"
-            />
-          </span>
-
-          <span className="flex flex-col items-start leading-none">
-            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-              Support
-            </span>
-            <span className="text-sm font-black text-[#0068ff]">
-              Zalo
-            </span>
-          </span>
+          <img
+            src={ZALO_LOGO_SRC}
+            alt="Zalo"
+            className="w-16 h-16 object-contain rounded-full"
+          />
         </button>
 
         <AnimatePresence>
@@ -1034,7 +1023,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                                 {tChk.qr}
                               </p>
                               <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-                                VietQR / SePay
+                                VietQR
                               </p>
                             </div>
                           </button>
@@ -1061,7 +1050,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                                 {tChk.cb}
                               </p>
                               <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
-                                PayPal bientôt
+                                Bientôt
                               </p>
                             </div>
                           </button>
