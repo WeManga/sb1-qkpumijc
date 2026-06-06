@@ -1,6 +1,3 @@
-Dashboard corrigé - code complet
-Tu peux sélectionner tout le code avec Ctrl + A dans le bloc, puis Ctrl + C.
-
 import { useState, useEffect, type CSSProperties, type FormEvent, type MouseEvent as ReactMouseEvent } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
