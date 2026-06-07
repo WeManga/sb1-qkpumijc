@@ -18,13 +18,13 @@ import {
 } from '../../constants/openingThemes';
 
 const THEME_EMOJIS: Record<string, string[]> = {
-  wedding: ['🤍', '💍', '🕊️', '✨', '🌸'],
-  birthday: ['🎂', '🎈', '✨', '🎉', '🍰'],
-  party: ['✨', '🎸', '🥂', '🕺', '🌟'],
-  baptism: ['👼', '☁️', '🤍', '✨', '🕊️'],
-  babyshower: ['🍼', '🤍', '👶', '💖', '💙'],
-  funeral: ['🙏', '🕊️', '🥀', '🤍', '✨'],
-  default: ['✨', '🌟', '🤍']
+  wedding: ['ðŸ¤', 'ðŸ’', 'ðŸ•Šï¸', 'âœ¨', 'ðŸŒ¸'],
+  birthday: ['ðŸŽ‚', 'ðŸŽˆ', 'âœ¨', 'ðŸŽ‰', 'ðŸ°'],
+  party: ['âœ¨', 'ðŸŽ¸', 'ðŸ¥‚', 'ðŸ•º', 'ðŸŒŸ'],
+  baptism: ['ðŸ‘¼', 'â˜ï¸', 'ðŸ¤', 'âœ¨', 'ðŸ•Šï¸'],
+  babyshower: ['ðŸ¼', 'ðŸ¤', 'ðŸ‘¶', 'ðŸ’–', 'ðŸ’™'],
+  funeral: ['ðŸ™', 'ðŸ•Šï¸', 'ðŸ¥€', 'ðŸ¤', 'âœ¨'],
+  default: ['âœ¨', 'ðŸŒŸ', 'ðŸ¤']
 };
 
 const OPENING_FADE_DURATION = 0.85;
@@ -67,13 +67,13 @@ const getPaperClass = (paperType: string) => {
 
 const getAlbumTitle = (lang: Language) => {
   if (lang === 'en') return 'Memory album';
-  if (lang === 'vi') return 'Album kỷ niệm';
+  if (lang === 'vi') return 'Album ká»· niá»‡m';
   return 'Album souvenir';
 };
 
 const getReplayLabel = (lang: Language) => {
   if (lang === 'en') return 'Replay opening';
-  if (lang === 'vi') return 'Xem lại mở thiệp';
+  if (lang === 'vi') return 'Xem láº¡i má»Ÿ thiá»‡p';
   return "Revoir l'ouverture";
 };
 
@@ -306,7 +306,30 @@ const ContentOrnaments = () => {
   );
 };
 
-const PremiumStorySection = ({ isPremium, title, text, imageUrl, fontStyle }: any) => {
+
+const getPhotoFrameStyle = (invitation: any, sourceKey?: string): CSSProperties => {
+  if (!sourceKey) return {};
+
+  const x = pick(invitation, [`${sourceKey}_pos_x`, `${sourceKey}posx`], 0);
+  const y = pick(invitation, [`${sourceKey}_pos_y`, `${sourceKey}posy`], 0);
+  const scale = pick(invitation, [`${sourceKey}_scale`, `${sourceKey}scale`], 1);
+
+  return {
+    transform: `translate(${x}px, ${y}px) scale(${scale})`,
+    transformOrigin: 'center center'
+  };
+};
+
+const CroppedPhoto = ({ src, sourceKey, invitation, className }: any) => (
+  <img
+    src={src}
+    loading="lazy"
+    className={className}
+    style={getPhotoFrameStyle(invitation, sourceKey)}
+    alt=""
+  />
+);
+const PremiumStorySection = ({ isPremium, title, text, imageUrl, imageKey, invitation, fontStyle }: any) => {
   if (!isPremium || (!title && !text && !imageUrl)) return null;
 
   return (
@@ -314,7 +337,7 @@ const PremiumStorySection = ({ isPremium, title, text, imageUrl, fontStyle }: an
       <div className="flex flex-col items-center text-center gap-5">
         {imageUrl && (
           <div className="w-full overflow-hidden rounded-[2.25rem] border-4 border-white shadow-2xl bg-white">
-            <img src={imageUrl} loading="lazy" className="w-full aspect-[4/3] object-cover" alt="" />
+            <CroppedPhoto src={imageUrl} sourceKey={imageKey} invitation={invitation} className="w-full aspect-[4/3] object-cover" />
           </div>
         )}
 
@@ -338,7 +361,7 @@ const PremiumStorySection = ({ isPremium, title, text, imageUrl, fontStyle }: an
   );
 };
 
-const PremiumSingleAlbumPhoto = ({ photo, lang }: any) => {
+const PremiumSingleAlbumPhoto = ({ photo, lang, invitation }: any) => {
   if (!photo?.url) return null;
 
   return (
@@ -358,7 +381,7 @@ const PremiumSingleAlbumPhoto = ({ photo, lang }: any) => {
 
         <div className="relative mx-auto w-full max-w-[310px] overflow-hidden rounded-[2.4rem] border-[7px] border-white bg-white shadow-[0_28px_65px_rgba(15,23,42,0.2)]">
           <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-tr from-black/10 via-transparent to-white/25" />
-          <img src={photo.url} loading="lazy" className="aspect-[4/5] w-full object-cover" alt="" />
+          <CroppedPhoto src={photo.url} sourceKey={photo.key} invitation={invitation} className="aspect-[4/5] w-full object-cover" />
 
           <div className="absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/50 to-transparent px-5 pb-5 pt-12">
             <p className="truncate text-center text-[11px] font-medium text-white/90">
@@ -371,7 +394,7 @@ const PremiumSingleAlbumPhoto = ({ photo, lang }: any) => {
   );
 };
 
-const PremiumPhotoCarousel = ({ photos, lang }: any) => {
+const PremiumPhotoCarousel = ({ photos, lang, invitation }: any) => {
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
@@ -420,7 +443,7 @@ const PremiumPhotoCarousel = ({ photos, lang }: any) => {
             animate={{ x: 0, scale: 0.86, opacity: 0.64, filter: 'blur(1.8px)' }}
             whileTap={{ scale: 0.82 }}
           >
-            <img src={previousPhoto.url} loading="lazy" className="h-full w-full object-cover" alt="" />
+            <CroppedPhoto src={previousPhoto.url} sourceKey={previousPhoto.key} invitation={invitation} className="h-full w-full object-cover" />
             <div className="absolute inset-0 bg-white/20" />
           </motion.button>
 
@@ -440,7 +463,7 @@ const PremiumPhotoCarousel = ({ photos, lang }: any) => {
               className="relative z-20 w-[74%] max-w-[300px] overflow-hidden rounded-[2.35rem] border-[7px] border-white bg-white shadow-[0_28px_65px_rgba(15,23,42,0.22)]"
             >
               <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-tr from-black/10 via-transparent to-white/25" />
-              <img src={activePhoto.url} loading="lazy" className="aspect-[4/5] w-full object-cover" alt="" />
+              <CroppedPhoto src={activePhoto.url} sourceKey={activePhoto.key} invitation={invitation} className="aspect-[4/5] w-full object-cover" />
 
               <div className="absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/55 to-transparent px-5 pb-5 pt-12">
                 <p className="truncate text-center text-[11px] font-medium text-white/90">
@@ -458,7 +481,7 @@ const PremiumPhotoCarousel = ({ photos, lang }: any) => {
             animate={{ x: 0, scale: 0.86, opacity: 0.64, filter: 'blur(1.8px)' }}
             whileTap={{ scale: 0.82 }}
           >
-            <img src={nextPhoto.url} loading="lazy" className="h-full w-full object-cover" alt="" />
+            <CroppedPhoto src={nextPhoto.url} sourceKey={nextPhoto.key} invitation={invitation} className="h-full w-full object-cover" />
             <div className="absolute inset-0 bg-white/20" />
           </motion.button>
         </div>
@@ -572,12 +595,12 @@ export function InvitationPreview({ invitation }: any) {
     if (!isPremium) return [];
 
     return [
-      { url: albumPhotoUrl1, label: 'Album 1' },
-      { url: albumPhotoUrl2, label: 'Album 2' },
-      { url: albumPhotoUrl3, label: 'Album 3' },
-      { url: albumPhotoUrl4, label: 'Album 4' },
-      { url: albumPhotoUrl5, label: 'Album 5' },
-      { url: albumPhotoUrl6, label: 'Album 6' }
+      { url: albumPhotoUrl1, label: 'Album 1', key: 'album_photo_url_1' },
+      { url: albumPhotoUrl2, label: 'Album 2', key: 'album_photo_url_2' },
+      { url: albumPhotoUrl3, label: 'Album 3', key: 'album_photo_url_3' },
+      { url: albumPhotoUrl4, label: 'Album 4', key: 'album_photo_url_4' },
+      { url: albumPhotoUrl5, label: 'Album 5', key: 'album_photo_url_5' },
+      { url: albumPhotoUrl6, label: 'Album 6', key: 'album_photo_url_6' }
     ].filter((photo) => photo.url);
   }, [
     isPremium,
@@ -1037,16 +1060,16 @@ export function InvitationPreview({ invitation }: any) {
                 </div>
               </div>
 
-              <PremiumStorySection isPremium={isPremium} title={premiumMidTitle} text={premiumMidText} imageUrl={premiumMidPhotoUrl} fontStyle={fontStyle} />
+              <PremiumStorySection isPremium={isPremium} title={premiumMidTitle} text={premiumMidText} imageUrl={premiumMidPhotoUrl} imageKey="premium_mid_photo_url" invitation={invitation} fontStyle={fontStyle} />
 
-              {isPremium && premiumGalleryPhotos.length === 1 && <PremiumSingleAlbumPhoto photo={premiumGalleryPhotos[0]} lang={lang} />}
-              {isPremium && premiumGalleryPhotos.length >= 2 && <PremiumPhotoCarousel photos={premiumGalleryPhotos.slice(0, 6)} lang={lang} />}
+              {isPremium && premiumGalleryPhotos.length === 1 && <PremiumSingleAlbumPhoto photo={premiumGalleryPhotos[0]} lang={lang} invitation={invitation} />}
+              {isPremium && premiumGalleryPhotos.length >= 2 && <PremiumPhotoCarousel photos={premiumGalleryPhotos.slice(0, 6)} lang={lang} invitation={invitation} />}
 
               {isPremium && endPhotoUrl && (
                 <div className="px-2">
                   <div className="text-center mb-5">
                     <p className="text-[13px] font-semibold text-amber-600">
-                      {lang === 'fr' ? 'Un souvenir à garder' : lang === 'en' ? 'A memory to keep' : 'Một kỷ niệm để giữ'}
+                      {lang === 'fr' ? 'Un souvenir Ã  garder' : lang === 'en' ? 'A memory to keep' : 'Má»™t ká»· niá»‡m Ä‘á»ƒ giá»¯'}
                     </p>
                   </div>
 
@@ -1065,7 +1088,7 @@ export function InvitationPreview({ invitation }: any) {
                 </div>
               )}
 
-              <PremiumStorySection isPremium={isPremium} title={premiumFinalTitle} text={premiumFinalText} imageUrl={premiumFinalPhotoUrl} fontStyle={fontStyle} />
+              <PremiumStorySection isPremium={isPremium} title={premiumFinalTitle} text={premiumFinalText} imageUrl={premiumFinalPhotoUrl} imageKey="premium_final_photo_url" invitation={invitation} fontStyle={fontStyle} />
 
               <div className="relative bg-gray-900 rounded-[3rem] p-8 shadow-2xl border border-amber-300/20 overflow-hidden">
                 <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.22),transparent_42%)]" />
@@ -1075,7 +1098,7 @@ export function InvitationPreview({ invitation }: any) {
                   <CheckCircle2 size={40} className="text-amber-400 mx-auto drop-shadow-[0_0_12px_rgba(251,191,36,0.5)]" />
                   <h3 className="font-semibold text-sm text-white text-center">{t.confirm_rsvp}</h3>
                   <p className="text-white/45 text-[12px] font-medium">
-                    {lang === 'fr' ? 'Aperçu du formulaire invité' : lang === 'en' ? 'Guest form preview' : 'Xem trước biểu mẫu'}
+                    {lang === 'fr' ? 'AperÃ§u du formulaire invitÃ©' : lang === 'en' ? 'Guest form preview' : 'Xem trÆ°á»›c biá»ƒu máº«u'}
                   </p>
                 </div>
               </div>
