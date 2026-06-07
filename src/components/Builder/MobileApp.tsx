@@ -6,8 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { translations, Language } from '../../lib/i18n';
 
 const BRAND_FONT_LINK_ID = 'invit-studio-brand-font';
-const BRAND_LOGO_SRC =
-  'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png';
+const BUILDER_TUTORIAL_KEY = 'builder_tutorial_seen';
 
 const brandTitleStyle: CSSProperties = {
   fontFamily: '"Great Vibes", cursive',
@@ -18,11 +17,94 @@ const brandTitleStyle: CSSProperties = {
     '0 1px 0 rgba(255,255,255,0.45), 0 2px 6px rgba(92,62,28,0.22), 0 8px 18px rgba(0,0,0,0.12)'
 };
 
+const tutorialCopy = {
+  fr: [
+    {
+      title: 'Informations',
+      text: 'Commencez ici pour modifier le titre, les noms, la date, l’adresse et le programme.'
+    },
+    {
+      title: 'Style',
+      text: 'Choisissez l’ambiance, les couleurs, l’ouverture et les animations de votre invitation.'
+    },
+    {
+      title: 'Photos et musique',
+      text: 'Ajoutez vos photos, votre album et votre musique pour personnaliser le faire-part.'
+    },
+    {
+      title: 'Enregistrer',
+      text: 'Enregistrez votre invitation avant de revenir au tableau de bord ou de partager le lien.'
+    }
+  ],
+  en: [
+    {
+      title: 'Details',
+      text: 'Start here to edit the title, names, date, address and schedule.'
+    },
+    {
+      title: 'Style',
+      text: 'Choose the mood, colors, opening effect and animations for your invitation.'
+    },
+    {
+      title: 'Photos and music',
+      text: 'Add your photos, album and music to personalize the invitation.'
+    },
+    {
+      title: 'Save',
+      text: 'Save your invitation before going back to the dashboard or sharing the link.'
+    }
+  ],
+  vi: [
+    {
+      title: 'Thông tin',
+      text: 'Bắt đầu tại đây để sửa tiêu đề, tên, ngày, địa chỉ và chương trình.'
+    },
+    {
+      title: 'Phong cách',
+      text: 'Chọn không gian, màu sắc, hiệu ứng mở thiệp và hoạt ảnh cho thiệp mời.'
+    },
+    {
+      title: 'Ảnh và nhạc',
+      text: 'Thêm ảnh, album và nhạc để cá nhân hóa thiệp mời.'
+    },
+    {
+      title: 'Lưu',
+      text: 'Lưu thiệp mời trước khi quay lại bảng điều khiển hoặc chia sẻ liên kết.'
+    }
+  ]
+};
+
+const tutorialActions = {
+  fr: {
+    skip: 'Passer',
+    next: 'Suivant',
+    done: 'J’ai compris',
+    step: 'Étape'
+  },
+  en: {
+    skip: 'Skip',
+    next: 'Next',
+    done: 'Got it',
+    step: 'Step'
+  },
+  vi: {
+    skip: 'Bỏ qua',
+    next: 'Tiếp',
+    done: 'Tôi đã hiểu',
+    step: 'Bước'
+  }
+};
+
 export default function MobileApp({ invitation, onInvitationChange, onSave, onBack, saving }: any) {
   const [activeTab, setActiveTab] = useState<string | null>(null);
+  const [tutorialStep, setTutorialStep] = useState<number | null>(null);
 
   const lang = (localStorage.getItem('invite_lang') as Language) || 'fr';
   const t = translations[lang].builder;
+  const currentTutorialCopy = tutorialCopy[lang] || tutorialCopy.fr;
+  const currentTutorialActions = tutorialActions[lang] || tutorialActions.fr;
+  const isTutorialActive = tutorialStep !== null;
+  const isLastTutorialStep = tutorialStep === currentTutorialCopy.length - 1;
 
   useEffect(() => {
     if (!document.getElementById(BRAND_FONT_LINK_ID)) {
@@ -33,6 +115,40 @@ export default function MobileApp({ invitation, onInvitationChange, onSave, onBa
       document.head.appendChild(link);
     }
   }, []);
+
+  useEffect(() => {
+    const hasSeenTutorial = localStorage.getItem(BUILDER_TUTORIAL_KEY);
+
+    if (!hasSeenTutorial) {
+      const timer = window.setTimeout(() => {
+        setTutorialStep(0);
+      }, 650);
+
+      return () => window.clearTimeout(timer);
+    }
+  }, []);
+
+  const closeTutorial = () => {
+    localStorage.setItem(BUILDER_TUTORIAL_KEY, 'true');
+    setTutorialStep(null);
+  };
+
+  const goToNextTutorialStep = () => {
+    if (tutorialStep === null) return;
+
+    if (tutorialStep >= currentTutorialCopy.length - 1) {
+      closeTutorial();
+      return;
+    }
+
+    setTutorialStep(tutorialStep + 1);
+  };
+
+  const getTutorialTargetClass = (targetStep: number) => {
+    if (tutorialStep !== targetStep) return '';
+
+    return 'relative z-[260] ring-4 ring-amber-300 ring-offset-4 ring-offset-white shadow-2xl scale-105';
+  };
 
   const navItems = [
     { id: 'content', label: t.nav_info, icon: <Type size={22} /> },
@@ -52,7 +168,6 @@ export default function MobileApp({ invitation, onInvitationChange, onSave, onBa
         </button>
 
         <div className="flex items-center justify-center gap-1.5 min-w-0">
-          
           <span
             className="text-[1.65rem] sm:text-[1.9rem] leading-none whitespace-nowrap"
             style={brandTitleStyle}
@@ -65,7 +180,7 @@ export default function MobileApp({ invitation, onInvitationChange, onSave, onBa
           <button
             onClick={onSave}
             disabled={saving}
-            className="bg-black text-white px-3 sm:px-4 py-2 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 sm:gap-2 shadow-lg transition-transform active:scale-95 disabled:opacity-60 max-w-full"
+            className={`bg-black text-white px-3 sm:px-4 py-2 rounded-full text-[9px] sm:text-[10px] font-black uppercase tracking-widest flex items-center gap-1.5 sm:gap-2 shadow-lg transition-all active:scale-95 disabled:opacity-60 max-w-full ${getTutorialTargetClass(3)}`}
           >
             {saving ? <Loader2 className="w-3 h-3 animate-spin shrink-0" /> : <Check className="w-3 h-3 shrink-0" />}
             <span className="truncate">{t.save_btn}</span>
@@ -124,14 +239,85 @@ export default function MobileApp({ invitation, onInvitationChange, onSave, onBa
         )}
       </AnimatePresence>
 
+      <AnimatePresence>
+        {isTutorialActive && tutorialStep !== null && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[120] bg-black/45 backdrop-blur-[2px]"
+            />
+
+            <motion.div
+              initial={{ opacity: 0, y: tutorialStep === 3 ? -12 : 12, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: tutorialStep === 3 ? -12 : 12, scale: 0.96 }}
+              transition={{ type: 'spring', damping: 24, stiffness: 280 }}
+              className={`fixed left-4 right-4 z-[300] ${
+                tutorialStep === 3 ? 'top-20' : 'bottom-32'
+              }`}
+            >
+              <div className="mx-auto max-w-sm rounded-3xl bg-white shadow-2xl border border-amber-100 p-5">
+                <div className="flex items-center justify-between gap-4 mb-3">
+                  <p className="text-[10px] font-black uppercase tracking-[0.22em] text-amber-600">
+                    {currentTutorialActions.step} {tutorialStep + 1}/{currentTutorialCopy.length}
+                  </p>
+
+                  <button
+                    type="button"
+                    onClick={closeTutorial}
+                    className="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-700"
+                  >
+                    {currentTutorialActions.skip}
+                  </button>
+                </div>
+
+                <h3 className="text-lg font-black text-gray-950 tracking-tight">
+                  {currentTutorialCopy[tutorialStep].title}
+                </h3>
+
+                <p className="text-sm text-gray-500 leading-snug mt-2">
+                  {currentTutorialCopy[tutorialStep].text}
+                </p>
+
+                <div className="flex items-center justify-between gap-3 mt-5">
+                  <div className="flex gap-1.5">
+                    {currentTutorialCopy.map((_, index) => (
+                      <span
+                        key={index}
+                        className={`h-1.5 rounded-full transition-all ${
+                          index === tutorialStep ? 'w-6 bg-amber-500' : 'w-1.5 bg-gray-200'
+                        }`}
+                      />
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={goToNextTutorialStep}
+                    className="h-10 px-5 rounded-full bg-gray-950 text-white text-[11px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-transform"
+                  >
+                    {isLastTutorialStep ? currentTutorialActions.done : currentTutorialActions.next}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
       <nav className="h-24 bg-white/90 backdrop-blur-2xl border-t border-gray-100 flex items-center justify-around px-6 pb-8 z-[180] fixed bottom-0 inset-x-0">
-        {navItems.map((item) => (
+        {navItems.map((item, index) => (
           <button
             key={item.id}
-            onClick={() => setActiveTab(item.id)}
-            className={`flex flex-col items-center gap-1 flex-1 transition-all duration-300 ${
+            onClick={() => {
+              if (isTutorialActive) return;
+              setActiveTab(item.id);
+            }}
+            className={`flex flex-col items-center gap-1 flex-1 transition-all duration-300 rounded-[1.4rem] ${
               activeTab === item.id ? 'text-amber-600 scale-105' : 'text-gray-400 hover:text-gray-600'
-            }`}
+            } ${getTutorialTargetClass(index)}`}
           >
             <div
               className={`p-3 rounded-[1.25rem] transition-all duration-300 ${
