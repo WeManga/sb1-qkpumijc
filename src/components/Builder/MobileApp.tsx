@@ -52,12 +52,7 @@ export default function MobileApp({ invitation, onInvitationChange, onSave, onBa
         </button>
 
         <div className="flex items-center justify-center gap-1.5 min-w-0">
-          <img
-            src={BRAND_LOGO_SRC}
-            alt="Invit Studio"
-            className="h-11 w-auto object-contain shrink-0"
-          />
-
+          
           <span
             className="text-[1.65rem] sm:text-[1.9rem] leading-none whitespace-nowrap"
             style={brandTitleStyle}
