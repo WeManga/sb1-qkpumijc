@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback, type WheelEvent } from 'react';
 import { supabase } from '../../lib/supabase';
 import { translations, Language } from '../../lib/i18n';
-import { Plus, X, Lock, ChevronDown } from 'lucide-react';
+import { Plus, X, Lock, ChevronDown, RotateCcw } from 'lucide-react';
 import { PREMIUM_COLORS } from '../../constants/colors';
 import {
   OPENING_CATEGORIES,
@@ -38,11 +38,11 @@ const PREMIUM_PALETTES = [
 const FONTS = [
   { id: 'font-sans', name: 'Moderne Pur', family: 'ui-sans-serif, system-ui, sans-serif', premium: false },
   { id: 'font-serif', name: 'Classique Chic', family: "'Playfair Display', serif", premium: false },
-  { id: 'font-elegant', name: 'Élégance Riviera', family: "'Cinzel', serif", premium: true },
+  { id: 'font-elegant', name: 'Ã‰lÃ©gance Riviera', family: "'Cinzel', serif", premium: true },
   { id: 'font-script', name: 'Plume Douce', family: "'Great Vibes', cursive", premium: true },
   { id: 'font-royal', name: 'Royal Majesty', family: "'Monsieur La Doulaise', cursive", premium: true },
-  { id: 'font-vintage', name: 'Héritage Ancien', family: "'Cinzel Decorative', serif", premium: true },
-  { id: 'font-boho', name: 'Bohème Spirit', family: "'Caveat', cursive", premium: true },
+  { id: 'font-vintage', name: 'HÃ©ritage Ancien', family: "'Cinzel Decorative', serif", premium: true },
+  { id: 'font-boho', name: 'BohÃ¨me Spirit', family: "'Caveat', cursive", premium: true },
   { id: 'font-luxury', name: 'Luxe Minimal', family: "'Bodoni Moda', serif", premium: true }
 ];
 
@@ -64,6 +64,39 @@ const ALBUM_PHOTO_FIELDS = [
   { key: 'album_photo_url_6' }
 ];
 
+
+const PHOTO_ADJUST_FIELDS = [
+  'main_photo_url',
+  'end_photo_url',
+  'photo_url_2',
+  'photo_url_3',
+  'album_photo_url_1',
+  'album_photo_url_2',
+  'album_photo_url_3',
+  'album_photo_url_4',
+  'album_photo_url_5',
+  'album_photo_url_6',
+  'premium_mid_photo_url',
+  'premium_final_photo_url'
+];
+
+const getPhotoAdjustKeys = (field: string) => ({
+  x: `${field}_pos_x`,
+  y: `${field}_pos_y`,
+  scale: `${field}_scale`
+});
+
+const getResetPhotoAdjustments = (field: string) => {
+  const keys = getPhotoAdjustKeys(field);
+
+  return {
+    [keys.x]: 0,
+    [keys.y]: 0,
+    [keys.scale]: 1
+  };
+};
+
+const clampPhotoScale = (value: number) => Math.min(4, Math.max(0.2, value));
 const IMAGE_ACCEPT = 'image/jpeg,image/png,image/webp,image/heic,image/heif,image/*';
 
 const compressImageFile = async (file: File): Promise<File> => {
@@ -178,29 +211,29 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       paper_texture: 'Texture papier',
       fonts: 'Police',
       ambiance: 'Ambiance',
-      opening_type_label: "Animation après l'ouverture",
+      opening_type_label: "Animation aprÃ¨s l'ouverture",
       opening_mode_label: "Mode d'ouverture",
       opening_mode_panel: 'Volet',
-      opening_mode_video: 'Vidéos',
-      opening_category_label: 'Famille de vidéo',
-      opening_theme_label: 'Thème vidéo',
+      opening_mode_video: 'VidÃ©os',
+      opening_category_label: 'Famille de vidÃ©o',
+      opening_theme_label: 'ThÃ¨me vidÃ©o',
       premium_locked_msg: 'Disponible avec Premium',
-      trigger_mode_emoji: 'Émojis',
-      trigger_mode_decor: 'Décor',
+      trigger_mode_emoji: 'Ã‰mojis',
+      trigger_mode_decor: 'DÃ©cor',
       bg_color_label: 'Fond',
       bg_balloons: 'Ballons',
       bg_flowers: 'Fleurs',
       bg_butterflies: 'Papillons',
-      bg_stars: 'Étoiles',
+      bg_stars: 'Ã‰toiles',
       filmstrip_photo_2: 'Pellicule 2',
       filmstrip_photo_3: 'Pellicule 3',
-      premium_story_label: 'Messages personnalisés',
-      premium_mid_label: 'Après le programme',
+      premium_story_label: 'Messages personnalisÃ©s',
+      premium_mid_label: 'AprÃ¨s le programme',
       premium_final_label: 'Section finale',
       premium_title_placeholder: 'Titre de la section',
       premium_text_placeholder: 'Texte de la section...',
       premium_mid_title_placeholder: 'Ex : Notre histoire',
-      premium_mid_text_placeholder: 'Ajoutez un texte spécial après le programme...',
+      premium_mid_text_placeholder: 'Ajoutez un texte spÃ©cial aprÃ¨s le programme...',
       premium_final_title_placeholder: 'Ex : Un dernier mot',
       premium_final_text_placeholder: 'Ajoutez un message final avant la confirmation...',
       premium_photo: 'Photo de section',
@@ -209,7 +242,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       music: 'Musique',
       texture_smooth: 'Lisse',
       texture_parchment: 'Parchemin',
-      texture_grainy: 'Grainé',
+      texture_grainy: 'GrainÃ©',
       texture_cotton: 'Coton',
       texture_silk: 'Soie',
       texture_velvet: 'Velours'
@@ -261,65 +294,91 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       texture_velvet: 'Velvet'
     },
     vi: {
-      info: 'Thông tin',
-      program: 'Chương trình',
-      media: 'Ảnh và nhạc',
-      album_photo: 'Album ảnh',
-      adjust: 'Căn chỉnh ảnh',
-      opening: 'Mở thiệp',
-      paper_texture: 'Kết cấu giấy',
-      fonts: 'Phông chữ',
-      ambiance: 'Không gian',
-      opening_type_label: 'Hoạt ảnh sau khi mở',
-      opening_mode_label: 'Kiểu mở',
-      opening_mode_panel: 'Bảng',
+      info: 'ThÃ´ng tin',
+      program: 'ChÆ°Æ¡ng trÃ¬nh',
+      media: 'áº¢nh vÃ  nháº¡c',
+      album_photo: 'Album áº£nh',
+      adjust: 'CÄƒn chá»‰nh áº£nh',
+      opening: 'Má»Ÿ thiá»‡p',
+      paper_texture: 'Káº¿t cáº¥u giáº¥y',
+      fonts: 'PhÃ´ng chá»¯',
+      ambiance: 'KhÃ´ng gian',
+      opening_type_label: 'Hoáº¡t áº£nh sau khi má»Ÿ',
+      opening_mode_label: 'Kiá»ƒu má»Ÿ',
+      opening_mode_panel: 'Báº£ng',
       opening_mode_video: 'Video',
-      opening_category_label: 'Nhóm video',
-      opening_theme_label: 'Chủ đề video',
-      premium_locked_msg: 'Có sẵn với Premium',
+      opening_category_label: 'NhÃ³m video',
+      opening_theme_label: 'Chá»§ Ä‘á» video',
+      premium_locked_msg: 'CÃ³ sáºµn vá»›i Premium',
       trigger_mode_emoji: 'Emoji',
-      trigger_mode_decor: 'Trang trí',
-      bg_color_label: 'Nền',
-      bg_balloons: 'Bóng bay',
+      trigger_mode_decor: 'Trang trÃ­',
+      bg_color_label: 'Ná»n',
+      bg_balloons: 'BÃ³ng bay',
       bg_flowers: 'Hoa',
-      bg_butterflies: 'Bướm',
+      bg_butterflies: 'BÆ°á»›m',
       bg_stars: 'Sao',
-      filmstrip_photo_2: 'Ảnh phim 2',
-      filmstrip_photo_3: 'Ảnh phim 3',
-      premium_story_label: 'Tin nhắn cá nhân',
-      premium_mid_label: 'Sau chương trình',
-      premium_final_label: 'Mục cuối',
-      premium_title_placeholder: 'Tiêu đề mục',
-      premium_text_placeholder: 'Nội dung mục...',
-      premium_mid_title_placeholder: 'Ví dụ: Câu chuyện của chúng tôi',
-      premium_mid_text_placeholder: 'Thêm nội dung đặc biệt sau chương trình...',
-      premium_final_title_placeholder: 'Ví dụ: Lời cuối',
-      premium_final_text_placeholder: 'Thêm lời nhắn cuối trước xác nhận...',
-      premium_photo: 'Ảnh của mục',
-      main_photo: 'Ảnh mở đầu',
-      end_photo: 'Ảnh cuối',
-      music: 'Nhạc',
-      texture_smooth: 'Mịn',
-      texture_parchment: 'Giấy da',
-      texture_grainy: 'Có hạt',
+      filmstrip_photo_2: 'áº¢nh phim 2',
+      filmstrip_photo_3: 'áº¢nh phim 3',
+      premium_story_label: 'Tin nháº¯n cÃ¡ nhÃ¢n',
+      premium_mid_label: 'Sau chÆ°Æ¡ng trÃ¬nh',
+      premium_final_label: 'Má»¥c cuá»‘i',
+      premium_title_placeholder: 'TiÃªu Ä‘á» má»¥c',
+      premium_text_placeholder: 'Ná»™i dung má»¥c...',
+      premium_mid_title_placeholder: 'VÃ­ dá»¥: CÃ¢u chuyá»‡n cá»§a chÃºng tÃ´i',
+      premium_mid_text_placeholder: 'ThÃªm ná»™i dung Ä‘áº·c biá»‡t sau chÆ°Æ¡ng trÃ¬nh...',
+      premium_final_title_placeholder: 'VÃ­ dá»¥: Lá»i cuá»‘i',
+      premium_final_text_placeholder: 'ThÃªm lá»i nháº¯n cuá»‘i trÆ°á»›c xÃ¡c nháº­n...',
+      premium_photo: 'áº¢nh cá»§a má»¥c',
+      main_photo: 'áº¢nh má»Ÿ Ä‘áº§u',
+      end_photo: 'áº¢nh cuá»‘i',
+      music: 'Nháº¡c',
+      texture_smooth: 'Má»‹n',
+      texture_parchment: 'Giáº¥y da',
+      texture_grainy: 'CÃ³ háº¡t',
       texture_cotton: 'Cotton',
-      texture_silk: 'Lụa',
+      texture_silk: 'Lá»¥a',
       texture_velvet: 'Nhung'
     }
   }[lang];
 
   const filmstripPhoto2Label = (t as any).filmstrip_photo_2 || localLabels.filmstrip_photo_2;
   const filmstripPhoto3Label = (t as any).filmstrip_photo_3 || localLabels.filmstrip_photo_3;
+  const premiumMidPhotoLabel = `${localLabels.premium_mid_label} - ${localLabels.premium_photo}`;
+  const premiumFinalPhotoLabel = `${localLabels.premium_final_label} - ${localLabels.premium_photo}`;
+  const currentScaleKey = getPhotoAdjustKeys(selectedPhotoKey).scale;
+  const currentScale = invitation[currentScaleKey] || 1;
+
+  const adjustablePhotos = [
+    { key: 'main_photo_url', label: localLabels.main_photo, premium: false },
+    { key: 'end_photo_url', label: localLabels.end_photo, premium: true },
+    { key: 'photo_url_2', label: filmstripPhoto2Label, premium: true },
+    { key: 'photo_url_3', label: filmstripPhoto3Label, premium: true },
+    ...ALBUM_PHOTO_FIELDS.map((photo, index) => ({
+      key: photo.key,
+      label: `${localLabels.album_photo} ${index + 1}`,
+      premium: true
+    })),
+    { key: 'premium_mid_photo_url', label: premiumMidPhotoLabel, premium: true },
+    { key: 'premium_final_photo_url', label: premiumFinalPhotoLabel, premium: true }
+  ].filter(photo => Boolean(invitation[photo.key]));
+
+  useEffect(() => {
+    if (adjustablePhotos.length === 0) return;
+
+    if (!invitation[selectedPhotoKey]) {
+      setSelectedPhotoKey(adjustablePhotos[0].key);
+    }
+  }, [adjustablePhotos, invitation, selectedPhotoKey]);
 
   const translateOpeningLabel = (label: string) => {
     const maps: Record<string, Record<string, string>> = {
       fr: {
         Wedding: 'Mariage',
         Birthday: 'Anniversaire',
-        Party: 'Fête',
-        Baptism: 'Baptême',
+        Party: 'FÃªte',
+        Baptism: 'BaptÃªme',
         'Baby shower': 'Baby shower',
-        Funeral: 'Obsèques',
+        Funeral: 'ObsÃ¨ques',
         Other: 'Autre'
       },
       en: {
@@ -332,13 +391,13 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
         Other: 'Other'
       },
       vi: {
-        Wedding: 'Đám cưới',
-        Birthday: 'Sinh nhật',
-        Party: 'Bữa tiệc',
-        Baptism: 'Lễ rửa tội',
-        'Baby shower': 'Tiệc mừng em bé',
-        Funeral: 'Tang lễ',
-        Other: 'Khác'
+        Wedding: 'ÄÃ¡m cÆ°á»›i',
+        Birthday: 'Sinh nháº­t',
+        Party: 'Bá»¯a tiá»‡c',
+        Baptism: 'Lá»… rá»­a tá»™i',
+        'Baby shower': 'Tiá»‡c má»«ng em bÃ©',
+        Funeral: 'Tang lá»…',
+        Other: 'KhÃ¡c'
       }
     };
 
@@ -506,15 +565,8 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       const { data } = supabase.storage.from('invitations').getPublicUrl(fileName);
       const updates: any = { ...invitation, [field]: data.publicUrl };
 
-      if (
-        field === 'main_photo_url' ||
-        field === 'end_photo_url' ||
-        field === 'photo_url_2' ||
-        field === 'photo_url_3'
-      ) {
-        updates[`${field}_pos_x`] = 0;
-        updates[`${field}_pos_y`] = 0;
-        updates[`${field}_scale`] = 1;
+      if (PHOTO_ADJUST_FIELDS.includes(field)) {
+        Object.assign(updates, getResetPhotoAdjustments(field));
       }
 
       onInvitationChange(updates);
@@ -953,27 +1005,46 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </Section>
 
-          {(invitation.main_photo_url || invitation.end_photo_url || invitation.photo_url_2 || invitation.photo_url_3) && (
+          {adjustablePhotos.length > 0 && (
             <Section id="adjustMedia" title={localLabels.adjust}>
               <div className="flex flex-wrap gap-2">
-                <button type="button" onClick={() => setSelectedPhotoKey('main_photo_url')} className={`px-3 py-1 rounded-full text-[9px] font-black uppercase transition-all ${selectedPhotoKey === 'main_photo_url' ? 'bg-amber-500 text-white shadow-sm' : 'bg-white text-amber-800 border border-amber-200'}`}>
-                  {localLabels.main_photo}
-                </button>
-                {invitation.photo_url_2 && (
-                  <button type="button" onClick={() => setSelectedPhotoKey('photo_url_2')} className={`px-3 py-1 rounded-full text-[9px] font-black uppercase transition-all ${selectedPhotoKey === 'photo_url_2' ? 'bg-amber-500 text-white shadow-sm' : 'bg-white text-amber-800 border border-amber-200'}`}>
-                    {filmstripPhoto2Label}
+                {adjustablePhotos.map(photo => (
+                  <button
+                    key={photo.key}
+                    type="button"
+                    onClick={() => setSelectedPhotoKey(photo.key)}
+                    className={`px-3 py-1 rounded-full text-[9px] font-black uppercase transition-all ${selectedPhotoKey === photo.key ? 'bg-amber-500 text-white shadow-sm' : 'bg-white text-amber-800 border border-amber-200'}`}
+                  >
+                    {photo.label}
                   </button>
-                )}
-                {invitation.photo_url_3 && (
-                  <button type="button" onClick={() => setSelectedPhotoKey('photo_url_3')} className={`px-3 py-1 rounded-full text-[9px] font-black uppercase transition-all ${selectedPhotoKey === 'photo_url_3' ? 'bg-amber-500 text-white shadow-sm' : 'bg-white text-amber-800 border border-amber-200'}`}>
-                    {filmstripPhoto3Label}
+                ))}
+              </div>
+
+              <div className="space-y-2 rounded-2xl bg-amber-50/50 border border-amber-100 p-3">
+                <div className="flex items-center justify-between gap-3">
+                  <label className="text-[10px] font-black uppercase text-amber-700 tracking-widest">
+                    Zoom
+                  </label>
+
+                  <button
+                    type="button"
+                    onClick={resetSelectedPhotoFrame}
+                    className="h-8 px-3 rounded-full bg-white text-amber-700 border border-amber-100 text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 shadow-sm"
+                  >
+                    <RotateCcw size={12} />
+                    Reset
                   </button>
-                )}
-                {invitation.end_photo_url && (
-                  <button type="button" onClick={() => setSelectedPhotoKey('end_photo_url')} className={`px-3 py-1 rounded-full text-[9px] font-black uppercase transition-all ${selectedPhotoKey === 'end_photo_url' ? 'bg-amber-500 text-white shadow-sm' : 'bg-white text-amber-800 border border-amber-200'}`}>
-                    {localLabels.end_photo}
-                  </button>
-                )}
+                </div>
+
+                <input
+                  type="range"
+                  min="0.2"
+                  max="4"
+                  step="0.01"
+                  value={currentScale}
+                  onChange={e => handleScaleChange(e.target.value)}
+                  className="w-full accent-amber-500"
+                />
               </div>
 
               <div
@@ -1014,7 +1085,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                     transform: `translate(${invitation[`${selectedPhotoKey}_pos_x`] || 0}px, ${invitation[`${selectedPhotoKey}_pos_y`] || 0}px) scale(${invitation[`${selectedPhotoKey}_scale`] || 1})`,
                     pointerEvents: 'none'
                   }}
-                  className="max-w-full max-h-full object-contain origin-center"
+                  className="w-full h-full object-cover origin-center select-none"
                 />
               </div>
             </Section>
@@ -1218,3 +1289,6 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     </div>
   );
 }
+
+
+
