@@ -677,6 +677,23 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     });
   };
 
+  const handleScaleChange = (value: string) => {
+    const scaleKey = `${selectedPhotoKey}_scale`;
+    const nextScale = Number(value);
+
+    onInvitationChange({
+      ...invitation,
+      [scaleKey]: clampPhotoScale(Number.isFinite(nextScale) ? nextScale : 1)
+    });
+  };
+
+  const resetSelectedPhotoFrame = () => {
+    onInvitationChange({
+      ...invitation,
+      ...getResetPhotoAdjustments(selectedPhotoKey)
+    });
+  };
+
   const Section = useCallback(({ id, title, children, premium = false }: any) => {
     const isOpen = openSections[id];
     const locked = premium && !isPremium;
