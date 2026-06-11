@@ -23,7 +23,12 @@
 
     <script>
       (function () {
+        var path = window.location.pathname || '';
         var isAndroid = /Android/i.test(window.navigator.userAgent);
+
+        if (path.indexOf('/invite/') === 0) {
+          document.documentElement.classList.add('no-splash');
+        }
 
         if (isAndroid) {
           document.documentElement.classList.add('is-android');
@@ -45,6 +50,10 @@
       body {
         min-height: 100vh;
         overflow-x: hidden;
+      }
+
+      html.no-splash #creathings-splash {
+        display: none !important;
       }
 
       html.is-android #creathings-splash {
@@ -207,10 +216,6 @@
 
     <script>
       (function () {
-        function isAndroidDevice() {
-          return /Android/i.test(window.navigator.userAgent);
-        }
-
         function hideCreathingsSplash() {
           var splash = document.getElementById('creathings-splash');
 
@@ -225,12 +230,12 @@
           }, 700);
         }
 
-        if (isAndroidDevice()) {
+        if (window.location.pathname.indexOf('/invite/') === 0) {
           hideCreathingsSplash();
           return;
         }
 
-        if (window.location.pathname.startsWith('/invite/')) {
+        if (/Android/i.test(window.navigator.userAgent)) {
           hideCreathingsSplash();
           return;
         }
