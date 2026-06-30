@@ -28,6 +28,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 const BRAND_FONT_LINK_ID = 'invit-studio-brand-font';
 
 type AppChannel = 'web' | 'android_apk' | 'android_play';
+type PlanPackage = 'free' | 'solo' | 'multi' | 'business' | 'demo';
 
 const APP_CHANNEL = ((import.meta as any).env?.VITE_APP_CHANNEL || 'web') as AppChannel;
 const ZALO_PHONE_NUMBER = '84384920800';
@@ -38,6 +39,14 @@ const ZALO_EDGE_MARGIN = 12;
 
 const isAndroidPlayChannel = APP_CHANNEL === 'android_play';
 const canUseExternalPayments = APP_CHANNEL === 'web' || APP_CHANNEL === 'android_apk';
+
+const PACKAGE_INVITATION_LIMITS: Record<PlanPackage, number> = {
+  free: 1,
+  solo: 1,
+  multi: 3,
+  business: 10,
+  demo: 10
+};
 
 const brandTitleStyle: CSSProperties = {
   fontFamily: '"Great Vibes", cursive',
@@ -452,7 +461,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('plan_type, premium_duration_months, premium_expires_at')
+        .select('plan_type, premium_duration_months, premium_expires_at, plan_package, max_invitations')
         .eq('id', user.id)
         .maybeSingle();
 
@@ -776,27 +785,48 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
 
   const paymentPlans = [
     {
-      id: '1_month',
-      duration: `1 ${tPln.month}`,
-      totalPrice: lang === 'vi' ? '199.000 VND' : lang === 'fr' ? '6,67 €' : '$7.55',
-      monthlyPrice: lang === 'vi' ? '199.000 VND' : lang === 'fr' ? '6,67 €' : '$7.55',
+      id: 'solo',
+      duration: lang === 'fr' ? 'Pack Solo' : lang === 'vi' ? 'G?i Solo' : 'Solo Pack',
+      totalPrice: '399.000 VND',
+      monthlyPrice: '399.000 VND',
+      priceSuffix: '',
+      description:
+        lang === 'fr'
+          ? '1 invitation Premium pendant 1 mois'
+          : lang === 'vi'
+            ? '1 thi?p Premium trong 1 th?ng'
+            : '1 Premium invitation for 1 month',
       discount: null,
       tag: null
     },
     {
-      id: '3_months',
-      duration: `3 ${tPln.months}`,
-      totalPrice: lang === 'vi' ? '522.000 VND' : lang === 'fr' ? '17,00 €' : '$19.81',
-      monthlyPrice: lang === 'vi' ? '174.000 VND' : lang === 'fr' ? '5,67 €' : '$6.60',
-      discount: '-12.56%',
+      id: 'multi',
+      duration: lang === 'fr' ? 'Pack Multi' : lang === 'vi' ? 'G?i Multi' : 'Multi Pack',
+      totalPrice: '899.000 VND',
+      monthlyPrice: '899.000 VND',
+      priceSuffix: '',
+      description:
+        lang === 'fr'
+          ? '3 invitations Premium pendant 3 mois'
+          : lang === 'vi'
+            ? '3 thi?p Premium trong 3 th?ng'
+            : '3 Premium invitations for 3 months',
+      discount: null,
       tag: tPln.popular || 'Popular'
     },
     {
-      id: '6_months',
-      duration: `6 ${tPln.months}`,
-      totalPrice: lang === 'vi' ? '894.000 VND' : lang === 'fr' ? '29,12 €' : '$33.92',
-      monthlyPrice: lang === 'vi' ? '149.000 VND' : lang === 'fr' ? '4,85 €' : '$5.65',
-      discount: '-25.13%',
+      id: 'business',
+      duration: lang === 'fr' ? 'Pack Business' : lang === 'vi' ? 'G?i Business' : 'Business Pack',
+      totalPrice: '2.500.000 VND',
+      monthlyPrice: '2.500.000 VND',
+      priceSuffix: '',
+      description:
+        lang === 'fr'
+          ? '10 invitations Premium pendant 6 mois'
+          : lang === 'vi'
+            ? '10 thi?p Premium trong 6 th?ng'
+            : '10 Premium invitations for 6 months',
+      discount: null,
       tag: tPln.best || 'Best Value'
     }
   ];
@@ -843,8 +873,8 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
         {!loading && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 relative z-10">
             <button
-              onClick={onCreateNew}
-              className="min-h-[250px] sm:min-h-[300px] bg-white rounded-[2rem] sm:rounded-[2.5rem] border-2 border-dashed border-gray-100 hover:border-amber-400 hover:shadow-xl transition-all flex flex-col items-center justify-center gap-4 group"
+              onClick={handleCreateInvitationClick}
+              className={`min-h-[250px] sm:min-h-[300px] bg-white rounded-[2rem] sm:rounded-[2.5rem] border-2 border-dashed transition-all flex flex-col items-center justify-center gap-4 group ${hasReachedInvitationLimit ? 'border-rose-100 opacity-75 hover:border-rose-200' : 'border-gray-100 hover:border-amber-400 hover:shadow-xl'}`}
             >
               <div className="w-14 h-14 sm:w-16 sm:h-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center group-hover:bg-amber-400 group-hover:text-white transition-all shadow-sm">
                 <Plus className="w-7 h-7 sm:w-8 sm:h-8" />
