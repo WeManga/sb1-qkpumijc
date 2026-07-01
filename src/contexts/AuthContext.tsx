@@ -16,15 +16,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const ensureProfile = async (currentUser: User | null) => {
+    if (!currentUser) return;
+
+    const { error } = await supabase
+      .from('profiles')
+      .upsert(
+        {
+          id: currentUser.id,
+          plan_type: 'FREE',
+          plan_package: 'free',
+          max_invitations: 1
+        } as any,
+        { onConflict: 'id', ignoreDuplicates: true }
+      );
+
+    if (error) {
+      console.error('Profile creation failed:', error.message);
+    }
+  };
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      ensureProfile(currentUser).finally(() => setLoading(false));
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       (async () => {
-        setUser(session?.user ?? null);
+        const currentUser = session?.user ?? null;
+        setUser(currentUser);
+        await ensureProfile(currentUser);
       })();
     });
 
