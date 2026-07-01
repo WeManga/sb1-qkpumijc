@@ -783,6 +783,23 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     return () => clearInterval(timer);
   }, [isAccountOpen, accountStep, sepayPayment?.id, sepayPayment?.status, paymentConfirmed]);
 
+    const maxInvitations =
+    accountStatus === 'PREMIUM'
+      ? 10
+      : 1;
+
+  const hasReachedInvitationLimit = invitations.length >= maxInvitations;
+
+  const handleCreateInvitationClick = () => {
+    if (hasReachedInvitationLimit) {
+      setAccountStep(canUseExternalPayments ? 'PLANS' : 'PROFILE');
+      setIsAccountOpen(true);
+      return;
+    }
+
+    onCreateNew();
+  };
+  
   const paymentPlans = [
     {
       id: 'solo',
