@@ -804,8 +804,8 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     {
       id: 'solo',
       duration: lang === 'fr' ? 'Pack Solo' : lang === 'vi' ? 'G?i Solo' : 'Solo Pack',
-      totalPrice: '399.000 VND',
-      monthlyPrice: '399.000 VND',
+      totalPrice: '2.000 VND',
+      monthlyPrice: '2.000 VND',
       priceSuffix: '',
       description:
         lang === 'fr'
