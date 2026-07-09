@@ -21,7 +21,13 @@ import {
   CreditCard,
   ArrowLeft,
   MoreVertical,
-  Home
+  Home,
+  Sparkles,
+  MessageCircle,
+  Settings,
+  BadgeCheck,
+  CalendarDays,
+  PartyPopper
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -264,7 +270,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   const [zaloIsSettling, setZaloIsSettling] = useState(false);
 
   const [lang, setLang] = useState<Language>((localStorage.getItem('invite_lang') as Language) || 'en');
-  const [planPackage, setPlanPackage] = useState<PlanPackage>('free');
 
   useEffect(() => {
     if (!document.getElementById(BRAND_FONT_LINK_ID)) {
@@ -456,9 +461,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
         const expiresAt = profile.premium_expires_at ? new Date(profile.premium_expires_at) : null;
         const isPremiumActive = profile.plan_type === 'PREMIUM' && expiresAt && expiresAt > new Date();
 
-        const nextPlan = (profile.plan_package || 'free') as PlanPackage;
-        setPlanPackage(nextPlan);
-
         if (isPremiumActive) {
           setAccountStatus('PREMIUM');
           if (profile.premium_duration_months) {
@@ -475,6 +477,17 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
         } else {
           setAccountStatus('FREE');
           setPremiumDuration('');
+
+          if (profile.plan_type === 'PREMIUM' && expiresAt && expiresAt <= new Date()) {
+            await supabase
+              .from('profiles')
+              .update({
+                plan_type: 'FREE',
+                premium_duration_months: null,
+                premium_expires_at: null
+              } as any)
+              .eq('id', user.id);
+          }
         }
       } else {
         setAccountStatus('FREE');
@@ -728,13 +741,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   };
 
   useEffect(() => {
-    if (
-      !isAccountOpen ||
-      accountStep !== 'CHECKOUT' ||
-      !sepayPayment?.id ||
-      sepayPayment.status === 'paid' ||
-      paymentConfirmed
-    ) {
+    if (!isAccountOpen || accountStep !== 'CHECKOUT' || !sepayPayment?.id || sepayPayment.status === 'paid' || paymentConfirmed) {
       return;
     }
 
@@ -742,7 +749,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     return () => clearInterval(timer);
   }, [isAccountOpen, accountStep, sepayPayment?.id, sepayPayment?.status, paymentConfirmed]);
 
-  const maxInvitations = PACKAGE_INVITATION_LIMITS[planPackage] ?? 1;
+  const maxInvitations = PACKAGE_INVITATION_LIMITS[(accountStatus === 'PREMIUM' ? 'business' : 'free')] ?? 1;
   const usedInvitations = invitations.length;
   const remainingInvitations = Math.max(maxInvitations - usedInvitations, 0);
   const hasReachedInvitationLimit = usedInvitations >= maxInvitations;
@@ -760,188 +767,326 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   const paymentPlans = [
     {
       id: 'solo',
-      duration: lang === 'fr' ? '1 mois' : lang === 'vi' ? '1 tháng' : '1 month',
+      duration: lang === 'fr' ? 'Pack Solo' : lang === 'vi' ? 'Gói Solo' : 'Solo Pack',
       totalPrice: '399.000 VND',
       monthlyPrice: '399.000 VND',
-      priceSuffix: '',
       description:
         lang === 'fr'
           ? '1 invitation Premium pendant 1 mois'
           : lang === 'vi'
             ? '1 thiệp Premium trong 1 tháng'
             : '1 Premium invitation for 1 month',
-      discount: null,
       tag: null
     },
     {
       id: 'multi',
-      duration: lang === 'fr' ? '3 mois' : lang === 'vi' ? '3 tháng' : '3 months',
+      duration: lang === 'fr' ? 'Pack Multi' : lang === 'vi' ? 'Gói Multi' : 'Multi Pack',
       totalPrice: '899.000 VND',
       monthlyPrice: '899.000 VND',
-      priceSuffix: '',
       description:
         lang === 'fr'
           ? '3 invitations Premium pendant 3 mois'
           : lang === 'vi'
             ? '3 thiệp Premium trong 3 tháng'
             : '3 Premium invitations for 3 months',
-      discount: null,
-      tag: tPln.popular || null
+      tag: tPln.popular || 'Popular'
     },
     {
       id: 'business',
-      duration: lang === 'fr' ? '6 mois' : lang === 'vi' ? '6 tháng' : '6 months',
+      duration: lang === 'fr' ? 'Pack Business' : lang === 'vi' ? 'Gói Business' : 'Business Pack',
       totalPrice: '2.500.000 VND',
       monthlyPrice: '2.500.000 VND',
-      priceSuffix: '',
       description:
         lang === 'fr'
           ? '10 invitations Premium pendant 6 mois'
           : lang === 'vi'
             ? '10 thiệp Premium trong 6 tháng'
             : '10 Premium invitations for 6 months',
-      discount: null,
-      tag: tPln.best || null
+      tag: tPln.best || 'Best Value'
+    }
+  ];
+
+  const summaryCards = [
+    {
+      label:
+        lang === 'fr' ? 'Invitations créées' : lang === 'vi' ? 'Số thiệp đã tạo' : 'Created invitations',
+      value: `${usedInvitations}`,
+      icon: Sparkles
+    },
+    {
+      label:
+        lang === 'fr' ? 'Réponses reçues' : lang === 'vi' ? 'Phản hồi nhận được' : 'Responses received',
+      value: `${invitations.reduce((sum, i) => sum + (i.response_count || 0), 0)}`,
+      icon: MessageCircle
+    },
+    {
+      label:
+        lang === 'fr' ? 'Statut' : lang === 'vi' ? 'Trạng thái' : 'Status',
+      value: accountStatus,
+      icon: BadgeCheck
+    }
+  ];
+
+  const quickActions = [
+    {
+      title:
+        lang === 'fr' ? 'Créer une invitation' : lang === 'vi' ? 'Tạo thiệp mới' : 'Create invitation',
+      desc:
+        lang === 'fr' ? 'Lancer un nouveau design' : lang === 'vi' ? 'Bắt đầu một mẫu mới' : 'Start a fresh design',
+      icon: PartyPopper,
+      onClick: handleCreateInvitationClick,
+      accent: 'from-amber-400 to-orange-500'
+    },
+    {
+      title:
+        lang === 'fr' ? 'Voir le compte' : lang === 'vi' ? 'Xem tài khoản' : 'View account',
+      desc:
+        lang === 'fr' ? 'Plan, quota et premium' : lang === 'vi' ? 'Gói, giới hạn, premium' : 'Plan, quota and premium',
+      icon: Settings,
+      onClick: () => {
+        setAccountStep('PROFILE');
+        setIsAccountOpen(true);
+      },
+      accent: 'from-sky-400 to-cyan-500'
+    },
+    {
+      title:
+        lang === 'fr' ? 'Support rapide' : lang === 'vi' ? 'Hỗ trợ nhanh' : 'Fast support',
+      desc:
+        lang === 'fr' ? 'Contacter via Zalo' : lang === 'vi' ? 'Liên hệ qua Zalo' : 'Contact via Zalo',
+      icon: MessageCircle,
+      onClick: handleZaloClick,
+      accent: 'from-blue-500 to-indigo-500'
     }
   ];
 
   return (
-    <div className="absolute inset-0 overflow-y-auto bg-gradient-to-b from-gray-50 to-white scrollbar-hide">
+    <div className="absolute inset-0 overflow-y-auto bg-[radial-gradient(circle_at_top,rgba(251,191,36,0.12),transparent_32%),linear-gradient(to_bottom,#fffdf8,#ffffff)] scrollbar-hide">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-0 pb-32">
-        <div className="relative flex items-center justify-center border-b border-gray-100 mb-8 pt-8 pb-4">
-          <div className="absolute left-0 -ml-14">
-            <img
-              src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png"
-              alt="Logo Invit Studio"
-              className="h-24 w-auto object-contain"
-            />
-          </div>
+        <div className="relative overflow-hidden rounded-[2.5rem] border border-amber-100 bg-white/80 backdrop-blur-xl shadow-[0_20px_60px_rgba(0,0,0,0.06)] mb-8 mt-4">
+          <div className="absolute inset-0 bg-gradient-to-r from-amber-50 via-white to-rose-50 opacity-80" />
+          <div className="absolute -top-24 -right-24 w-72 h-72 rounded-full bg-amber-200/30 blur-3xl" />
+          <div className="absolute -bottom-24 -left-24 w-72 h-72 rounded-full bg-sky-200/25 blur-3xl" />
 
-          <h1 className="text-[2.65rem] sm:text-[3.15rem] leading-none whitespace-nowrap" style={brandTitleStyle}>
-            Invit Studio
-          </h1>
+          <div className="relative px-5 sm:px-8 py-6 sm:py-8">
+            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-[1.5rem] bg-white shadow-lg border border-amber-100 flex items-center justify-center overflow-hidden">
+                  <img
+                    src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png"
+                    alt="Logo Invit Studio"
+                    className="w-12 h-12 object-contain"
+                  />
+                </div>
 
-          <div className="absolute right-0 flex items-center gap-2">
-            <button
-              onClick={() => {
-                setAccountStep('PROFILE');
-                setIsAccountOpen(true);
-                loadAccountStatus();
-              }}
-              className="flex items-center gap-2 text-gray-400 hover:text-amber-500 transition-colors text-[10px] sm:text-[11px] font-bold uppercase tracking-widest px-2 py-2 border-r border-gray-100 pr-4"
-            >
-              <User className="w-4 h-4" />
-              <span className="hidden xs:inline">{tAcc.title}</span>
-            </button>
+                <div>
+                  <h1 className="text-[2.4rem] sm:text-[3.1rem] leading-none whitespace-nowrap" style={brandTitleStyle}>
+                    Invit Studio
+                  </h1>
+                  <p className="mt-1 text-xs sm:text-sm text-gray-500 font-medium">
+                    {lang === 'vi'
+                      ? 'Thiệp cưới, sự kiện và lời mời đẹp hơn, nhanh hơn.'
+                      : lang === 'fr'
+                        ? 'Des invitations plus belles, plus rapides et plus vivantes.'
+                        : 'Beautiful, faster, more engaging invitations.'}
+                  </p>
+                </div>
+              </div>
 
-            <button
-              onClick={() => signOut()}
-              className="flex items-center gap-2 text-gray-400 hover:text-rose-500 transition-colors text-[10px] sm:text-[11px] font-bold uppercase tracking-widest px-2 py-2"
-            >
-              <LogOut className="w-4 h-4" />
-              <span className="hidden xs:inline">{tAuth.logout}</span>
-            </button>
+              <div className="flex items-center gap-2 self-start lg:self-center">
+                <button
+                  onClick={() => {
+                    setAccountStep('PROFILE');
+                    setIsAccountOpen(true);
+                    loadAccountStatus();
+                  }}
+                  className="flex items-center gap-2 text-gray-500 hover:text-amber-600 transition-colors text-[10px] sm:text-[11px] font-bold uppercase tracking-widest px-4 py-3 rounded-full bg-white border border-gray-100 shadow-sm"
+                >
+                  <User className="w-4 h-4" />
+                  <span>{tAcc.title}</span>
+                </button>
+
+                <button
+                  onClick={() => signOut()}
+                  className="flex items-center gap-2 text-gray-500 hover:text-rose-500 transition-colors text-[10px] sm:text-[11px] font-bold uppercase tracking-widest px-4 py-3 rounded-full bg-white border border-gray-100 shadow-sm"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>{tAuth.logout}</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-6">
+              {summaryCards.map((card, idx) => {
+                const Icon = card.icon;
+                return (
+                  <div
+                    key={idx}
+                    className="rounded-[1.5rem] bg-white/90 border border-gray-100 px-5 py-4 shadow-sm flex items-center justify-between"
+                  >
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">{card.label}</p>
+                      <p className="text-2xl font-black text-gray-900 mt-1">{card.value}</p>
+                    </div>
+                    <div className="w-12 h-12 rounded-2xl bg-amber-50 flex items-center justify-center text-amber-500">
+                      <Icon className="w-6 h-6" />
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </div>
 
         {!loading && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 relative z-10">
-            <button
-              onClick={handleCreateInvitationClick}
-              className={`min-h-[250px] sm:min-h-[300px] bg-white rounded-[2rem] sm:rounded-[2.5rem] border-2 border-dashed transition-all flex flex-col items-center justify-center gap-4 group ${
-                hasReachedInvitationLimit
-                  ? 'border-rose-100 opacity-75 hover:border-rose-200'
-                  : 'border-gray-100 hover:border-amber-400 hover:shadow-xl'
-              }`}
-            >
-              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center group-hover:bg-amber-400 group-hover:text-white transition-all shadow-sm">
-                <Plus className="w-7 h-7 sm:w-8 sm:h-8" />
-              </div>
-
-              <span className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-[0.2em]">
-                {t.new_creation}
-              </span>
-
-              <div className="text-[10px] text-gray-500 font-bold">
-                {usedInvitations} / {maxInvitations} {lang === 'fr' ? 'invitations' : lang === 'vi' ? 'thiệp' : 'invitations'}
-              </div>
-
-              <div className="text-[9px] text-gray-400">
-                {remainingInvitations > 0
-                  ? `${remainingInvitations} ${lang === 'fr' ? 'restantes' : lang === 'vi' ? 'còn lại' : 'remaining'}`
-                  : lang === 'fr'
-                    ? 'Quota atteint'
-                    : lang === 'vi'
-                      ? 'Đã đạt giới hạn'
-                      : 'Limit reached'}
-              </div>
-            </button>
-
-            {invitations.map((invitation) => (
-              <div
-                key={invitation.id}
-                className="flex flex-col bg-white rounded-[2rem] sm:rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-300"
-              >
-                <div className="h-40 sm:h-44 relative bg-gray-50 overflow-hidden">
-                  {invitation.main_photo_url ? (
-                    <img src={invitation.main_photo_url} alt="" className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-200 font-bold text-[10px] uppercase tracking-widest">
-                      {t.preview}
-                    </div>
-                  )}
-
+          <>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-8">
+              {quickActions.map((action, idx) => {
+                const Icon = action.icon;
+                return (
                   <button
-                    onClick={() => fetchResponses(invitation.id)}
-                    className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-4 py-2 rounded-full shadow-lg flex items-center gap-2 hover:bg-amber-400 hover:text-white transition-all group"
+                    key={idx}
+                    onClick={action.onClick}
+                    className="relative overflow-hidden text-left rounded-[2rem] bg-white border border-gray-100 shadow-sm hover:shadow-xl transition-all duration-300 p-5 group"
                   >
-                    <Users className="w-4 h-4 text-amber-500 group-hover:text-white" />
-                    <span className="text-[10px] font-black">{invitation.response_count || 0}</span>
+                    <div className={`absolute inset-0 bg-gradient-to-br ${action.accent} opacity-0 group-hover:opacity-8 transition-opacity`} />
+                    <div className="relative flex items-start gap-4">
+                      <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${action.accent} text-white flex items-center justify-center shadow-lg`}>
+                        <Icon className="w-7 h-7" />
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-black uppercase tracking-tight text-gray-900">{action.title}</p>
+                        <p className="text-xs text-gray-500 mt-1 leading-snug">{action.desc}</p>
+                      </div>
+                    </div>
                   </button>
+                );
+              })}
+            </div>
+
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h2 className="text-lg sm:text-xl font-black text-gray-900">
+                  {lang === 'vi' ? 'Thiệp của bạn' : lang === 'fr' ? 'Vos invitations' : 'Your invitations'}
+                </h2>
+                <p className="text-xs text-gray-500">
+                  {usedInvitations} / {maxInvitations} • {remainingInvitations}{' '}
+                  {lang === 'fr' ? 'restantes' : lang === 'vi' ? 'còn lại' : 'remaining'}
+                </p>
+              </div>
+              <button
+                onClick={handleCreateInvitationClick}
+                className="px-4 py-2.5 rounded-full bg-gray-900 text-white text-[10px] font-black uppercase tracking-widest hover:bg-gray-800 transition-colors flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                {t.new_creation}
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 relative z-10">
+              <button
+                onClick={handleCreateInvitationClick}
+                className={`min-h-[260px] bg-white rounded-[2.2rem] border-2 border-dashed transition-all flex flex-col items-center justify-center gap-4 group overflow-hidden ${
+                  hasReachedInvitationLimit
+                    ? 'border-rose-100 opacity-80 hover:border-rose-200'
+                    : 'border-amber-100 hover:border-amber-400 hover:shadow-2xl'
+                }`}
+              >
+                <div className="absolute inset-0 bg-gradient-to-br from-amber-50 via-white to-rose-50 opacity-80" />
+                <div className="relative w-16 h-16 bg-white text-amber-500 rounded-full flex items-center justify-center group-hover:bg-amber-400 group-hover:text-white transition-all shadow-md">
+                  <Plus className="w-8 h-8" />
                 </div>
 
-                <div className="p-6 sm:p-8 flex flex-col flex-1">
-                  <h3 className="text-base sm:text-lg font-semibold text-gray-800 truncate mb-2">
-                    {invitation.title}
-                  </h3>
+                <div className="relative text-center px-6">
+                  <span className="text-[10px] sm:text-xs font-black text-gray-500 uppercase tracking-[0.25em]">
+                    {t.new_creation}
+                  </span>
+                  <p className="mt-3 text-sm text-gray-600 leading-snug">
+                    {lang === 'vi'
+                      ? 'Tạo một thiệp mới với phong cách sang hơn và dễ chia sẻ hơn.'
+                      : lang === 'fr'
+                        ? 'Créez une nouvelle invitation avec un style plus vivant.'
+                        : 'Create a new invitation with a more vibrant style.'}
+                  </p>
+                </div>
 
-                  <div className="mt-auto space-y-3">
-                    <div className="grid grid-cols-4 gap-2">
-                      <button
-                        onClick={() => onEdit(invitation.id)}
-                        className="col-span-2 py-3 bg-gray-900 text-white rounded-2xl text-[9px] font-bold uppercase tracking-widest flex items-center justify-center gap-2"
-                      >
-                        <Edit className="w-3 h-3" />
-                        {t.edit}
-                      </button>
+                <div className="relative text-[10px] font-bold text-gray-500">
+                  {usedInvitations} / {maxInvitations} {lang === 'fr' ? 'invitations' : lang === 'vi' ? 'thiệp' : 'invitations'}
+                </div>
+              </button>
 
-                      <button
-                        onClick={() => window.open(`/invite/${invitation.id}`, '_blank')}
-                        className="py-3 bg-gray-50 text-gray-400 rounded-2xl flex items-center justify-center hover:bg-gray-100 border border-gray-100"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
-
-                      <button
-                        onClick={() => handleDelete(invitation.id)}
-                        className="py-3 bg-rose-50 text-rose-300 rounded-2xl flex items-center justify-center hover:bg-rose-100 hover:text-rose-600 border border-rose-100"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
+              {invitations.map(invitation => (
+                <div
+                  key={invitation.id}
+                  className="flex flex-col bg-white rounded-[2.2rem] shadow-sm border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-300"
+                >
+                  <div className="h-44 relative bg-gradient-to-br from-gray-50 to-amber-50 overflow-hidden">
+                    {invitation.main_photo_url ? (
+                      <img src={invitation.main_photo_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center text-gray-300 font-bold text-[10px] uppercase tracking-widest gap-2">
+                        <CalendarDays className="w-7 h-7" />
+                        {t.preview}
+                      </div>
+                    )}
 
                     <button
-                      onClick={() => handleCopyLink(invitation.id)}
-                      className="w-full py-2.5 bg-amber-50 text-amber-700 rounded-xl text-[9px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-amber-100 border border-amber-100"
+                      onClick={() => fetchResponses(invitation.id)}
+                      className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-4 py-2 rounded-full shadow-lg flex items-center gap-2 hover:bg-amber-400 hover:text-white transition-all group"
                     >
-                      <Copy className="w-3 h-3" />
-                      {t.share}
+                      <Users className="w-4 h-4 text-amber-500 group-hover:text-white" />
+                      <span className="text-[10px] font-black">{invitation.response_count || 0}</span>
                     </button>
                   </div>
+
+                  <div className="p-6 sm:p-7 flex flex-col flex-1">
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900 truncate mb-2">
+                      {invitation.title}
+                    </h3>
+
+                    <div className="flex items-center gap-2 text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-4">
+                      <Sparkles className="w-3.5 h-3.5" />
+                      <span>{lang === 'vi' ? 'Sẵn sàng chia sẻ' : lang === 'fr' ? 'Prête à partager' : 'Ready to share'}</span>
+                    </div>
+
+                    <div className="mt-auto space-y-3">
+                      <div className="grid grid-cols-4 gap-2">
+                        <button
+                          onClick={() => onEdit(invitation.id)}
+                          className="col-span-2 py-3 bg-gray-900 text-white rounded-2xl text-[9px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-gray-800 transition-colors"
+                        >
+                          <Edit className="w-3 h-3" />
+                          {t.edit}
+                        </button>
+
+                        <button
+                          onClick={() => window.open(`/invite/${invitation.id}`, '_blank')}
+                          className="py-3 bg-gray-50 text-gray-400 rounded-2xl flex items-center justify-center hover:bg-gray-100 border border-gray-100 transition-colors"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+
+                        <button
+                          onClick={() => handleDelete(invitation.id)}
+                          className="py-3 bg-rose-50 text-rose-300 rounded-2xl flex items-center justify-center hover:bg-rose-100 hover:text-rose-600 border border-rose-100 transition-colors"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+
+                      <button
+                        onClick={() => handleCopyLink(invitation.id)}
+                        className="w-full py-2.5 bg-amber-50 text-amber-700 rounded-xl text-[9px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-amber-100 border border-amber-100 transition-colors"
+                      >
+                        <Copy className="w-3 h-3" />
+                        {t.share}
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          </>
         )}
 
         <button
@@ -1011,7 +1156,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                         {accountStep === 'PLANS' && canUseExternalPayments && tPln.title}
                         {accountStep === 'CHECKOUT' && canUseExternalPayments && tChk.title}
                       </h3>
-
                       <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest">
                         {accountStep === 'PROFILE' && user?.email}
                         {accountStep === 'PLANS' && canUseExternalPayments && tPln.subtitle}
@@ -1056,7 +1200,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                             {lang === 'fr' ? 'Plan actif' : lang === 'vi' ? 'Gói hiện tại' : 'Active plan'}
                           </p>
                           <p className="text-xl font-black text-amber-700 uppercase">
-                            {planPackage}
+                            {accountStatus === 'PREMIUM' ? 'PREMIUM' : 'FREE'}
                           </p>
                         </div>
                         <div className="text-right">
@@ -1146,11 +1290,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                               <h4 className="text-sm font-black text-gray-900 uppercase tracking-tight">
                                 {plan.duration}
                               </h4>
-                              {plan.discount && (
-                                <span className="px-1.5 py-0.5 bg-rose-100 text-rose-600 rounded text-[9px] font-black">
-                                  {plan.discount}
-                                </span>
-                              )}
                               {plan.tag && (
                                 <span className="px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded text-[9px] font-black">
                                   {plan.tag}
@@ -1209,7 +1348,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                             <div className="w-11 h-11 bg-white rounded-xl flex items-center justify-center shadow-sm text-gray-700 group-hover:text-amber-500 group-hover:shadow-md transition-all">
                               {checkoutLoading ? <Loader2 size={20} className="animate-spin" /> : <QrCode size={20} />}
                             </div>
-
                             <div>
                               <p className="text-sm font-black text-gray-900 uppercase tracking-tight">
                                 {tChk.qr}
@@ -1236,7 +1374,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                             <div className="w-11 h-11 bg-white rounded-xl flex items-center justify-center shadow-sm text-gray-700 group-hover:text-amber-500 group-hover:shadow-md transition-all">
                               <CreditCard size={20} />
                             </div>
-
                             <div>
                               <p className="text-sm font-black text-gray-900 uppercase tracking-tight">
                                 {tChk.cb}
@@ -1342,7 +1479,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                   <h3 className="text-xl font-black text-gray-900 uppercase tracking-tighter">
                     {t.responses_title}
                   </h3>
-
                   <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest">
                     {t.responses_subtitle}
                   </p>
