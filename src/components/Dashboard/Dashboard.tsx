@@ -272,6 +272,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   useEffect(() => {
     loadAccountStatus();
     loadInvitations();
+
     const urlParams = new URLSearchParams(window.location.search);
     const shouldOpenAccount = urlParams.get('openAccount') === 'true';
     const shouldOpenPlans = urlParams.get('openPlans') === 'true';
@@ -684,7 +685,13 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   };
 
   useEffect(() => {
-    if (!isAccountOpen || accountStep !== 'CHECKOUT' || !sepayPayment?.id || sepayPayment.status === 'paid' || paymentConfirmed) {
+    if (
+      !isAccountOpen ||
+      accountStep !== 'CHECKOUT' ||
+      !sepayPayment?.id ||
+      sepayPayment.status === 'paid' ||
+      paymentConfirmed
+    ) {
       return;
     }
 
@@ -804,9 +811,9 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
               }`}
             >
               {!hasReachedInvitationLimit && (
-                <span className="pointer-events-none absolute inset-[-8px] rounded-[2rem] sm:rounded-[2.5rem] bg-[conic-gradient(from_0deg,rgba(255,255,255,0),rgba(251,191,36,1),rgba(255,255,255,0),rgba(251,191,36,0.95),rgba(255,255,255,0))] animate-[spin_1.8s_linear_infinite] blur-[8px] opacity-100" />
+                <span className="pointer-events-none absolute -inset-[3px] rounded-[inherit] bg-[conic-gradient(from_0deg,rgba(255,255,255,0),rgba(251,191,36,1),rgba(255,255,255,0),rgba(251,191,36,0.95),rgba(255,255,255,0))] animate-[spin_1.8s_linear_infinite] blur-[8px] opacity-100" />
               )}
-              <span className="pointer-events-none absolute inset-[2px] rounded-[1.85rem] sm:rounded-[2.35rem] bg-white" />
+              <span className="pointer-events-none absolute inset-[2px] rounded-[calc(2rem-2px)] sm:rounded-[calc(2.5rem-2px)] bg-white" />
 
               <div className="relative z-10 w-14 h-14 sm:w-16 sm:h-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center group-hover:bg-amber-400 group-hover:text-white transition-all shadow-sm">
                 <Plus className="w-7 h-7 sm:w-8 sm:h-8" />
@@ -842,12 +849,10 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-gray-50">
                       <div className="relative flex flex-col items-center justify-center">
-                        <div className="absolute inset-[-28px] rounded-full bg-[conic-gradient(from_0deg,rgba(255,255,255,0),rgba(251,191,36,1),rgba(255,255,255,0),rgba(251,191,36,0.95),rgba(255,255,255,0))] animate-[spin_1.6s_linear_infinite] blur-[10px] opacity-100" />
-                        <div className="absolute inset-[-14px] rounded-full bg-amber-300/35 blur-2xl animate-pulse" />
                         <img
                           src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png"
                           alt="Logo"
-                          className="relative z-10 w-40 h-40 sm:w-44 sm:h-44 object-contain opacity-100 drop-shadow-2xl"
+                          className="w-40 h-40 sm:w-44 sm:h-44 object-contain opacity-100 drop-shadow-2xl"
                         />
                         <span className="relative z-10 mt-1 text-[10px] font-bold uppercase tracking-[0.35em] text-gray-300">
                           {t.preview}
@@ -948,7 +953,10 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
         <AnimatePresence>
           {isAccountOpen && (
             <div className="fixed inset-0 z-[150] flex flex-col justify-end">
-              <div className="absolute inset-0 bg-black/50 backdrop-blur-xs" onClick={() => setIsAccountOpen(false)} />
+              <div
+                className="absolute inset-0 bg-black/50 backdrop-blur-xs"
+                onClick={() => setIsAccountOpen(false)}
+              />
 
               <div className="relative z-10 w-full max-w-xl mx-auto bg-white rounded-t-[2.5rem] shadow-2xl flex flex-col max-h-[85vh] border-t border-gray-100 overflow-hidden">
                 <div className="w-full flex justify-center py-3 shrink-0 bg-gray-50/30">
@@ -1006,7 +1014,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                             </p>
                           )}
                         </div>
-
                         <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm bg-white">
                           <ShieldCheck className={`w-6 h-6 ${accountStatus === 'PREMIUM' ? 'text-amber-500' : 'text-gray-300'}`} />
                         </div>
@@ -1174,7 +1181,9 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                               <p className="text-sm font-black text-gray-900 uppercase tracking-tight">
                                 {tChk.qr}
                               </p>
-                              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">VietQR</p>
+                              <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                                VietQR
+                              </p>
                             </div>
                           </button>
 
@@ -1300,6 +1309,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                   <h3 className="text-xl font-black text-gray-900 uppercase tracking-tighter">
                     {t.responses_title}
                   </h3>
+
                   <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest">
                     {t.responses_subtitle}
                   </p>
@@ -1324,7 +1334,9 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
 
               <div className="p-6 max-h-[60vh] overflow-y-auto space-y-4">
                 {selectedResponses?.length === 0 ? (
-                  <p className="text-center py-10 text-gray-400 font-medium">{t.no_responses}</p>
+                  <p className="text-center py-10 text-gray-400 font-medium">
+                    {t.no_responses}
+                  </p>
                 ) : (
                   selectedResponses?.map((resp, i) => (
                     <div key={i} className="flex flex-col p-4 bg-gray-50 rounded-2xl border border-gray-100 gap-2">
@@ -1373,7 +1385,10 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                 </div>
 
                 <div className="flex-1">
-                  <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight">{tPwa.title}</h3>
+                  <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight">
+                    {tPwa.title}
+                  </h3>
+
                   <p className="text-[11px] text-gray-500 leading-snug mt-1 flex items-center flex-wrap">
                     {tPwa.desc}
                     <Share size={14} className="inline mx-1 text-blue-500" />
@@ -1406,8 +1421,13 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight">{androidPwaCopy.title}</h3>
-                  <p className="text-[11px] text-gray-500 leading-snug mt-1">{androidPwaCopy.desc}</p>
+                  <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight">
+                    {androidPwaCopy.title}
+                  </h3>
+
+                  <p className="text-[11px] text-gray-500 leading-snug mt-1">
+                    {androidPwaCopy.desc}
+                  </p>
 
                   <div className="grid grid-cols-3 gap-2 mt-4">
                     <div className="bg-gray-50 border border-gray-100 rounded-2xl p-3 text-center">
