@@ -264,7 +264,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   const [zaloIsSettling, setZaloIsSettling] = useState(false);
 
   const [lang, setLang] = useState<Language>((localStorage.getItem('invite_lang') as Language) || 'en');
-  const [planPackage, setPlanPackage] = useState<PlanPackage>('free');
 
   useEffect(() => {
     if (!document.getElementById(BRAND_FONT_LINK_ID)) {
@@ -277,8 +276,8 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   }, []);
 
   useEffect(() => {
-    loadAccountStatus();
     loadInvitations();
+    loadAccountStatus();
 
     const urlParams = new URLSearchParams(window.location.search);
     const shouldOpenAccount = urlParams.get('openAccount') === 'true';
@@ -321,7 +320,10 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   }, [zaloPosition]);
 
   useEffect(() => {
-    const handleResize = () => setZaloPosition(current => snapZaloToEdge(current));
+    const handleResize = () => {
+      setZaloPosition((current) => snapZaloToEdge(current));
+    };
+
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -334,15 +336,18 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
         x: event.clientX - zaloDragOffset.x,
         y: event.clientY - zaloDragOffset.y
       });
+
       setZaloWasDragged(true);
       setZaloPosition(nextPosition);
     };
 
     const handlePointerUp = () => {
       setIsDraggingZalo(false);
-      setZaloPosition(current => snapZaloToEdge(current));
+      setZaloPosition((current) => snapZaloToEdge(current));
       setZaloIsSettling(true);
+
       if ('vibrate' in navigator) navigator.vibrate?.(18);
+
       window.setTimeout(() => setZaloIsSettling(false), 260);
     };
 
@@ -443,7 +448,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
 
   const loadAccountStatus = async () => {
     if (!user) return;
-
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -455,9 +459,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
         const profile: any = data;
         const expiresAt = profile.premium_expires_at ? new Date(profile.premium_expires_at) : null;
         const isPremiumActive = profile.plan_type === 'PREMIUM' && expiresAt && expiresAt > new Date();
-
-        const nextPlan = (profile.plan_package || 'free') as PlanPackage;
-        setPlanPackage(nextPlan);
 
         if (isPremiumActive) {
           setAccountStatus('PREMIUM');
@@ -475,6 +476,17 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
         } else {
           setAccountStatus('FREE');
           setPremiumDuration('');
+
+          if (profile.plan_type === 'PREMIUM' && expiresAt && expiresAt <= new Date()) {
+            await supabase
+              .from('profiles')
+              .update({
+                plan_type: 'FREE',
+                premium_duration_months: null,
+                premium_expires_at: null
+              } as any)
+              .eq('id', user.id);
+          }
         }
       } else {
         setAccountStatus('FREE');
@@ -487,7 +499,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
 
   const loadInvitations = async () => {
     if (!user) return;
-
     try {
       const { data: invs, error: invError } = await supabase
         .from('invitations')
@@ -516,10 +527,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     }
   };
 
-  const refreshDashboard = async () => {
-    await Promise.all([loadAccountStatus(), loadInvitations()]);
-  };
-
   const fetchResponses = async (invitationId: string) => {
     const { data, error } = await supabase
       .from('responses')
@@ -533,14 +540,13 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm(t.delete ? `${t.delete} ?` : 'Supprimer ?')) return;
-
+    if (!confirm(t.delete + ' ?')) return;
     try {
       const { error } = await supabase.from('invitations').delete().eq('id', id);
       if (error) throw error;
-      setInvitations(prev => prev.filter(inv => inv.id !== id));
+      setInvitations((prev) => prev.filter((inv) => inv.id !== id));
     } catch (error: any) {
-      alert(`Erreur : ${error.message}`);
+      alert('Erreur : ' + error.message);
     }
   };
 
@@ -551,25 +557,24 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   };
 
   const handleCopyResponsesList = () => {
-    if (!selectedResponses?.length) return;
+    if (!selectedResponses || selectedResponses.length === 0) return;
 
-    const header =
-      lang === 'fr'
-        ? 'LISTE DES INVITÉS CONFIRMÉS\n\n'
-        : lang === 'vi'
-          ? 'DANH SÁCH KHÁCH MỜI XÁC NHẬN\n\n'
-          : 'CONFIRMED GUEST LIST\n\n';
+    let textList = '';
+    if (lang === 'fr') textList += 'LISTE DES INVITES CONFIRMES\n\n';
+    else if (lang === 'vi') textList += 'DANH SACH KHACH MOI XAC NHAN\n\n';
+    else textList += 'CONFIRMED GUEST LIST\n\n';
 
-    const textList = selectedResponses.reduce((acc, resp, index) => {
-      let chunk = `${index + 1}. ${resp.group_leader_name} (${resp.total_guests} ${t.person_unit})\n`;
+    selectedResponses.forEach((resp, index) => {
+      textList += `${index + 1}. ${resp.group_leader_name} (${resp.total_guests} ${t.person_unit})\n`;
       if (Array.isArray(resp.guest_details) && resp.guest_details.length > 0) {
-        chunk += resp.guest_details
-          .map((guest: any) => (guest.firstName || guest.lastName ? `   - ${guest.firstName || ''} ${guest.lastName || ''}` : ''))
-          .filter(Boolean)
-          .join('\n') + '\n';
+        resp.guest_details.forEach((guest: any) => {
+          if (guest.firstName || guest.lastName) {
+            textList += `   - ${guest.firstName || ''} ${guest.lastName || ''}\n`;
+          }
+        });
       }
-      return acc + chunk + '\n';
-    }, header);
+      textList += '\n';
+    });
 
     navigator.clipboard.writeText(textList.trim());
     alert(
@@ -594,8 +599,9 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
       if (error) throw new Error(await getFunctionErrorMessage(error));
       if (!data?.ok) throw new Error(data?.error || 'Code invalide');
 
+      setAccountStatus('PREMIUM');
+      setPremiumDuration(getDurationLabel(data.plan_months, data.plan_days));
       setActivationCode('');
-      await refreshDashboard();
 
       alert(
         lang === 'fr'
@@ -604,8 +610,10 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
             ? 'Đã kích hoạt mã! Tài khoản của bạn hiện là PREMIUM.'
             : 'Code activated! Your account is now PREMIUM.'
       );
+
+      await loadAccountStatus();
     } catch (err: any) {
-      alert(`Erreur: ${err.message}`);
+      alert('Erreur: ' + err.message);
     } finally {
       setActivationLoading(false);
     }
@@ -631,6 +639,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
       );
       return;
     }
+
     if ('vibrate' in navigator) navigator.vibrate?.(12);
     window.location.href = `https://zalo.me/${ZALO_PHONE_NUMBER.trim()}`;
   };
@@ -656,24 +665,22 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
 
   const handleBackButton = async () => {
     if (accountStep === 'CHECKOUT' && paymentConfirmed) {
-      await refreshDashboard();
+      await loadAccountStatus();
       resetCheckout();
       setAccountStep('PROFILE');
       return;
     }
-
     setAccountStep(accountStep === 'CHECKOUT' ? 'PLANS' : 'PROFILE');
   };
 
   const returnToAccount = async () => {
-    await refreshDashboard();
+    await loadAccountStatus();
     resetCheckout();
     setAccountStep('PROFILE');
   };
 
   const handleCreateSepayCheckout = async (forcedPlanId?: string) => {
     if (!canUseExternalPayments) return;
-
     const planId = forcedPlanId || selectedPlan?.id;
     if (!planId) return;
 
@@ -728,24 +735,13 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   };
 
   useEffect(() => {
-    if (
-      !isAccountOpen ||
-      accountStep !== 'CHECKOUT' ||
-      !sepayPayment?.id ||
-      sepayPayment.status === 'paid' ||
-      paymentConfirmed
-    ) {
-      return;
-    }
-
+    if (!isAccountOpen || accountStep !== 'CHECKOUT' || !sepayPayment?.id || sepayPayment.status === 'paid' || paymentConfirmed) return;
     const timer = window.setInterval(checkPaymentStatus, 3500);
     return () => clearInterval(timer);
   }, [isAccountOpen, accountStep, sepayPayment?.id, sepayPayment?.status, paymentConfirmed]);
 
-  const maxInvitations = PACKAGE_INVITATION_LIMITS[planPackage] ?? 1;
-  const usedInvitations = invitations.length;
-  const remainingInvitations = Math.max(maxInvitations - usedInvitations, 0);
-  const hasReachedInvitationLimit = usedInvitations >= maxInvitations;
+  const maxInvitations = accountStatus === 'PREMIUM' ? 10 : 1;
+  const hasReachedInvitationLimit = invitations.length >= maxInvitations;
 
   const handleCreateInvitationClick = () => {
     if (hasReachedInvitationLimit) {
@@ -753,55 +749,48 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
       setIsAccountOpen(true);
       return;
     }
-
     onCreateNew();
   };
 
   const paymentPlans = [
     {
       id: 'solo',
-      duration: lang === 'fr' ? '1 mois' : lang === 'vi' ? '1 tháng' : '1 month',
+      duration: lang === 'fr' ? 'Pack Solo' : lang === 'vi' ? 'Gói Solo' : 'Solo Pack',
       totalPrice: '399.000 VND',
       monthlyPrice: '399.000 VND',
-      priceSuffix: '',
       description:
         lang === 'fr'
           ? '1 invitation Premium pendant 1 mois'
           : lang === 'vi'
             ? '1 thiệp Premium trong 1 tháng'
             : '1 Premium invitation for 1 month',
-      discount: null,
       tag: null
     },
     {
       id: 'multi',
-      duration: lang === 'fr' ? '3 mois' : lang === 'vi' ? '3 tháng' : '3 months',
+      duration: lang === 'fr' ? 'Pack Multi' : lang === 'vi' ? 'Gói Multi' : 'Multi Pack',
       totalPrice: '899.000 VND',
       monthlyPrice: '899.000 VND',
-      priceSuffix: '',
       description:
         lang === 'fr'
           ? '3 invitations Premium pendant 3 mois'
           : lang === 'vi'
             ? '3 thiệp Premium trong 3 tháng'
             : '3 Premium invitations for 3 months',
-      discount: null,
-      tag: tPln.popular || null
+      tag: tPln.popular || 'Popular'
     },
     {
       id: 'business',
-      duration: lang === 'fr' ? '6 mois' : lang === 'vi' ? '6 tháng' : '6 months',
+      duration: lang === 'fr' ? 'Pack Business' : lang === 'vi' ? 'Gói Business' : 'Business Pack',
       totalPrice: '2.500.000 VND',
       monthlyPrice: '2.500.000 VND',
-      priceSuffix: '',
       description:
         lang === 'fr'
           ? '10 invitations Premium pendant 6 mois'
           : lang === 'vi'
             ? '10 thiệp Premium trong 6 tháng'
             : '10 Premium invitations for 6 months',
-      discount: null,
-      tag: tPln.best || null
+      tag: tPln.best || 'Best Value'
     }
   ];
 
@@ -848,46 +837,42 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 relative z-10">
             <button
               onClick={handleCreateInvitationClick}
-              className={`min-h-[250px] sm:min-h-[300px] bg-white rounded-[2rem] sm:rounded-[2.5rem] border-2 border-dashed transition-all flex flex-col items-center justify-center gap-4 group ${
+              className={`relative min-h-[250px] sm:min-h-[300px] bg-white rounded-[2rem] sm:rounded-[2.5rem] border-2 transition-all flex flex-col items-center justify-center gap-4 group overflow-hidden ${
                 hasReachedInvitationLimit
                   ? 'border-rose-100 opacity-75 hover:border-rose-200'
                   : 'border-gray-100 hover:border-amber-400 hover:shadow-xl'
               }`}
             >
-              <div className="w-14 h-14 sm:w-16 sm:h-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center group-hover:bg-amber-400 group-hover:text-white transition-all shadow-sm">
+              {!hasReachedInvitationLimit && (
+                <span className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] border border-amber-300/40 animate-pulse" />
+              )}
+              <span className="absolute inset-0 rounded-[2rem] sm:rounded-[2.5rem] bg-gradient-to-br from-amber-50/70 via-white to-rose-50/50" />
+              <div className="relative w-14 h-14 sm:w-16 sm:h-16 rounded-full flex items-center justify-center bg-amber-50 text-amber-500 shadow-[0_10px_30px_rgba(245,158,11,0.12)] group-hover:bg-amber-400 group-hover:text-white transition-all">
                 <Plus className="w-7 h-7 sm:w-8 sm:h-8" />
               </div>
-
-              <span className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-[0.2em]">
+              <span className="relative text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-[0.2em]">
                 {t.new_creation}
               </span>
-
-              <div className="text-[10px] text-gray-500 font-bold">
-                {usedInvitations} / {maxInvitations} {lang === 'fr' ? 'invitations' : lang === 'vi' ? 'thiệp' : 'invitations'}
-              </div>
-
-              <div className="text-[9px] text-gray-400">
-                {remainingInvitations > 0
-                  ? `${remainingInvitations} ${lang === 'fr' ? 'restantes' : lang === 'vi' ? 'còn lại' : 'remaining'}`
-                  : lang === 'fr'
-                    ? 'Quota atteint'
-                    : lang === 'vi'
-                      ? 'Đã đạt giới hạn'
-                      : 'Limit reached'}
-              </div>
             </button>
 
             {invitations.map((invitation) => (
               <div
                 key={invitation.id}
-                className="flex flex-col bg-white rounded-[2rem] sm:rounded-[2.5rem] shadow-sm border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-300"
+                className="flex flex-col bg-white rounded-[2rem] sm:rounded-[2.5rem] shadow-lg border border-gray-100 overflow-hidden hover:shadow-2xl transition-all duration-300"
               >
                 <div className="h-40 sm:h-44 relative bg-gray-50 overflow-hidden">
                   {invitation.main_photo_url ? (
                     <img src={invitation.main_photo_url} alt="" className="w-full h-full object-cover" />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-gray-200 font-bold text-[10px] uppercase tracking-widest">
-                      {t.preview}
+                    <div className="w-full h-full flex flex-col items-center justify-center gap-3 bg-gradient-to-br from-gray-50 to-amber-50 text-gray-300">
+                      <img
+                        src="https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/logo.png%20(2).png"
+                        alt="Logo Invit Studio"
+                        className="w-14 h-14 object-contain opacity-80"
+                      />
+                      <span className="text-[10px] uppercase tracking-[0.2em] font-bold">
+                        {t.preview}
+                      </span>
                     </div>
                   )}
 
@@ -1034,10 +1019,14 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                     <div className="space-y-6">
                       <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
                         <div>
-                          <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">{tAcc.status}</p>
+                          <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">
+                            {tAcc.status}
+                          </p>
+
                           <p className={`text-xl font-black ${accountStatus === 'PREMIUM' ? 'text-amber-500' : 'text-gray-500'}`}>
                             {accountStatus}
                           </p>
+
                           {accountStatus === 'PREMIUM' && premiumDuration && (
                             <p className="text-[10px] text-gray-400 font-bold mt-1">
                               {tAcc.duration} <span className="text-gray-700 font-black">{premiumDuration}</span>
@@ -1047,25 +1036,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
 
                         <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm bg-white">
                           <ShieldCheck className={`w-6 h-6 ${accountStatus === 'PREMIUM' ? 'text-amber-500' : 'text-gray-300'}`} />
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between p-4 bg-amber-50 rounded-2xl border border-amber-100">
-                        <div>
-                          <p className="text-xs text-amber-700 font-bold uppercase tracking-wider">
-                            {lang === 'fr' ? 'Plan actif' : lang === 'vi' ? 'Gói hiện tại' : 'Active plan'}
-                          </p>
-                          <p className="text-xl font-black text-amber-700 uppercase">
-                            {planPackage}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xs text-amber-600 font-bold uppercase tracking-wider">
-                            {lang === 'fr' ? 'Quota' : lang === 'vi' ? 'Giới hạn' : 'Quota'}
-                          </p>
-                          <p className="text-xl font-black text-amber-700">
-                            {usedInvitations} / {maxInvitations}
-                          </p>
                         </div>
                       </div>
 
@@ -1146,21 +1116,13 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                               <h4 className="text-sm font-black text-gray-900 uppercase tracking-tight">
                                 {plan.duration}
                               </h4>
-                              {plan.discount && (
-                                <span className="px-1.5 py-0.5 bg-rose-100 text-rose-600 rounded text-[9px] font-black">
-                                  {plan.discount}
-                                </span>
-                              )}
+
                               {plan.tag && (
                                 <span className="px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded text-[9px] font-black">
                                   {plan.tag}
                                 </span>
                               )}
                             </div>
-
-                            <p className="text-sm text-gray-600 font-medium leading-snug max-w-[220px]">
-                              {plan.description}
-                            </p>
 
                             <p className="text-[10px] text-gray-400 font-bold uppercase">
                               Total: <span className="text-gray-700 font-black">{plan.totalPrice}</span>
@@ -1209,7 +1171,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                             <div className="w-11 h-11 bg-white rounded-xl flex items-center justify-center shadow-sm text-gray-700 group-hover:text-amber-500 group-hover:shadow-md transition-all">
                               {checkoutLoading ? <Loader2 size={20} className="animate-spin" /> : <QrCode size={20} />}
                             </div>
-
                             <div>
                               <p className="text-sm font-black text-gray-900 uppercase tracking-tight">
                                 {tChk.qr}
@@ -1236,7 +1197,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                             <div className="w-11 h-11 bg-white rounded-xl flex items-center justify-center shadow-sm text-gray-700 group-hover:text-amber-500 group-hover:shadow-md transition-all">
                               <CreditCard size={20} />
                             </div>
-
                             <div>
                               <p className="text-sm font-black text-gray-900 uppercase tracking-tight">
                                 {tChk.cb}
@@ -1342,7 +1302,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                   <h3 className="text-xl font-black text-gray-900 uppercase tracking-tighter">
                     {t.responses_title}
                   </h3>
-
                   <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest">
                     {t.responses_subtitle}
                   </p>
