@@ -245,7 +245,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
 
   const [isAccountOpen, setIsAccountOpen] = useState(false);
   const [accountStep, setAccountStep] = useState<'PROFILE' | 'PLANS' | 'CHECKOUT'>('PROFILE');
-
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [accountStatus, setAccountStatus] = useState<'FREE' | 'PREMIUM'>('FREE');
   const [premiumDuration, setPremiumDuration] = useState<string>('');
@@ -264,9 +263,8 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   const [zaloWasDragged, setZaloWasDragged] = useState(false);
   const [zaloIsSettling, setZaloIsSettling] = useState(false);
 
-  const [lang, setLang] = useState<Language>(
-    (localStorage.getItem('invite_lang') as Language) || 'en'
-  );
+  const [lang, setLang] = useState<Language>((localStorage.getItem('invite_lang') as Language) || 'en');
+  const [planPackage, setPlanPackage] = useState<PlanPackage>('free');
 
   useEffect(() => {
     if (!document.getElementById(BRAND_FONT_LINK_ID)) {
@@ -279,8 +277,8 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   }, []);
 
   useEffect(() => {
-    loadInvitations();
     loadAccountStatus();
+    loadInvitations();
 
     const urlParams = new URLSearchParams(window.location.search);
     const shouldOpenAccount = urlParams.get('openAccount') === 'true';
@@ -323,10 +321,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   }, [zaloPosition]);
 
   useEffect(() => {
-    const handleResize = () => {
-      setZaloPosition((current) => snapZaloToEdge(current));
-    };
-
+    const handleResize = () => setZaloPosition(current => snapZaloToEdge(current));
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -339,23 +334,16 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
         x: event.clientX - zaloDragOffset.x,
         y: event.clientY - zaloDragOffset.y
       });
-
       setZaloWasDragged(true);
       setZaloPosition(nextPosition);
     };
 
     const handlePointerUp = () => {
       setIsDraggingZalo(false);
-      setZaloPosition((current) => snapZaloToEdge(current));
+      setZaloPosition(current => snapZaloToEdge(current));
       setZaloIsSettling(true);
-
-      if ('vibrate' in navigator) {
-        navigator.vibrate?.(18);
-      }
-
-      window.setTimeout(() => {
-        setZaloIsSettling(false);
-      }, 260);
+      if ('vibrate' in navigator) navigator.vibrate?.(18);
+      window.setTimeout(() => setZaloIsSettling(false), 260);
     };
 
     window.addEventListener('pointermove', handlePointerMove);
@@ -431,13 +419,11 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
 
   const getFunctionErrorMessage = async (error: any) => {
     let message = error?.message || 'Erreur inconnue';
-
     const context = error?.context;
     if (context) {
       const errorBody = await context.json().catch(() => null);
       message = errorBody?.error || message;
     }
-
     return message;
   };
 
@@ -470,9 +456,11 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
         const expiresAt = profile.premium_expires_at ? new Date(profile.premium_expires_at) : null;
         const isPremiumActive = profile.plan_type === 'PREMIUM' && expiresAt && expiresAt > new Date();
 
+        const nextPlan = (profile.plan_package || 'free') as PlanPackage;
+        setPlanPackage(nextPlan);
+
         if (isPremiumActive) {
           setAccountStatus('PREMIUM');
-
           if (profile.premium_duration_months) {
             setPremiumDuration(getDurationLabel(profile.premium_duration_months, 0));
           } else {
@@ -487,17 +475,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
         } else {
           setAccountStatus('FREE');
           setPremiumDuration('');
-
-          if (profile.plan_type === 'PREMIUM' && expiresAt && expiresAt <= new Date()) {
-            await supabase
-              .from('profiles')
-              .update({
-                plan_type: 'FREE',
-                premium_duration_months: null,
-                premium_expires_at: null
-              } as any)
-              .eq('id', user.id);
-          }
         }
       } else {
         setAccountStatus('FREE');
@@ -520,14 +497,16 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
 
       if (invError) throw invError;
 
-      const invsWithCounts = await Promise.all((invs || []).map(async (inv) => {
-        const { count } = await supabase
-          .from('responses')
-          .select('*', { count: 'exact', head: true })
-          .eq('invitation_id', inv.id);
+      const invsWithCounts = await Promise.all(
+        (invs || []).map(async (inv: any) => {
+          const { count } = await supabase
+            .from('responses')
+            .select('*', { count: 'exact', head: true })
+            .eq('invitation_id', inv.id);
 
-        return { ...inv, response_count: count || 0 };
-      }));
+          return { ...inv, response_count: count || 0 };
+        })
+      );
 
       setInvitations(invsWithCounts);
     } catch (error) {
@@ -537,8 +516,12 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     }
   };
 
+  const refreshDashboard = async () => {
+    await Promise.all([loadAccountStatus(), loadInvitations()]);
+  };
+
   const fetchResponses = async (invitationId: string) => {
-    const { data, error = null } = await supabase
+    const { data, error } = await supabase
       .from('responses')
       .select('group_leader_name, total_guests, guest_details')
       .eq('invitation_id', invitationId);
@@ -550,14 +533,14 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm(t.delete + ' ?')) return;
+    if (!confirm(t.delete ? `${t.delete} ?` : 'Supprimer ?')) return;
 
     try {
       const { error } = await supabase.from('invitations').delete().eq('id', id);
       if (error) throw error;
-      setInvitations((prev) => prev.filter((inv) => inv.id !== id));
+      setInvitations(prev => prev.filter(inv => inv.id !== id));
     } catch (error: any) {
-      alert('Erreur : ' + error.message);
+      alert(`Erreur : ${error.message}`);
     }
   };
 
@@ -568,61 +551,51 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   };
 
   const handleCopyResponsesList = () => {
-    if (!selectedResponses || selectedResponses.length === 0) return;
+    if (!selectedResponses?.length) return;
 
-    let textList = '';
+    const header =
+      lang === 'fr'
+        ? 'LISTE DES INVITÉS CONFIRMÉS\n\n'
+        : lang === 'vi'
+          ? 'DANH SÁCH KHÁCH MỜI XÁC NHẬN\n\n'
+          : 'CONFIRMED GUEST LIST\n\n';
 
-    if (lang === 'fr') textList += 'LISTE DES INVITES CONFIRMES\n\n';
-    else if (lang === 'vi') textList += 'DANH SACH KHACH MOI XAC NHAN\n\n';
-    else textList += 'CONFIRMED GUEST LIST\n\n';
-
-    selectedResponses.forEach((resp, index) => {
-      textList += `${index + 1}. ${resp.group_leader_name} (${resp.total_guests} ${t.person_unit})\n`;
-
+    const textList = selectedResponses.reduce((acc, resp, index) => {
+      let chunk = `${index + 1}. ${resp.group_leader_name} (${resp.total_guests} ${t.person_unit})\n`;
       if (Array.isArray(resp.guest_details) && resp.guest_details.length > 0) {
-        resp.guest_details.forEach((guest: any) => {
-          if (guest.firstName || guest.lastName) {
-            textList += `   - ${guest.firstName || ''} ${guest.lastName || ''}\n`;
-          }
-        });
+        chunk += resp.guest_details
+          .map((guest: any) => (guest.firstName || guest.lastName ? `   - ${guest.firstName || ''} ${guest.lastName || ''}` : ''))
+          .filter(Boolean)
+          .join('\n') + '\n';
       }
-
-      textList += '\n';
-    });
+      return acc + chunk + '\n';
+    }, header);
 
     navigator.clipboard.writeText(textList.trim());
-
-    const alertMsg =
+    alert(
       lang === 'fr'
         ? 'Liste copiée dans le presse-papiers !'
         : lang === 'vi'
           ? 'Đã sao chép danh sách!'
-          : 'List copied to clipboard!';
-
-    alert(alertMsg);
+          : 'List copied to clipboard!'
+    );
   };
 
   const handleActivateCode = async (e: FormEvent) => {
     e.preventDefault();
-
     if (!activationCode.trim() || !user) return;
 
     setActivationLoading(true);
-
     try {
       const { data, error } = await supabase.functions.invoke('activate-code', {
         body: { code: activationCode.trim() }
       });
 
-      if (error) {
-        throw new Error(await getFunctionErrorMessage(error));
-      }
-
+      if (error) throw new Error(await getFunctionErrorMessage(error));
       if (!data?.ok) throw new Error(data?.error || 'Code invalide');
 
-      setAccountStatus('PREMIUM');
-      setPremiumDuration(getDurationLabel(data.plan_months, data.plan_days));
       setActivationCode('');
+      await refreshDashboard();
 
       alert(
         lang === 'fr'
@@ -631,10 +604,8 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
             ? 'Đã kích hoạt mã! Tài khoản của bạn hiện là PREMIUM.'
             : 'Code activated! Your account is now PREMIUM.'
       );
-
-      await loadAccountStatus();
     } catch (err: any) {
-      alert('Erreur: ' + err.message);
+      alert(`Erreur: ${err.message}`);
     } finally {
       setActivationLoading(false);
     }
@@ -642,12 +613,10 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
 
   const handleManageAccountClick = (e: ReactMouseEvent) => {
     e.preventDefault();
-
     if (!canUseExternalPayments || isAndroidPlayChannel) {
       setAccountStep('PROFILE');
       return;
     }
-
     setAccountStep('PLANS');
   };
 
@@ -662,11 +631,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
       );
       return;
     }
-
-    if ('vibrate' in navigator) {
-      navigator.vibrate?.(12);
-    }
-
+    if ('vibrate' in navigator) navigator.vibrate?.(12);
     window.location.href = `https://zalo.me/${ZALO_PHONE_NUMBER.trim()}`;
   };
 
@@ -691,7 +656,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
 
   const handleBackButton = async () => {
     if (accountStep === 'CHECKOUT' && paymentConfirmed) {
-      await loadAccountStatus();
+      await refreshDashboard();
       resetCheckout();
       setAccountStep('PROFILE');
       return;
@@ -701,7 +666,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   };
 
   const returnToAccount = async () => {
-    await loadAccountStatus();
+    await refreshDashboard();
     resetCheckout();
     setAccountStep('PROFILE');
   };
@@ -710,7 +675,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     if (!canUseExternalPayments) return;
 
     const planId = forcedPlanId || selectedPlan?.id;
-
     if (!planId) return;
 
     setCheckoutLoading(true);
@@ -724,10 +688,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
         body: { plan_id: planId }
       });
 
-      if (error) {
-        throw new Error(await getFunctionErrorMessage(error));
-      }
-
+      if (error) throw new Error(await getFunctionErrorMessage(error));
       if (!data?.ok) throw new Error(data?.error || 'Impossible de créer le paiement');
 
       setSepayPayment(data.payment);
@@ -751,13 +712,8 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
         }
       });
 
-      if (error) {
-        throw new Error(await getFunctionErrorMessage(error));
-      }
-
-      if (!data?.ok) {
-        throw new Error(data?.error || 'Impossible de vérifier le paiement');
-      }
+      if (error) throw new Error(await getFunctionErrorMessage(error));
+      if (!data?.ok) throw new Error(data?.error || 'Impossible de vérifier le paiement');
 
       setSepayPayment(data.payment);
 
@@ -772,23 +728,24 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   };
 
   useEffect(() => {
-    if (!isAccountOpen || accountStep !== 'CHECKOUT' || !sepayPayment?.id || sepayPayment.status === 'paid' || paymentConfirmed) {
+    if (
+      !isAccountOpen ||
+      accountStep !== 'CHECKOUT' ||
+      !sepayPayment?.id ||
+      sepayPayment.status === 'paid' ||
+      paymentConfirmed
+    ) {
       return;
     }
 
-    const timer = setInterval(() => {
-      checkPaymentStatus();
-    }, 3500);
-
+    const timer = window.setInterval(checkPaymentStatus, 3500);
     return () => clearInterval(timer);
   }, [isAccountOpen, accountStep, sepayPayment?.id, sepayPayment?.status, paymentConfirmed]);
 
-    const maxInvitations =
-    accountStatus === 'PREMIUM'
-      ? 10
-      : 1;
-
-  const hasReachedInvitationLimit = invitations.length >= maxInvitations;
+  const maxInvitations = PACKAGE_INVITATION_LIMITS[planPackage] ?? 1;
+  const usedInvitations = invitations.length;
+  const remainingInvitations = Math.max(maxInvitations - usedInvitations, 0);
+  const hasReachedInvitationLimit = usedInvitations >= maxInvitations;
 
   const handleCreateInvitationClick = () => {
     if (hasReachedInvitationLimit) {
@@ -799,11 +756,11 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
 
     onCreateNew();
   };
-  
+
   const paymentPlans = [
     {
       id: 'solo',
-      duration: lang === 'fr' ? 'Pack Solo' : lang === 'vi' ? 'G?i Solo' : 'Solo Pack',
+      duration: lang === 'fr' ? '1 mois' : lang === 'vi' ? '1 tháng' : '1 month',
       totalPrice: '399.000 VND',
       monthlyPrice: '399.000 VND',
       priceSuffix: '',
@@ -811,14 +768,14 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
         lang === 'fr'
           ? '1 invitation Premium pendant 1 mois'
           : lang === 'vi'
-            ? '1 thi?p Premium trong 1 th?ng'
+            ? '1 thiệp Premium trong 1 tháng'
             : '1 Premium invitation for 1 month',
       discount: null,
       tag: null
     },
     {
       id: 'multi',
-      duration: lang === 'fr' ? 'Pack Multi' : lang === 'vi' ? 'G?i Multi' : 'Multi Pack',
+      duration: lang === 'fr' ? '3 mois' : lang === 'vi' ? '3 tháng' : '3 months',
       totalPrice: '899.000 VND',
       monthlyPrice: '899.000 VND',
       priceSuffix: '',
@@ -826,14 +783,14 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
         lang === 'fr'
           ? '3 invitations Premium pendant 3 mois'
           : lang === 'vi'
-            ? '3 thi?p Premium trong 3 th?ng'
+            ? '3 thiệp Premium trong 3 tháng'
             : '3 Premium invitations for 3 months',
       discount: null,
-      tag: tPln.popular || 'Popular'
+      tag: tPln.popular || null
     },
     {
       id: 'business',
-      duration: lang === 'fr' ? 'Pack Business' : lang === 'vi' ? 'G?i Business' : 'Business Pack',
+      duration: lang === 'fr' ? '6 mois' : lang === 'vi' ? '6 tháng' : '6 months',
       totalPrice: '2.500.000 VND',
       monthlyPrice: '2.500.000 VND',
       priceSuffix: '',
@@ -841,10 +798,10 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
         lang === 'fr'
           ? '10 invitations Premium pendant 6 mois'
           : lang === 'vi'
-            ? '10 thi?p Premium trong 6 th?ng'
+            ? '10 thiệp Premium trong 6 tháng'
             : '10 Premium invitations for 6 months',
       discount: null,
-      tag: tPln.best || 'Best Value'
+      tag: tPln.best || null
     }
   ];
 
@@ -891,7 +848,11 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 relative z-10">
             <button
               onClick={handleCreateInvitationClick}
-              className={`min-h-[250px] sm:min-h-[300px] bg-white rounded-[2rem] sm:rounded-[2.5rem] border-2 border-dashed transition-all flex flex-col items-center justify-center gap-4 group ${hasReachedInvitationLimit ? 'border-rose-100 opacity-75 hover:border-rose-200' : 'border-gray-100 hover:border-amber-400 hover:shadow-xl'}`}
+              className={`min-h-[250px] sm:min-h-[300px] bg-white rounded-[2rem] sm:rounded-[2.5rem] border-2 border-dashed transition-all flex flex-col items-center justify-center gap-4 group ${
+                hasReachedInvitationLimit
+                  ? 'border-rose-100 opacity-75 hover:border-rose-200'
+                  : 'border-gray-100 hover:border-amber-400 hover:shadow-xl'
+              }`}
             >
               <div className="w-14 h-14 sm:w-16 sm:h-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center group-hover:bg-amber-400 group-hover:text-white transition-all shadow-sm">
                 <Plus className="w-7 h-7 sm:w-8 sm:h-8" />
@@ -900,6 +861,20 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
               <span className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-[0.2em]">
                 {t.new_creation}
               </span>
+
+              <div className="text-[10px] text-gray-500 font-bold">
+                {usedInvitations} / {maxInvitations} {lang === 'fr' ? 'invitations' : lang === 'vi' ? 'thiệp' : 'invitations'}
+              </div>
+
+              <div className="text-[9px] text-gray-400">
+                {remainingInvitations > 0
+                  ? `${remainingInvitations} ${lang === 'fr' ? 'restantes' : lang === 'vi' ? 'còn lại' : 'remaining'}`
+                  : lang === 'fr'
+                    ? 'Quota atteint'
+                    : lang === 'vi'
+                      ? 'Đã đạt giới hạn'
+                      : 'Limit reached'}
+              </div>
             </button>
 
             {invitations.map((invitation) => (
@@ -993,12 +968,8 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
           }`}
           aria-label="Zalo"
         >
-          {!isDraggingZalo && (
-            <span className="absolute inset-1 rounded-full bg-blue-400/20 animate-ping" />
-          )}
-
+          {!isDraggingZalo && <span className="absolute inset-1 rounded-full bg-blue-400/20 animate-ping" />}
           <span className="absolute inset-0 rounded-full bg-blue-300/10 blur-md animate-pulse" />
-
           <img
             src={ZALO_LOGO_SRC}
             alt="Zalo"
@@ -1063,14 +1034,10 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                     <div className="space-y-6">
                       <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
                         <div>
-                          <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">
-                            {tAcc.status}
-                          </p>
-
+                          <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">{tAcc.status}</p>
                           <p className={`text-xl font-black ${accountStatus === 'PREMIUM' ? 'text-amber-500' : 'text-gray-500'}`}>
                             {accountStatus}
                           </p>
-
                           {accountStatus === 'PREMIUM' && premiumDuration && (
                             <p className="text-[10px] text-gray-400 font-bold mt-1">
                               {tAcc.duration} <span className="text-gray-700 font-black">{premiumDuration}</span>
@@ -1080,6 +1047,25 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
 
                         <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm bg-white">
                           <ShieldCheck className={`w-6 h-6 ${accountStatus === 'PREMIUM' ? 'text-amber-500' : 'text-gray-300'}`} />
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between p-4 bg-amber-50 rounded-2xl border border-amber-100">
+                        <div>
+                          <p className="text-xs text-amber-700 font-bold uppercase tracking-wider">
+                            {lang === 'fr' ? 'Plan actif' : lang === 'vi' ? 'Gói hiện tại' : 'Active plan'}
+                          </p>
+                          <p className="text-xl font-black text-amber-700 uppercase">
+                            {planPackage}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xs text-amber-600 font-bold uppercase tracking-wider">
+                            {lang === 'fr' ? 'Quota' : lang === 'vi' ? 'Giới hạn' : 'Quota'}
+                          </p>
+                          <p className="text-xl font-black text-amber-700">
+                            {usedInvitations} / {maxInvitations}
+                          </p>
                         </div>
                       </div>
 
@@ -1124,7 +1110,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                         <form onSubmit={handleActivateCode} className="space-y-3">
                           <div className="relative">
                             <Ticket className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 w-4 h-4" />
-
                             <input
                               type="text"
                               required
@@ -1161,19 +1146,21 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                               <h4 className="text-sm font-black text-gray-900 uppercase tracking-tight">
                                 {plan.duration}
                               </h4>
-
                               {plan.discount && (
                                 <span className="px-1.5 py-0.5 bg-rose-100 text-rose-600 rounded text-[9px] font-black">
                                   {plan.discount}
                                 </span>
                               )}
-
                               {plan.tag && (
                                 <span className="px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded text-[9px] font-black">
                                   {plan.tag}
                                 </span>
                               )}
                             </div>
+
+                            <p className="text-sm text-gray-600 font-medium leading-snug max-w-[220px]">
+                              {plan.description}
+                            </p>
 
                             <p className="text-[10px] text-gray-400 font-bold uppercase">
                               Total: <span className="text-gray-700 font-black">{plan.totalPrice}</span>
