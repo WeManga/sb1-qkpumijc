@@ -5,7 +5,7 @@ Deno.serve(async (req) => {
 
   try {
     const authHeader = req.headers.get("Authorization");
-    const { code } = await req.json();
+    const { code } = await req.json(); 
 
     if (!authHeader || !code) {
       return new Response(JSON.stringify({ ok: false, error: "Requête invalide" }), { status: 400, headers });
