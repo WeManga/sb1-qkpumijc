@@ -1,8 +1,10 @@
-import { useState, useEffect, type CSSProperties, type FormEvent, type MouseEvent as ReactMouseEvent } from 'react';
+import { useState, useEffect, useRef, type CSSProperties, type FormEvent, type MouseEvent as ReactMouseEvent } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 import { supabase } from '../../lib/supabase';
 import { Database } from '../../lib/database.types';
 import { translations as allTranslations, Language } from '../../lib/i18n';
+import { FloatingWheelButton } from '../../features/wheel/FloatingWheelButton';
+import { CoinFlyEffect } from '../../features/wallet/CoinFlyEffect';
 import {
   Plus,
   Eye,
@@ -263,9 +265,24 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   const [lang, setLang] = useState<Language>((localStorage.getItem('invite_lang') as Language) || 'en');
   const [planPackage, setPlanPackage] = useState<PlanPackage>('free');
 
-  const { coins, refreshWallet, setCoins } = useWallet();
+const { coins, refreshWallet, setCoins } = useWallet();
   const [isShopOpen, setIsShopOpen] = useState(false);
   const [isWheelOpen, setIsWheelOpen] = useState(false);
+  const [coinFly, setCoinFly] = useState<{ origin: { x: number; y: number }; target: { x: number; y: number } } | null>(null);
+  const accountButtonRef = useRef<HTMLButtonElement>(null);
+  const lastWinRef = useRef<any>(null);
+
+  const triggerCoinFlyIfNeeded = () => {
+    const win = lastWinRef.current;
+    lastWinRef.current = null;
+    if (!win?.prize || win.prize.prize_type !== 'coins' || !win.prize.coin_value) return;
+    if (!accountButtonRef.current) return;
+    const rect = accountButtonRef.current.getBoundingClientRect();
+    setCoinFly({
+      origin: { x: window.innerWidth / 2, y: window.innerHeight / 2 },
+      target: { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }
+    });
+  };
 
   useEffect(() => {
     if (!document.getElementById(BRAND_FONT_LINK_ID)) {
@@ -807,11 +824,8 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
           </h1>
 
           <div className="absolute right-0 flex items-center gap-2">
-            <div className="border-r border-gray-100 pr-4">
-              <CoinBalance coins={coins} onClick={() => setIsShopOpen(true)} />
-            </div>
-
             <button
+              ref={accountButtonRef}
               onClick={() => {
                 setAccountStep('PROFILE');
                 setIsAccountOpen(true);
@@ -1050,6 +1064,24 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                         <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm bg-white">
                           <ShieldCheck className={`w-6 h-6 ${accountStatus === 'PREMIUM' ? 'text-amber-500' : 'text-gray-300'}`} />
                         </div>
+                      </div>
+
+                      <div className="flex items-center justify-between p-4 bg-gradient-to-r from-amber-50 to-white rounded-2xl border border-amber-100">
+                        <div>
+                          <p className="text-xs text-amber-700 font-bold uppercase tracking-wider">
+                            {lang === 'fr' ? 'Mes pièces' : lang === 'vi' ? 'Số xu của tôi' : 'My coins'}
+                          </p>
+                          <p className="text-xl font-black text-amber-700">{coins.toLocaleString('vi-VN')}</p>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setIsAccountOpen(false);
+                            setIsShopOpen(true);
+                          }}
+                          className="px-4 py-2 bg-amber-500 text-white rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-amber-600 transition-all"
+                        >
+                          {lang === 'fr' ? 'Boutique' : lang === 'vi' ? 'Cửa hàng' : 'Shop'}
+                        </button>
                       </div>
 
                       <div className="flex items-center justify-between p-4 bg-amber-50 rounded-2xl border border-amber-100">
@@ -1519,9 +1551,25 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
 
         <WheelWidget
           isOpen={isWheelOpen}
-          onClose={() => setIsWheelOpen(false)}
-          onWin={() => refreshWallet()}
+          onClose={() => {
+            setIsWheelOpen(false);
+            triggerCoinFlyIfNeeded();
+          }}
+          onWin={(data) => {
+            lastWinRef.current = data;
+            refreshWallet();
+          }}
         />
+
+        <FloatingWheelButton onClick={() => setIsWheelOpen(true)} />
+
+        {coinFly && (
+          <CoinFlyEffect
+            origin={coinFly.origin}
+            target={coinFly.target}
+            onComplete={() => setCoinFly(null)}
+          />
+        )}
       </div>
     </div>
   );
