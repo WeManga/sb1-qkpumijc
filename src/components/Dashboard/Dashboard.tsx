@@ -24,6 +24,10 @@ import {
   Home
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { WheelWidget } from '../../features/wheel/WheelWidget';
+import { CoinBalance } from '../../features/wallet/CoinBalance';
+import { ShopModal } from '../../features/shop/ShopModal';
+import { useWallet } from '../../features/wallet/useWallet';
 
 const BRAND_FONT_LINK_ID = 'invit-studio-brand-font';
 
@@ -258,6 +262,10 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
 
   const [lang, setLang] = useState<Language>((localStorage.getItem('invite_lang') as Language) || 'en');
   const [planPackage, setPlanPackage] = useState<PlanPackage>('free');
+
+  const { coins, refreshWallet, setCoins } = useWallet();
+  const [isShopOpen, setIsShopOpen] = useState(false);
+  const [isWheelOpen, setIsWheelOpen] = useState(false);
 
   useEffect(() => {
     if (!document.getElementById(BRAND_FONT_LINK_ID)) {
@@ -556,6 +564,27 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
 
     setActivationLoading(true);
     try {
+      const codeToRedeem = activationCode.trim().toUpperCase();
+
+      // 1. Essaie d'abord comme code de réduction acheté avec des pièces
+      const { data: discountData, error: discountError } = await supabase.functions.invoke('redeem-discount-code', {
+        body: { code: codeToRedeem }
+      });
+
+      if (!discountError && discountData?.ok && discountData?.found) {
+        setActivationCode('');
+        await refreshDashboard();
+        alert(
+          lang === 'fr'
+            ? `Réduction de ${discountData.discountPercent}% appliquée à votre compte !`
+            : lang === 'vi'
+              ? `Đã áp dụng giảm giá ${discountData.discountPercent}%!`
+              : `${discountData.discountPercent}% discount applied to your account!`
+        );
+        return;
+      }
+
+      // 2. Sinon, comportement inchangé : code d'activation PREMIUM
       const { data, error } = await supabase.functions.invoke('activate-code', {
         body: { code: activationCode.trim() }
       });
@@ -778,6 +807,10 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
           </h1>
 
           <div className="absolute right-0 flex items-center gap-2">
+            <div className="border-r border-gray-100 pr-4">
+              <CoinBalance coins={coins} onClick={() => setIsShopOpen(true)} />
+            </div>
+
             <button
               onClick={() => {
                 setAccountStep('PROFILE');
@@ -1472,6 +1505,23 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
             <Loader2 className="w-8 h-8 animate-spin text-amber-500" />
           </div>
         )}
+
+        <ShopModal
+          isOpen={isShopOpen}
+          onClose={() => setIsShopOpen(false)}
+          coins={coins}
+          onOpenWheel={() => {
+            setIsShopOpen(false);
+            setIsWheelOpen(true);
+          }}
+          onPurchase={setCoins}
+        />
+
+        <WheelWidget
+          isOpen={isWheelOpen}
+          onClose={() => setIsWheelOpen(false)}
+          onWin={() => refreshWallet()}
+        />
       </div>
     </div>
   );
