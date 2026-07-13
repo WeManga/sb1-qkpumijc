@@ -181,7 +181,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     setTriggerMode(invitation.premium_trigger_type || 'emoji');
   }, [invitation.premium_trigger_type]);
 
-  const lang = (invitation.language as Language) || (localStorage.getItem('invite_lang') as Language) || 'fr';
+  const lang = (localStorage.getItem('invite_lang') as Language) || (invitation.language as Language) || 'en';
   const t = translations[lang].builder;
   const isPremium = invitation.plan_type === 'PREMIUM';
 
