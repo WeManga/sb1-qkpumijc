@@ -142,6 +142,7 @@ Deno.serve(async (req) => {
       { status: 200, headers: corsHeaders }
     );
   } catch (err) {
-    return new Response(JSON.stringify({ ok: false, error: String(err) }), { status: 500, headers: corsHeaders });
+    const message = err?.message || err?.error_description || JSON.stringify(err);
+    return new Response(JSON.stringify({ ok: false, error: message, details: err }), { status: 500, headers: corsHeaders });
   }
 });
