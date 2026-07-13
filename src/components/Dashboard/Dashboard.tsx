@@ -379,6 +379,7 @@ const { coins, refreshWallet, setCoins } = useWallet();
   const tAcc = translations[lang].account;
   const tPln = translations[lang].plans || translations.en.plans;
   const tChk = translations[lang].checkout || translations.en.checkout;
+  const tWallet = translations[lang].wallet || translations.en.wallet;
 
   const privacyLabel =
     lang === 'fr' ? 'Politique de confidentialité' : lang === 'vi' ? 'Chính sách quyền riêng tư' : 'Privacy Policy';
@@ -1069,7 +1070,7 @@ const { coins, refreshWallet, setCoins } = useWallet();
                       <div className="flex items-center justify-between p-4 bg-gradient-to-r from-amber-50 to-white rounded-2xl border border-amber-100">
                         <div>
                           <p className="text-xs text-amber-700 font-bold uppercase tracking-wider">
-                            {lang === 'fr' ? 'Mes pièces' : lang === 'vi' ? 'Số xu của tôi' : 'My coins'}
+                            {tWallet.my_coins}
                           </p>
                           <p className="text-xl font-black text-amber-700">{coins.toLocaleString('vi-VN')}</p>
                         </div>
@@ -1080,7 +1081,7 @@ const { coins, refreshWallet, setCoins } = useWallet();
                           }}
                           className="px-4 py-2 bg-amber-500 text-white rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-amber-600 transition-all"
                         >
-                          {lang === 'fr' ? 'Boutique' : lang === 'vi' ? 'Cửa hàng' : 'Shop'}
+                          {tWallet.shop_btn}
                         </button>
                       </div>
 
@@ -1542,6 +1543,7 @@ const { coins, refreshWallet, setCoins } = useWallet();
           isOpen={isShopOpen}
           onClose={() => setIsShopOpen(false)}
           coins={coins}
+          lang={lang}
           onOpenWheel={() => {
             setIsShopOpen(false);
             setIsWheelOpen(true);
@@ -1551,6 +1553,7 @@ const { coins, refreshWallet, setCoins } = useWallet();
 
         <WheelWidget
           isOpen={isWheelOpen}
+          lang={lang}
           onClose={() => {
             setIsWheelOpen(false);
             triggerCoinFlyIfNeeded();
