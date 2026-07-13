@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Clock } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
+import { translations } from '../../lib/i18n';
 
 const SEGMENTS = [
   { label: '50', color: '#FCD34D' },
@@ -83,8 +84,9 @@ function formatCountdown(ms) {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 }
 
-export function WheelWidget({ isOpen, onClose, onWin }) {
+export function WheelWidget({ isOpen, onClose, onWin, lang = 'en' }) {
   const { user } = useAuth();
+  const t = translations[lang]?.wheel || translations.en.wheel;
   const [rotation, setRotation] = useState(0);
   const [spinning, setSpinning] = useState(false);
   const [result, setResult] = useState(null);
@@ -280,7 +282,7 @@ export function WheelWidget({ isOpen, onClose, onWin }) {
                   transition={{ duration: 1.4, repeat: Infinity }}
                 >
                   <span className="text-white text-[11px] font-black uppercase tracking-widest bg-black/40 px-3 py-1.5 rounded-full">
-                    Touchez pour tourner
+                    {t.tap_to_spin}
                   </span>
                 </motion.div>
               )}
@@ -299,13 +301,13 @@ export function WheelWidget({ isOpen, onClose, onWin }) {
           <div className="mt-6 min-h-[64px] flex items-center justify-center">
             {spinning && (
               <p className="text-white/80 text-xs font-bold uppercase tracking-widest animate-pulse">
-                La roue tourne...
+                {t.spinning}
               </p>
             )}
 
             {isOnCooldown && !spinning && !result && (
               <p className="text-white/70 text-xs font-bold text-center max-w-xs">
-                Revenez dans {formatCountdown(remainingMs)} pour un nouveau tour gratuit
+                {t.cooldown_prefix} {formatCountdown(remainingMs)} {t.cooldown_suffix}
               </p>
             )}
 
@@ -323,15 +325,15 @@ export function WheelWidget({ isOpen, onClose, onWin }) {
                   className="text-center"
                 >
                   <p className="text-2xl font-black text-white drop-shadow-lg">
-                    {result.prize_type === 'coins' && `+${result.coin_value} pièces !`}
-                    {result.prize_type === 'retry' && 'Rejouez !'}
-                    {result.prize_type === 'nothing' && 'Pas de chance...'}
+                    {result.prize_type === 'coins' && `+${result.coin_value} ${t.win_coins_suffix}`}
+                    {result.prize_type === 'retry' && t.win_retry}
+                    {result.prize_type === 'nothing' && t.win_nothing}
                   </p>
                   <button
                     onClick={onClose}
                     className="mt-3 text-[11px] font-black uppercase tracking-widest text-amber-300 hover:text-amber-200"
                   >
-                    Fermer
+                    {t.close}
                   </button>
                 </motion.div>
               )}
