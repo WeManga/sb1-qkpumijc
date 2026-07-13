@@ -1,7 +1,8 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X } from 'lucide-react';
+import { X, Clock } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../contexts/AuthContext';
 
 const SEGMENTS = [
   { label: '50', color: '#FCD34D' },
@@ -24,10 +25,7 @@ const FIREWORK_COLORS = ['#FCD34D', '#F59E0B', '#EA580C', '#DC2626', '#8B5CF6', 
 function FireworksBurst({ originX = 50, originY = 45, delay = 0 }) {
   const particles = Array.from({ length: 26 });
   return (
-    <div
-      className="absolute pointer-events-none"
-      style={{ left: `${originX}%`, top: `${originY}%` }}
-    >
+    <div className="absolute pointer-events-none" style={{ left: `${originX}%`, top: `${originY}%` }}>
       {particles.map((_, i) => {
         const angle = (i / particles.length) * 360 + Math.random() * 10;
         const distance = 90 + Math.random() * 140;
@@ -42,14 +40,7 @@ function FireworksBurst({ originX = 50, originY = 45, delay = 0 }) {
             animate={{ x, y, opacity: [1, 1, 0], scale: [0, 1, 0.5] }}
             transition={{ duration: 1.3 + Math.random() * 0.4, delay, ease: 'easeOut' }}
             className="absolute rounded-full"
-            style={{
-              width: size,
-              height: size,
-              backgroundColor: color,
-              boxShadow: `0 0 6px ${color}`,
-              marginLeft: -size / 2,
-              marginTop: -size / 2
-            }}
+            style={{ width: size, height: size, backgroundColor: color, boxShadow: `0 0 6px ${color}`, marginLeft: -size / 2, marginTop: -size / 2 }}
           />
         );
       })}
@@ -75,12 +66,7 @@ function ConfettiRain() {
             animate={{ y: '110vh', rotate: rotate + 360, opacity: [1, 1, 0.3] }}
             transition={{ duration, delay, ease: 'easeIn' }}
             className="absolute top-0"
-            style={{
-              width: w,
-              height: w * 1.6,
-              backgroundColor: color,
-              borderRadius: 2
-            }}
+            style={{ width: w, height: w * 1.6, backgroundColor: color, borderRadius: 2 }}
           />
         );
       })}
@@ -88,16 +74,71 @@ function ConfettiRain() {
   );
 }
 
+function formatCountdown(ms) {
+  if (ms <= 0) return null;
+  const totalSeconds = Math.floor(ms / 1000);
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+}
+
 export function WheelWidget({ isOpen, onClose, onWin }) {
+  const { user } = useAuth();
   const [rotation, setRotation] = useState(0);
   const [spinning, setSpinning] = useState(false);
   const [result, setResult] = useState(null);
   const [showCelebration, setShowCelebration] = useState(false);
   const [error, setError] = useState('');
+  const [nextAvailableAt, setNextAvailableAt] = useState(null);
+  const [now, setNow] = useState(Date.now());
   const spinCount = useRef(0);
 
+  useEffect(() => {
+    if (!isOpen) return;
+    checkAvailability();
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || !nextAvailableAt) return;
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, [isOpen, nextAvailableAt]);
+
+  const checkAvailability = async () => {
+    if (!user) return;
+    const { data: wallet } = await supabase
+      .from('wallets')
+      .select('bonus_spins')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    const { data: lastFreeSpin } = await supabase
+      .from('wheel_spins')
+      .select('created_at')
+      .eq('user_id', user.id)
+      .eq('used_bonus_spin', false)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const hasBonusSpin = (wallet?.bonus_spins ?? 0) > 0;
+
+    if (lastFreeSpin && !hasBonusSpin) {
+      const next = new Date(lastFreeSpin.created_at).getTime() + 24 * 60 * 60 * 1000;
+      if (next > Date.now()) {
+        setNextAvailableAt(next);
+        return;
+      }
+    }
+    setNextAvailableAt(null);
+  };
+
+  const remainingMs = nextAvailableAt ? nextAvailableAt - now : 0;
+  const isOnCooldown = nextAvailableAt && remainingMs > 0;
+
   const handleSpin = async () => {
-    if (spinning) return;
+    if (spinning || isOnCooldown) return;
     setSpinning(true);
     setResult(null);
     setShowCelebration(false);
@@ -107,6 +148,9 @@ export function WheelWidget({ isOpen, onClose, onWin }) {
       const { data, error: fnError } = await supabase.functions.invoke('spin-wheel');
 
       if (fnError || !data?.ok) {
+        if (data?.nextAvailableAt) {
+          setNextAvailableAt(new Date(data.nextAvailableAt).getTime());
+        }
         throw new Error(data?.error || fnError?.message || 'Erreur de tirage');
       }
 
@@ -116,10 +160,7 @@ export function WheelWidget({ isOpen, onClose, onWin }) {
           ? 'Rejouer'
           : 'Perdu';
 
-      const segmentIndex = SEGMENTS.findIndex((s, idx) => {
-        return s.label === winningLabel && idx === data.prize.sort_order;
-      });
-
+      const segmentIndex = SEGMENTS.findIndex((s, idx) => s.label === winningLabel && idx === data.prize.sort_order);
       const targetIndex = segmentIndex >= 0 ? segmentIndex : SEGMENTS.findIndex(s => s.label === winningLabel);
       const targetAngle = targetIndex * SEGMENT_ANGLE;
 
@@ -134,6 +175,9 @@ export function WheelWidget({ isOpen, onClose, onWin }) {
         setResult(data.prize);
         if (data.prize.prize_type === 'coins' || data.prize.prize_type === 'retry') {
           setShowCelebration(true);
+        }
+        if (data.nextAvailableAt) {
+          setNextAvailableAt(new Date(data.nextAvailableAt).getTime());
         }
         onWin?.(data);
       }, 4200);
@@ -182,11 +226,14 @@ export function WheelWidget({ isOpen, onClose, onWin }) {
 
             <motion.button
               onClick={handleSpin}
-              disabled={spinning}
-              whileHover={!spinning ? { scale: 1.02 } : {}}
-              whileTap={!spinning ? { scale: 0.97 } : {}}
+              disabled={spinning || isOnCooldown}
+              whileHover={!spinning && !isOnCooldown ? { scale: 1.02 } : {}}
+              whileTap={!spinning && !isOnCooldown ? { scale: 0.97 } : {}}
               className="relative z-10 w-full h-full rounded-full disabled:cursor-not-allowed"
-              style={{ filter: 'drop-shadow(0 10px 40px rgba(0,0,0,0.5))' }}
+              style={{
+                filter: 'drop-shadow(0 10px 40px rgba(0,0,0,0.5))',
+                opacity: isOnCooldown ? 0.45 : 1
+              }}
             >
               <motion.svg
                 viewBox="0 0 200 200"
@@ -208,12 +255,7 @@ export function WheelWidget({ isOpen, onClose, onWin }) {
 
                   return (
                     <g key={i}>
-                      <path
-                        d={`M100,100 L${x1},${y1} A96,96 0 0,1 ${x2},${y2} Z`}
-                        fill={seg.color}
-                        stroke="#fff"
-                        strokeWidth="1.5"
-                      />
+                      <path d={`M100,100 L${x1},${y1} A96,96 0 0,1 ${x2},${y2} Z`} fill={seg.color} stroke="#fff" strokeWidth="1.5" />
                       <text
                         x={textX}
                         y={textY}
@@ -222,7 +264,6 @@ export function WheelWidget({ isOpen, onClose, onWin }) {
                         fontWeight="900"
                         textAnchor="middle"
                         transform={`rotate(${midAngle}, ${textX}, ${textY})`}
-                        style={{ textShadow: '0 1px 2px rgba(0,0,0,0.4)' }}
                       >
                         {seg.label}
                       </text>
@@ -232,7 +273,7 @@ export function WheelWidget({ isOpen, onClose, onWin }) {
                 <circle cx="100" cy="100" r="18" fill="white" stroke="#FCD34D" strokeWidth="4" />
               </motion.svg>
 
-              {!spinning && !result && (
+              {!spinning && !result && !isOnCooldown && (
                 <motion.div
                   className="absolute inset-0 flex items-center justify-center pointer-events-none"
                   animate={{ scale: [1, 1.08, 1] }}
@@ -243,6 +284,15 @@ export function WheelWidget({ isOpen, onClose, onWin }) {
                   </span>
                 </motion.div>
               )}
+
+              {isOnCooldown && !result && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none gap-2">
+                  <Clock className="w-7 h-7 text-white" />
+                  <span className="text-white text-lg font-black tracking-widest bg-black/50 px-3 py-1 rounded-full">
+                    {formatCountdown(remainingMs)}
+                  </span>
+                </div>
+              )}
             </motion.button>
           </div>
 
@@ -250,6 +300,12 @@ export function WheelWidget({ isOpen, onClose, onWin }) {
             {spinning && (
               <p className="text-white/80 text-xs font-bold uppercase tracking-widest animate-pulse">
                 La roue tourne...
+              </p>
+            )}
+
+            {isOnCooldown && !spinning && !result && (
+              <p className="text-white/70 text-xs font-bold text-center max-w-xs">
+                Revenez dans {formatCountdown(remainingMs)} pour un nouveau tour gratuit
               </p>
             )}
 
@@ -272,10 +328,10 @@ export function WheelWidget({ isOpen, onClose, onWin }) {
                     {result.prize_type === 'nothing' && 'Pas de chance...'}
                   </p>
                   <button
-                    onClick={handleSpin}
+                    onClick={onClose}
                     className="mt-3 text-[11px] font-black uppercase tracking-widest text-amber-300 hover:text-amber-200"
                   >
-                    Fermer et continuer
+                    Fermer
                   </button>
                 </motion.div>
               )}
