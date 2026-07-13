@@ -66,6 +66,34 @@ export const translations = {
       qr: 'Pay by QR Code',
       cb: 'Pay by Credit Card'
     },
+    wheel: {
+      title: 'Wheel of Fortune',
+      subtitle: 'Try to win coins',
+      tap_to_spin: 'Tap to spin',
+      spinning: 'Spinning...',
+      cooldown_prefix: 'Come back in',
+      cooldown_suffix: 'for a new free spin',
+      win_coins_suffix: 'coins!',
+      win_retry: 'Spin again!',
+      win_nothing: 'No luck this time...',
+      close: 'Close'
+    },
+    shop: {
+      title: 'Shop',
+      subtitle: 'Exchange your coins for discounts',
+      spin_wheel_btn: 'Spin the wheel',
+      buy: 'Buy',
+      discount_suffix: 'discount',
+      coins_unit: 'coins',
+      code_unlocked_prefix: 'discount',
+      code_unlocked_suffix: 'unlocked!',
+      code_instructions: 'Copy this code and paste it in "My Account" → "Enter activation code" to apply it.',
+      insufficient: 'Not enough coins'
+    },
+    wallet: {
+      my_coins: 'My coins',
+      shop_btn: 'Shop'
+    },
     builder: {
       back_btn: 'Back',
       save_btn: 'Save',
@@ -233,6 +261,34 @@ export const translations = {
       qr: 'Payer par QR Code',
       cb: 'Payer par CB'
     },
+    wheel: {
+      title: 'Roue de la Chance',
+      subtitle: 'Tentez de gagner des pièces',
+      tap_to_spin: 'Touchez pour tourner',
+      spinning: 'La roue tourne...',
+      cooldown_prefix: 'Revenez dans',
+      cooldown_suffix: 'pour un nouveau tour gratuit',
+      win_coins_suffix: 'pièces !',
+      win_retry: 'Rejouez !',
+      win_nothing: 'Pas de chance...',
+      close: 'Fermer'
+    },
+    shop: {
+      title: 'Boutique',
+      subtitle: 'Échangez vos pièces contre des réductions',
+      spin_wheel_btn: 'Tourner la roue',
+      buy: 'Acheter',
+      discount_suffix: 'de réduction',
+      coins_unit: 'pièces',
+      code_unlocked_prefix: 'Réduction',
+      code_unlocked_suffix: 'débloquée !',
+      code_instructions: 'Copiez ce code et collez-le dans "Mon Compte" → "Entrez votre code unique" pour l\'appliquer.',
+      insufficient: 'Solde de pièces insuffisant'
+    },
+    wallet: {
+      my_coins: 'Mes pièces',
+      shop_btn: 'Boutique'
+    },
     builder: {
       back_btn: 'Retour',
       save_btn: 'Enregistrer',
@@ -399,6 +455,34 @@ export const translations = {
       subtitle: 'Chọn cách thức thanh toán để nhận mã kích hoạt sử dụng một lần.',
       qr: 'Thanh toán qua mã QR',
       cb: 'Thanh toán thẻ ngân hàng'
+    },
+    wheel: {
+      title: 'Vòng Quay May Mắn',
+      subtitle: 'Thử vận may để nhận xu',
+      tap_to_spin: 'Chạm để quay',
+      spinning: 'Đang quay...',
+      cooldown_prefix: 'Quay lại sau',
+      cooldown_suffix: 'để có lượt quay miễn phí mới',
+      win_coins_suffix: 'xu!',
+      win_retry: 'Quay lại!',
+      win_nothing: 'Không may mắn lần này...',
+      close: 'Đóng'
+    },
+    shop: {
+      title: 'Cửa hàng',
+      subtitle: 'Đổi xu lấy mã giảm giá',
+      spin_wheel_btn: 'Quay vòng may mắn',
+      buy: 'Mua',
+      discount_suffix: 'giảm giá',
+      coins_unit: 'xu',
+      code_unlocked_prefix: 'Giảm giá',
+      code_unlocked_suffix: 'đã mở khóa!',
+      code_instructions: 'Sao chép mã này và dán vào "Tài khoản của tôi" → "Nhập mã kích hoạt" để áp dụng.',
+      insufficient: 'Không đủ xu'
+    },
+    wallet: {
+      my_coins: 'Số xu của tôi',
+      shop_btn: 'Cửa hàng'
     },
     builder: {
       back_btn: 'Quay lại',
