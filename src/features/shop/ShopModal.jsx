@@ -2,8 +2,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Sparkles, ShoppingBag } from 'lucide-react';
 import { CoinBalance } from '../wallet/CoinBalance';
 import { DiscountShop } from '../discounts/DiscountShop';
+import { translations } from '../../lib/i18n';
 
-export function ShopModal({ isOpen, onClose, coins, onOpenWheel, onPurchase }) {
+export function ShopModal({ isOpen, onClose, coins, onOpenWheel, onPurchase, lang = 'en' }) {
+  const t = translations[lang]?.shop || translations.en.shop;
   if (!isOpen) return null;
 
   return (
@@ -28,9 +30,9 @@ export function ShopModal({ isOpen, onClose, coins, onOpenWheel, onPurchase }) {
                 <ShoppingBag className="w-5 h-5 text-amber-600" />
               </div>
               <div>
-                <h3 className="text-lg font-black text-gray-900 uppercase tracking-tight">Boutique</h3>
+                <h3 className="text-lg font-black text-gray-900 uppercase tracking-tight">{t.title}</h3>
                 <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest">
-                  Échangez vos pièces contre des réductions
+                  {t.subtitle}
                 </p>
               </div>
             </div>
@@ -49,11 +51,11 @@ export function ShopModal({ isOpen, onClose, coins, onOpenWheel, onPurchase }) {
                 className="flex items-center gap-2 bg-gradient-to-r from-amber-400 to-amber-600 text-white px-4 py-2 rounded-full text-[11px] font-black uppercase tracking-wider shadow-md hover:shadow-lg transition-all"
               >
                 <Sparkles size={14} />
-                Tourner la roue
+                {t.spin_wheel_btn}
               </button>
             </div>
 
-            <DiscountShop coins={coins} onPurchase={onPurchase} />
+            <DiscountShop coins={coins} onPurchase={onPurchase} lang={lang} />
           </div>
         </motion.div>
       </div>
