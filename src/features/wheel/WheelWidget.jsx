@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Sparkles } from 'lucide-react';
+import { X } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
 const SEGMENTS = [
@@ -8,7 +8,7 @@ const SEGMENTS = [
   { label: '100', color: '#F59E0B' },
   { label: '200', color: '#EA580C' },
   { label: '50', color: '#FCD34D' },
-  { label: 'Perdu', color: '#D1D5DB' },
+  { label: 'Perdu', color: '#9CA3AF' },
   { label: '100', color: '#F59E0B' },
   { label: '500', color: '#DC2626' },
   { label: '50', color: '#FCD34D' },
@@ -19,25 +19,68 @@ const SEGMENTS = [
 ];
 
 const SEGMENT_ANGLE = 360 / SEGMENTS.length;
+const FIREWORK_COLORS = ['#FCD34D', '#F59E0B', '#EA580C', '#DC2626', '#8B5CF6', '#3B82F6', '#10B981', '#FFFFFF'];
 
-function Confetti() {
-  const particles = Array.from({ length: 24 });
+function FireworksBurst({ originX = 50, originY = 45, delay = 0 }) {
+  const particles = Array.from({ length: 26 });
   return (
-    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+    <div
+      className="absolute pointer-events-none"
+      style={{ left: `${originX}%`, top: `${originY}%` }}
+    >
       {particles.map((_, i) => {
-        const angle = (i / particles.length) * 360;
-        const distance = 120 + Math.random() * 80;
+        const angle = (i / particles.length) * 360 + Math.random() * 10;
+        const distance = 90 + Math.random() * 140;
         const x = Math.cos((angle * Math.PI) / 180) * distance;
         const y = Math.sin((angle * Math.PI) / 180) * distance;
-        const colors = ['#FCD34D', '#F59E0B', '#EA580C', '#DC2626', '#8B5CF6', '#FFFFFF'];
+        const color = FIREWORK_COLORS[i % FIREWORK_COLORS.length];
+        const size = 3 + Math.random() * 4;
         return (
           <motion.span
             key={i}
-            initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
-            animate={{ x, y, opacity: 0, scale: 0 }}
-            transition={{ duration: 1.1, ease: 'easeOut' }}
-            className="absolute left-1/2 top-1/2 w-2 h-2 rounded-full"
-            style={{ backgroundColor: colors[i % colors.length] }}
+            initial={{ x: 0, y: 0, opacity: 1, scale: 0 }}
+            animate={{ x, y, opacity: [1, 1, 0], scale: [0, 1, 0.5] }}
+            transition={{ duration: 1.3 + Math.random() * 0.4, delay, ease: 'easeOut' }}
+            className="absolute rounded-full"
+            style={{
+              width: size,
+              height: size,
+              backgroundColor: color,
+              boxShadow: `0 0 6px ${color}`,
+              marginLeft: -size / 2,
+              marginTop: -size / 2
+            }}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+function ConfettiRain() {
+  const pieces = Array.from({ length: 40 });
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {pieces.map((_, i) => {
+        const left = Math.random() * 100;
+        const delay = Math.random() * 0.6;
+        const duration = 2.2 + Math.random() * 1.4;
+        const color = FIREWORK_COLORS[i % FIREWORK_COLORS.length];
+        const rotate = Math.random() * 360;
+        const w = 6 + Math.random() * 5;
+        return (
+          <motion.span
+            key={i}
+            initial={{ y: -20, x: `${left}vw`, opacity: 1, rotate: 0 }}
+            animate={{ y: '110vh', rotate: rotate + 360, opacity: [1, 1, 0.3] }}
+            transition={{ duration, delay, ease: 'easeIn' }}
+            className="absolute top-0"
+            style={{
+              width: w,
+              height: w * 1.6,
+              backgroundColor: color,
+              borderRadius: 2
+            }}
           />
         );
       })}
@@ -49,6 +92,7 @@ export function WheelWidget({ isOpen, onClose, onWin }) {
   const [rotation, setRotation] = useState(0);
   const [spinning, setSpinning] = useState(false);
   const [result, setResult] = useState(null);
+  const [showCelebration, setShowCelebration] = useState(false);
   const [error, setError] = useState('');
   const spinCount = useRef(0);
 
@@ -56,6 +100,7 @@ export function WheelWidget({ isOpen, onClose, onWin }) {
     if (spinning) return;
     setSpinning(true);
     setResult(null);
+    setShowCelebration(false);
     setError('');
 
     try {
@@ -79,7 +124,7 @@ export function WheelWidget({ isOpen, onClose, onWin }) {
       const targetAngle = targetIndex * SEGMENT_ANGLE;
 
       spinCount.current += 1;
-      const fullTurns = 5 + spinCount.current;
+      const fullTurns = 6 + spinCount.current;
       const finalRotation = fullTurns * 360 + (360 - targetAngle) - SEGMENT_ANGLE / 2;
 
       setRotation(finalRotation);
@@ -87,6 +132,9 @@ export function WheelWidget({ isOpen, onClose, onWin }) {
       setTimeout(() => {
         setSpinning(false);
         setResult(data.prize);
+        if (data.prize.prize_type === 'coins' || data.prize.prize_type === 'retry') {
+          setShowCelebration(true);
+        }
         onWin?.(data);
       }, 4200);
     } catch (err) {
@@ -99,114 +147,140 @@ export function WheelWidget({ isOpen, onClose, onWin }) {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm">
-        <motion.div
-          initial={{ scale: 0.85, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.85, opacity: 0 }}
-          className="relative w-full max-w-sm bg-gradient-to-b from-amber-50 to-white rounded-[2.5rem] shadow-2xl p-6 pt-10 overflow-hidden"
+      <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/80 backdrop-blur-md overflow-hidden">
+        {showCelebration && (
+          <>
+            <ConfettiRain />
+            <FireworksBurst originX={30} originY={30} delay={0} />
+            <FireworksBurst originX={70} originY={35} delay={0.25} />
+            <FireworksBurst originX={50} originY={20} delay={0.5} />
+          </>
+        )}
+
+        <button
+          onClick={onClose}
+          className="absolute top-5 right-5 z-20 w-9 h-9 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
         >
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center bg-white/80 rounded-full text-gray-500 shadow-sm"
-          >
-            <X size={16} />
-          </button>
+          <X size={18} />
+        </button>
 
-          <h2 className="text-center text-xl font-black text-gray-900 uppercase tracking-tight mb-1">
-            Roue de la Chance
-          </h2>
-          <p className="text-center text-[11px] text-amber-600 font-bold uppercase tracking-widest mb-6">
-            Tentez de gagner des pièces
-          </p>
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.8, opacity: 0 }}
+          className="relative flex flex-col items-center px-4"
+        >
+          <div className="relative w-[300px] h-[300px] sm:w-[380px] sm:h-[380px]">
+            <motion.div
+              className="absolute -inset-6 rounded-full"
+              style={{ background: 'radial-gradient(circle, rgba(252,211,77,0.35) 0%, transparent 70%)' }}
+              animate={{ opacity: [0.5, 1, 0.5] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            />
 
-          <div className="relative w-64 h-64 mx-auto mb-8">
-            <div className="absolute -inset-4 rounded-full bg-amber-300/30 blur-2xl animate-pulse" />
-            <div className="absolute -top-2 left-1/2 -translate-x-1/2 z-20 w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[18px] border-t-rose-600 drop-shadow-lg" />
+            <div className="absolute -top-1 left-1/2 -translate-x-1/2 z-30 w-0 h-0 border-l-[14px] border-l-transparent border-r-[14px] border-r-transparent border-t-[24px] border-t-white drop-shadow-lg" />
 
-            <motion.svg
-              viewBox="0 0 200 200"
-              className="relative z-10 w-full h-full drop-shadow-2xl"
-              animate={{ rotate: rotation }}
-              transition={{ duration: 4, ease: [0.17, 0.67, 0.35, 0.99] }}
+            <motion.button
+              onClick={handleSpin}
+              disabled={spinning}
+              whileHover={!spinning ? { scale: 1.02 } : {}}
+              whileTap={!spinning ? { scale: 0.97 } : {}}
+              className="relative z-10 w-full h-full rounded-full disabled:cursor-not-allowed"
+              style={{ filter: 'drop-shadow(0 10px 40px rgba(0,0,0,0.5))' }}
             >
-              {SEGMENTS.map((seg, i) => {
-                const startAngle = i * SEGMENT_ANGLE;
-                const endAngle = startAngle + SEGMENT_ANGLE;
-                const toRad = (deg) => ((deg - 90) * Math.PI) / 180;
-                const x1 = 100 + 95 * Math.cos(toRad(startAngle));
-                const y1 = 100 + 95 * Math.sin(toRad(startAngle));
-                const x2 = 100 + 95 * Math.cos(toRad(endAngle));
-                const y2 = 100 + 95 * Math.sin(toRad(endAngle));
-                const midAngle = startAngle + SEGMENT_ANGLE / 2;
-                const textX = 100 + 62 * Math.cos(toRad(midAngle));
-                const textY = 100 + 62 * Math.sin(toRad(midAngle));
+              <motion.svg
+                viewBox="0 0 200 200"
+                className="w-full h-full"
+                animate={{ rotate: rotation }}
+                transition={{ duration: 4, ease: [0.17, 0.67, 0.35, 0.99] }}
+              >
+                {SEGMENTS.map((seg, i) => {
+                  const startAngle = i * SEGMENT_ANGLE;
+                  const endAngle = startAngle + SEGMENT_ANGLE;
+                  const toRad = (deg) => ((deg - 90) * Math.PI) / 180;
+                  const x1 = 100 + 96 * Math.cos(toRad(startAngle));
+                  const y1 = 100 + 96 * Math.sin(toRad(startAngle));
+                  const x2 = 100 + 96 * Math.cos(toRad(endAngle));
+                  const y2 = 100 + 96 * Math.sin(toRad(endAngle));
+                  const midAngle = startAngle + SEGMENT_ANGLE / 2;
+                  const textX = 100 + 64 * Math.cos(toRad(midAngle));
+                  const textY = 100 + 64 * Math.sin(toRad(midAngle));
 
-                return (
-                  <g key={i}>
-                    <path
-                      d={`M100,100 L${x1},${y1} A95,95 0 0,1 ${x2},${y2} Z`}
-                      fill={seg.color}
-                      stroke="white"
-                      strokeWidth="1.5"
-                    />
-                    <text
-                      x={textX}
-                      y={textY}
-                      fill="white"
-                      fontSize={seg.label.length > 4 ? '8' : '13'}
-                      fontWeight="900"
-                      textAnchor="middle"
-                      transform={`rotate(${midAngle}, ${textX}, ${textY})`}
-                    >
-                      {seg.label}
-                    </text>
-                  </g>
-                );
-              })}
-              <circle cx="100" cy="100" r="14" fill="white" stroke="#FCD34D" strokeWidth="3" />
-            </motion.svg>
+                  return (
+                    <g key={i}>
+                      <path
+                        d={`M100,100 L${x1},${y1} A96,96 0 0,1 ${x2},${y2} Z`}
+                        fill={seg.color}
+                        stroke="#fff"
+                        strokeWidth="1.5"
+                      />
+                      <text
+                        x={textX}
+                        y={textY}
+                        fill="white"
+                        fontSize={seg.label.length > 4 ? '8' : '14'}
+                        fontWeight="900"
+                        textAnchor="middle"
+                        transform={`rotate(${midAngle}, ${textX}, ${textY})`}
+                        style={{ textShadow: '0 1px 2px rgba(0,0,0,0.4)' }}
+                      >
+                        {seg.label}
+                      </text>
+                    </g>
+                  );
+                })}
+                <circle cx="100" cy="100" r="18" fill="white" stroke="#FCD34D" strokeWidth="4" />
+              </motion.svg>
 
-            {result && (
-              <div className="absolute inset-0 flex items-center justify-center">
-                <Confetti />
-              </div>
-            )}
+              {!spinning && !result && (
+                <motion.div
+                  className="absolute inset-0 flex items-center justify-center pointer-events-none"
+                  animate={{ scale: [1, 1.08, 1] }}
+                  transition={{ duration: 1.4, repeat: Infinity }}
+                >
+                  <span className="text-white text-[11px] font-black uppercase tracking-widest bg-black/40 px-3 py-1.5 rounded-full">
+                    Touchez pour tourner
+                  </span>
+                </motion.div>
+              )}
+            </motion.button>
           </div>
 
-          <button
-            onClick={handleSpin}
-            disabled={spinning}
-            className="w-full h-14 bg-gradient-to-r from-amber-400 to-amber-600 text-white rounded-2xl font-black uppercase tracking-widest shadow-lg hover:shadow-xl active:scale-95 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-          >
-            {spinning ? 'La roue tourne...' : (
-              <>
-                <Sparkles size={18} />
-                Tourner la roue
-              </>
+          <div className="mt-6 min-h-[64px] flex items-center justify-center">
+            {spinning && (
+              <p className="text-white/80 text-xs font-bold uppercase tracking-widest animate-pulse">
+                La roue tourne...
+              </p>
             )}
-          </button>
 
-          {error && (
-            <p className="text-center text-rose-500 text-xs font-bold mt-4">{error}</p>
-          )}
-
-          <AnimatePresence>
-            {result && (
-              <motion.div
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                exit={{ y: 20, opacity: 0 }}
-                className="mt-5 text-center p-4 bg-amber-50 border border-amber-100 rounded-2xl"
-              >
-                <p className="text-sm font-black text-gray-900">
-                  {result.prize_type === 'coins' && `🎉 Vous gagnez ${result.coin_value} pièces !`}
-                  {result.prize_type === 'retry' && '🔄 Vous pouvez rejouer !'}
-                  {result.prize_type === 'nothing' && '😅 Pas de chance cette fois...'}
-                </p>
-              </motion.div>
+            {error && (
+              <p className="text-rose-400 text-xs font-bold text-center max-w-xs">{error}</p>
             )}
-          </AnimatePresence>
+
+            <AnimatePresence>
+              {result && (
+                <motion.div
+                  initial={{ y: 16, opacity: 0, scale: 0.9 }}
+                  animate={{ y: 0, opacity: 1, scale: 1 }}
+                  exit={{ y: 16, opacity: 0 }}
+                  transition={{ type: 'spring', damping: 14 }}
+                  className="text-center"
+                >
+                  <p className="text-2xl font-black text-white drop-shadow-lg">
+                    {result.prize_type === 'coins' && `+${result.coin_value} pièces !`}
+                    {result.prize_type === 'retry' && 'Rejouez !'}
+                    {result.prize_type === 'nothing' && 'Pas de chance...'}
+                  </p>
+                  <button
+                    onClick={handleSpin}
+                    className="mt-3 text-[11px] font-black uppercase tracking-widest text-amber-300 hover:text-amber-200"
+                  >
+                    Fermer et continuer
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </motion.div>
       </div>
     </AnimatePresence>
