@@ -869,7 +869,7 @@ export function InvitationPreview({ invitation }: any) {
               className="absolute z-20"
             >
               {openingType === 'filmstrip' ? (
-                <div className="relative w-44 h-72 bg-[#1a1a1a] rounded-xl shadow-2xl rotate-[-2deg] overflow-hidden p-2 border-y-4 border-[#1a1a1a]">
+                <div className="relative w-44 h-72 bg-[#1a1a1a] rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.7),_inset_0_0_30px_rgba(255,255,255,0.08)] rotate-[-2deg] overflow-hidden p-2 border-y-4 border-[#1a1a1a]">
                   <div className="absolute inset-y-0 left-1.5 w-1.5 border-l-2 border-dashed border-white/20 z-10" />
                   <div className="absolute inset-y-0 right-1.5 w-1.5 border-r-2 border-dashed border-white/20 z-10" />
 
@@ -943,18 +943,11 @@ export function InvitationPreview({ invitation }: any) {
                       scale: 1,
                       y: 80,
                       opacity: 1,
-                      boxShadow: [
-                        '0 0 0px rgba(251,191,36,0)',
-                        '0 0 26px 4px rgba(251,191,36,0.4)',
-                        '0 0 0px rgba(251,191,36,0)'
-                      ]
+                      boxShadow: '0 0 26px 4px rgba(251,191,36,0.4)'
                     }
                   : { y: 0, opacity: 0 }
               }
-              transition={{
-                default: { type: 'spring', damping: 20, delay: 0.05 },
-                boxShadow: { duration: 3.2, repeat: Infinity, ease: 'easeInOut', delay: 0.6 }
-              }}
+              transition={{ type: 'spring', damping: 20, delay: 0.05 }}
               onClick={handleOpenContent}
               className={`relative z-30 w-[310px] h-[370px] rounded-[3rem] shadow-2xl p-10 flex flex-col items-center justify-between border-[1.5px] border-amber-300/45 cursor-pointer paper-container ${getPaperClass(effectivePaperType)}`}
               style={{ '--dynamic-color': cardPaperColor } as CSSProperties}
@@ -1269,17 +1262,12 @@ export function InvitationPreview({ invitation }: any) {
                 <motion.div
                   className="absolute -top-10 -right-10 w-32 h-32 bg-amber-400/10 rounded-full blur-3xl"
                   animate={{ opacity: [0.5, 1, 0.5], scale: [1, 1.15, 1] }}
-                  transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }}
+                  transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
                 />
 
                 <div className="relative z-10 py-6 text-center space-y-4">
                   <div className="relative inline-flex items-center justify-center">
                     <CheckCircle2 size={40} className="text-amber-400 mx-auto drop-shadow-[0_0_12px_rgba(251,191,36,0.5)] relative z-10" />
-                    <motion.div
-                      animate={{ scale: [1, 1.8, 1], opacity: [0.35, 0, 0.35] }}
-                      transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut' }}
-                      className="absolute inset-0 rounded-full bg-amber-400/40"
-                    />
                   </div>
                   <h3 className="font-semibold text-sm text-white text-center">{t.confirm_rsvp}</h3>
                   <p className="text-white/45 text-[12px] font-medium">
