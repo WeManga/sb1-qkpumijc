@@ -29,7 +29,8 @@ const THEME_EMOJIS: Record<string, string[]> = {
 
 const OPENING_FADE_DURATION = 0.85;
 const OPENING_REVEAL_DELAY = 420;
-const CONTENT_TRANSITION_DURATION = 0.95;
+const CONTENT_TRANSITION_DURATION = 1.05;
+const CONTENT_SWEEP_DURATION = 1.1;
 const LEAF_FRAME_URL =
   'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/feuille%20carousselle.png';
 
@@ -67,14 +68,26 @@ const getPaperClass = (paperType: string) => {
 
 const getAlbumTitle = (lang: Language) => {
   if (lang === 'en') return 'Memory album';
-  if (lang === 'vi') return 'Album ká»· niá»‡m';
+  if (lang === 'vi') return 'Album kỷ niệm';
   return 'Album souvenir';
 };
 
 const getReplayLabel = (lang: Language) => {
   if (lang === 'en') return 'Replay opening';
-  if (lang === 'vi') return 'Xem láº¡i má»Ÿ thiá»‡p';
+  if (lang === 'vi') return 'Xem lại mở thiệp';
   return "Revoir l'ouverture";
+};
+
+const getMemoryToKeepLabel = (lang: Language) => {
+  if (lang === 'en') return 'A memory to keep';
+  if (lang === 'vi') return 'Một kỷ niệm để giữ';
+  return 'Un souvenir à garder';
+};
+
+const getGuestFormPreviewLabel = (lang: Language) => {
+  if (lang === 'en') return 'Guest form preview';
+  if (lang === 'vi') return 'Xem trước biểu mẫu';
+  return 'Aperçu du formulaire invité';
 };
 
 const EmojiRain = ({ emojis }: { emojis: string[] }) => {
@@ -306,6 +319,49 @@ const ContentOrnaments = () => {
   );
 };
 
+// Effet "haut de gamme" joué une seule fois à l'ouverture du contenu complet :
+// un voile doré qui pulse + un rayon lumineux diagonal qui balaie l'écran
+// vers la gauche, dans le même sens que le glissement de la carte.
+const PremiumRevealSweep = () => (
+  <div className="pointer-events-none absolute inset-0 z-[130] overflow-hidden rounded-[3.5rem]">
+    <motion.div
+      className="absolute inset-0"
+      style={{
+        background: 'radial-gradient(circle at 52% 42%, rgba(251,191,36,0.32), transparent 62%)'
+      }}
+      initial={{ opacity: 0.95 }}
+      animate={{ opacity: 0 }}
+      transition={{ duration: CONTENT_SWEEP_DURATION, ease: 'easeOut' }}
+    />
+
+    <motion.div
+      className="absolute top-0 bottom-0"
+      style={{
+        width: '55%',
+        background:
+          'linear-gradient(115deg, transparent 0%, rgba(255,255,255,0) 28%, rgba(255,255,255,0.9) 48%, rgba(251,191,36,0.7) 57%, rgba(255,255,255,0) 76%, transparent 100%)',
+        filter: 'blur(1.5px)',
+        mixBlendMode: 'screen'
+      }}
+      initial={{ left: '120%' }}
+      animate={{ left: '-70%' }}
+      transition={{ duration: 0.95, ease: [0.16, 1, 0.3, 1], delay: 0.05 }}
+    />
+
+    <motion.div
+      className="absolute inset-0 rounded-[3.5rem]"
+      initial={{ boxShadow: 'inset 0 0 0 rgba(251,191,36,0)' }}
+      animate={{
+        boxShadow: [
+          'inset 0 0 0 rgba(251,191,36,0)',
+          'inset 0 0 70px 14px rgba(251,191,36,0.4)',
+          'inset 0 0 0 rgba(251,191,36,0)'
+        ]
+      }}
+      transition={{ duration: CONTENT_SWEEP_DURATION, ease: 'easeInOut' }}
+    />
+  </div>
+);
 
 const getPhotoFrameStyle = (invitation: any, sourceKey?: string): CSSProperties => {
   if (!sourceKey) return {};
@@ -751,7 +807,7 @@ export function InvitationPreview({ invitation }: any) {
   return (
     <div
       className="relative w-full h-full max-h-[650px] flex items-center justify-center overflow-hidden rounded-[3.5rem] shadow-2xl border-[12px] border-gray-50/50"
-      style={{ fontFamily: fontStyle, background: previewBackgroundColor } as CSSProperties}
+      style={{ fontFamily: fontStyle, background: previewBackgroundColor, perspective: '1600px' } as CSSProperties}
     >
       {musicUrl && <audio ref={audioRef} src={musicUrl} loop />}
 
@@ -921,11 +977,11 @@ export function InvitationPreview({ invitation }: any) {
         ) : (
           <motion.div
             key="content"
-            initial={{ opacity: 0, rotateY: -24, scale: 0.94, x: 38 }}
-            animate={{ opacity: 1, rotateY: 0, scale: 1, x: 0 }}
-            exit={{ opacity: 0, rotateY: 18, scale: 0.97, x: -22 }}
+            initial={{ opacity: 0, rotateY: -28, scale: 0.9, x: 46, filter: 'brightness(1.4) saturate(1.15)' }}
+            animate={{ opacity: 1, rotateY: 0, scale: 1, x: 0, filter: 'brightness(1) saturate(1)' }}
+            exit={{ opacity: 0, rotateY: 20, scale: 0.96, x: -26, filter: 'brightness(1.1) saturate(1)' }}
             transition={{ duration: CONTENT_TRANSITION_DURATION, ease: [0.16, 1, 0.3, 1] }}
-            className={`w-full h-full z-[100] flex flex-col overflow-y-auto paper-container ${getPaperClass(effectivePaperType)}`}
+            className={`relative w-full h-full z-[100] flex flex-col overflow-y-auto paper-container ${getPaperClass(effectivePaperType)}`}
             style={
               {
                 '--dynamic-color': cardPaperColor,
@@ -935,6 +991,7 @@ export function InvitationPreview({ invitation }: any) {
             }
           >
             <ContentOrnaments />
+            <PremiumRevealSweep />
 
             <div className="h-[32%] relative overflow-hidden shrink-0">
               {mainPhotoUrl && (
@@ -1069,7 +1126,7 @@ export function InvitationPreview({ invitation }: any) {
                 <div className="px-2">
                   <div className="text-center mb-5">
                     <p className="text-[13px] font-semibold text-amber-600">
-                      {lang === 'fr' ? 'Un souvenir Ã  garder' : lang === 'en' ? 'A memory to keep' : 'Má»™t ká»· niá»‡m Ä‘á»ƒ giá»¯'}
+                      {getMemoryToKeepLabel(lang)}
                     </p>
                   </div>
 
@@ -1098,7 +1155,7 @@ export function InvitationPreview({ invitation }: any) {
                   <CheckCircle2 size={40} className="text-amber-400 mx-auto drop-shadow-[0_0_12px_rgba(251,191,36,0.5)]" />
                   <h3 className="font-semibold text-sm text-white text-center">{t.confirm_rsvp}</h3>
                   <p className="text-white/45 text-[12px] font-medium">
-                    {lang === 'fr' ? 'AperÃ§u du formulaire invitÃ©' : lang === 'en' ? 'Guest form preview' : 'Xem trÆ°á»›c biá»ƒu máº«u'}
+                    {getGuestFormPreviewLabel(lang)}
                   </p>
                 </div>
               </div>
