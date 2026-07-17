@@ -23,7 +23,9 @@ import {
   CreditCard,
   ArrowLeft,
   MoreVertical,
-  Home
+  Home,
+  Gift,
+  ChevronDown
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { WheelWidget } from '../../features/wheel/WheelWidget';
@@ -42,6 +44,8 @@ const ZALO_LOGO_SRC = '/public/images/logo%20zalo.png';
 
 const ZALO_SIZE = 64;
 const ZALO_EDGE_MARGIN = 12;
+
+const REFERRALS_NEEDED_FOR_REWARD = 3;
 
 const isAndroidPlayChannel = APP_CHANNEL === 'android_play';
 const canUseExternalPayments = APP_CHANNEL === 'web' || APP_CHANNEL === 'android_apk';
@@ -147,6 +151,24 @@ const translations: any = {
       subtitle: 'Choose your payment method to activate PREMIUM automatically.',
       qr: 'Pay by QR Code',
       cb: 'Pay by Credit Card'
+    },
+    referral: {
+      title: 'Referral Program',
+      rewardInfo: `${REFERRALS_NEEDED_FOR_REWARD} referrals = 1 week of PREMIUM free`,
+      yourCode: 'Your referral code',
+      copy: 'Copy',
+      copied: 'Copied!',
+      progressLabel: 'Validated referrals',
+      totalReferrals: 'referrals in total',
+      inputLabel: 'Referral code',
+      inputPlaceholder: "Enter your friend's code",
+      submit: 'Validate',
+      alreadyUsed: "You've already entered a referral code.",
+      success: 'Referral code validated successfully!',
+      errorInvalid: 'Invalid referral code.',
+      errorOwn: 'You cannot use your own code.',
+      errorAlready: "You've already used a referral code.",
+      errorGeneric: 'Something went wrong. Please try again.'
     }
   },
   fr: {
@@ -181,6 +203,24 @@ const translations: any = {
       subtitle: 'Sélectionnez votre mode de règlement pour activer PREMIUM automatiquement.',
       qr: 'Payer par QR Code',
       cb: 'Payer par CB'
+    },
+    referral: {
+      title: 'Parrainage',
+      rewardInfo: `${REFERRALS_NEEDED_FOR_REWARD} parrainages = 1 semaine PREMIUM offerte`,
+      yourCode: 'Votre code de parrainage',
+      copy: 'Copier',
+      copied: 'Copié !',
+      progressLabel: 'Filleuls validés',
+      totalReferrals: 'parrainages au total',
+      inputLabel: 'Code parrain',
+      inputPlaceholder: 'Entrez le code de votre parrain',
+      submit: 'Valider',
+      alreadyUsed: 'Vous avez déjà renseigné un code parrain.',
+      success: 'Code parrain validé avec succès !',
+      errorInvalid: 'Code parrain invalide.',
+      errorOwn: 'Vous ne pouvez pas utiliser votre propre code.',
+      errorAlready: 'Vous avez déjà utilisé un code parrain.',
+      errorGeneric: "Une erreur est survenue, veuillez réessayer."
     }
   },
   vi: {
@@ -215,6 +255,24 @@ const translations: any = {
       subtitle: 'Chọn cách thanh toán để tự động kích hoạt PREMIUM.',
       qr: 'Thanh toán qua mã QR',
       cb: 'Thanh toán thẻ ngân hàng'
+    },
+    referral: {
+      title: 'Giới thiệu bạn bè',
+      rewardInfo: `${REFERRALS_NEEDED_FOR_REWARD} lượt giới thiệu = 1 tuần PREMIUM miễn phí`,
+      yourCode: 'Mã giới thiệu của bạn',
+      copy: 'Sao chép',
+      copied: 'Đã sao chép!',
+      progressLabel: 'Lượt giới thiệu hợp lệ',
+      totalReferrals: 'lượt giới thiệu',
+      inputLabel: 'Mã người giới thiệu',
+      inputPlaceholder: 'Nhập mã của người giới thiệu',
+      submit: 'Xác nhận',
+      alreadyUsed: 'Bạn đã nhập mã giới thiệu trước đó.',
+      success: 'Mã giới thiệu đã được xác nhận thành công!',
+      errorInvalid: 'Mã giới thiệu không hợp lệ.',
+      errorOwn: 'Bạn không thể sử dụng mã của chính mình.',
+      errorAlready: 'Bạn đã sử dụng mã giới thiệu rồi.',
+      errorGeneric: 'Đã có lỗi xảy ra, vui lòng thử lại.'
     }
   }
 };
@@ -255,6 +313,17 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   const [sepayPayment, setSepayPayment] = useState<any>(null);
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
   const [generatedReceipt, setGeneratedReceipt] = useState<any>(null);
+
+  // --- Parrainage ---
+  const [isReferralOpen, setIsReferralOpen] = useState(false);
+  const [referralCode, setReferralCode] = useState('');
+  const [referralCount, setReferralCount] = useState(0);
+  const [hasUsedReferralCode, setHasUsedReferralCode] = useState(false);
+  const [referralInput, setReferralInput] = useState('');
+  const [referralSubmitLoading, setReferralSubmitLoading] = useState(false);
+  const [referralSubmitError, setReferralSubmitError] = useState('');
+  const [referralSubmitSuccess, setReferralSubmitSuccess] = useState('');
+  const [referralCopied, setReferralCopied] = useState(false);
 
   const [zaloPosition, setZaloPosition] = useState(getInitialZaloPosition);
   const [zaloDragOffset, setZaloDragOffset] = useState({ x: 0, y: 0 });
@@ -380,6 +449,7 @@ const { coins, refreshWallet, setCoins } = useWallet();
   const tPln = translations[lang].plans || translations.en.plans;
   const tChk = translations[lang].checkout || translations.en.checkout;
   const tWallet = translations[lang].wallet || translations.en.wallet;
+  const tRef = translations[lang].referral || translations.en.referral;
 
   const privacyLabel =
     lang === 'fr' ? 'Politique de confidentialité' : lang === 'vi' ? 'Chính sách quyền riêng tư' : 'Privacy Policy';
@@ -459,7 +529,9 @@ const { coins, refreshWallet, setCoins } = useWallet();
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('plan_type, premium_duration_months, premium_expires_at, plan_package, max_invitations')
+        .select(
+          'plan_type, premium_duration_months, premium_expires_at, plan_package, max_invitations, referral_code, referral_count, referred_by'
+        )
         .eq('id', user.id)
         .maybeSingle();
 
@@ -469,6 +541,10 @@ const { coins, refreshWallet, setCoins } = useWallet();
         const isPremiumActive = profile.plan_type === 'PREMIUM' && expiresAt && expiresAt > new Date();
         const nextPlan = (profile.plan_package || 'free') as PlanPackage;
         setPlanPackage(nextPlan);
+
+        setReferralCode(profile.referral_code || '');
+        setReferralCount(profile.referral_count || 0);
+        setHasUsedReferralCode(!!profile.referred_by);
 
         if (isPremiumActive) {
           setAccountStatus('PREMIUM');
@@ -731,6 +807,48 @@ const { coins, refreshWallet, setCoins } = useWallet();
     }
   };
 
+  // --- Parrainage : copier le code ---
+  const handleCopyReferralCode = () => {
+    if (!referralCode) return;
+    navigator.clipboard.writeText(referralCode);
+    setReferralCopied(true);
+    window.setTimeout(() => setReferralCopied(false), 2000);
+  };
+
+  // --- Parrainage : renseigner le code d'un parrain ---
+  const handleSubmitReferralCode = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!referralInput.trim() || !user) return;
+
+    setReferralSubmitLoading(true);
+    setReferralSubmitError('');
+    setReferralSubmitSuccess('');
+
+    try {
+      const { data, error } = await supabase.rpc('apply_referral_code', {
+        p_code: referralInput.trim()
+      });
+
+      if (error) throw new Error(error.message);
+
+      if (!data?.ok) {
+        const errorCode = data?.error;
+        if (errorCode === 'invalid_code') throw new Error(tRef.errorInvalid);
+        if (errorCode === 'own_code') throw new Error(tRef.errorOwn);
+        if (errorCode === 'already_referred') throw new Error(tRef.errorAlready);
+        throw new Error(tRef.errorGeneric);
+      }
+
+      setReferralInput('');
+      setHasUsedReferralCode(true);
+      setReferralSubmitSuccess(tRef.success);
+    } catch (err: any) {
+      setReferralSubmitError(err.message || tRef.errorGeneric);
+    } finally {
+      setReferralSubmitLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (
       !isAccountOpen ||
@@ -750,6 +868,7 @@ const { coins, refreshWallet, setCoins } = useWallet();
   const usedInvitations = invitations.length;
   const remainingInvitations = Math.max(maxInvitations - usedInvitations, 0);
   const hasReachedInvitationLimit = usedInvitations >= maxInvitations;
+  const referralProgress = referralCount % REFERRALS_NEEDED_FOR_REWARD;
 
   const handleCreateInvitationClick = () => {
     if (hasReachedInvitationLimit) {
@@ -1101,6 +1220,124 @@ const { coins, refreshWallet, setCoins } = useWallet();
                           </p>
                         </div>
                       </div>
+
+                      {/* --- Bloc Parrainage --- */}
+                      <div className="border border-gray-100 rounded-2xl overflow-hidden">
+                        <button
+                          type="button"
+                          onClick={() => setIsReferralOpen((prev) => !prev)}
+                          className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 transition-colors"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
+                              <Gift className="w-5 h-5 text-amber-500" />
+                            </div>
+                            <div className="text-left">
+                              <p className="text-xs font-black text-gray-900 uppercase tracking-wider">{tRef.title}</p>
+                              <p className="text-[10px] text-gray-400 font-bold">{tRef.rewardInfo}</p>
+                            </div>
+                          </div>
+                          <ChevronDown
+                            className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${isReferralOpen ? 'rotate-180' : ''}`}
+                          />
+                        </button>
+
+                        <AnimatePresence initial={false}>
+                          {isReferralOpen && (
+                            <motion.div
+                              initial={{ height: 0, opacity: 0 }}
+                              animate={{ height: 'auto', opacity: 1 }}
+                              exit={{ height: 0, opacity: 0 }}
+                              transition={{ duration: 0.25 }}
+                              className="overflow-hidden"
+                            >
+                              <div className="p-5 space-y-5 border-t border-gray-100">
+                                <div>
+                                  <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2">
+                                    {tRef.yourCode}
+                                  </p>
+                                  <div className="flex items-center gap-2">
+                                    <div className="flex-1 h-11 bg-gray-50 border border-gray-100 rounded-xl flex items-center px-4 text-sm font-black tracking-widest text-gray-800">
+                                      {referralCode || '...'}
+                                    </div>
+                                    <button
+                                      type="button"
+                                      onClick={handleCopyReferralCode}
+                                      className="h-11 px-4 bg-gray-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-gray-800 transition-all shrink-0"
+                                    >
+                                      <Copy className="w-3.5 h-3.5" />
+                                      {referralCopied ? tRef.copied : tRef.copy}
+                                    </button>
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <div className="flex items-center justify-between mb-2">
+                                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                                      {tRef.progressLabel}
+                                    </p>
+                                    <p className="text-[10px] font-black text-amber-600">
+                                      {referralProgress}/{REFERRALS_NEEDED_FOR_REWARD}
+                                    </p>
+                                  </div>
+                                  <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                                    <div
+                                      className="h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-full transition-all duration-500"
+                                      style={{ width: `${(referralProgress / REFERRALS_NEEDED_FOR_REWARD) * 100}%` }}
+                                    />
+                                  </div>
+                                  {referralCount > 0 && (
+                                    <p className="text-[9px] text-gray-400 font-bold mt-1.5">
+                                      {referralCount} {tRef.totalReferrals}
+                                    </p>
+                                  )}
+                                </div>
+
+                                <div className="border-t border-gray-100 pt-4">
+                                  {hasUsedReferralCode ? (
+                                    <p className="text-[11px] text-gray-400 font-bold text-center">
+                                      {tRef.alreadyUsed}
+                                    </p>
+                                  ) : (
+                                    <form onSubmit={handleSubmitReferralCode} className="space-y-2">
+                                      <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                                        {tRef.inputLabel}
+                                      </p>
+                                      <div className="flex items-center gap-2">
+                                        <input
+                                          type="text"
+                                          value={referralInput}
+                                          onChange={(e) => setReferralInput(e.target.value)}
+                                          placeholder={tRef.inputPlaceholder}
+                                          className="flex-1 bg-gray-50 border-none h-11 px-4 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-amber-300 outline-none transition-all"
+                                        />
+                                        <button
+                                          type="submit"
+                                          disabled={referralSubmitLoading || !referralInput.trim()}
+                                          className="h-11 px-4 bg-amber-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-amber-600 transition-all disabled:opacity-40 flex items-center justify-center shrink-0"
+                                        >
+                                          {referralSubmitLoading ? (
+                                            <Loader2 className="w-4 h-4 animate-spin" />
+                                          ) : (
+                                            tRef.submit
+                                          )}
+                                        </button>
+                                      </div>
+                                      {referralSubmitError && (
+                                        <p className="text-[10px] text-rose-500 font-bold">{referralSubmitError}</p>
+                                      )}
+                                      {referralSubmitSuccess && (
+                                        <p className="text-[10px] text-emerald-500 font-bold">{referralSubmitSuccess}</p>
+                                      )}
+                                    </form>
+                                  )}
+                                </div>
+                              </div>
+                            </motion.div>
+                          )}
+                        </AnimatePresence>
+                      </div>
+                      {/* --- Fin bloc Parrainage --- */}
 
                       {canUseExternalPayments && (
                         <div className="text-center">
