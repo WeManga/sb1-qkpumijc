@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect, useRef, type CSSProperties, type FormEvent, type MouseEvent } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Calendar, MapPin, CheckCircle2, Film, Volume2, VolumeX } from 'lucide-react';
+import { X, Calendar, MapPin, CheckCircle2, Film, Volume2, VolumeX, RotateCcw } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { translations, Language } from '../../lib/i18n';
 import {
@@ -42,21 +42,35 @@ const pick = (obj: any, keys: string[], fallback: any = undefined) => {
 
 const getAlbumTitle = (lang: Language) => {
   if (lang === 'en') return 'Memory album';
-  if (lang === 'vi') return 'Album ká»· niá»‡m';
+  if (lang === 'vi') return 'Album kỷ niệm';
   return 'Album souvenir';
 };
 
 const getKeepsakeText = (lang: Language) => {
   if (lang === 'en') return 'A memory to keep';
-  if (lang === 'vi') return 'Má»™t ká»· niá»‡m Ä‘á»ƒ giá»¯';
-  return 'Un souvenir Ã  garder';
+  if (lang === 'vi') return 'Một kỷ niệm để giữ';
+  return 'Un souvenir à garder';
 };
 
 const getDetailsLabel = (lang: Language) => {
   if (lang === 'en') return 'See details';
-  if (lang === 'vi') return 'Xem chi tiáº¿t';
-  return 'Voir les dÃ©tails';
+  if (lang === 'vi') return 'Xem chi tiết';
+  return 'Voir les détails';
 };
+
+const getReplayLabel = (lang: Language) => {
+  if (lang === 'en') return 'Replay opening';
+  if (lang === 'vi') return 'Xem lại mở thiệp';
+  return "Revoir l'ouverture";
+};
+
+// Petit helper de reveal au scroll : fondu + léger glissement, une seule fois.
+const revealProps = (delay = 0) => ({
+  initial: { opacity: 0, y: 26 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, amount: 0.35 },
+  transition: { duration: 0.75, ease: [0.16, 1, 0.3, 1], delay }
+});
 
 const EmojiRain = ({ emojis }: { emojis: string[] }) => {
   const particles = useMemo(() => {
@@ -156,6 +170,26 @@ const ContentOrnaments = () => {
     </div>
   );
 };
+
+// Barre lumineuse qui balaie l'écran une seule fois à l'ouverture du contenu complet.
+// (contrairement à la version "sweep" complète, il n'y a ici aucun halo/lueur autour de l'écran)
+const RevealSweepBar = () => (
+  <div className="pointer-events-none absolute inset-0 z-[130] overflow-hidden rounded-[3.5rem]">
+    <motion.div
+      className="absolute top-0 bottom-0"
+      style={{
+        width: '55%',
+        background:
+          'linear-gradient(115deg, transparent 0%, rgba(255,255,255,0) 28%, rgba(255,255,255,0.9) 48%, rgba(251,191,36,0.7) 57%, rgba(255,255,255,0) 76%, transparent 100%)',
+        filter: 'blur(1.5px)',
+        mixBlendMode: 'screen'
+      }}
+      initial={{ left: '120%' }}
+      animate={{ left: '-70%' }}
+      transition={{ duration: 0.95, ease: [0.16, 1, 0.3, 1], delay: 0.05 }}
+    />
+  </div>
+);
 
 const AutonomousDecor = ({ theme, isPremiumDecor }: { theme: string; isPremiumDecor: boolean }) => {
   const android = isAndroidDevice();
@@ -309,7 +343,7 @@ const PremiumStorySection = ({ isPremium, title, text, imageUrl, imageKey, invit
   if (!isPremium || (!title && !text && !imageUrl)) return null;
 
   return (
-    <section className="relative">
+    <motion.section {...revealProps()} className="relative">
       <div className="flex flex-col items-center text-center gap-5">
         {imageUrl && (
           <div className="w-full overflow-hidden rounded-[2.25rem] border-4 border-white shadow-2xl bg-white">
@@ -318,7 +352,11 @@ const PremiumStorySection = ({ isPremium, title, text, imageUrl, imageKey, invit
         )}
 
         <div className="relative w-full bg-white/55 backdrop-blur-sm border border-amber-100 rounded-[2rem] p-6 shadow-lg">
-          <div className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-amber-300/20 blur-md" />
+          <motion.div
+            className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-amber-300/20 blur-md"
+            animate={{ opacity: [0.5, 1, 0.5], scale: [1, 1.15, 1] }}
+            transition={{ duration: 3.4, repeat: Infinity, ease: 'easeInOut' }}
+          />
 
           {title && (
             <h3 className="text-2xl font-semibold mb-3 leading-tight text-center" style={{ fontFamily: fontStyle }}>
@@ -333,7 +371,7 @@ const PremiumStorySection = ({ isPremium, title, text, imageUrl, imageKey, invit
           )}
         </div>
       </div>
-    </section>
+    </motion.section>
   );
 };
 
@@ -341,7 +379,10 @@ const PremiumSingleAlbumPhoto = ({ photo, lang, invitation }: any) => {
   if (!photo?.url) return null;
 
   return (
-    <section className="relative overflow-hidden rounded-[2.75rem] border border-emerald-100 bg-white/80 px-5 py-8 shadow-[0_24px_70px_rgba(16,185,129,0.13)]">
+    <motion.section
+      {...revealProps()}
+      className="relative overflow-hidden rounded-[2.75rem] border border-emerald-100 bg-white/80 px-5 py-8 shadow-[0_24px_70px_rgba(16,185,129,0.13)]"
+    >
       <div
         className="absolute inset-0 opacity-35 bg-cover bg-center pointer-events-none"
         style={{ backgroundImage: `url("${LEAF_FRAME_URL}")` }}
@@ -366,7 +407,7 @@ const PremiumSingleAlbumPhoto = ({ photo, lang, invitation }: any) => {
           </div>
         </div>
       </div>
-    </section>
+    </motion.section>
   );
 };
 
@@ -396,7 +437,10 @@ const PremiumPhotoCarousel = ({ photos, lang, invitation }: any) => {
   };
 
   return (
-    <section className="relative overflow-hidden rounded-[2.75rem] border border-emerald-100 bg-white/80 px-4 py-8 shadow-[0_24px_70px_rgba(16,185,129,0.13)]">
+    <motion.section
+      {...revealProps()}
+      className="relative overflow-hidden rounded-[2.75rem] border border-emerald-100 bg-white/80 px-4 py-8 shadow-[0_24px_70px_rgba(16,185,129,0.13)]"
+    >
       <div
         className="absolute inset-0 opacity-35 bg-cover bg-center pointer-events-none"
         style={{ backgroundImage: `url("${LEAF_FRAME_URL}")` }}
@@ -476,7 +520,7 @@ const PremiumPhotoCarousel = ({ photos, lang, invitation }: any) => {
           ))}
         </div>
       </div>
-    </section>
+    </motion.section>
   );
 };
 
@@ -490,6 +534,7 @@ export function GuestView({ invitation }: any) {
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isOpeningFading, setIsOpeningFading] = useState(false);
   const [isVideoReady, setIsVideoReady] = useState(false);
+  const [openingReplayKey, setOpeningReplayKey] = useState(0);
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const openingTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -594,7 +639,7 @@ export function GuestView({ invitation }: any) {
 
   useEffect(() => {
     setIsVideoReady(false);
-  }, [openingVideoUrl]);
+  }, [openingVideoUrl, openingReplayKey]);
 
   useEffect(() => {
     setGuests((currentGuests) =>
@@ -647,6 +692,22 @@ export function GuestView({ invitation }: any) {
     openingTimersRef.current.push(revealTimer);
   };
 
+  const handleReplayOpening = () => {
+    openingTimersRef.current.forEach(clearTimeout);
+    openingTimersRef.current = [];
+
+    if (audioRef.current) {
+      audioRef.current.pause();
+      audioRef.current.currentTime = 0;
+    }
+
+    setView('envelope');
+    setIsOpened(false);
+    setIsOpeningFading(false);
+    setIsVideoReady(false);
+    setOpeningReplayKey((current) => current + 1);
+  };
+
   const toggleMute = (e: MouseEvent) => {
     e.stopPropagation();
 
@@ -697,6 +758,7 @@ export function GuestView({ invitation }: any) {
 
   const OpeningVideoLayer = () => (
     <motion.div
+      key={`opening-layer-${openingReplayKey}`}
       initial={false}
       animate={{ opacity: isOpeningFading ? 0 : 1 }}
       transition={{ duration: OPENING_FADE_DURATION, ease: 'easeInOut' }}
@@ -713,7 +775,7 @@ export function GuestView({ invitation }: any) {
       />
 
       <motion.video
-        key={openingVideoUrl}
+        key={`${openingVideoUrl}-${openingReplayKey}`}
         src={openingVideoUrl}
         poster={openingPosterUrl}
         autoPlay
@@ -778,6 +840,17 @@ export function GuestView({ invitation }: any) {
               </button>
             )}
 
+            {isOpened && isVideoOpening && (
+              <button
+                type="button"
+                onClick={handleReplayOpening}
+                className="absolute top-6 left-6 z-[70] h-10 px-3 bg-white/90 rounded-full flex items-center gap-1.5 justify-center shadow-md text-[10px] font-black uppercase tracking-wider text-gray-700"
+              >
+                <RotateCcw size={14} />
+                <span>{getReplayLabel(lang)}</span>
+              </button>
+            )}
+
             <motion.div
               initial={{ y: 0, opacity: 0 }}
               animate={isOpened ? { y: openingType === 'filmstrip' ? -160 : -140, opacity: 1 } : { y: 0, opacity: 0 }}
@@ -785,7 +858,7 @@ export function GuestView({ invitation }: any) {
               className="absolute z-20"
             >
               {openingType === 'filmstrip' ? (
-                <div className="relative w-44 h-72 bg-[#1a1a1a] rounded-xl shadow-2xl rotate-[-2deg] overflow-hidden p-2 border-y-4 border-[#1a1a1a]">
+                <div className="relative w-44 h-72 bg-[#1a1a1a] rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.7),_inset_0_0_30px_rgba(255,255,255,0.08)] rotate-[-2deg] overflow-hidden p-2 border-y-4 border-[#1a1a1a]">
                   <div className="absolute inset-y-0 left-1.5 w-1.5 border-l-2 border-dashed border-white/20 z-10" />
                   <div className="absolute inset-y-0 right-1.5 w-1.5 border-r-2 border-dashed border-white/20 z-10" />
 
@@ -848,14 +921,31 @@ export function GuestView({ invitation }: any) {
               )}
             </motion.div>
 
+            {/* Carte "Voir les détails" avec contour doré animé (sans effet de lumière/lueur) */}
             <motion.div
               initial={{ scale: 0.8, y: 0, opacity: 0 }}
               animate={isOpened ? { scale: 1, y: 80, opacity: 1 } : { y: 0, opacity: 0 }}
               transition={{ type: 'spring', damping: 20, delay: 0.05 }}
               onClick={() => isOpened && setView('content')}
-              className={`z-30 w-[310px] h-[370px] rounded-[3rem] shadow-2xl p-10 flex flex-col items-center justify-between border border-gray-100 cursor-pointer paper-container ${getPaperClass()}`}
+              className={`relative z-30 w-[310px] h-[370px] rounded-[3rem] shadow-2xl p-10 flex flex-col items-center justify-between border-[1.5px] border-amber-300/45 cursor-pointer paper-container ${getPaperClass()}`}
               style={{ '--dynamic-color': cardPaperColor } as CSSProperties}
             >
+              {/* Fin liseré doré tournant, très discret, pour un effet "cadre précieux" */}
+              <motion.div
+                className="absolute -inset-[3px] rounded-[3.2rem] pointer-events-none opacity-60"
+                style={{
+                  background:
+                    'conic-gradient(from 0deg, rgba(251,191,36,0) 0deg, rgba(251,191,36,0.9) 40deg, rgba(255,255,255,0.9) 70deg, rgba(251,191,36,0.9) 100deg, rgba(251,191,36,0) 160deg, rgba(251,191,36,0) 360deg)',
+                  WebkitMask:
+                    'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                  WebkitMaskComposite: 'xor',
+                  maskComposite: 'exclude',
+                  padding: '2px'
+                }}
+                animate={{ rotate: 360 }}
+                transition={{ duration: 9, repeat: Infinity, ease: 'linear' }}
+              />
+
               <div className="text-center pt-14 w-full">
                 <h2 className="text-2xl font-semibold mb-4 break-words leading-tight" style={{ fontFamily: fontStyle }}>
                   {invitation?.title || tBuilder.title_placeholder}
@@ -913,7 +1003,7 @@ export function GuestView({ invitation }: any) {
             animate={{ opacity: 1, rotateY: 0, scale: 1, x: 0 }}
             exit={{ opacity: 0, rotateY: 18, scale: 0.97, x: -22 }}
             transition={{ duration: CONTENT_TRANSITION_DURATION, ease: [0.16, 1, 0.3, 1] }}
-            className={`w-full h-full z-[100] flex flex-col overflow-y-auto paper-container ${getPaperClass()}`}
+            className={`relative w-full h-full z-[100] flex flex-col overflow-y-auto paper-container ${getPaperClass()}`}
             style={
               {
                 '--dynamic-color': cardPaperColor,
@@ -923,6 +1013,7 @@ export function GuestView({ invitation }: any) {
             }
           >
             <ContentOrnaments />
+            <RevealSweepBar />
 
             <div className="h-[32%] relative overflow-hidden shrink-0">
               {mainPhotoUrl && (
@@ -939,17 +1030,42 @@ export function GuestView({ invitation }: any) {
               <button onClick={() => setView('envelope')} className="absolute top-6 left-6 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-md">
                 <X size={20} />
               </button>
+
+              {isVideoOpening && (
+                <button
+                  type="button"
+                  onClick={handleReplayOpening}
+                  className="absolute top-6 right-6 h-10 px-3 bg-white/90 rounded-full flex items-center gap-1.5 justify-center shadow-md text-[10px] font-black uppercase tracking-wider text-gray-700"
+                >
+                  <RotateCcw size={14} />
+                  <span>{getReplayLabel(lang)}</span>
+                </button>
+              )}
             </div>
 
             <div className="relative flex-1 p-8 space-y-14">
-              <div className="text-center">
+              <motion.div {...revealProps()} className="text-center">
                 <h2 className="text-3xl font-semibold mb-4 leading-tight" style={{ fontFamily: fontStyle }}>
                   {invitation?.host_names || tBuilder.hosts_placeholder}
                 </h2>
 
+                <motion.div
+                  className="w-10 h-[1.5px] bg-amber-400 mx-auto mb-5 origin-center"
+                  initial={{ scaleX: 0 }}
+                  whileInView={{ scaleX: 1 }}
+                  viewport={{ once: true, amount: 0.6 }}
+                  transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
+                />
+
                 <div className="flex flex-col items-center gap-2 opacity-70 font-medium text-[12px] text-gray-700">
                   <div className="flex items-center gap-2">
-                    <Calendar size={14} className="text-amber-500" />
+                    <motion.span
+                      animate={{ y: [0, -3, 0] }}
+                      transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut' }}
+                      className="flex"
+                    >
+                      <Calendar size={14} className="text-amber-500" />
+                    </motion.span>
                     {invitation.event_date
                       ? new Date(invitation.event_date).toLocaleDateString(lang === 'vi' ? 'vi-VN' : lang === 'en' ? 'en-US' : 'fr-FR', {
                           day: 'numeric',
@@ -960,7 +1076,13 @@ export function GuestView({ invitation }: any) {
                   </div>
 
                   <div className="flex items-center gap-2 text-center">
-                    <MapPin size={14} className="text-amber-500 shrink-0" />
+                    <motion.span
+                      animate={{ y: [0, -3, 0] }}
+                      transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+                      className="flex shrink-0"
+                    >
+                      <MapPin size={14} className="text-amber-500 shrink-0" />
+                    </motion.span>
                     {invitation.event_address || tBuilder.address_placeholder}
                   </div>
                 </div>
@@ -973,30 +1095,58 @@ export function GuestView({ invitation }: any) {
                     <MapPin size={18} className="text-amber-600" />
                   </button>
                 </div>
-              </div>
+              </motion.div>
 
               {invitation.description && (
-                <div className="text-center italic opacity-85" style={{ fontFamily: fontStyle }}>
+                <motion.div {...revealProps(0.05)} className="text-center italic opacity-85" style={{ fontFamily: fontStyle }}>
                   <p className="text-[14px] leading-relaxed px-4 whitespace-pre-wrap">{invitation.description}</p>
-                  <div className="w-12 h-[1px] bg-amber-200 mx-auto mt-6" />
-                </div>
+                  <motion.div
+                    className="w-12 h-[1px] bg-amber-200 mx-auto mt-6 origin-center"
+                    initial={{ scaleX: 0 }}
+                    whileInView={{ scaleX: 1 }}
+                    viewport={{ once: true, amount: 0.6 }}
+                    transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+                  />
+                </motion.div>
               )}
 
               <div className="space-y-12">
-                <h3 className="text-[14px] font-semibold text-amber-600 text-center">
+                <motion.h3 {...revealProps()} className="text-[14px] font-semibold text-amber-600 text-center relative inline-block w-full">
                   {tBuilder.program_title}
-                </h3>
+                  <motion.span
+                    className="block h-[1.5px] bg-amber-400 mx-auto mt-2 origin-center"
+                    style={{ width: '32px' }}
+                    initial={{ scaleX: 0 }}
+                    whileInView={{ scaleX: 1 }}
+                    viewport={{ once: true, amount: 0.6 }}
+                    transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
+                  />
+                </motion.h3>
 
                 <div className="relative flex flex-col items-center">
-                  <div className="absolute top-0 w-[2px] h-full bg-gradient-to-b from-amber-100 via-amber-500 to-amber-100 origin-top shadow-[0_0_16px_rgba(245,158,11,0.55)]" />
+                  <motion.div
+                    className="absolute top-0 w-[2px] h-full bg-gradient-to-b from-amber-100 via-amber-500 to-amber-100 origin-top"
+                    animate={{
+                      boxShadow: [
+                        '0 0 10px rgba(245,158,11,0.35)',
+                        '0 0 20px rgba(245,158,11,0.65)',
+                        '0 0 10px rgba(245,158,11,0.35)'
+                      ]
+                    }}
+                    transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                  />
 
                   <div className="relative space-y-12 w-full">
                     {(invitation.event_program || []).map((step: any, i: number) => {
                       const isEven = i % 2 === 0;
 
                       return (
-                        <div
+                        <motion.div
                           key={i}
+                          initial={{ opacity: 0, x: isEven ? -22 : 22 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: true, amount: 0.4 }}
+                          transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1], delay: Math.min(i * 0.1, 0.4) }}
                           className={`flex items-center w-full relative ${isEven ? 'flex-row' : 'flex-row-reverse'}`}
                         >
                           <div className="w-[45%]">
@@ -1035,7 +1185,7 @@ export function GuestView({ invitation }: any) {
                           </div>
 
                           <div className="w-[45%]" />
-                        </div>
+                        </motion.div>
                       );
                     })}
                   </div>
@@ -1048,14 +1198,20 @@ export function GuestView({ invitation }: any) {
               {isPremium && premiumGalleryPhotos.length >= 2 && <PremiumPhotoCarousel photos={premiumGalleryPhotos.slice(0, 6)} lang={lang} invitation={invitation} />}
 
               {isPremium && endPhotoUrl && (
-                <div className="px-2">
+                <motion.div {...revealProps()} className="px-2">
                   <div className="text-center mb-5">
                     <p className="text-[13px] font-semibold text-amber-600">
                       {getKeepsakeText(lang)}
                     </p>
                   </div>
 
-                  <div className="relative rounded-[3rem] overflow-hidden shadow-2xl border-4 border-white bg-white">
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true, amount: 0.3 }}
+                    transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                    className="relative rounded-[3rem] overflow-hidden shadow-2xl border-4 border-white bg-white"
+                  >
                     <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-tr from-black/10 via-transparent to-white/20" />
                     <img
                       src={endPhotoUrl}
@@ -1066,15 +1222,22 @@ export function GuestView({ invitation }: any) {
                       }}
                       alt=""
                     />
-                  </div>
-                </div>
+                  </motion.div>
+                </motion.div>
               )}
 
               <PremiumStorySection isPremium={isPremium} title={premiumFinalTitle} text={premiumFinalText} imageUrl={premiumFinalPhotoUrl} imageKey="premium_final_photo_url" invitation={invitation} fontStyle={fontStyle} />
 
-              <div className="relative bg-gray-900 rounded-[3rem] p-8 shadow-2xl border border-amber-300/20 overflow-hidden">
+              <motion.div
+                {...revealProps()}
+                className="relative bg-gray-900 rounded-[3rem] p-8 shadow-2xl border border-amber-300/20 overflow-hidden"
+              >
                 <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.22),transparent_42%)]" />
-                <div className="absolute -top-10 -right-10 w-32 h-32 bg-amber-400/10 rounded-full blur-3xl" />
+                <motion.div
+                  className="absolute -top-10 -right-10 w-32 h-32 bg-amber-400/10 rounded-full blur-3xl"
+                  animate={{ opacity: [0.5, 1, 0.5], scale: [1, 1.15, 1] }}
+                  transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+                />
 
                 {!isSubmitted ? (
                   <form onSubmit={handleRSVP} className="relative z-10 space-y-6">
@@ -1128,7 +1291,7 @@ export function GuestView({ invitation }: any) {
                     <p className="text-white/45 text-[12px] font-medium">{t.success_msg}</p>
                   </motion.div>
                 )}
-              </div>
+              </motion.div>
             </div>
           </motion.div>
         )}
