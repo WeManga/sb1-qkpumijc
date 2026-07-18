@@ -29,8 +29,7 @@ const THEME_EMOJIS: Record<string, string[]> = {
 
 const OPENING_FADE_DURATION = 0.85;
 const OPENING_REVEAL_DELAY = 420;
-const CONTENT_TRANSITION_DURATION = 1.05;
-const CONTENT_SWEEP_DURATION = 1.1;
+const CONTENT_TRANSITION_DURATION = 0.95;
 const LEAF_FRAME_URL =
   'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/feuille%20carousselle.png';
 
@@ -103,17 +102,17 @@ const EmojiRain = ({ emojis }: { emojis: string[] }) => {
     if (prefersReducedMotion()) return [];
 
     const android = isAndroidDevice();
-    const count = android ? 12 : 26;
+    const count = android ? 12 : 24;
     const safeEmojis = emojis.length > 0 ? emojis : THEME_EMOJIS.default;
 
     return Array.from({ length: count }).map((_, i) => ({
       id: i,
       emoji: safeEmojis[i % safeEmojis.length],
-      left: `${4 + i * (android ? 7.5 : 3.8) + Math.random() * 2.4}%`,
-      delay: Math.random() * 1.4,
-      duration: android ? 3.4 + Math.random() * 1.4 : 2.5 + Math.random() * 1.2,
+      left: `${4 + i * (android ? 7.5 : 4) + Math.random() * 2.4}%`,
+      delay: Math.random() * 1.5,
+      duration: android ? 3.6 + Math.random() * 1.4 : 2.8 + Math.random() * 1.2,
       size: android ? 18 + Math.random() * 7 : 22 + Math.random() * 10,
-      drift: -18 + Math.random() * 36,
+      drift: android ? -16 + Math.random() * 32 : -24 + Math.random() * 48,
       rotate: -18 + Math.random() * 36,
       travelY: android ? 680 : 760
     }));
@@ -122,11 +121,11 @@ const EmojiRain = ({ emojis }: { emojis: string[] }) => {
   if (particles.length === 0) return null;
 
   return (
-    <div className="absolute inset-0 z-[14] pointer-events-none overflow-hidden">
+    <div className="absolute inset-0 z-[60] pointer-events-none overflow-hidden">
       {particles.map((p) => (
         <motion.span
           key={p.id}
-          initial={{ y: -80, x: 0, opacity: 0, rotate: p.rotate, scale: 0.8 }}
+          initial={{ y: -90, x: 0, opacity: 0, rotate: p.rotate, scale: 0.8 }}
           animate={{
             y: p.travelY,
             x: p.drift,
@@ -327,21 +326,10 @@ const ContentOrnaments = () => {
   );
 };
 
-// Effet "haut de gamme" joué une seule fois à l'ouverture du contenu complet :
-// un voile doré qui pulse + un rayon lumineux diagonal qui balaie l'écran
-// vers la gauche, dans le même sens que le glissement de la carte.
-const PremiumRevealSweep = () => (
+// Barre lumineuse qui balaie l'écran une seule fois à l'ouverture du contenu complet.
+// (identique à GuestView : pas de halo/lueur autour de l'écran)
+const RevealSweepBar = () => (
   <div className="pointer-events-none absolute inset-0 z-[130] overflow-hidden rounded-[3.5rem]">
-    <motion.div
-      className="absolute inset-0"
-      style={{
-        background: 'radial-gradient(circle at 52% 42%, rgba(251,191,36,0.32), transparent 62%)'
-      }}
-      initial={{ opacity: 0.95 }}
-      animate={{ opacity: 0 }}
-      transition={{ duration: CONTENT_SWEEP_DURATION, ease: 'easeOut' }}
-    />
-
     <motion.div
       className="absolute top-0 bottom-0"
       style={{
@@ -354,19 +342,6 @@ const PremiumRevealSweep = () => (
       initial={{ left: '120%' }}
       animate={{ left: '-70%' }}
       transition={{ duration: 0.95, ease: [0.16, 1, 0.3, 1], delay: 0.05 }}
-    />
-
-    <motion.div
-      className="absolute inset-0 rounded-[3.5rem]"
-      initial={{ boxShadow: 'inset 0 0 0 rgba(251,191,36,0)' }}
-      animate={{
-        boxShadow: [
-          'inset 0 0 0 rgba(251,191,36,0)',
-          'inset 0 0 70px 14px rgba(251,191,36,0.4)',
-          'inset 0 0 0 rgba(251,191,36,0)'
-        ]
-      }}
-      transition={{ duration: CONTENT_SWEEP_DURATION, ease: 'easeInOut' }}
     />
   </div>
 );
@@ -934,19 +909,10 @@ export function InvitationPreview({ invitation }: any) {
               )}
             </motion.div>
 
-            {/* Carte "Voir les détails" avec contour doré animé */}
+            {/* Carte "Voir les détails" avec contour doré animé (sans effet de lumière/lueur) */}
             <motion.div
               initial={{ scale: 0.8, y: 0, opacity: 0 }}
-              animate={
-                isOpened
-                  ? {
-                      scale: 1,
-                      y: 80,
-                      opacity: 1,
-                      boxShadow: '0 0 26px 4px rgba(251,191,36,0.4)'
-                    }
-                  : { y: 0, opacity: 0 }
-              }
+              animate={isOpened ? { scale: 1, y: 80, opacity: 1 } : { y: 0, opacity: 0 }}
               transition={{ type: 'spring', damping: 20, delay: 0.05 }}
               onClick={handleOpenContent}
               className={`relative z-30 w-[310px] h-[370px] rounded-[3rem] shadow-2xl p-10 flex flex-col items-center justify-between border-[1.5px] border-amber-300/45 cursor-pointer paper-container ${getPaperClass(effectivePaperType)}`}
@@ -1021,9 +987,9 @@ export function InvitationPreview({ invitation }: any) {
         ) : (
           <motion.div
             key="content"
-            initial={{ opacity: 0, rotateY: -28, scale: 0.9, x: 46, filter: 'brightness(1.4) saturate(1.15)' }}
-            animate={{ opacity: 1, rotateY: 0, scale: 1, x: 0, filter: 'brightness(1) saturate(1)' }}
-            exit={{ opacity: 0, rotateY: 20, scale: 0.96, x: -26, filter: 'brightness(1.1) saturate(1)' }}
+            initial={{ opacity: 0, rotateY: -24, scale: 0.94, x: 38 }}
+            animate={{ opacity: 1, rotateY: 0, scale: 1, x: 0 }}
+            exit={{ opacity: 0, rotateY: 18, scale: 0.97, x: -22 }}
             transition={{ duration: CONTENT_TRANSITION_DURATION, ease: [0.16, 1, 0.3, 1] }}
             className={`relative w-full h-full z-[100] flex flex-col overflow-y-auto paper-container ${getPaperClass(effectivePaperType)}`}
             style={
@@ -1035,25 +1001,16 @@ export function InvitationPreview({ invitation }: any) {
             }
           >
             <ContentOrnaments />
-            <PremiumRevealSweep />
+            <RevealSweepBar />
 
             <div className="h-[32%] relative overflow-hidden shrink-0">
               {mainPhotoUrl && (
-                <div className="absolute inset-0 overflow-hidden">
-                  <motion.div
-                    className="w-full h-full"
-                    initial={{ scale: 1 }}
-                    animate={{ scale: 1.07 }}
-                    transition={{ duration: 16, repeat: Infinity, repeatType: 'mirror', ease: 'easeInOut' }}
-                  >
-                    <img
-                      src={mainPhotoUrl}
-                      className="w-full h-full object-cover"
-                      style={{ transform: `translate(${mainPhotoPosX}px, ${mainPhotoPosY}px) scale(${mainPhotoScale})` }}
-                      alt=""
-                    />
-                  </motion.div>
-                </div>
+                <img
+                  src={mainPhotoUrl}
+                  className="w-full h-full object-cover"
+                  style={{ transform: `translate(${mainPhotoPosX}px, ${mainPhotoPosY}px) scale(${mainPhotoScale})` }}
+                  alt=""
+                />
               )}
 
               <div className="absolute inset-0 bg-gradient-to-t from-white/85 via-white/20 to-transparent pointer-events-none" />
