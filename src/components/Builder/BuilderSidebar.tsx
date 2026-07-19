@@ -35,6 +35,18 @@ const PREMIUM_PALETTES = [
   { id: 'chrome_blue', name: 'Chrome Blue', gradient: PREMIUM_COLORS.chrome_blue }
 ];
 
+// Palette dédiée au fond de l'écran d'ouverture en Mode personnalisé (Business).
+// Le blanc reste la valeur par défaut, mais l'utilisateur peut choisir une autre teinte.
+const CUSTOM_BRANDING_COLORS = [
+  '#FFFFFF',
+  '#F5F5F5',
+  '#111827',
+  '#FEE2E2',
+  '#DCFCE7',
+  '#E0F2FE',
+  '#FEF3C7'
+];
+
 const FONTS = [
   { id: 'font-sans', name: 'Moderne Pur', family: 'ui-sans-serif, system-ui, sans-serif', premium: false },
   { id: 'font-serif', name: 'Classique Chic', family: "'Playfair Display', serif", premium: false },
@@ -165,6 +177,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     albumMedia: true,
     adjustMedia: false,
     opening: true,
+    customBranding: true,
     paperTexture: true,
     ambiance: true,
     fonts: false
@@ -184,6 +197,9 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
   const lang = (localStorage.getItem('invite_lang') as Language) || (invitation.language as Language) || 'en';
   const t = translations[lang].builder;
   const isPremium = invitation.plan_type === 'PREMIUM';
+  // Le pack Business (plan_package) donne accès au Mode personnalisé.
+  // Un utilisateur Business a plan_type = 'PREMIUM' ET plan_package = 'business'.
+  const isBusiness = invitation.plan_package === 'business';
 
   const openingMode = isPremium && invitation.container_open === 'video' ? 'video' : 'envelope';
 
@@ -218,6 +234,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       opening_category_label: 'Famille de vidéo',
       opening_theme_label: 'Thème vidéo',
       premium_locked_msg: 'Disponible avec Premium',
+      business_locked_msg: "Disponible avec l'abonnement Business",
       trigger_mode_emoji: 'Émojis',
       trigger_mode_decor: 'Décor',
       bg_color_label: 'Fond',
@@ -245,7 +262,13 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       texture_grainy: 'Grainé',
       texture_cotton: 'Coton',
       texture_silk: 'Soie',
-      texture_velvet: 'Velours'
+      texture_velvet: 'Velours',
+      custom_mode: 'Mode personnalisé',
+      custom_mode_desc: "Remplacez notre logo et la mention « Powered by Invit Studio » sur l'écran d'ouverture par votre propre image, sur un fond de la couleur de votre choix.",
+      custom_mode_toggle_on: 'Activé',
+      custom_mode_toggle_off: 'Désactivé',
+      custom_mode_color_label: 'Couleur de fond',
+      custom_mode_logo_label: 'Votre logo ou image'
     },
     en: {
       info: 'Information',
@@ -264,6 +287,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       opening_category_label: 'Video family',
       opening_theme_label: 'Video theme',
       premium_locked_msg: 'Available with Premium',
+      business_locked_msg: 'Available with the Business plan',
       trigger_mode_emoji: 'Emoji',
       trigger_mode_decor: 'Decor',
       bg_color_label: 'Background',
@@ -291,7 +315,13 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       texture_grainy: 'Grainy',
       texture_cotton: 'Cotton',
       texture_silk: 'Silk',
-      texture_velvet: 'Velvet'
+      texture_velvet: 'Velvet',
+      custom_mode: 'Custom mode',
+      custom_mode_desc: 'Replace our logo and the "Powered by Invit Studio" mention on the opening screen with your own image, on a background color of your choice.',
+      custom_mode_toggle_on: 'On',
+      custom_mode_toggle_off: 'Off',
+      custom_mode_color_label: 'Background color',
+      custom_mode_logo_label: 'Your logo or image'
     },
     vi: {
       info: 'Thông tin',
@@ -310,6 +340,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       opening_category_label: 'Nhóm video',
       opening_theme_label: 'Chủ đề video',
       premium_locked_msg: 'Có sẵn với Premium',
+      business_locked_msg: 'Có sẵn với gói Business',
       trigger_mode_emoji: 'Emoji',
       trigger_mode_decor: 'Trang trí',
       bg_color_label: 'Nền',
@@ -337,7 +368,13 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       texture_grainy: 'Có hạt',
       texture_cotton: 'Cotton',
       texture_silk: 'Lụa',
-      texture_velvet: 'Nhung'
+      texture_velvet: 'Nhung',
+      custom_mode: 'Chế độ tùy chỉnh',
+      custom_mode_desc: 'Thay logo và dòng chữ "Powered by Invit Studio" trên màn hình mở bằng hình ảnh riêng của bạn, trên nền màu tùy chọn.',
+      custom_mode_toggle_on: 'Bật',
+      custom_mode_toggle_off: 'Tắt',
+      custom_mode_color_label: 'Màu nền',
+      custom_mode_logo_label: 'Logo hoặc hình ảnh của bạn'
     }
   }[lang];
 
@@ -408,6 +445,15 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
   const checkPremiumAccess = (condition: boolean) => {
     if (!condition && !isPremium) {
       alert(localLabels.premium_locked_msg);
+      return false;
+    }
+
+    return true;
+  };
+
+  const checkBusinessAccess = () => {
+    if (!isBusiness) {
+      alert(localLabels.business_locked_msg);
       return false;
     }
 
@@ -528,6 +574,16 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
   const handleTextureClick = (textureId: string, premium: boolean) => {
     if (!checkPremiumAccess(!premium)) return;
     onInvitationChange({ ...invitation, paper_type: textureId });
+  };
+
+  const handleCustomBrandingToggle = (enabled: boolean) => {
+    if (!checkBusinessAccess()) return;
+    onInvitationChange({ ...invitation, custom_branding_enabled: enabled });
+  };
+
+  const handleCustomBrandingColorClick = (color: string) => {
+    if (!checkBusinessAccess()) return;
+    onInvitationChange({ ...invitation, custom_branding_color: color });
   };
 
   const EVENT_TYPES = [
@@ -694,9 +750,9 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     });
   };
 
-  const Section = useCallback(({ id, title, children, premium = false }: any) => {
+  const Section = useCallback(({ id, title, children, premium = false, business = false }: any) => {
     const isOpen = openSections[id];
-    const locked = premium && !isPremium;
+    const locked = (premium && !isPremium) || (business && !isBusiness);
 
     return (
       <div className={`rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden ${locked ? 'opacity-90' : ''}`}>
@@ -719,7 +775,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
         {isOpen && <div className="px-4 pb-4 space-y-4">{children}</div>}
       </div>
     );
-  }, [openSections, isPremium, toggleSection]);
+  }, [openSections, isPremium, isBusiness, toggleSection]);
 
   const PremiumMark = ({ locked }: { locked: boolean }) => {
     if (!locked) return null;
@@ -1190,6 +1246,62 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                   />
                 </div>
               </div>
+            </div>
+          </Section>
+
+          <Section id="customBranding" title={localLabels.custom_mode} business>
+            <div className={`space-y-4 ${!isBusiness ? 'opacity-60 grayscale pointer-events-none' : ''}`}>
+              <p className="text-[11px] leading-relaxed text-gray-500">
+                {localLabels.custom_mode_desc}
+              </p>
+
+              <div className="flex bg-gray-100 p-1 rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => handleCustomBrandingToggle(false)}
+                  className={`flex-1 py-2 text-[10px] font-black uppercase rounded-lg transition-all ${
+                    !invitation.custom_branding_enabled ? 'bg-white text-gray-950 shadow-sm' : 'text-gray-400'
+                  }`}
+                >
+                  {localLabels.custom_mode_toggle_off}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleCustomBrandingToggle(true)}
+                  className={`flex-1 py-2 text-[10px] font-black uppercase rounded-lg transition-all ${
+                    invitation.custom_branding_enabled ? 'bg-white text-gray-950 shadow-sm' : 'text-gray-400'
+                  }`}
+                >
+                  {localLabels.custom_mode_toggle_on}
+                </button>
+              </div>
+
+              {invitation.custom_branding_enabled && (
+                <>
+                  <div>
+                    <label className="text-[10px] font-black uppercase text-gray-400 mb-2 block">
+                      {localLabels.custom_mode_color_label}
+                    </label>
+                    <div className="flex gap-3 overflow-x-auto pt-1 pb-2 px-1 scrollbar-hide">
+                      {CUSTOM_BRANDING_COLORS.map(color => (
+                        <Swatch
+                          key={color}
+                          value={color}
+                          selected={(invitation.custom_branding_color || '#FFFFFF') === color}
+                          onClick={() => handleCustomBrandingColorClick(color)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  <UploadBox
+                    label={localLabels.custom_mode_logo_label}
+                    value={invitation.custom_logo_url}
+                    onChange={(e: any) => uploadFile(e, 'custom_logo_url')}
+                  />
+                </>
+              )}
             </div>
           </Section>
 
