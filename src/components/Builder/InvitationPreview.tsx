@@ -572,7 +572,11 @@ export function InvitationPreview({ invitation }: any) {
   const emojis = THEME_EMOJIS[eventType] || THEME_EMOJIS.default;
 
   const planType = pick(invitation, ['plan_type', 'plantype'], 'FREE');
+  const planPackage = pick(invitation, ['plan_package', 'planpackage'], '');
   const isPremium = planType === 'PREMIUM';
+  // Le pack Business (plan_package) donne accès au Mode personnalisé.
+  // Un utilisateur Business a plan_type = 'PREMIUM' ET plan_package = 'business'.
+  const isBusiness = planPackage === 'business';
 
   const paperType = pick(invitation, ['paper_type', 'papertype'], 'smooth');
   const paperColor = pick(invitation, ['paper_color', 'papercolor'], '#ffffff');
@@ -612,6 +616,12 @@ export function InvitationPreview({ invitation }: any) {
   const premiumFinalTitle = pick(invitation, ['premium_final_title'], '');
   const premiumFinalText = pick(invitation, ['premium_final_text'], '');
   const premiumFinalPhotoUrl = pick(invitation, ['premium_final_photo_url'], '');
+
+  // Mode personnalisé (Business) : remplace l'image "Powered by" du volet d'ouverture.
+  const customBrandingEnabled = pick(invitation, ['custom_branding_enabled', 'custombrandingenabled'], false);
+  const customBrandingColor = pick(invitation, ['custom_branding_color', 'custombrandingcolor'], '#FFFFFF');
+  const customLogoUrl = pick(invitation, ['custom_logo_url', 'customlogourl'], '');
+  const useCustomBranding = isBusiness && Boolean(customBrandingEnabled);
 
   const selectedOpeningThemeId = pick(
     invitation,
@@ -777,9 +787,19 @@ export function InvitationPreview({ invitation }: any) {
         animate={isOpeningFading ? { y: '-100%', opacity: 0.96 } : { y: '0%', opacity: 1 }}
         transition={{ duration: 0.82, ease: [0.43, 0.13, 0.23, 0.96] }}
         className="absolute inset-0 z-50 w-full h-full shadow-[0_20px_50px_rgba(0,0,0,0.42)] border-b border-black/10 bg-cover bg-center"
-        style={{
-          backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.05), rgba(0,0,0,0.22)), url("${openingPosterUrl}")`
-        }}
+        style={
+          useCustomBranding
+            ? {
+                backgroundColor: customBrandingColor || '#FFFFFF',
+                backgroundImage: customLogoUrl ? `url("${customLogoUrl}")` : undefined,
+                backgroundSize: customLogoUrl ? 'auto 38%' : undefined,
+                backgroundRepeat: 'no-repeat',
+                backgroundPosition: 'center'
+              }
+            : {
+                backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.05), rgba(0,0,0,0.22)), url("${openingPosterUrl}")`
+              }
+        }
       />
 
       <motion.div
@@ -787,8 +807,9 @@ export function InvitationPreview({ invitation }: any) {
         transition={{ duration: 0.55, ease: 'easeOut' }}
         className="absolute inset-0 z-50 w-full h-full pointer-events-none"
         style={{
-          background:
-            'radial-gradient(circle at 50% 42%, rgba(255,255,255,0.22), transparent 32%), linear-gradient(180deg, rgba(255,255,255,0.04), rgba(0,0,0,0.18))'
+          background: useCustomBranding
+            ? 'radial-gradient(circle at 50% 42%, rgba(0,0,0,0.05), transparent 32%)'
+            : 'radial-gradient(circle at 50% 42%, rgba(255,255,255,0.22), transparent 32%), linear-gradient(180deg, rgba(255,255,255,0.04), rgba(0,0,0,0.18))'
         }}
       />
     </>
@@ -971,7 +992,13 @@ export function InvitationPreview({ invitation }: any) {
                     onClick={handleTriggerClick}
                   >
                     {isFreeShutterOpening && (
-                      <p className="absolute bottom-12 z-[80] text-white font-semibold text-[12px] animate-pulse text-center w-full px-4 drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)]">
+                      <p
+                        className={`absolute bottom-12 z-[80] font-semibold text-[12px] animate-pulse text-center w-full px-4 ${
+                          useCustomBranding
+                            ? 'text-gray-800'
+                            : 'text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.55)]'
+                        }`}
+                      >
                         {t.tap_open}
                       </p>
                     )}
