@@ -329,7 +329,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   const [zaloDragOffset, setZaloDragOffset] = useState({ x: 0, y: 0 });
   const [isDraggingZalo, setIsDraggingZalo] = useState(false);
   const [zaloWasDragged, setZaloWasDragged] = useState(false);
-  const [zaloIsSettling, setZaloIsSettling] = useState(false);
 
   const [lang, setLang] = useState<Language>((localStorage.getItem('invite_lang') as Language) || 'en');
   const [planPackage, setPlanPackage] = useState<PlanPackage>('free');
@@ -428,9 +427,7 @@ const { coins, refreshWallet, setCoins } = useWallet();
     const handlePointerUp = () => {
       setIsDraggingZalo(false);
       setZaloPosition(current => snapZaloToEdge(current));
-      setZaloIsSettling(true);
-      if ('vibrate' in navigator) navigator.vibrate?.(18);
-      window.setTimeout(() => setZaloIsSettling(false), 260);
+      if ('vibrate' in navigator) navigator.vibrate?.(12);
     };
 
     window.addEventListener('pointermove', handlePointerMove);
@@ -1096,24 +1093,24 @@ const { coins, refreshWallet, setCoins } = useWallet();
             handleZaloClick();
           }}
           style={{
-            left: `${zaloPosition.x}px`,
-            top: `${zaloPosition.y}px`,
-            touchAction: 'none'
+            transform: `translate3d(${zaloPosition.x}px, ${zaloPosition.y}px, 0)`,
+            left: 0,
+            top: 0,
+            touchAction: 'none',
+            transition: isDraggingZalo
+              ? 'none'
+              : 'transform 0.4s cubic-bezier(0.22, 1, 0.36, 1)'
           }}
-          className={`fixed z-[420] w-16 h-16 p-0 bg-transparent border-none rounded-full flex items-center justify-center cursor-grab active:cursor-grabbing transition-all duration-300 ${
-            isDraggingZalo ? 'scale-110' : zaloIsSettling ? 'scale-95' : 'hover:scale-105'
+          className={`fixed z-[420] w-16 h-16 p-0 bg-transparent border-none rounded-full flex items-center justify-center cursor-grab active:cursor-grabbing will-change-transform ${
+            isDraggingZalo ? 'scale-105' : 'hover:scale-105'
           }`}
           aria-label="Zalo"
         >
-          {!isDraggingZalo && <span className="absolute inset-1 rounded-full bg-blue-400/20 animate-ping" />}
-          <span className="absolute inset-0 rounded-full bg-blue-300/10 blur-md animate-pulse" />
           <img
             src={ZALO_LOGO_SRC}
             alt="Zalo"
             draggable={false}
-            className={`relative z-10 w-16 h-16 object-contain select-none pointer-events-none drop-shadow-2xl transition-transform duration-300 ${
-              isDraggingZalo ? 'rotate-6' : 'animate-pulse'
-            }`}
+            className="relative z-10 w-16 h-16 object-contain select-none pointer-events-none drop-shadow-2xl"
           />
         </button>
 
