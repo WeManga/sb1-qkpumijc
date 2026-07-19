@@ -10,6 +10,8 @@ type Invitation = Database['public']['Tables']['invitations']['Row'];
 
 type BuilderInvitation = Partial<Invitation> & {
   plan_type?: 'FREE' | 'PREMIUM';
+  // 'business' donne accès au Mode personnalisé (logo/couleur perso sur le volet d'ouverture).
+  plan_package?: 'solo' | 'multi' | 'business' | null;
 };
 
 interface BuilderProps {
@@ -24,6 +26,7 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
   const tAuth = translations[lang].auth;
 
   const [accountPlanType, setAccountPlanType] = useState<'FREE' | 'PREMIUM'>('FREE');
+  const [accountPlanPackage, setAccountPlanPackage] = useState<'solo' | 'multi' | 'business' | null>(null);
 
   const [invitation, setInvitation] = useState<BuilderInvitation>({
     event_type: 'wedding',
@@ -57,7 +60,11 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
     album_photo_url_4: '',
     album_photo_url_5: '',
     album_photo_url_6: '',
-    plan_type: 'FREE'
+    custom_branding_enabled: false,
+    custom_branding_color: '#FFFFFF',
+    custom_logo_url: '',
+    plan_type: 'FREE',
+    plan_package: null
   });
 
   const [loading, setLoading] = useState(true);
@@ -87,24 +94,31 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
     onBack();
   };
 
-  const getEffectivePlanType = async (): Promise<'FREE' | 'PREMIUM'> => {
-    if (!user) return 'FREE';
+  // Lit le plan réellement actif de l'utilisateur (profiles.plan_type + plan_package),
+  // en tenant compte de l'expiration. C'est ce couple qui détermine :
+  // - isPremium (plan_type === 'PREMIUM')
+  // - isBusiness (plan_package === 'business'), utilisé pour le Mode personnalisé
+  const getEffectivePlan = async (): Promise<{
+    planType: 'FREE' | 'PREMIUM';
+    planPackage: 'solo' | 'multi' | 'business' | null;
+  }> => {
+    if (!user) return { planType: 'FREE', planPackage: null };
 
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('plan_type, premium_expires_at')
+        .select('plan_type, plan_package, premium_expires_at')
         .eq('id', user.id)
         .single();
 
-      if (error || !data) return 'FREE';
+      if (error || !data) return { planType: 'FREE', planPackage: null };
 
       const profile: any = data;
       const expiresAt = profile.premium_expires_at ? new Date(profile.premium_expires_at) : null;
       const isPremiumActive = profile.plan_type === 'PREMIUM' && expiresAt && expiresAt > new Date();
 
       if (isPremiumActive) {
-        return 'PREMIUM';
+        return { planType: 'PREMIUM', planPackage: profile.plan_package || null };
       }
 
       if (profile.plan_type === 'PREMIUM' && expiresAt && expiresAt <= new Date()) {
@@ -112,37 +126,43 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
           .from('profiles')
           .update({
             plan_type: 'FREE',
+            plan_package: null,
             premium_duration_months: null,
             premium_expires_at: null
           } as any)
           .eq('id', user.id);
       }
 
-      return 'FREE';
+      return { planType: 'FREE', planPackage: null };
     } catch (error) {
       console.error('Erreur lecture profil:', error);
-      return 'FREE';
+      return { planType: 'FREE', planPackage: null };
     }
   };
 
   const initialiseBuilder = async () => {
     setLoading(true);
 
-    const effectivePlanType = await getEffectivePlanType();
+    const { planType: effectivePlanType, planPackage: effectivePlanPackage } = await getEffectivePlan();
     setAccountPlanType(effectivePlanType);
+    setAccountPlanPackage(effectivePlanPackage);
 
     if (invitationId) {
-      await loadInvitation(effectivePlanType);
+      await loadInvitation(effectivePlanType, effectivePlanPackage);
     } else {
       setInvitation((current) => ({
         ...current,
-        plan_type: effectivePlanType
+        plan_type: effectivePlanType,
+        plan_package: effectivePlanPackage
       }));
       setLoading(false);
     }
   };
 
-  const loadInvitation = async (effectivePlanType: 'FREE' | 'PREMIUM') => {
+  const loadInvitation = async (
+    effectivePlanType: 'FREE' | 'PREMIUM',
+    effectivePlanPackage: 'solo' | 'multi' | 'business' | null
+  ) => {
     if (!invitationId) return;
 
     try {
@@ -176,7 +196,11 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
           album_photo_url_4: invData.album_photo_url_4 || '',
           album_photo_url_5: invData.album_photo_url_5 || '',
           album_photo_url_6: invData.album_photo_url_6 || '',
-          plan_type: effectivePlanType
+          custom_branding_enabled: invData.custom_branding_enabled || false,
+          custom_branding_color: invData.custom_branding_color || '#FFFFFF',
+          custom_logo_url: invData.custom_logo_url || '',
+          plan_type: effectivePlanType,
+          plan_package: effectivePlanPackage
         });
       }
     } catch (error) {
@@ -196,8 +220,9 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
     setSaving(true);
 
     try {
-      const effectivePlanType = await getEffectivePlanType();
+      const { planType: effectivePlanType, planPackage: effectivePlanPackage } = await getEffectivePlan();
       setAccountPlanType(effectivePlanType);
+      setAccountPlanPackage(effectivePlanPackage);
 
       const payload = {
         ...invitation,
@@ -224,7 +249,13 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
         album_photo_url_4: invitation.album_photo_url_4 || '',
         album_photo_url_5: invitation.album_photo_url_5 || '',
         album_photo_url_6: invitation.album_photo_url_6 || '',
+        // Mode personnalisé : seul un compte Business peut réellement l'activer,
+        // mais la préférence est conservée pour ne pas perdre les réglages si le pack expire.
+        custom_branding_enabled: invitation.custom_branding_enabled || false,
+        custom_branding_color: invitation.custom_branding_color || '#FFFFFF',
+        custom_logo_url: invitation.custom_logo_url || '',
         plan_type: effectivePlanType,
+        plan_package: effectivePlanPackage,
         updated_at: new Date().toISOString()
       };
 
@@ -245,7 +276,8 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
 
       setInvitation((current) => ({
         ...current,
-        plan_type: effectivePlanType
+        plan_type: effectivePlanType,
+        plan_package: effectivePlanPackage
       }));
 
       const successMsg =
@@ -276,7 +308,8 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
     <MobileApp
       invitation={{
         ...invitation,
-        plan_type: accountPlanType
+        plan_type: accountPlanType,
+        plan_package: accountPlanPackage
       }}
       onInvitationChange={setInvitation}
       onSave={handleSave}
