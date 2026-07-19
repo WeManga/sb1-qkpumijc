@@ -1,27 +1,41 @@
-import { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useRef, useEffect, useMemo } from 'react';
+import { motion, AnimatePresence, useMotionValue, useTransform, animate as animateMotionValue } from 'framer-motion';
 import { X, Clock } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { translations } from '../../lib/i18n';
 
-const SEGMENTS = [
-  { label: '50', color: '#FCD34D' },
-  { label: '100', color: '#F59E0B' },
-  { label: '200', color: '#EA580C' },
-  { label: '50', color: '#FCD34D' },
-  { label: 'Perdu', color: '#9CA3AF' },
-  { label: '100', color: '#F59E0B' },
-  { label: '500', color: '#DC2626' },
-  { label: '50', color: '#FCD34D' },
-  { label: 'Rejouer', color: '#8B5CF6' },
-  { label: '200', color: '#EA580C' },
-  { label: '100', color: '#F59E0B' },
-  { label: '50', color: '#FCD34D' }
-];
+const BRAND_FONT_LINK_ID = 'invit-studio-brand-font';
 
-const SEGMENT_ANGLE = 360 / SEGMENTS.length;
+const SEGMENTS_COUNT = 12;
+const SEGMENT_ANGLE = 360 / SEGMENTS_COUNT;
 const FIREWORK_COLORS = ['#FCD34D', '#F59E0B', '#EA580C', '#DC2626', '#8B5CF6', '#3B82F6', '#10B981', '#FFFFFF'];
+
+const getSpecialLabels = (lang) => {
+  if (lang === 'en') return { lost: 'Lost', retry: 'Retry' };
+  if (lang === 'vi') return { lost: 'Mất lượt', retry: 'Quay lại' };
+  return { lost: 'Perdu', retry: 'Rejouer' };
+};
+
+const buildSegments = (lang) => {
+  const { lost, retry } = getSpecialLabels(lang);
+  return [
+    { label: '50', color: '#FCD34D' },
+    { label: '100', color: '#F59E0B' },
+    { label: '200', color: '#EA580C' },
+    { label: '50', color: '#FCD34D' },
+    { label: lost, color: '#6B7280' },
+    { label: '100', color: '#F59E0B' },
+    { label: '500', color: '#DC2626' },
+    { label: '50', color: '#FCD34D' },
+    { label: retry, color: '#8B5CF6' },
+    { label: '200', color: '#EA580C' },
+    { label: '100', color: '#F59E0B' },
+    { label: '50', color: '#FCD34D' }
+  ];
+};
+
+const toRad = (deg) => ((deg - 90) * Math.PI) / 180;
 
 function FireworksBurst({ originX = 50, originY = 45, delay = 0 }) {
   const particles = Array.from({ length: 26 });
@@ -75,6 +89,53 @@ function ConfettiRain() {
   );
 }
 
+// Couronne de petites loupiotes façon fête foraine, tout autour de la roue.
+function MarqueeLights({ active }) {
+  const lights = Array.from({ length: 18 });
+  return (
+    <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full pointer-events-none">
+      {lights.map((_, i) => {
+        const angle = (i / lights.length) * 360;
+        const x = 50 + 51.5 * Math.cos(toRad(angle));
+        const y = 50 + 51.5 * Math.sin(toRad(angle));
+        return (
+          <motion.circle
+            key={i}
+            cx={x}
+            cy={y}
+            r={1.4}
+            fill="#FDE68A"
+            animate={{ opacity: [0.25, 1, 0.25] }}
+            transition={{
+              duration: active ? 0.9 : 1.8,
+              repeat: Infinity,
+              delay: i * (active ? 0.05 : 0.09),
+              ease: 'easeInOut'
+            }}
+          />
+        );
+      })}
+    </svg>
+  );
+}
+
+// Petit loquet doré qui "flique" au passage de chaque séparation de segment,
+// entraîné directement par l'angle de rotation (rapide quand la roue tourne vite,
+// ralentit avec elle jusqu'à l'arrêt).
+function WheelPeg({ pegRotate }) {
+  return (
+    <motion.div
+      className="absolute -top-1 left-1/2 z-30"
+      style={{ x: '-50%', rotate: pegRotate, transformOrigin: '50% 6px' }}
+    >
+      <svg width="26" height="32" viewBox="0 0 26 32" className="drop-shadow-lg">
+        <path d="M13 32 L2 7 A11 9 0 0 1 24 7 Z" fill="#ffffff" stroke="#FCD34D" strokeWidth="1.6" />
+        <circle cx="13" cy="9" r="3.1" fill="#FCD34D" />
+      </svg>
+    </motion.div>
+  );
+}
+
 function formatCountdown(ms) {
   if (ms <= 0) return null;
   const totalSeconds = Math.floor(ms / 1000);
@@ -87,14 +148,37 @@ function formatCountdown(ms) {
 export function WheelWidget({ isOpen, onClose, onWin, lang = 'en' }) {
   const { user } = useAuth();
   const t = translations[lang]?.wheel || translations.en.wheel;
-  const [rotation, setRotation] = useState(0);
+
+  const SEGMENTS = useMemo(() => buildSegments(lang), [lang]);
+  const specialLabels = useMemo(() => getSpecialLabels(lang), [lang]);
+
+  const rotationMV = useMotionValue(0);
   const [spinning, setSpinning] = useState(false);
   const [result, setResult] = useState(null);
   const [showCelebration, setShowCelebration] = useState(false);
   const [error, setError] = useState('');
   const [nextAvailableAt, setNextAvailableAt] = useState(null);
   const [now, setNow] = useState(Date.now());
+
   const spinCount = useRef(0);
+  const lastSegRef = useRef(0);
+  const wheelAnimationRef = useRef(null);
+
+  const pegRotate = useTransform(rotationMV, (r) => {
+    const mod = ((r % SEGMENT_ANGLE) + SEGMENT_ANGLE) % SEGMENT_ANGLE;
+    const progress = mod / SEGMENT_ANGLE;
+    return -16 * Math.pow(1 - progress, 3);
+  });
+
+  useEffect(() => {
+    if (!document.getElementById(BRAND_FONT_LINK_ID)) {
+      const link = document.createElement('link');
+      link.id = BRAND_FONT_LINK_ID;
+      link.rel = 'stylesheet';
+      link.href = 'https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap';
+      document.head.appendChild(link);
+    }
+  }, []);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -106,6 +190,12 @@ export function WheelWidget({ isOpen, onClose, onWin, lang = 'en' }) {
     const interval = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(interval);
   }, [isOpen, nextAvailableAt]);
+
+  useEffect(() => {
+    return () => {
+      wheelAnimationRef.current?.stop();
+    };
+  }, []);
 
   const checkAvailability = async () => {
     if (!user) return;
@@ -146,6 +236,8 @@ export function WheelWidget({ isOpen, onClose, onWin, lang = 'en' }) {
     setShowCelebration(false);
     setError('');
 
+    if ('vibrate' in navigator) navigator.vibrate?.(10);
+
     try {
       const { data, error: fnError } = await supabase.functions.invoke('spin-wheel');
 
@@ -159,8 +251,8 @@ export function WheelWidget({ isOpen, onClose, onWin, lang = 'en' }) {
       const winningLabel = data.prize.prize_type === 'coins'
         ? String(data.prize.coin_value)
         : data.prize.prize_type === 'retry'
-          ? 'Rejouer'
-          : 'Perdu';
+          ? specialLabels.retry
+          : specialLabels.lost;
 
       const segmentIndex = SEGMENTS.findIndex((s, idx) => s.label === winningLabel && idx === data.prize.sort_order);
       const targetIndex = segmentIndex >= 0 ? segmentIndex : SEGMENTS.findIndex(s => s.label === winningLabel);
@@ -170,19 +262,37 @@ export function WheelWidget({ isOpen, onClose, onWin, lang = 'en' }) {
       const fullTurns = 6 + spinCount.current;
       const finalRotation = fullTurns * 360 + (360 - targetAngle) - SEGMENT_ANGLE / 2;
 
-      setRotation(finalRotation);
+      const startRotation = rotationMV.get();
+      lastSegRef.current = Math.floor((((startRotation % 360) + 360) % 360) / SEGMENT_ANGLE);
 
-      setTimeout(() => {
-        setSpinning(false);
-        setResult(data.prize);
-        if (data.prize.prize_type === 'coins' || data.prize.prize_type === 'retry') {
-          setShowCelebration(true);
+      wheelAnimationRef.current?.stop();
+      wheelAnimationRef.current = animateMotionValue(
+        rotationMV,
+        [startRotation, startRotation - 14, finalRotation],
+        {
+          duration: 3.6,
+          times: [0, 0.045, 1],
+          ease: ['easeOut', [0.16, 0.7, 0.14, 1]],
+          onUpdate: (latest) => {
+            const currentSeg = Math.floor((((latest % 360) + 360) % 360) / SEGMENT_ANGLE);
+            if (currentSeg !== lastSegRef.current) {
+              lastSegRef.current = currentSeg;
+              if ('vibrate' in navigator) navigator.vibrate?.(5);
+            }
+          },
+          onComplete: () => {
+            setSpinning(false);
+            setResult(data.prize);
+            if (data.prize.prize_type === 'coins' || data.prize.prize_type === 'retry') {
+              setShowCelebration(true);
+            }
+            if (data.nextAvailableAt) {
+              setNextAvailableAt(new Date(data.nextAvailableAt).getTime());
+            }
+            onWin?.(data);
+          }
         }
-        if (data.nextAvailableAt) {
-          setNextAvailableAt(new Date(data.nextAvailableAt).getTime());
-        }
-        onWin?.(data);
-      }, 4200);
+      );
     } catch (err) {
       setSpinning(false);
       setError(err.message);
@@ -193,7 +303,16 @@ export function WheelWidget({ isOpen, onClose, onWin, lang = 'en' }) {
 
   return (
     <AnimatePresence>
-      <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/80 backdrop-blur-md overflow-hidden">
+      <div className="fixed inset-0 z-[300] flex items-center justify-center overflow-hidden">
+        <div
+          className="absolute inset-0 backdrop-blur-md"
+          style={{
+            background:
+              'radial-gradient(circle at 50% 18%, rgba(217,119,6,0.35), rgba(28,17,8,0.94) 46%, rgba(10,8,7,0.98) 78%)'
+          }}
+          onClick={onClose}
+        />
+
         {showCelebration && (
           <>
             <ConfettiRain />
@@ -205,26 +324,51 @@ export function WheelWidget({ isOpen, onClose, onWin, lang = 'en' }) {
 
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 z-20 w-9 h-9 flex items-center justify-center bg-white/10 hover:bg-white/20 rounded-full text-white transition-colors"
+          className="absolute top-5 right-5 z-20 w-9 h-9 flex items-center justify-center bg-white/10 hover:bg-amber-400/25 border border-white/10 rounded-full text-white transition-colors"
         >
           <X size={18} />
         </button>
 
         <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
+          initial={{ scale: 0.85, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0.8, opacity: 0 }}
-          className="relative flex flex-col items-center px-4"
+          exit={{ scale: 0.85, opacity: 0 }}
+          transition={{ type: 'spring', stiffness: 280, damping: 22 }}
+          className="relative flex flex-col items-center px-6 py-8 sm:px-8 sm:py-9 rounded-[3rem] border border-amber-300/20 shadow-[0_30px_90px_rgba(0,0,0,0.55)]"
+          style={{
+            background: 'linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.015))'
+          }}
         >
-          <div className="relative w-[300px] h-[300px] sm:w-[380px] sm:h-[380px]">
+          <div className="text-center mb-3 sm:mb-4">
+            <p
+              className="text-3xl sm:text-4xl leading-none"
+              style={{
+                fontFamily: '"Great Vibes", cursive',
+                fontWeight: 400,
+                color: '#f2c879',
+                textShadow: '0 2px 10px rgba(0,0,0,0.5), 0 0 22px rgba(251,191,36,0.25)'
+              }}
+            >
+              Invit Studio
+            </p>
+            <p className="mt-1 text-white text-xs sm:text-sm font-black uppercase tracking-[0.55em]">
+              Win
+            </p>
+          </div>
+
+          <div className="relative w-[280px] h-[280px] sm:w-[360px] sm:h-[360px]">
             <motion.div
               className="absolute -inset-6 rounded-full"
-              style={{ background: 'radial-gradient(circle, rgba(252,211,77,0.35) 0%, transparent 70%)' }}
-              animate={{ opacity: [0.5, 1, 0.5] }}
-              transition={{ duration: 2, repeat: Infinity }}
+              style={{ background: 'radial-gradient(circle, rgba(252,211,77,0.4) 0%, transparent 70%)' }}
+              animate={{ opacity: spinning ? [0.55, 1, 0.55] : [0.4, 0.75, 0.4] }}
+              transition={{ duration: spinning ? 0.9 : 2.2, repeat: Infinity }}
             />
 
-            <div className="absolute -top-1 left-1/2 -translate-x-1/2 z-30 w-0 h-0 border-l-[14px] border-l-transparent border-r-[14px] border-r-transparent border-t-[24px] border-t-white drop-shadow-lg" />
+            <div className="absolute -inset-2">
+              <MarqueeLights active={spinning} />
+            </div>
+
+            <WheelPeg pegRotate={pegRotate} />
 
             <motion.button
               onClick={handleSpin}
@@ -240,13 +384,11 @@ export function WheelWidget({ isOpen, onClose, onWin, lang = 'en' }) {
               <motion.svg
                 viewBox="0 0 200 200"
                 className="w-full h-full"
-                animate={{ rotate: rotation }}
-                transition={{ duration: 4, ease: [0.17, 0.67, 0.35, 0.99] }}
+                style={{ rotate: rotationMV }}
               >
                 {SEGMENTS.map((seg, i) => {
                   const startAngle = i * SEGMENT_ANGLE;
                   const endAngle = startAngle + SEGMENT_ANGLE;
-                  const toRad = (deg) => ((deg - 90) * Math.PI) / 180;
                   const x1 = 100 + 96 * Math.cos(toRad(startAngle));
                   const y1 = 100 + 96 * Math.sin(toRad(startAngle));
                   const x2 = 100 + 96 * Math.cos(toRad(endAngle));
@@ -281,7 +423,7 @@ export function WheelWidget({ isOpen, onClose, onWin, lang = 'en' }) {
                   animate={{ scale: [1, 1.08, 1] }}
                   transition={{ duration: 1.4, repeat: Infinity }}
                 >
-                  <span className="text-white text-[11px] font-black uppercase tracking-widest bg-black/40 px-3 py-1.5 rounded-full">
+                  <span className="text-white text-[11px] font-black uppercase tracking-widest bg-black/40 border border-amber-300/30 px-3 py-1.5 rounded-full">
                     {t.tap_to_spin}
                   </span>
                 </motion.div>
