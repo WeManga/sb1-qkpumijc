@@ -111,6 +111,48 @@ const getResetPhotoAdjustments = (field: string) => {
 const clampPhotoScale = (value: number) => Math.min(4, Math.max(0.2, value));
 const IMAGE_ACCEPT = 'image/jpeg,image/png,image/webp,image/heic,image/heif,image/*';
 
+// Enlève les accents et met en minuscule, pour matcher un libellé quelle que soit
+// sa casse ou qu'il vienne avec/sans accents (ex: "Fête" / "fete" / "FETE").
+const normalizeOpeningLabel = (value: string) =>
+  value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase();
+
+// Dictionnaire des libellés de catégories/thèmes d'ouverture (vidéos).
+// Couvre à la fois les clés anglaises (Wedding, Birthday...) et les variantes
+// françaises telles qu'elles peuvent être stockées dans constants/openingThemes.ts
+// (Mariage, Anniversaire, Fête, Autres thèmes...).
+const OPENING_LABEL_TRANSLATIONS: Record<string, { fr: string; en: string; vi: string }> = {
+  wedding: { fr: 'Mariage', en: 'Wedding', vi: 'Đám cưới' },
+  mariage: { fr: 'Mariage', en: 'Wedding', vi: 'Đám cưới' },
+
+  birthday: { fr: 'Anniversaire', en: 'Birthday', vi: 'Sinh nhật' },
+  anniversaire: { fr: 'Anniversaire', en: 'Birthday', vi: 'Sinh nhật' },
+
+  party: { fr: 'Fête', en: 'Party', vi: 'Bữa tiệc' },
+  fete: { fr: 'Fête', en: 'Party', vi: 'Bữa tiệc' },
+
+  baptism: { fr: 'Baptême', en: 'Baptism', vi: 'Lễ rửa tội' },
+  bapteme: { fr: 'Baptême', en: 'Baptism', vi: 'Lễ rửa tội' },
+
+  'baby shower': { fr: 'Baby shower', en: 'Baby shower', vi: 'Tiệc mừng em bé' },
+  babyshower: { fr: 'Baby shower', en: 'Baby shower', vi: 'Tiệc mừng em bé' },
+
+  funeral: { fr: 'Obsèques', en: 'Funeral', vi: 'Tang lễ' },
+  obseques: { fr: 'Obsèques', en: 'Funeral', vi: 'Tang lễ' },
+  funerailles: { fr: 'Obsèques', en: 'Funeral', vi: 'Tang lễ' },
+  enterrement: { fr: 'Obsèques', en: 'Funeral', vi: 'Tang lễ' },
+
+  other: { fr: 'Autre', en: 'Other', vi: 'Khác' },
+  autre: { fr: 'Autre', en: 'Other', vi: 'Khác' },
+  autres: { fr: 'Autre', en: 'Other', vi: 'Khác' },
+
+  'other themes': { fr: 'Autres thèmes', en: 'Other themes', vi: 'Chủ đề khác' },
+  'autres themes': { fr: 'Autres thèmes', en: 'Other themes', vi: 'Chủ đề khác' }
+};
+
 const compressImageFile = async (file: File): Promise<File> => {
   if (!file.type.startsWith('image/')) return file;
 
@@ -405,37 +447,14 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
   ].filter(photo => Boolean(invitation[photo.key]));
 
   const translateOpeningLabel = (label: string) => {
-    const maps: Record<string, Record<string, string>> = {
-      fr: {
-        Wedding: 'Mariage',
-        Birthday: 'Anniversaire',
-        Party: 'Fête',
-        Baptism: 'Baptême',
-        'Baby shower': 'Baby shower',
-        Funeral: 'Obsèques',
-        Other: 'Autre'
-      },
-      en: {
-        Wedding: 'Wedding',
-        Birthday: 'Birthday',
-        Party: 'Party',
-        Baptism: 'Baptism',
-        'Baby shower': 'Baby shower',
-        Funeral: 'Funeral',
-        Other: 'Other'
-      },
-      vi: {
-        Wedding: 'Đám cưới',
-        Birthday: 'Sinh nhật',
-        Party: 'Bữa tiệc',
-        Baptism: 'Lễ rửa tội',
-        'Baby shower': 'Tiệc mừng em bé',
-        Funeral: 'Tang lễ',
-        Other: 'Khác'
-      }
-    };
+    if (!label) return label;
 
-    return maps[lang]?.[label] || label;
+    const key = normalizeOpeningLabel(label);
+    const entry = OPENING_LABEL_TRANSLATIONS[key];
+
+    // Si le libellé n'est pas reconnu dans le dictionnaire, on le retourne tel quel
+    // (mieux vaut afficher le texte source que rien).
+    return entry ? entry[lang] : label;
   };
 
   const toggleSection = useCallback((id: string) => {
