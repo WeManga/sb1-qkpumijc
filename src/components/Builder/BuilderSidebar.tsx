@@ -111,46 +111,39 @@ const getResetPhotoAdjustments = (field: string) => {
 const clampPhotoScale = (value: number) => Math.min(4, Math.max(0.2, value));
 const IMAGE_ACCEPT = 'image/jpeg,image/png,image/webp,image/heic,image/heif,image/*';
 
-// Enlève les accents et met en minuscule, pour matcher un libellé quelle que soit
-// sa casse ou qu'il vienne avec/sans accents (ex: "Fête" / "fete" / "FETE").
-const normalizeOpeningLabel = (value: string) =>
-  value
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .trim()
-    .toLowerCase();
-
-// Dictionnaire des libellés de catégories/thèmes d'ouverture (vidéos).
-// Couvre à la fois les clés anglaises (Wedding, Birthday...) et les variantes
-// françaises telles qu'elles peuvent être stockées dans constants/openingThemes.ts
-// (Mariage, Anniversaire, Fête, Autres thèmes...).
+// Dictionnaire des libellés de catégories/thèmes d'ouverture (vidéos),
+// indexé sur les `id` stables définis dans constants/openingThemes.ts
+// (plus fiable que de traduire le texte `label`, qui est stocké en français).
 const OPENING_LABEL_TRANSLATIONS: Record<string, { fr: string; en: string; vi: string }> = {
-  wedding: { fr: 'Mariage', en: 'Wedding', vi: 'Đám cưới' },
-  mariage: { fr: 'Mariage', en: 'Wedding', vi: 'Đám cưới' },
-
+  // Catégories
   birthday: { fr: 'Anniversaire', en: 'Birthday', vi: 'Sinh nhật' },
-  anniversaire: { fr: 'Anniversaire', en: 'Birthday', vi: 'Sinh nhật' },
+  wedding: { fr: 'Mariage', en: 'Wedding', vi: 'Đám cưới' },
+  party: { fr: 'Fêtes', en: 'Parties', vi: 'Tiệc tùng' },
+  other: { fr: 'Autres thèmes', en: 'Other themes', vi: 'Chủ đề khác' },
 
-  party: { fr: 'Fête', en: 'Party', vi: 'Bữa tiệc' },
-  fete: { fr: 'Fête', en: 'Party', vi: 'Bữa tiệc' },
+  // Sous-thèmes vidéo — Mariage
+  wedding_just_married: { fr: 'Jeunes mariés', en: 'Just Married', vi: 'Vừa cưới' },
+  wedding_fusion: { fr: 'Fusion', en: 'Fusion', vi: 'Hòa quyện' },
+  wedding_ceremony: { fr: 'Cérémonie', en: 'Ceremony', vi: 'Lễ cưới' },
+  wedding_presentation: { fr: 'Présentation', en: 'Presentation', vi: 'Giới thiệu' },
 
-  baptism: { fr: 'Baptême', en: 'Baptism', vi: 'Lễ rửa tội' },
-  bapteme: { fr: 'Baptême', en: 'Baptism', vi: 'Lễ rửa tội' },
+  // Sous-thèmes vidéo — Anniversaire
+  birthday_balloons: { fr: 'Ballons', en: 'Balloons', vi: 'Bóng bay' },
+  birthday_glitter: { fr: 'Paillettes', en: 'Glitter', vi: 'Kim tuyến' },
+  birthday_pink: { fr: 'Rose', en: 'Pink', vi: 'Hồng' },
+  birthday_baby: { fr: 'Bébé', en: 'Baby', vi: 'Em bé' },
 
-  'baby shower': { fr: 'Baby shower', en: 'Baby shower', vi: 'Tiệc mừng em bé' },
-  babyshower: { fr: 'Baby shower', en: 'Baby shower', vi: 'Tiệc mừng em bé' },
+  // Sous-thèmes vidéo — Fêtes
+  party_disco: { fr: 'Disco', en: 'Disco', vi: 'Disco' },
+  party_dance: { fr: 'Danse', en: 'Dance', vi: 'Khiêu vũ' },
+  party_monkey: { fr: 'Singe', en: 'Monkey', vi: 'Khỉ' },
+  party_together: { fr: 'Ensemble', en: 'Together', vi: 'Cùng nhau' },
 
-  funeral: { fr: 'Obsèques', en: 'Funeral', vi: 'Tang lễ' },
-  obseques: { fr: 'Obsèques', en: 'Funeral', vi: 'Tang lễ' },
-  funerailles: { fr: 'Obsèques', en: 'Funeral', vi: 'Tang lễ' },
-  enterrement: { fr: 'Obsèques', en: 'Funeral', vi: 'Tang lễ' },
-
-  other: { fr: 'Autre', en: 'Other', vi: 'Khác' },
-  autre: { fr: 'Autre', en: 'Other', vi: 'Khác' },
-  autres: { fr: 'Autre', en: 'Other', vi: 'Khác' },
-
-  'other themes': { fr: 'Autres thèmes', en: 'Other themes', vi: 'Chủ đề khác' },
-  'autres themes': { fr: 'Autres thèmes', en: 'Other themes', vi: 'Chủ đề khác' }
+  // Sous-thèmes vidéo — Autres thèmes
+  other_love_flowers: { fr: 'Amour & Fleurs', en: 'Love & Flowers', vi: 'Tình yêu & Hoa' },
+  other_spiritual: { fr: 'Spirituel', en: 'Spiritual', vi: 'Tâm linh' },
+  other_new_year: { fr: 'Nouvel An', en: 'New Year', vi: 'Năm mới' },
+  other_memorial: { fr: 'Hommage', en: 'Memorial', vi: 'Tưởng niệm' }
 };
 
 const compressImageFile = async (file: File): Promise<File> => {
@@ -446,15 +439,13 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     { key: 'premium_final_photo_url', label: premiumFinalPhotoLabel, premium: true }
   ].filter(photo => Boolean(invitation[photo.key]));
 
-  const translateOpeningLabel = (label: string) => {
-    if (!label) return label;
+  const translateOpeningLabel = (id: string, fallbackLabel: string) => {
+    const entry = OPENING_LABEL_TRANSLATIONS[id];
 
-    const key = normalizeOpeningLabel(label);
-    const entry = OPENING_LABEL_TRANSLATIONS[key];
-
-    // Si le libellé n'est pas reconnu dans le dictionnaire, on le retourne tel quel
-    // (mieux vaut afficher le texte source que rien).
-    return entry ? entry[lang] : label;
+    // Si l'id n'est pas dans le dictionnaire, on affiche le texte source
+    // (mieux vaut ça que rien, par exemple si un nouveau thème est ajouté
+    // dans constants/openingThemes.ts sans être encore traduit ici).
+    return entry ? entry[lang] : fallbackLabel;
   };
 
   const toggleSection = useCallback((id: string) => {
@@ -1221,7 +1212,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                     >
                       {OPENING_CATEGORIES.map(category => (
                         <option key={category.id} value={category.id}>
-                          {translateOpeningLabel(category.label)}
+                          {translateOpeningLabel(category.id, category.label)}
                         </option>
                       ))}
                     </select>
@@ -1239,7 +1230,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                     >
                       {availableOpeningThemes.map(theme => (
                         <option key={theme.id} value={theme.id}>
-                          {translateOpeningLabel(theme.label)}
+                          {translateOpeningLabel(theme.id, theme.label)}
                         </option>
                       ))}
                     </select>
