@@ -89,36 +89,6 @@ function ConfettiRain() {
   );
 }
 
-// Couronne de petites loupiotes façon fête foraine, tout autour de la roue.
-function MarqueeLights({ active }) {
-  const lights = Array.from({ length: 18 });
-  return (
-    <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full pointer-events-none">
-      {lights.map((_, i) => {
-        const angle = (i / lights.length) * 360;
-        const x = 50 + 51.5 * Math.cos(toRad(angle));
-        const y = 50 + 51.5 * Math.sin(toRad(angle));
-        return (
-          <motion.circle
-            key={i}
-            cx={x}
-            cy={y}
-            r={1.4}
-            fill="#FDE68A"
-            animate={{ opacity: [0.25, 1, 0.25] }}
-            transition={{
-              duration: active ? 0.9 : 1.8,
-              repeat: Infinity,
-              delay: i * (active ? 0.05 : 0.09),
-              ease: 'easeInOut'
-            }}
-          />
-        );
-      })}
-    </svg>
-  );
-}
-
 // Petit loquet doré qui "flique" au passage de chaque séparation de segment,
 // entraîné directement par l'angle de rotation (rapide quand la roue tourne vite,
 // ralentit avec elle jusqu'à l'arrêt).
@@ -363,10 +333,6 @@ export function WheelWidget({ isOpen, onClose, onWin, lang = 'en' }) {
               animate={{ opacity: spinning ? [0.55, 1, 0.55] : [0.4, 0.75, 0.4] }}
               transition={{ duration: spinning ? 0.9 : 2.2, repeat: Infinity }}
             />
-
-            <div className="absolute -inset-2">
-              <MarqueeLights active={spinning} />
-            </div>
 
             <WheelPeg pegRotate={pegRotate} />
 
