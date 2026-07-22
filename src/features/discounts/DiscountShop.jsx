@@ -1,16 +1,23 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Percent, Loader2, Copy, Check } from 'lucide-react';
+import { Percent, Loader2, ArrowRight } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { translations } from '../../lib/i18n';
 
-export function DiscountShop({ coins, onPurchase, lang = 'en' }) {
+export function DiscountShop({ coins, onPurchase, onUseDiscount, lang = 'en' }) {
   const t = translations[lang]?.shop || translations.en.shop;
   const [offers, setOffers] = useState([]);
   const [purchasingId, setPurchasingId] = useState(null);
   const [error, setError] = useState('');
   const [revealedCode, setRevealedCode] = useState(null);
-  const [copied, setCopied] = useState(false);
+
+  const useLabel = lang === 'fr' ? 'Utiliser' : lang === 'vi' ? 'Sử dụng' : 'Use';
+  const useHintText =
+    lang === 'fr'
+      ? 'Ce code sera appliqué directement sur un abonnement PREMIUM.'
+      : lang === 'vi'
+        ? 'Mã này sẽ được áp dụng trực tiếp cho một gói PREMIUM.'
+        : 'This code will be applied directly to a PREMIUM plan.';
 
   useEffect(() => {
     supabase
@@ -39,11 +46,9 @@ export function DiscountShop({ coins, onPurchase, lang = 'en' }) {
     }
   };
 
-  const handleCopy = () => {
+  const handleUseCode = () => {
     if (!revealedCode) return;
-    navigator.clipboard.writeText(revealedCode.code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    onUseDiscount?.(revealedCode.code, revealedCode.discountPercent);
   };
 
   return (
@@ -95,20 +100,22 @@ export function DiscountShop({ coins, onPurchase, lang = 'en' }) {
               {t.code_unlocked_prefix} {revealedCode.discountPercent}% {t.code_unlocked_suffix}
             </p>
             <p className="text-[10px] text-gray-500 font-medium leading-snug">
-              {t.code_instructions}
+              {useHintText}
             </p>
 
-            <div className="flex items-center justify-center gap-2">
+            <div className="flex items-center justify-center">
               <code className="px-4 py-2 bg-white border border-amber-200 rounded-xl text-sm font-black tracking-widest text-gray-900">
                 {revealedCode.code}
               </code>
-              <button
-                onClick={handleCopy}
-                className="w-10 h-10 flex items-center justify-center bg-amber-500 text-white rounded-xl hover:bg-amber-600 transition-all"
-              >
-                {copied ? <Check size={16} /> : <Copy size={16} />}
-              </button>
             </div>
+
+            <button
+              onClick={handleUseCode}
+              className="w-full h-11 flex items-center justify-center gap-2 bg-amber-500 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-amber-600 transition-all"
+            >
+              {useLabel}
+              <ArrowRight size={16} />
+            </button>
           </motion.div>
         )}
       </AnimatePresence>
