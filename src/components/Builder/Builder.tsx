@@ -14,6 +14,45 @@ type BuilderInvitation = Partial<Invitation> & {
   plan_package?: 'solo' | 'multi' | 'business' | null;
 };
 
+// --- Brouillon local (localStorage) ---
+// Évite de perdre les saisies en cours si l'appli est déchargée de la mémoire
+// quand l'utilisateur bascule sur une autre appli, puis revient dessus.
+const DRAFT_STORAGE_PREFIX = 'invite_builder_draft_';
+
+const getDraftStorageKey = (id?: string) => `${DRAFT_STORAGE_PREFIX}${id || 'new'}`;
+
+const saveDraftToStorage = (id: string | undefined, data: BuilderInvitation) => {
+  try {
+    window.localStorage.setItem(
+      getDraftStorageKey(id),
+      JSON.stringify({ savedAt: Date.now(), data })
+    );
+  } catch (error) {
+    console.error('Erreur sauvegarde brouillon local:', error);
+  }
+};
+
+const readDraftFromStorage = (id: string | undefined): BuilderInvitation | null => {
+  try {
+    const raw = window.localStorage.getItem(getDraftStorageKey(id));
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw);
+    return parsed?.data || null;
+  } catch (error) {
+    console.error('Erreur lecture brouillon local:', error);
+    return null;
+  }
+};
+
+const clearDraftFromStorage = (id: string | undefined) => {
+  try {
+    window.localStorage.removeItem(getDraftStorageKey(id));
+  } catch (error) {
+    console.error('Erreur suppression brouillon local:', error);
+  }
+};
+
 interface BuilderProps {
   invitationId?: string;
   onBack: () => void;
@@ -91,6 +130,7 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
 
     if (!confirmed) return;
 
+    clearDraftFromStorage(invitationId);
     onBack();
   };
 
@@ -150,8 +190,11 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
     if (invitationId) {
       await loadInvitation(effectivePlanType, effectivePlanPackage);
     } else {
+      const localDraft = readDraftFromStorage(undefined);
+
       setInvitation((current) => ({
         ...current,
+        ...(localDraft || {}),
         plan_type: effectivePlanType,
         plan_package: effectivePlanPackage
       }));
@@ -175,6 +218,8 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
       if (error) throw error;
 
       if (invData) {
+        const localDraft = readDraftFromStorage(invitationId);
+
         setInvitation({
           ...invData,
           paper_type: invData.paper_type || 'smooth',
@@ -199,6 +244,8 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
           custom_branding_enabled: invData.custom_branding_enabled || false,
           custom_branding_color: invData.custom_branding_color || '#FFFFFF',
           custom_logo_url: invData.custom_logo_url || '',
+          // Le brouillon local (saisies pas encore enregistrées) prime sur ce qui vient du serveur.
+          ...(localDraft || {}),
           plan_type: effectivePlanType,
           plan_package: effectivePlanPackage
         });
@@ -212,6 +259,13 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
 
   const generateSlug = () => {
     return `${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 7)}`;
+  };
+
+  // Toute modification passe par ici : elle met à jour l'état ET le brouillon local,
+  // pour ne rien perdre si l'appli est déchargée pendant que l'utilisateur fait autre chose.
+  const handleInvitationChange = (next: BuilderInvitation) => {
+    setInvitation(next);
+    saveDraftToStorage(invitationId, next);
   };
 
   const handleSave = async () => {
@@ -280,6 +334,8 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
         plan_package: effectivePlanPackage
       }));
 
+      clearDraftFromStorage(invitationId);
+
       const successMsg =
         lang === 'fr'
           ? 'Votre invitation est enregistrée'
@@ -311,7 +367,7 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
         plan_type: accountPlanType,
         plan_package: accountPlanPackage
       }}
-      onInvitationChange={setInvitation}
+      onInvitationChange={handleInvitationChange}
       onSave={handleSave}
       onBack={handleBackRequest}
       saving={saving}
