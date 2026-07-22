@@ -58,6 +58,51 @@ const PACKAGE_INVITATION_LIMITS: Record<PlanPackage, number> = {
   demo: 10
 };
 
+// --- Plans PREMIUM : prix de base (VND) et durée (mois) ---
+const PLAN_BASE: Array<{
+  id: 'solo' | 'multi' | 'business';
+  months: number;
+  totalPrice: number;
+  tag: 'popular' | 'best' | null;
+  descKey: { fr: string; vi: string; en: string };
+}> = [
+  {
+    id: 'solo',
+    months: 1,
+    totalPrice: 299000,
+    tag: null,
+    descKey: {
+      fr: '1 invitation Premium pendant 1 mois',
+      vi: '1 thiệp Premium trong 1 tháng',
+      en: '1 Premium invitation for 1 month'
+    }
+  },
+  {
+    id: 'multi',
+    months: 3,
+    totalPrice: 799000,
+    tag: 'popular',
+    descKey: {
+      fr: '3 invitations Premium pendant 3 mois',
+      vi: '3 thiệp Premium trong 3 tháng',
+      en: '3 Premium invitations for 3 months'
+    }
+  },
+  {
+    id: 'business',
+    months: 6,
+    totalPrice: 2500000,
+    tag: 'best',
+    descKey: {
+      fr: '10 invitations Premium pendant 6 mois',
+      vi: '10 thiệp Premium trong 6 tháng',
+      en: '10 Premium invitations for 6 months'
+    }
+  }
+];
+
+const formatVND = (amount: number) => `${Math.round(amount).toLocaleString('vi-VN')} VND`;
+
 const brandTitleStyle: CSSProperties = {
   fontFamily: '"Great Vibes", cursive',
   fontWeight: 400,
@@ -333,9 +378,11 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   const [lang, setLang] = useState<Language>((localStorage.getItem('invite_lang') as Language) || 'en');
   const [planPackage, setPlanPackage] = useState<PlanPackage>('free');
 
-const { coins, refreshWallet, setCoins } = useWallet();
+  const { coins, refreshWallet, setCoins } = useWallet();
   const [isShopOpen, setIsShopOpen] = useState(false);
   const [isWheelOpen, setIsWheelOpen] = useState(false);
+  // --- Code de réduction "en cours d'utilisation", posé depuis la boutique ---
+  const [activeDiscount, setActiveDiscount] = useState<{ code: string; percent: number } | null>(null);
   const [coinFly, setCoinFly] = useState<{ origin: { x: number; y: number }; target: { x: number; y: number } } | null>(null);
   const accountButtonRef = useRef<HTMLButtonElement>(null);
   const lastWinRef = useRef<any>(null);
@@ -519,6 +566,13 @@ const { coins, refreshWallet, setCoins } = useWallet();
     if (lang === 'fr') return `${safeMonths} mois`;
     if (lang === 'vi') return `${safeMonths} tháng`;
     return `${safeMonths} month${safeMonths > 1 ? 's' : ''}`;
+  };
+
+  // Libellé de durée court, utilisé par les cartes de plans (ex: "3 mois")
+  const getPlanDurationText = (months: number) => {
+    if (lang === 'fr') return `${months} mois`;
+    if (lang === 'vi') return `${months} tháng`;
+    return `${months} month${months > 1 ? 's' : ''}`;
   };
 
   const loadAccountStatus = async () => {
@@ -749,6 +803,22 @@ const { coins, refreshWallet, setCoins } = useWallet();
   const returnToAccount = async () => {
     await refreshDashboard();
     resetCheckout();
+    setActiveDiscount(null);
+    setAccountStep('PROFILE');
+  };
+
+  // --- Boutique : un code de réduction vient d'être "utilisé" -> on l'applique aux plans ---
+  const handleUseDiscountCode = (code: string, percent: number) => {
+    setActiveDiscount({ code, percent });
+    setIsShopOpen(false);
+    setAccountStep('PLANS');
+    setIsAccountOpen(true);
+  };
+
+  // --- Boutique : flèche retour vers "Mon Compte" ---
+  const handleBackFromShop = () => {
+    setIsShopOpen(false);
+    setIsAccountOpen(true);
     setAccountStep('PROFILE');
   };
 
@@ -765,7 +835,7 @@ const { coins, refreshWallet, setCoins } = useWallet();
 
     try {
       const { data, error } = await supabase.functions.invoke('create-sepay-checkout', {
-        body: { plan_id: planId }
+        body: { plan_id: planId, discount_code: activeDiscount?.code || null }
       });
 
       if (error) throw new Error(await getFunctionErrorMessage(error));
@@ -879,53 +949,24 @@ const { coins, refreshWallet, setCoins } = useWallet();
     onCreateNew();
   };
 
-  const paymentPlans = [
-    {
-      id: 'solo',
-      duration: lang === 'fr' ? '1 mois' : lang === 'vi' ? '1 tháng' : '1 month',
-      totalPrice: '399.000 VND',
-      monthlyPrice: '399.000 VND',
-      priceSuffix: '',
-      description:
-        lang === 'fr'
-          ? '1 invitation Premium pendant 1 mois'
-          : lang === 'vi'
-            ? '1 thiệp Premium trong 1 tháng'
-            : '1 Premium invitation for 1 month',
-      discount: null,
-      tag: null
-    },
-    {
-      id: 'multi',
-      duration: lang === 'fr' ? '3 mois' : lang === 'vi' ? '3 tháng' : '3 months',
-      totalPrice: '899.000 VND',
-      monthlyPrice: '899.000 VND',
-      priceSuffix: '',
-      description:
-        lang === 'fr'
-          ? '3 invitations Premium pendant 3 mois'
-          : lang === 'vi'
-            ? '3 thiệp Premium trong 3 tháng'
-            : '3 Premium invitations for 3 months',
-      discount: null,
-      tag: tPln.popular || null
-    },
-    {
-      id: 'business',
-      duration: lang === 'fr' ? '6 mois' : lang === 'vi' ? '6 tháng' : '6 months',
-      totalPrice: '2.500.000 VND',
-      monthlyPrice: '2.500.000 VND',
-      priceSuffix: '',
-      description:
-        lang === 'fr'
-          ? '10 invitations Premium pendant 6 mois'
-          : lang === 'vi'
-            ? '10 thiệp Premium trong 6 tháng'
-            : '10 Premium invitations for 6 months',
-      discount: null,
-      tag: tPln.best || null
-    }
-  ];
+  // --- Plans PREMIUM : prix mensuel calculé (gros) + prix total (petit), avec remise active éventuelle ---
+  const paymentPlans = PLAN_BASE.map((plan) => {
+    const discountedTotal = activeDiscount
+      ? plan.totalPrice * (1 - activeDiscount.percent / 100)
+      : plan.totalPrice;
+    const monthlyPrice = discountedTotal / plan.months;
+
+    return {
+      id: plan.id,
+      duration: getPlanDurationText(plan.months),
+      monthlyPrice: formatVND(monthlyPrice),
+      totalPrice: formatVND(plan.totalPrice),
+      discountedTotalPrice: activeDiscount ? formatVND(discountedTotal) : null,
+      description: plan.descKey[lang] || plan.descKey.en,
+      discount: activeDiscount ? `-${activeDiscount.percent}%` : null,
+      tag: plan.tag === 'popular' ? tPln.popular : plan.tag === 'best' ? tPln.best : null
+    };
+  });
 
   return (
     <div className="absolute inset-0 overflow-y-auto bg-gradient-to-b from-gray-50 to-white scrollbar-hide">
@@ -1405,6 +1446,25 @@ const { coins, refreshWallet, setCoins } = useWallet();
 
                   {accountStep === 'PLANS' && canUseExternalPayments && (
                     <div className="space-y-4">
+                      {activeDiscount && (
+                        <div className="flex items-center justify-between p-3 bg-emerald-50 border border-emerald-100 rounded-2xl">
+                          <p className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">
+                            {lang === 'fr'
+                              ? `Code ${activeDiscount.code} appliqué : -${activeDiscount.percent}%`
+                              : lang === 'vi'
+                                ? `Mã ${activeDiscount.code} đã áp dụng: -${activeDiscount.percent}%`
+                                : `Code ${activeDiscount.code} applied: -${activeDiscount.percent}%`}
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => setActiveDiscount(null)}
+                            className="text-[10px] font-black text-emerald-600 underline shrink-0 ml-2"
+                          >
+                            {lang === 'fr' ? 'Retirer' : lang === 'vi' ? 'Xóa' : 'Remove'}
+                          </button>
+                        </div>
+                      )}
+
                       {paymentPlans.map((plan, idx) => (
                         <div
                           key={idx}
@@ -1434,7 +1494,15 @@ const { coins, refreshWallet, setCoins } = useWallet();
                             </p>
 
                             <p className="text-[10px] text-gray-400 font-bold uppercase">
-                              Total: <span className="text-gray-700 font-black">{plan.totalPrice}</span>
+                              Total:{' '}
+                              {plan.discountedTotalPrice ? (
+                                <>
+                                  <span className="line-through">{plan.totalPrice}</span>{' '}
+                                  <span className="text-emerald-600 font-black">{plan.discountedTotalPrice}</span>
+                                </>
+                              ) : (
+                                <span className="text-gray-700 font-black">{plan.totalPrice}</span>
+                              )}
                             </p>
                           </div>
 
@@ -1780,6 +1848,7 @@ const { coins, refreshWallet, setCoins } = useWallet();
         <ShopModal
           isOpen={isShopOpen}
           onClose={() => setIsShopOpen(false)}
+          onBack={handleBackFromShop}
           coins={coins}
           lang={lang}
           onOpenWheel={() => {
@@ -1787,6 +1856,7 @@ const { coins, refreshWallet, setCoins } = useWallet();
             setIsWheelOpen(true);
           }}
           onPurchase={setCoins}
+          onUseDiscount={handleUseDiscountCode}
         />
 
         <WheelWidget
