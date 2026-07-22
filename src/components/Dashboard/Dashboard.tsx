@@ -59,6 +59,7 @@ const PACKAGE_INVITATION_LIMITS: Record<PlanPackage, number> = {
 };
 
 // --- Plans PREMIUM : prix de base (VND) et durée (mois) ---
+// Doit rester synchronisé avec l'objet `plans` de l'edge function create-sepay-checkout
 const PLAN_BASE: Array<{
   id: 'solo' | 'multi' | 'business';
   months: number;
@@ -381,8 +382,11 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   const { coins, refreshWallet, setCoins } = useWallet();
   const [isShopOpen, setIsShopOpen] = useState(false);
   const [isWheelOpen, setIsWheelOpen] = useState(false);
-  // --- Code de réduction "en cours d'utilisation", posé depuis la boutique ---
+
+  // --- Code de réduction actif sur le compte (source de vérité : profiles.active_discount_percent) ---
   const [activeDiscount, setActiveDiscount] = useState<{ code: string; percent: number } | null>(null);
+  const [applyingDiscount, setApplyingDiscount] = useState(false);
+
   const [coinFly, setCoinFly] = useState<{ origin: { x: number; y: number }; target: { x: number; y: number } } | null>(null);
   const accountButtonRef = useRef<HTMLButtonElement>(null);
   const lastWinRef = useRef<any>(null);
@@ -581,7 +585,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
       const { data, error } = await supabase
         .from('profiles')
         .select(
-          'plan_type, premium_duration_months, premium_expires_at, plan_package, max_invitations, referral_code, referral_count, referred_by'
+          'plan_type, premium_duration_months, premium_expires_at, plan_package, max_invitations, referral_code, referral_count, referred_by, active_discount_percent'
         )
         .eq('id', user.id)
         .maybeSingle();
@@ -596,6 +600,18 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
         setReferralCode(profile.referral_code || '');
         setReferralCount(profile.referral_count || 0);
         setHasUsedReferralCode(!!profile.referred_by);
+
+        // La réduction active vient toujours du profil (recalculée côté serveur).
+        // On ne connaît alors que le %, pas le code saisi à l'origine.
+        if (profile.active_discount_percent > 0) {
+          setActiveDiscount((current) =>
+            current && current.percent === profile.active_discount_percent
+              ? current
+              : { code: '', percent: profile.active_discount_percent }
+          );
+        } else {
+          setActiveDiscount(null);
+        }
 
         if (isPremiumActive) {
           setAccountStatus('PREMIUM');
@@ -803,16 +819,33 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   const returnToAccount = async () => {
     await refreshDashboard();
     resetCheckout();
-    setActiveDiscount(null);
     setAccountStep('PROFILE');
   };
 
-  // --- Boutique : un code de réduction vient d'être "utilisé" -> on l'applique aux plans ---
-  const handleUseDiscountCode = (code: string, percent: number) => {
-    setActiveDiscount({ code, percent });
-    setIsShopOpen(false);
-    setAccountStep('PLANS');
-    setIsAccountOpen(true);
+  // --- Boutique : le bouton "UTILISER" appelle redeem-discount-code, exactement
+  // comme le fait déjà handleActivateCode pour le champ "code unique". C'est cette
+  // fonction qui met à jour profiles.active_discount_percent côté serveur — sans
+  // ça, create-sepay-checkout ne verrait jamais la réduction. ---
+  const handleUseDiscountCode = async (code: string) => {
+    setApplyingDiscount(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('redeem-discount-code', {
+        body: { code: code.trim().toUpperCase() }
+      });
+
+      if (error || !data?.ok || !data?.found) {
+        throw new Error(data?.error || (await getFunctionErrorMessage(error)) || 'Code invalide');
+      }
+
+      setActiveDiscount({ code, percent: data.discountPercent });
+      setIsShopOpen(false);
+      setAccountStep('PLANS');
+      setIsAccountOpen(true);
+    } catch (err: any) {
+      alert(`Erreur : ${err.message}`);
+    } finally {
+      setApplyingDiscount(false);
+    }
   };
 
   // --- Boutique : flèche retour vers "Mon Compte" ---
@@ -834,8 +867,10 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     setGeneratedReceipt(null);
 
     try {
+      // discount_code n'est pas envoyé : create-sepay-checkout relit lui-même
+      // profiles.active_discount_percent côté serveur, il n'a besoin de rien d'autre.
       const { data, error } = await supabase.functions.invoke('create-sepay-checkout', {
-        body: { plan_id: planId, discount_code: activeDiscount?.code || null }
+        body: { plan_id: planId }
       });
 
       if (error) throw new Error(await getFunctionErrorMessage(error));
@@ -1449,19 +1484,18 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                       {activeDiscount && (
                         <div className="flex items-center justify-between p-3 bg-emerald-50 border border-emerald-100 rounded-2xl">
                           <p className="text-[10px] font-black text-emerald-700 uppercase tracking-widest">
-                            {lang === 'fr'
-                              ? `Code ${activeDiscount.code} appliqué : -${activeDiscount.percent}%`
-                              : lang === 'vi'
-                                ? `Mã ${activeDiscount.code} đã áp dụng: -${activeDiscount.percent}%`
-                                : `Code ${activeDiscount.code} applied: -${activeDiscount.percent}%`}
+                            {activeDiscount.code
+                              ? lang === 'fr'
+                                ? `Code ${activeDiscount.code} appliqué : -${activeDiscount.percent}%`
+                                : lang === 'vi'
+                                  ? `Mã ${activeDiscount.code} đã áp dụng: -${activeDiscount.percent}%`
+                                  : `Code ${activeDiscount.code} applied: -${activeDiscount.percent}%`
+                              : lang === 'fr'
+                                ? `Réduction active : -${activeDiscount.percent}%`
+                                : lang === 'vi'
+                                  ? `Giảm giá đang áp dụng: -${activeDiscount.percent}%`
+                                  : `Active discount: -${activeDiscount.percent}%`}
                           </p>
-                          <button
-                            type="button"
-                            onClick={() => setActiveDiscount(null)}
-                            className="text-[10px] font-black text-emerald-600 underline shrink-0 ml-2"
-                          >
-                            {lang === 'fr' ? 'Retirer' : lang === 'vi' ? 'Xóa' : 'Remove'}
-                          </button>
                         </div>
                       )}
 
@@ -1857,6 +1891,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
           }}
           onPurchase={setCoins}
           onUseDiscount={handleUseDiscountCode}
+          isApplyingDiscount={applyingDiscount}
         />
 
         <WheelWidget
