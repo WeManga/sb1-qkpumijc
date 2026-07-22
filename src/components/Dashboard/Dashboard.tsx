@@ -655,6 +655,8 @@ const { coins, refreshWallet, setCoins } = useWallet();
 
     setActivationLoading(true);
     try {
+      // Tous nos codes (promo achetés ou codes d'activation) sont générés en majuscule ;
+      // on normalise ici pour que la casse tapée par l'utilisateur n'ait pas d'importance.
       const codeToRedeem = activationCode.trim().toUpperCase();
 
       // 1. Essaie d'abord comme code de réduction acheté avec des pièces
@@ -676,8 +678,9 @@ const { coins, refreshWallet, setCoins } = useWallet();
       }
 
       // 2. Sinon, comportement inchangé : code d'activation PREMIUM
+      //    (on envoie bien codeToRedeem, la version normalisée en majuscule, comme au point 1)
       const { data, error } = await supabase.functions.invoke('activate-code', {
-        body: { code: activationCode.trim() }
+        body: { code: codeToRedeem }
       });
 
       if (error) throw new Error(await getFunctionErrorMessage(error));
@@ -1381,9 +1384,10 @@ const { coins, refreshWallet, setCoins } = useWallet();
                               type="text"
                               required
                               value={activationCode}
-                              onChange={(e) => setActivationCode(e.target.value)}
+                              onChange={(e) => setActivationCode(e.target.value.toUpperCase())}
                               placeholder={tAcc.placeholder}
-                              className="w-full bg-gray-50 border-none h-12 pl-12 pr-4 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-amber-300 outline-none transition-all"
+                              autoCapitalize="characters"
+                              className="w-full bg-gray-50 border-none h-12 pl-12 pr-4 rounded-xl text-xs font-semibold uppercase tracking-wider focus:ring-2 focus:ring-amber-300 outline-none transition-all"
                             />
                           </div>
 
