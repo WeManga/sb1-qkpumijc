@@ -4,7 +4,17 @@ import { CoinBalance } from '../wallet/CoinBalance';
 import { DiscountShop } from '../discounts/DiscountShop';
 import { translations } from '../../lib/i18n';
 
-export function ShopModal({ isOpen, onClose, onBack, coins, onOpenWheel, onPurchase, onUseDiscount, lang = 'en' }) {
+export function ShopModal({
+  isOpen,
+  onClose,
+  onBack,
+  coins,
+  onOpenWheel,
+  onPurchase,
+  onUseDiscount,
+  isApplyingDiscount = false,
+  lang = 'en'
+}) {
   const t = translations[lang]?.shop || translations.en.shop;
   if (!isOpen) return null;
   return (
@@ -57,7 +67,13 @@ export function ShopModal({ isOpen, onClose, onBack, coins, onOpenWheel, onPurch
                 {t.spin_wheel_btn}
               </button>
             </div>
-            <DiscountShop coins={coins} onPurchase={onPurchase} onUseDiscount={onUseDiscount} lang={lang} />
+            <DiscountShop
+              coins={coins}
+              onPurchase={onPurchase}
+              onUseDiscount={onUseDiscount}
+              isApplyingDiscount={isApplyingDiscount}
+              lang={lang}
+            />
           </div>
         </motion.div>
       </div>
