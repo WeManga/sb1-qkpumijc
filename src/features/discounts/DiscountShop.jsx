@@ -4,7 +4,7 @@ import { Percent, Loader2, ArrowRight } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { translations } from '../../lib/i18n';
 
-export function DiscountShop({ coins, onPurchase, onUseDiscount, lang = 'en' }) {
+export function DiscountShop({ coins, onPurchase, onUseDiscount, isApplyingDiscount = false, lang = 'en' }) {
   const t = translations[lang]?.shop || translations.en.shop;
   const [offers, setOffers] = useState([]);
   const [purchasingId, setPurchasingId] = useState(null);
@@ -46,9 +46,11 @@ export function DiscountShop({ coins, onPurchase, onUseDiscount, lang = 'en' }) 
     }
   };
 
+  // On ne transmet que le code : c'est redeem-discount-code (appelé côté Dashboard)
+  // qui renverra le % réellement appliqué et mettra à jour le profil côté serveur.
   const handleUseCode = () => {
-    if (!revealedCode) return;
-    onUseDiscount?.(revealedCode.code, revealedCode.discountPercent);
+    if (!revealedCode || isApplyingDiscount) return;
+    onUseDiscount?.(revealedCode.code);
   };
 
   return (
@@ -111,10 +113,15 @@ export function DiscountShop({ coins, onPurchase, onUseDiscount, lang = 'en' }) 
 
             <button
               onClick={handleUseCode}
-              className="w-full h-11 flex items-center justify-center gap-2 bg-amber-500 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-amber-600 transition-all"
+              disabled={isApplyingDiscount}
+              className="w-full h-11 flex items-center justify-center gap-2 bg-amber-500 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-amber-600 transition-all disabled:opacity-60"
             >
-              {useLabel}
-              <ArrowRight size={16} />
+              {isApplyingDiscount ? <Loader2 size={16} className="animate-spin" /> : (
+                <>
+                  {useLabel}
+                  <ArrowRight size={16} />
+                </>
+              )}
             </button>
           </motion.div>
         )}
