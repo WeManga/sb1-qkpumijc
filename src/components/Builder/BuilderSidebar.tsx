@@ -609,8 +609,8 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     const originalFile = e.target.files?.[0];
     if (!originalFile) return;
 
-    if (originalFile.type.startsWith('image/') && originalFile.size > 20 * 1024 * 1024) {
-      alert('Image trop lourde. Merci de choisir une image de moins de 20 Mo.');
+    if (originalFile.type.startsWith('image/') && originalFile.size > 100 * 1024 * 1024) {
+      alert('Image trop lourde. Merci de choisir une image de moins de 100 Mo.');
       e.target.value = '';
       return;
     }
@@ -646,8 +646,8 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     if (!originalFile) return;
     if (!checkPremiumAccess(false)) return;
 
-    if (originalFile.type.startsWith('image/') && originalFile.size > 20 * 1024 * 1024) {
-      alert('Image trop lourde. Merci de choisir une image de moins de 20 Mo.');
+    if (originalFile.type.startsWith('image/') && originalFile.size > 100 * 1024 * 1024) {
+      alert('Image trop lourde. Merci de choisir une image de moins de 100 Mo.');
       e.target.value = '';
       return;
     }
