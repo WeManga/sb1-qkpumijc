@@ -1228,7 +1228,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                       <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest">
                         {accountStep === 'PROFILE' && user?.email}
                         {accountStep === 'PLANS' && canUseExternalPayments && tPln.subtitle}
-                        {accountStep === 'CHECKOUT' && canUseExternalPayments && `${selectedPlan?.duration} - ${selectedPlan?.totalPrice}`}
+                        {accountStep === 'CHECKOUT' && canUseExternalPayments && `${selectedPlan?.duration} - ${selectedPlan?.discountedTotalPrice || selectedPlan?.totalPrice}`}
                       </p>
                     </div>
                   </div>
