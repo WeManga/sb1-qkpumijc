@@ -25,7 +25,11 @@ import {
   MoreVertical,
   Home,
   Gift,
-  ChevronDown
+  ChevronDown,
+  Mail,
+  Lock,
+  EyeOff,
+  UserPlus
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { WheelWidget } from '../../features/wheel/WheelWidget';
@@ -215,6 +219,19 @@ const translations: any = {
       errorOwn: 'You cannot use your own code.',
       errorAlready: "You've already used a referral code.",
       errorGeneric: 'Something went wrong. Please try again.'
+    },
+    guestBanner: {
+      title: "You're browsing as a guest",
+      note: 'Create an account to keep your invitation safe and access it later, from any device.',
+      cta: 'Register'
+    },
+    register: {
+      title: 'Save your invitation',
+      subtitle: 'Create an account or log in to keep access to it from any device.',
+      submit_login: 'Log in',
+      submit_signup: 'Create account',
+      success_login: 'Logged in! Your invitation has been saved to your account.',
+      success_signup: 'Account created! Your invitation has been saved.'
     }
   },
   fr: {
@@ -267,6 +284,19 @@ const translations: any = {
       errorOwn: 'Vous ne pouvez pas utiliser votre propre code.',
       errorAlready: 'Vous avez déjà utilisé un code parrain.',
       errorGeneric: "Une erreur est survenue, veuillez réessayer."
+    },
+    guestBanner: {
+      title: "Vous naviguez en tant qu'invité",
+      note: 'Créez un compte pour sécuriser votre invitation et la retrouver plus tard, depuis n\'importe quel appareil.',
+      cta: "S'enregistrer"
+    },
+    register: {
+      title: 'Enregistrez votre invitation',
+      subtitle: 'Créez un compte ou connectez-vous pour y accéder depuis n\'importe quel appareil.',
+      submit_login: 'Se connecter',
+      submit_signup: 'Créer mon compte',
+      success_login: 'Connecté ! Votre invitation a été enregistrée sur votre compte.',
+      success_signup: 'Compte créé ! Votre invitation a été enregistrée.'
     }
   },
   vi: {
@@ -319,6 +349,19 @@ const translations: any = {
       errorOwn: 'Bạn không thể sử dụng mã của chính mình.',
       errorAlready: 'Bạn đã sử dụng mã giới thiệu rồi.',
       errorGeneric: 'Đã có lỗi xảy ra, vui lòng thử lại.'
+    },
+    guestBanner: {
+      title: 'Bạn đang duyệt với tư cách khách',
+      note: 'Tạo tài khoản để lưu giữ thiệp mời và truy cập sau này, từ bất kỳ thiết bị nào.',
+      cta: 'Đăng ký'
+    },
+    register: {
+      title: 'Lưu thiệp mời của bạn',
+      subtitle: 'Tạo tài khoản hoặc đăng nhập để truy cập từ bất kỳ thiết bị nào.',
+      submit_login: 'Đăng nhập',
+      submit_signup: 'Tạo tài khoản',
+      success_login: 'Đã đăng nhập! Thiệp mời của bạn đã được lưu vào tài khoản.',
+      success_signup: 'Đã tạo tài khoản! Thiệp mời của bạn đã được lưu.'
     }
   }
 };
@@ -339,7 +382,7 @@ interface DashboardProps {
 }
 
 export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
-  const { user, signOut } = useAuth();
+  const { user, signOut, isGuest, signIn, signUp, signInWithGoogle } = useAuth();
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedResponses, setSelectedResponses] = useState<GuestResponse[] | null>(null);
@@ -370,6 +413,16 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   const [referralSubmitError, setReferralSubmitError] = useState('');
   const [referralSubmitSuccess, setReferralSubmitSuccess] = useState('');
   const [referralCopied, setReferralCopied] = useState(false);
+
+  // --- Invité : modale d'enregistrement (connexion / inscription / Google) ---
+  const [isRegisterOpen, setIsRegisterOpen] = useState(false);
+  const [registerTab, setRegisterTab] = useState<'login' | 'signup'>('signup');
+  const [registerEmail, setRegisterEmail] = useState('');
+  const [registerPassword, setRegisterPassword] = useState('');
+  const [showRegisterPassword, setShowRegisterPassword] = useState(false);
+  const [registerLoading, setRegisterLoading] = useState(false);
+  const [registerError, setRegisterError] = useState('');
+  const [registerSuccess, setRegisterSuccess] = useState('');
 
   const [zaloPosition, setZaloPosition] = useState(getInitialZaloPosition);
   const [zaloDragOffset, setZaloDragOffset] = useState({ x: 0, y: 0 });
@@ -498,6 +551,9 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   const tChk = translations[lang].checkout || translations.en.checkout;
   const tWallet = translations[lang].wallet || translations.en.wallet;
   const tRef = translations[lang].referral || translations.en.referral;
+  const tAuthForm = translations[lang].auth || translations.en.auth;
+  const tRegister = translations[lang].register || translations.en.register;
+  const tGuestBanner = translations[lang].guestBanner || translations.en.guestBanner;
 
   const privacyLabel =
     lang === 'fr' ? 'Politique de confidentialité' : lang === 'vi' ? 'Chính sách quyền riêng tư' : 'Privacy Policy';
@@ -954,6 +1010,57 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     }
   };
 
+  // --- Invité : ouverture de la modale d'enregistrement ---
+  const openRegisterModal = (tab: 'login' | 'signup') => {
+    setRegisterTab(tab);
+    setRegisterError('');
+    setRegisterSuccess('');
+    setIsRegisterOpen(true);
+  };
+
+  // --- Invité : soumission connexion / inscription (email + mot de passe) ---
+  // Le rattachement des invitations invité vers le compte réel est géré côté
+  // AuthContext (via localStorage + claim_guest_invitations), le Dashboard n'a
+  // qu'à laisser l'effet [user] recharger les invitations une fois basculé.
+  const handleRegisterSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setRegisterError('');
+    setRegisterSuccess('');
+    setRegisterLoading(true);
+
+    try {
+      if (registerTab === 'login') {
+        await signIn(registerEmail, registerPassword);
+        setRegisterSuccess(tRegister.success_login);
+      } else {
+        await signUp(registerEmail, registerPassword);
+        setRegisterSuccess(tRegister.success_signup);
+      }
+
+      setRegisterEmail('');
+      setRegisterPassword('');
+
+      window.setTimeout(() => {
+        setIsRegisterOpen(false);
+        setRegisterSuccess('');
+      }, 1800);
+    } catch (err: any) {
+      setRegisterError(err instanceof Error ? err.message : tAuthForm.error_default);
+    } finally {
+      setRegisterLoading(false);
+    }
+  };
+
+  // --- Invité : inscription/connexion via Google depuis la modale ---
+  const handleRegisterGoogle = async () => {
+    setRegisterError('');
+    try {
+      await signInWithGoogle();
+    } catch (err: any) {
+      setRegisterError(err instanceof Error ? err.message : tAuthForm.error_default);
+    }
+  };
+
   useEffect(() => {
     if (
       !isAccountOpen ||
@@ -1020,6 +1127,17 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
           </h1>
 
           <div className="absolute right-0 flex items-center gap-2">
+            {isGuest && (
+              <button
+                type="button"
+                onClick={() => openRegisterModal('signup')}
+                className="flex items-center gap-2 bg-gradient-to-r from-amber-400 to-rose-400 text-white text-[10px] sm:text-[11px] font-bold uppercase tracking-widest px-3 py-2 rounded-full shadow-sm hover:shadow-md transition-all"
+              >
+                <UserPlus className="w-4 h-4" />
+                <span className="hidden xs:inline">{tGuestBanner.cta}</span>
+              </button>
+            )}
+
             <button
               ref={accountButtonRef}
               onClick={() => {
@@ -1042,6 +1160,22 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
             </button>
           </div>
         </div>
+
+        {isGuest && (
+          <div className="mb-6 p-4 bg-gradient-to-r from-amber-50 to-rose-50 border border-amber-100 rounded-2xl flex flex-col sm:flex-row items-center justify-between gap-3 relative z-10">
+            <div className="text-center sm:text-left">
+              <p className="text-xs font-black text-gray-800 uppercase tracking-wide">{tGuestBanner.title}</p>
+              <p className="text-[11px] text-gray-500 font-medium mt-0.5">{tGuestBanner.note}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => openRegisterModal('signup')}
+              className="shrink-0 px-5 py-2.5 bg-gray-900 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-800 transition-all"
+            >
+              {tGuestBanner.cta}
+            </button>
+          </div>
+        )}
 
         {!loading && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 relative z-10">
@@ -1226,7 +1360,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                       </h3>
 
                       <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest">
-                        {accountStep === 'PROFILE' && user?.email}
+                        {accountStep === 'PROFILE' && (isGuest ? tGuestBanner.title : user?.email)}
                         {accountStep === 'PLANS' && canUseExternalPayments && tPln.subtitle}
                         {accountStep === 'CHECKOUT' && canUseExternalPayments && `${selectedPlan?.duration} - ${selectedPlan?.discountedTotalPrice || selectedPlan?.totalPrice}`}
                       </p>
@@ -1245,6 +1379,25 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                 <div className="p-8 overflow-y-auto flex-1 pb-12">
                   {accountStep === 'PROFILE' && (
                     <div className="space-y-6">
+                      {isGuest && (
+                        <div className="flex items-center justify-between p-4 bg-gradient-to-r from-amber-50 to-rose-50 rounded-2xl border border-amber-100">
+                          <div>
+                            <p className="text-xs font-black text-gray-800 uppercase tracking-wide">{tGuestBanner.title}</p>
+                            <p className="text-[10px] text-gray-500 font-bold mt-0.5">{tGuestBanner.note}</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setIsAccountOpen(false);
+                              openRegisterModal('signup');
+                            }}
+                            className="shrink-0 px-4 py-2 bg-gray-900 text-white rounded-xl text-[10px] font-black uppercase tracking-wider hover:bg-gray-800 transition-all"
+                          >
+                            {tGuestBanner.cta}
+                          </button>
+                        </div>
+                      )}
+
                       <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
                         <div>
                           <p className="text-xs text-gray-400 font-bold uppercase tracking-wider">{tAcc.status}</p>
@@ -1703,6 +1856,176 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                   )}
                 </div>
               </div>
+            </div>
+          )}
+        </AnimatePresence>
+
+        {/* --- Modale d'enregistrement pour l'invité (connexion / inscription / Google) --- */}
+        <AnimatePresence>
+          {isRegisterOpen && (
+            <div className="fixed inset-0 z-[160] flex flex-col justify-end">
+              <div
+                className="absolute inset-0 bg-black/50 backdrop-blur-xs"
+                onClick={() => setIsRegisterOpen(false)}
+              />
+
+              <motion.div
+                initial={{ y: 60, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: 60, opacity: 0 }}
+                className="relative z-10 w-full max-w-xl mx-auto bg-white rounded-t-[2.5rem] shadow-2xl flex flex-col max-h-[85vh] border-t border-gray-100 overflow-hidden"
+              >
+                <div className="w-full flex justify-center py-3 shrink-0 bg-gray-50/30">
+                  <div className="w-10 h-1 bg-gray-300 rounded-full" />
+                </div>
+
+                <div className="px-8 pb-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/30 shrink-0">
+                  <div>
+                    <h3 className="text-lg font-black text-gray-900 uppercase tracking-tight">
+                      {tRegister.title}
+                    </h3>
+                    <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest">
+                      {tRegister.subtitle}
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsRegisterOpen(false)}
+                    className="p-2 bg-gray-100 rounded-full text-gray-400 hover:bg-gray-200 transition-colors"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
+
+                <div className="p-8 overflow-y-auto flex-1">
+                  <div className="flex gap-2 mb-6 bg-gray-100/50 p-1 rounded-2xl">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRegisterTab('login');
+                        setRegisterError('');
+                        setRegisterSuccess('');
+                      }}
+                      className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all text-sm ${
+                        registerTab === 'login' ? 'bg-white text-amber-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      {tAuthForm.login_tab}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setRegisterTab('signup');
+                        setRegisterError('');
+                        setRegisterSuccess('');
+                      }}
+                      className={`flex-1 py-3 px-4 rounded-xl font-medium transition-all text-sm ${
+                        registerTab === 'signup' ? 'bg-white text-amber-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                      }`}
+                    >
+                      {tAuthForm.signup_tab}
+                    </button>
+                  </div>
+
+                  <form onSubmit={handleRegisterSubmit} className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-gray-400 mb-2 ml-1">
+                        {tAuthForm.email_label}
+                      </label>
+                      <div className="relative">
+                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
+                        <input
+                          type="email"
+                          value={registerEmail}
+                          onChange={(e) => setRegisterEmail(e.target.value)}
+                          className="w-full pl-12 pr-4 py-4 bg-gray-50 border-none rounded-2xl shadow-inner focus:ring-2 focus:ring-amber-300 outline-none transition-all text-sm"
+                          placeholder="you@example.com"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold uppercase text-gray-400 mb-2 ml-1">
+                        {tAuthForm.password_label}
+                      </label>
+                      <div className="relative">
+                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-300" />
+                        <input
+                          type={showRegisterPassword ? 'text' : 'password'}
+                          value={registerPassword}
+                          onChange={(e) => setRegisterPassword(e.target.value)}
+                          className="w-full pl-12 pr-12 py-4 bg-gray-50 border-none rounded-2xl shadow-inner focus:ring-2 focus:ring-amber-300 outline-none transition-all text-sm"
+                          placeholder="••••••••"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowRegisterPassword((current) => !current)}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-amber-500 transition-colors"
+                        >
+                          {showRegisterPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                        </button>
+                      </div>
+                    </div>
+
+                    {registerError && (
+                      <div className="p-4 bg-red-50 border border-red-100 rounded-2xl text-red-500 text-xs font-medium">
+                        {registerError}
+                      </div>
+                    )}
+
+                    {registerSuccess && (
+                      <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-2xl text-emerald-600 text-xs font-medium">
+                        {registerSuccess}
+                      </div>
+                    )}
+
+                    <button
+                      type="submit"
+                      disabled={registerLoading}
+                      className="w-full py-4 bg-gradient-to-r from-amber-400 to-rose-400 text-white rounded-2xl font-bold shadow-lg hover:shadow-xl transition-all disabled:opacity-50"
+                    >
+                      {registerLoading
+                        ? tAuthForm.loading
+                        : registerTab === 'login'
+                          ? tRegister.submit_login
+                          : tRegister.submit_signup}
+                    </button>
+
+                    <div className="relative my-4">
+                      <div className="absolute inset-0 flex items-center">
+                        <div className="w-full border-t border-gray-200" />
+                      </div>
+                      <div className="relative flex justify-center text-xs uppercase">
+                        <span className="bg-white px-2 text-gray-400 font-bold">
+                          {lang === 'fr' ? 'Ou' : lang === 'vi' ? 'Hoặc' : 'Or'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleRegisterGoogle}
+                      className="w-full py-4 bg-white border border-gray-100 text-gray-700 rounded-2xl font-bold shadow-sm hover:bg-gray-50 transition-all flex items-center justify-center gap-3"
+                    >
+                      <img
+                        src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg"
+                        className="w-5 h-5"
+                        alt="Google"
+                      />
+                      {tAuthForm.google_btn ||
+                        (lang === 'vi'
+                          ? 'Tiếp tục với Google'
+                          : lang === 'en'
+                            ? 'Continue with Google'
+                            : 'Continuer avec Google')}
+                    </button>
+                  </form>
+                </div>
+              </motion.div>
             </div>
           )}
         </AnimatePresence>
