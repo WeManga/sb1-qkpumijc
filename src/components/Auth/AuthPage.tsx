@@ -3,7 +3,6 @@ import { useAuth } from '../../contexts/AuthContext';
 import { Mail, Lock, Eye, EyeOff, UserRound } from 'lucide-react';
 import { translations, Language } from '../../lib/i18n';
 import { LanguageSelector } from '../LanguageSelector';
-import { supabase } from '../../lib/supabase';
 
 const BRAND_FONT_LINK_ID = 'invit-studio-brand-font';
 
@@ -30,7 +29,7 @@ const privacyLinkLabels: Record<Language, string> = {
 
 const guestButtonLabels: Record<Language, string> = {
   en: 'Continue as Guest',
-  fr: 'Continuer en tant qu\'invité',
+  fr: "Continuer en tant qu'invité",
   vi: 'Tiếp tục với tư cách khách'
 };
 
@@ -41,7 +40,7 @@ const guestDividerLabels: Record<Language, string> = {
 };
 
 const guestNoteLabels: Record<Language, string> = {
-  en: 'You can explore without an account. Sign up later to save your invitations.',
+  en: 'You can explore without an account. Register later to save your invitations.',
   fr: 'Vous pouvez explorer sans compte. Inscrivez-vous plus tard pour sauvegarder vos invitations.',
   vi: 'Bạn có thể khám phá mà không cần tài khoản. Đăng ký sau để lưu thiệp mời của bạn.'
 };
@@ -54,7 +53,7 @@ export function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [guestLoading, setGuestLoading] = useState(false);
   const [error, setError] = useState('');
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, signInAnonymously, signInWithGoogle } = useAuth();
 
   const [lang, setLang] = useState<Language>(
     (localStorage.getItem('invite_lang') as Language) || 'en'
@@ -115,28 +114,20 @@ export function AuthPage() {
     setError('');
 
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: window.location.origin
-        }
-      });
-
-      if (error) throw error;
+      await signInWithGoogle();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : t.error_default);
     }
   };
 
-  // NOTE: implémentation provisoire — à ajuster selon AuthContext / routing réels.
-  // Marque la session comme "invité" et redirige vers le dashboard sans compte.
+  // Accès invité : session Supabase anonyme réelle, sans email ni mot de passe.
+  // App.tsx affichera directement le Dashboard dès que `user` n'est plus null.
   const handleGuestAccess = async () => {
     setError('');
     setGuestLoading(true);
 
     try {
-      localStorage.setItem('invit_studio_guest_mode', 'true');
-      window.location.href = '/dashboard';
+      await signInAnonymously();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : t.error_default);
       setGuestLoading(false);
