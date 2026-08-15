@@ -1,6 +1,6 @@
 import { useEffect, useState, type CSSProperties, type FormEvent } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { Mail, Lock, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, UserRound } from 'lucide-react';
 import { translations, Language } from '../../lib/i18n';
 import { LanguageSelector } from '../LanguageSelector';
 import { supabase } from '../../lib/supabase';
@@ -28,12 +28,31 @@ const privacyLinkLabels: Record<Language, string> = {
   vi: 'Chính sách quyền riêng tư'
 };
 
+const guestButtonLabels: Record<Language, string> = {
+  en: 'Continue as Guest',
+  fr: 'Continuer en tant qu\'invité',
+  vi: 'Tiếp tục với tư cách khách'
+};
+
+const guestDividerLabels: Record<Language, string> = {
+  en: 'or',
+  fr: 'ou',
+  vi: 'hoặc'
+};
+
+const guestNoteLabels: Record<Language, string> = {
+  en: 'You can explore without an account. Sign up later to save your invitations.',
+  fr: 'Vous pouvez explorer sans compte. Inscrivez-vous plus tard pour sauvegarder vos invitations.',
+  vi: 'Bạn có thể khám phá mà không cần tài khoản. Đăng ký sau để lưu thiệp mời của bạn.'
+};
+
 export function AuthPage() {
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [guestLoading, setGuestLoading] = useState(false);
   const [error, setError] = useState('');
   const { signIn, signUp } = useAuth();
 
@@ -66,6 +85,10 @@ export function AuthPage() {
       : lang === 'en'
         ? 'Continue with Google'
         : 'Continuer avec Google');
+
+  const textGuest = t.guest_btn || guestButtonLabels[lang] || guestButtonLabels.en;
+  const textGuestDivider = guestDividerLabels[lang] || guestDividerLabels.en;
+  const textGuestNote = guestNoteLabels[lang] || guestNoteLabels.en;
 
   const slogan = authSlogans[lang] || authSlogans.en;
   const privacyLabel = privacyLinkLabels[lang] || privacyLinkLabels.en;
@@ -102,6 +125,21 @@ export function AuthPage() {
       if (error) throw error;
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : t.error_default);
+    }
+  };
+
+  // NOTE: implémentation provisoire — à ajuster selon AuthContext / routing réels.
+  // Marque la session comme "invité" et redirige vers le dashboard sans compte.
+  const handleGuestAccess = async () => {
+    setError('');
+    setGuestLoading(true);
+
+    try {
+      localStorage.setItem('invit_studio_guest_mode', 'true');
+      window.location.href = '/dashboard';
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : t.error_default);
+      setGuestLoading(false);
     }
   };
 
@@ -239,6 +277,30 @@ export function AuthPage() {
               />
               {textGoogle}
             </button>
+
+            <div className="relative my-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200" />
+              </div>
+
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white px-2 text-gray-400 font-bold">{textGuestDivider}</span>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={handleGuestAccess}
+              disabled={guestLoading}
+              className="w-full py-4 bg-white/70 border border-amber-200 text-amber-700 rounded-2xl font-bold shadow-sm hover:bg-amber-50 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+            >
+              <UserRound size={20} />
+              {guestLoading ? t.loading : textGuest}
+            </button>
+
+            <p className="text-center text-[11px] text-gray-400 px-2 leading-relaxed">
+              {textGuestNote}
+            </p>
 
             <button
               type="button"
