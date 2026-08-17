@@ -111,6 +111,40 @@ const getResetPhotoAdjustments = (field: string) => {
 const clampPhotoScale = (value: number) => Math.min(4, Math.max(0.2, value));
 const IMAGE_ACCEPT = 'image/jpeg,image/png,image/webp,image/heic,image/heif,image/*';
 
+// État par défaut des accordéons de la sidebar. Utilisé comme base et comme
+// fallback si rien n'est encore enregistré dans localStorage pour cette invitation.
+const DEFAULT_OPEN_SECTIONS: Record<string, boolean> = {
+  info: true,
+  program: true,
+  premiumStory: false,
+  mainMedia: true,
+  albumMedia: true,
+  adjustMedia: false,
+  opening: true,
+  customBranding: true,
+  paperTexture: true,
+  ambiance: true,
+  fonts: false
+};
+
+// Clé localStorage utilisée pour mémoriser, par invitation, quels accordéons
+// (Informations, Programme, Style, etc.) sont ouverts ou fermés. Sans ça, l'état
+// repart à zéro à chaque fois que le composant est démonté puis remonté
+// (par exemple quand on quitte la page builder puis qu'on y revient).
+const getOpenSectionsStorageKey = (invitationId?: string) =>
+  `builder_sidebar_sections_${invitationId || 'new'}`;
+
+const loadStoredOpenSections = (invitationId?: string): Record<string, boolean> => {
+  try {
+    const raw = localStorage.getItem(getOpenSectionsStorageKey(invitationId));
+    if (!raw) return DEFAULT_OPEN_SECTIONS;
+    const parsed = JSON.parse(raw);
+    return { ...DEFAULT_OPEN_SECTIONS, ...parsed };
+  } catch {
+    return DEFAULT_OPEN_SECTIONS;
+  }
+};
+
 // Dictionnaire des libellés de catégories/thèmes d'ouverture (vidéos),
 // indexé sur les `id` stables définis dans constants/openingThemes.ts
 // (plus fiable que de traduire le texte `label`, qui est stocké en français).
@@ -204,19 +238,13 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
   const [uploading, setUploading] = useState(false);
   const [selectedPhotoKey, setSelectedPhotoKey] = useState('main_photo_url');
   const [triggerMode, setTriggerMode] = useState<'emoji' | 'decor'>(invitation.premium_trigger_type || 'emoji');
-  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    info: true,
-    program: true,
-    premiumStory: false,
-    mainMedia: true,
-    albumMedia: true,
-    adjustMedia: false,
-    opening: true,
-    customBranding: true,
-    paperTexture: true,
-    ambiance: true,
-    fonts: false
-  });
+
+  // Accordéons (Informations, Programme, Médias, Style, etc.) : initialisés depuis
+  // localStorage pour cette invitation, afin de retrouver le même état d'affichage
+  // qu'au moment où l'utilisateur a quitté le builder.
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>(() =>
+    loadStoredOpenSections(invitation.id)
+  );
 
   const dragRef = useRef<{ x: number; y: number; isDragging: boolean; lastDist: number }>({
     x: 0,
@@ -228,6 +256,25 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
   useEffect(() => {
     setTriggerMode(invitation.premium_trigger_type || 'emoji');
   }, [invitation.premium_trigger_type]);
+
+  // Si jamais on change d'invitation sans démonter le composant (ex: navigation
+  // interne entre deux invitations), on recharge l'état des accordéons propre
+  // à cette invitation plutôt que de garder celui de la précédente.
+  useEffect(() => {
+    setOpenSections(loadStoredOpenSections(invitation.id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [invitation.id]);
+
+  // Sauvegarde à chaque changement, pour survivre à un démontage/remontage du
+  // composant (ex: on quitte la page builder puis on y revient).
+  useEffect(() => {
+    try {
+      localStorage.setItem(getOpenSectionsStorageKey(invitation.id), JSON.stringify(openSections));
+    } catch {
+      // Stockage indisponible (navigation privée, quota atteint...) : on ignore,
+      // ce n'est qu'un confort d'UI, pas une perte de données de l'invitation.
+    }
+  }, [openSections, invitation.id]);
 
   const lang = (localStorage.getItem('invite_lang') as Language) || (invitation.language as Language) || 'en';
   const t = translations[lang].builder;
