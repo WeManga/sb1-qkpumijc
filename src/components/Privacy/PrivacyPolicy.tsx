@@ -7,7 +7,7 @@ interface PrivacyPolicyProps {
   onBack?: () => void;
 }
 
-const CONTACT_EMAIL = 'contact@invitstudio.com';
+const CONTACT_EMAIL = 'email.invit.studio@gmail.com';
 const LAST_UPDATED = 'June 4, 2026';
 
 const content = {
