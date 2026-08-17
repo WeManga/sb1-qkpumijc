@@ -28,8 +28,7 @@ import {
   ChevronDown,
   Mail,
   Lock,
-  EyeOff,
-  UserPlus
+  EyeOff
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { WheelWidget } from '../../features/wheel/WheelWidget';
@@ -1127,17 +1126,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
           </h1>
 
           <div className="absolute right-0 flex items-center gap-2">
-            {isGuest && (
-              <button
-                type="button"
-                onClick={() => openRegisterModal('signup')}
-                className="flex items-center gap-2 bg-gradient-to-r from-amber-400 to-rose-400 text-white text-[10px] sm:text-[11px] font-bold uppercase tracking-widest px-3 py-2 rounded-full shadow-sm hover:shadow-md transition-all"
-              >
-                <UserPlus className="w-4 h-4" />
-                <span className="hidden xs:inline">{tGuestBanner.cta}</span>
-              </button>
-            )}
-
             <button
               ref={accountButtonRef}
               onClick={() => {
