@@ -95,9 +95,52 @@ const tutorialActions = {
   }
 };
 
+// Clé localStorage utilisée pour mémoriser, par invitation, quel onglet du builder
+// (Infos / Style / Médias) était ouvert. Sans ça, `activeTab` (un simple useState)
+// repart à `null` à chaque fois que MobileApp est démonté puis remonté — par exemple
+// quand on quitte la page builder puis qu'on y revient — donnant l'impression que
+// le tiroir "saute" et se referme, alors que les données, elles, sont bien conservées.
+const getActiveTabStorageKey = (invitationId?: string) => `builder_active_tab_${invitationId || 'new'}`;
+
+const readStoredActiveTab = (invitationId?: string): string | null => {
+  try {
+    return window.localStorage.getItem(getActiveTabStorageKey(invitationId));
+  } catch {
+    return null;
+  }
+};
+
 export default function MobileApp({ invitation, onInvitationChange, onSave, onBack, saving }: any) {
-  const [activeTab, setActiveTab] = useState<string | null>(null);
+  const [activeTab, setActiveTabState] = useState<string | null>(() => readStoredActiveTab(invitation?.id));
   const [tutorialStep, setTutorialStep] = useState<number | null>(null);
+
+  // Enrobe setActiveTab pour toujours écrire/effacer la valeur en localStorage en
+  // même temps que l'état React, sans avoir à y penser à chaque appel dans le JSX.
+  const setActiveTab = (nextTab: string | null) => {
+    setActiveTabState(nextTab);
+
+    try {
+      const key = getActiveTabStorageKey(invitation?.id);
+
+      if (nextTab) {
+        window.localStorage.setItem(key, nextTab);
+      } else {
+        window.localStorage.removeItem(key);
+      }
+    } catch {
+      // Stockage indisponible (navigation privée, quota atteint...) : on ignore,
+      // ce n'est qu'un confort d'UI, pas une perte de données de l'invitation.
+    }
+  };
+
+  // Si `invitation.id` devient disponible/change après le premier rendu (ex: on
+  // arrive avec une invitation en cours de chargement, ou on bascule d'une
+  // invitation à une autre sans démonter MobileApp), on relit l'onglet mémorisé
+  // pour cette invitation précise plutôt que de garder celui de la précédente.
+  useEffect(() => {
+    setActiveTabState(readStoredActiveTab(invitation?.id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [invitation?.id]);
 
   const lang = (localStorage.getItem('invite_lang') as Language) || 'fr';
   const t = translations[lang].builder;
