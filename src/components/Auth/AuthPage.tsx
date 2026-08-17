@@ -33,12 +33,6 @@ const guestButtonLabels: Record<Language, string> = {
   vi: 'Tiếp tục với tư cách khách'
 };
 
-const guestDividerLabels: Record<Language, string> = {
-  en: 'or',
-  fr: 'ou',
-  vi: 'hoặc'
-};
-
 const guestNoteLabels: Record<Language, string> = {
   en: 'You can explore without an account. Register later to save your invitations.',
   fr: 'Vous pouvez explorer sans compte. Inscrivez-vous plus tard pour sauvegarder vos invitations.',
@@ -86,7 +80,6 @@ export function AuthPage() {
         : 'Continuer avec Google');
 
   const textGuest = t.guest_btn || guestButtonLabels[lang] || guestButtonLabels.en;
-  const textGuestDivider = guestDividerLabels[lang] || guestDividerLabels.en;
   const textGuestNote = guestNoteLabels[lang] || guestNoteLabels.en;
 
   const slogan = authSlogans[lang] || authSlogans.en;
@@ -256,6 +249,17 @@ export function AuthPage() {
               </div>
             </div>
 
+            {/* Bouton Invité : positionné juste au-dessus du bouton Google */}
+            <button
+              type="button"
+              onClick={handleGuestAccess}
+              disabled={guestLoading}
+              className="w-full py-4 bg-white/70 border border-amber-200 text-amber-700 rounded-2xl font-bold shadow-sm hover:bg-amber-50 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+            >
+              <UserRound size={20} />
+              {guestLoading ? t.loading : textGuest}
+            </button>
+
             <button
               type="button"
               onClick={handleGoogleSignIn}
@@ -267,26 +271,6 @@ export function AuthPage() {
                 alt="Google"
               />
               {textGoogle}
-            </button>
-
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-200" />
-              </div>
-
-              <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-white px-2 text-gray-400 font-bold">{textGuestDivider}</span>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleGuestAccess}
-              disabled={guestLoading}
-              className="w-full py-4 bg-white/70 border border-amber-200 text-amber-700 rounded-2xl font-bold shadow-sm hover:bg-amber-50 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 disabled:opacity-50"
-            >
-              <UserRound size={20} />
-              {guestLoading ? t.loading : textGuest}
             </button>
 
             <p className="text-center text-[11px] text-gray-400 px-2 leading-relaxed">
