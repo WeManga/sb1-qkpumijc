@@ -20,10 +20,20 @@ const THEME_EMOJIS: Record<string, string[]> = {
 };
 
 const OPENING_FADE_DURATION = 0.85;
-const OPENING_REVEAL_DELAY = 420;
+// Durée/courbe partagées par TOUS les volets d'ouverture (enveloppe libre ET vidéo)
+// afin qu'ils "montent" exactement de la même façon, quel que soit le mode.
+const OPENING_RISE_DURATION = 0.82;
+const OPENING_RISE_EASE: [number, number, number, number] = [0.43, 0.13, 0.23, 0.96];
+// Délai avant de révéler le contenu (identique pour les deux modes désormais,
+// pour rester synchronisé avec l'animation de montée du volet).
+const OPENING_REVEAL_DELAY = 720;
 const CONTENT_TRANSITION_DURATION = 0.95;
 const LEAF_FRAME_URL =
   'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/feuille%20carousselle.png';
+
+// Styles de contour disponibles pour "l'enveloppe" (la carte fermée de l'invitation).
+type EnvelopeBorderStyle = 'none' | 'double' | 'gold' | 'antique' | 'dotted';
+const ENVELOPE_BORDER_DEFAULT: EnvelopeBorderStyle = 'gold';
 
 const isAndroidDevice = () =>
   typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent);
@@ -71,6 +81,85 @@ const revealProps = (delay = 0) => ({
   viewport: { once: true, amount: 0.35 },
   transition: { duration: 0.75, ease: [0.16, 1, 0.3, 1], delay }
 });
+
+// Overlay décoratif appliqué autour de "l'enveloppe" (la carte fermée de l'invitation).
+// Purement visuel (pointer-events-none), positionné en premier enfant pour rester
+// sous le contenu texte, et 100% responsive puisqu'il ne dépend que de `inset-[Npx]`.
+const EnvelopeBorderOverlay = ({
+  style,
+  radiusClass = 'rounded-[3rem]'
+}: {
+  style: EnvelopeBorderStyle;
+  radiusClass?: string;
+}) => {
+  if (!style || style === 'none') return null;
+
+  if (style === 'double') {
+    return (
+      <div className={`pointer-events-none absolute inset-0 ${radiusClass} overflow-hidden`}>
+        <div className={`absolute inset-[5px] ${radiusClass} border border-amber-900/25`} />
+        <div className={`absolute inset-[10px] ${radiusClass} border-[3px] border-amber-800/65`} />
+      </div>
+    );
+  }
+
+  if (style === 'gold') {
+    return (
+      <motion.div
+        className={`pointer-events-none absolute -inset-[2px] ${radiusClass} opacity-75`}
+        style={{
+          background:
+            'conic-gradient(from 0deg, #d4af37 0deg, #fdf6e3 60deg, #b8860b 120deg, #f6e7b0 180deg, #d4af37 240deg, #fffaf0 300deg, #d4af37 360deg)',
+          WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+          WebkitMaskComposite: 'xor',
+          maskComposite: 'exclude',
+          padding: '2.5px'
+        }}
+        animate={{ rotate: 360 }}
+        transition={{ duration: 16, repeat: Infinity, ease: 'linear' }}
+      />
+    );
+  }
+
+  if (style === 'antique') {
+    const Corner = () => (
+      <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M1 1 L1 16 M1 1 L16 1" stroke="#B8860B" strokeWidth="1.1" opacity="0.8" />
+        <path d="M1 1 C 9 3, 12 8, 9 14" stroke="#B8860B" strokeWidth="1" fill="none" opacity="0.5" />
+        <path d="M1 1 C 3 9, 8 12, 14 9" stroke="#B8860B" strokeWidth="1" fill="none" opacity="0.5" />
+        <circle cx="1" cy="1" r="2" fill="#B8860B" opacity="0.85" />
+      </svg>
+    );
+
+    return (
+      <div className={`pointer-events-none absolute inset-0 ${radiusClass} overflow-hidden`}>
+        <div className={`absolute inset-[6px] ${radiusClass} border border-amber-800/25`} />
+        <div className="absolute top-3 left-3">
+          <Corner />
+        </div>
+        <div className="absolute top-3 right-3" style={{ transform: 'scaleX(-1)' }}>
+          <Corner />
+        </div>
+        <div className="absolute bottom-3 left-3" style={{ transform: 'scaleY(-1)' }}>
+          <Corner />
+        </div>
+        <div className="absolute bottom-3 right-3" style={{ transform: 'scale(-1,-1)' }}>
+          <Corner />
+        </div>
+      </div>
+    );
+  }
+
+  if (style === 'dotted') {
+    return (
+      <div className={`pointer-events-none absolute inset-0 ${radiusClass} overflow-hidden`}>
+        <div className={`absolute inset-[8px] ${radiusClass} border-[1.5px] border-dotted border-neutral-400/70`} />
+      </div>
+    );
+  }
+
+  return null;
+};
 
 const EmojiRain = ({ emojis }: { emojis: string[] }) => {
   const particles = useMemo(() => {
@@ -592,6 +681,13 @@ export function GuestView({ invitation }: any) {
   const customLogoUrl = pick(invitation, ['custom_logo_url', 'customlogourl'], '');
   const useCustomBranding = isBusiness && Boolean(customBrandingEnabled);
 
+  // Contour visuel de "l'enveloppe" (carte fermée) : none | double | gold | antique | dotted.
+  const envelopeBorderStyle = pick(
+    invitation,
+    ['envelope_border', 'envelopeborder'],
+    ENVELOPE_BORDER_DEFAULT
+  ) as EnvelopeBorderStyle;
+
   const selectedOpeningThemeId = pick(
     invitation,
     ['opening_theme', 'openingtheme'],
@@ -685,10 +781,10 @@ export function GuestView({ invitation }: any) {
     audioRef.current?.play().catch(() => {});
   };
 
+  // Le volet (enveloppe libre OU vidéo premium) monte toujours de la même façon :
+  // on attend la fin visuelle de la montée avant de révéler le contenu.
   const handleTriggerClick = () => {
     if (isOpeningFading) return;
-
-    const revealDelay = isFreeShutterOpening ? 720 : OPENING_REVEAL_DELAY;
 
     openingTimersRef.current.forEach(clearTimeout);
     openingTimersRef.current = [];
@@ -697,7 +793,7 @@ export function GuestView({ invitation }: any) {
 
     const revealTimer = setTimeout(() => {
       triggerContainerOpening();
-    }, revealDelay);
+    }, OPENING_REVEAL_DELAY);
 
     openingTimersRef.current.push(revealTimer);
   };
@@ -766,13 +862,16 @@ export function GuestView({ invitation }: any) {
     }
   };
 
+  // Volet vidéo : monte désormais comme le volet "enveloppe libre" (translation Y),
+  // au lieu de simplement s'effacer en fondu. Même durée/courbe que FreeShutterLayer
+  // pour une sensation identique entre les deux modes.
   const OpeningVideoLayer = () => (
     <motion.div
       key={`opening-layer-${openingReplayKey}`}
       initial={false}
-      animate={{ opacity: isOpeningFading ? 0 : 1 }}
-      transition={{ duration: OPENING_FADE_DURATION, ease: 'easeInOut' }}
-      className="absolute inset-0 z-40 overflow-hidden bg-[#f8f4ec] pointer-events-none"
+      animate={isOpeningFading ? { y: '-100%', opacity: 0.97 } : { y: '0%', opacity: 1 }}
+      transition={{ duration: OPENING_RISE_DURATION, ease: OPENING_RISE_EASE }}
+      className="absolute inset-0 z-40 overflow-hidden bg-[#f8f4ec] pointer-events-none shadow-[0_20px_50px_rgba(0,0,0,0.42)] border-b border-black/10"
     >
       <motion.img
         src={openingPosterUrl}
@@ -810,7 +909,7 @@ export function GuestView({ invitation }: any) {
     <>
       <motion.div
         animate={isOpeningFading ? { y: '-100%', opacity: 0.96 } : { y: '0%', opacity: 1 }}
-        transition={{ duration: 0.82, ease: [0.43, 0.13, 0.23, 0.96] }}
+        transition={{ duration: OPENING_RISE_DURATION, ease: OPENING_RISE_EASE }}
         className="absolute inset-0 z-50 w-full h-full shadow-[0_20px_50px_rgba(0,0,0,0.42)] border-b border-black/10 bg-cover bg-center"
         style={
           useCustomBranding
@@ -942,30 +1041,16 @@ export function GuestView({ invitation }: any) {
               )}
             </motion.div>
 
-            {/* Carte "Voir les détails" avec contour doré animé (sans effet de lumière/lueur) */}
+            {/* Carte "Voir les détails" — le contour est désormais géré par EnvelopeBorderOverlay (configurable). */}
             <motion.div
               initial={{ scale: 0.8, y: 0, opacity: 0 }}
               animate={isOpened ? { scale: 1, y: 80, opacity: 1 } : { y: 0, opacity: 0 }}
               transition={{ type: 'spring', damping: 20, delay: 0.05 }}
               onClick={() => isOpened && setView('content')}
-              className={`relative z-30 w-[310px] h-[370px] rounded-[3rem] shadow-2xl p-10 flex flex-col items-center justify-between border-[1.5px] border-amber-300/45 cursor-pointer paper-container ${getPaperClass()}`}
+              className={`relative z-30 w-[310px] h-[370px] rounded-[3rem] shadow-2xl p-10 flex flex-col items-center justify-between cursor-pointer paper-container ${getPaperClass()}`}
               style={{ '--dynamic-color': cardPaperColor } as CSSProperties}
             >
-              {/* Fin liseré doré tournant, très discret, pour un effet "cadre précieux" */}
-              <motion.div
-                className="absolute -inset-[3px] rounded-[3.2rem] pointer-events-none opacity-60"
-                style={{
-                  background:
-                    'conic-gradient(from 0deg, rgba(251,191,36,0) 0deg, rgba(251,191,36,0.9) 40deg, rgba(255,255,255,0.9) 70deg, rgba(251,191,36,0.9) 100deg, rgba(251,191,36,0) 160deg, rgba(251,191,36,0) 360deg)',
-                  WebkitMask:
-                    'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-                  WebkitMaskComposite: 'xor',
-                  maskComposite: 'exclude',
-                  padding: '2px'
-                }}
-                animate={{ rotate: 360 }}
-                transition={{ duration: 9, repeat: Infinity, ease: 'linear' }}
-              />
+              <EnvelopeBorderOverlay style={envelopeBorderStyle} radiusClass="rounded-[3rem]" />
 
               <div className="text-center pt-14 w-full">
                 <h2 className="text-2xl font-semibold mb-4 break-words leading-tight" style={{ fontFamily: fontStyle }}>
@@ -1024,301 +1109,312 @@ export function GuestView({ invitation }: any) {
             )}
           </motion.div>
         ) : (
+          // FIX traits verticaux : on sépare la rotation 3D (rotateY, sur ce conteneur externe,
+          // sans overflow ni scroll) du contenu scrollable (conteneur interne juste en dessous).
+          // Combiner overflow-y-auto + rotateY sur le MÊME élément est la cause classique des
+          // fines coutures/traits verticaux visibles pendant l'animation de "page qui se tourne"
+          // (artefact de compositing 3D très courant sur Chrome/Android).
           <motion.div
             key="content"
             initial={{ opacity: 0, rotateY: -24, scale: 0.94, x: 38 }}
             animate={{ opacity: 1, rotateY: 0, scale: 1, x: 0 }}
             exit={{ opacity: 0, rotateY: 18, scale: 0.97, x: -22 }}
             transition={{ duration: CONTENT_TRANSITION_DURATION, ease: [0.16, 1, 0.3, 1] }}
-            className={`relative w-full h-full z-[100] flex flex-col overflow-y-auto paper-container ${getPaperClass()}`}
+            className="relative w-full h-full z-[100]"
             style={
               {
-                '--dynamic-color': cardPaperColor,
                 transformStyle: 'preserve-3d',
-                transformOrigin: 'center right'
+                transformOrigin: 'center right',
+                backfaceVisibility: 'hidden',
+                WebkitBackfaceVisibility: 'hidden'
               } as CSSProperties
             }
           >
-            <ContentOrnaments />
-            <RevealSweepBar />
+            <div
+              className={`relative w-full h-full flex flex-col overflow-y-auto paper-container ${getPaperClass()}`}
+              style={{ '--dynamic-color': cardPaperColor, WebkitOverflowScrolling: 'touch' } as CSSProperties}
+            >
+              <ContentOrnaments />
+              <RevealSweepBar />
 
-            <div className="h-[32%] relative overflow-hidden shrink-0">
-              {mainPhotoUrl && (
-                <img
-                  src={mainPhotoUrl}
-                  className="w-full h-full object-cover"
-                  style={{ transform: `translate(${mainPhotoPosX}px, ${mainPhotoPosY}px) scale(${mainPhotoScale})` }}
-                  alt=""
-                />
-              )}
+              <div className="h-[32%] relative overflow-hidden shrink-0">
+                {mainPhotoUrl && (
+                  <img
+                    src={mainPhotoUrl}
+                    className="w-full h-full object-cover"
+                    style={{ transform: `translate(${mainPhotoPosX}px, ${mainPhotoPosY}px) scale(${mainPhotoScale})` }}
+                    alt=""
+                  />
+                )}
 
-              <div className="absolute inset-0 bg-gradient-to-t from-white/85 via-white/20 to-transparent pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-t from-white/85 via-white/20 to-transparent pointer-events-none" />
 
-              <button onClick={() => setView('envelope')} className="absolute top-6 left-6 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-md">
-                <X size={20} />
-              </button>
-
-              {isVideoOpening && (
-                <button
-                  type="button"
-                  onClick={handleReplayOpening}
-                  className="absolute top-6 right-6 h-10 px-3 bg-white/90 rounded-full flex items-center gap-1.5 justify-center shadow-md text-[10px] font-black uppercase tracking-wider text-gray-700"
-                >
-                  <RotateCcw size={14} />
-                  <span>{getReplayLabel(lang)}</span>
+                <button onClick={() => setView('envelope')} className="absolute top-6 left-6 w-10 h-10 bg-white/90 rounded-full flex items-center justify-center shadow-md">
+                  <X size={20} />
                 </button>
-              )}
-            </div>
 
-            <div className="relative flex-1 p-8 space-y-14">
-              <motion.div {...revealProps()} className="text-center">
-                <h2 className="text-3xl font-semibold mb-4 leading-tight" style={{ fontFamily: fontStyle }}>
-                  {invitation?.host_names || tBuilder.hosts_placeholder}
-                </h2>
-
-                <motion.div
-                  className="w-10 h-[1.5px] bg-amber-400 mx-auto mb-5 origin-center"
-                  initial={{ scaleX: 0 }}
-                  whileInView={{ scaleX: 1 }}
-                  viewport={{ once: true, amount: 0.6 }}
-                  transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
-                />
-
-                <div className="flex flex-col items-center gap-2 opacity-70 font-medium text-[12px] text-gray-700">
-                  <div className="flex items-center gap-2">
-                    <motion.span
-                      animate={{ y: [0, -3, 0] }}
-                      transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut' }}
-                      className="flex"
-                    >
-                      <Calendar size={14} className="text-amber-500" />
-                    </motion.span>
-                    {invitation.event_date
-                      ? new Date(invitation.event_date).toLocaleDateString(lang === 'vi' ? 'vi-VN' : lang === 'en' ? 'en-US' : 'fr-FR', {
-                          day: 'numeric',
-                          month: 'long',
-                          year: 'numeric'
-                        })
-                      : t.save_date}
-                  </div>
-
-                  <div className="flex items-center gap-2 text-center">
-                    <motion.span
-                      animate={{ y: [0, -3, 0] }}
-                      transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
-                      className="flex shrink-0"
-                    >
-                      <MapPin size={14} className="text-amber-500 shrink-0" />
-                    </motion.span>
-                    {invitation.event_address || tBuilder.address_placeholder}
-                  </div>
-                </div>
-
-                <div className="mt-6 flex justify-center gap-4">
-                  <button onClick={addToCalendar} className="p-3 bg-amber-50 rounded-full shadow-sm active:scale-95 transition-transform">
-                    <Calendar size={18} className="text-amber-600" />
+                {isVideoOpening && (
+                  <button
+                    type="button"
+                    onClick={handleReplayOpening}
+                    className="absolute top-6 right-6 h-10 px-3 bg-white/90 rounded-full flex items-center gap-1.5 justify-center shadow-md text-[10px] font-black uppercase tracking-wider text-gray-700"
+                  >
+                    <RotateCcw size={14} />
+                    <span>{getReplayLabel(lang)}</span>
                   </button>
-                  <button onClick={openMaps} className="p-3 bg-amber-50 rounded-full shadow-sm active:scale-95 transition-transform">
-                    <MapPin size={18} className="text-amber-600" />
-                  </button>
-                </div>
-              </motion.div>
+                )}
+              </div>
 
-              {invitation.description && (
-                <motion.div {...revealProps(0.05)} className="text-center italic opacity-85" style={{ fontFamily: fontStyle }}>
-                  <p className="text-[14px] leading-relaxed px-4 whitespace-pre-wrap">{invitation.description}</p>
+              <div className="relative flex-1 p-8 space-y-14">
+                <motion.div {...revealProps()} className="text-center">
+                  <h2 className="text-3xl font-semibold mb-4 leading-tight" style={{ fontFamily: fontStyle }}>
+                    {invitation?.host_names || tBuilder.hosts_placeholder}
+                  </h2>
+
                   <motion.div
-                    className="w-12 h-[1px] bg-amber-200 mx-auto mt-6 origin-center"
+                    className="w-10 h-[1.5px] bg-amber-400 mx-auto mb-5 origin-center"
                     initial={{ scaleX: 0 }}
                     whileInView={{ scaleX: 1 }}
                     viewport={{ once: true, amount: 0.6 }}
-                    transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+                    transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
                   />
+
+                  <div className="flex flex-col items-center gap-2 opacity-70 font-medium text-[12px] text-gray-700">
+                    <div className="flex items-center gap-2">
+                      <motion.span
+                        animate={{ y: [0, -3, 0] }}
+                        transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut' }}
+                        className="flex"
+                      >
+                        <Calendar size={14} className="text-amber-500" />
+                      </motion.span>
+                      {invitation.event_date
+                        ? new Date(invitation.event_date).toLocaleDateString(lang === 'vi' ? 'vi-VN' : lang === 'en' ? 'en-US' : 'fr-FR', {
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric'
+                          })
+                        : t.save_date}
+                    </div>
+
+                    <div className="flex items-center gap-2 text-center">
+                      <motion.span
+                        animate={{ y: [0, -3, 0] }}
+                        transition={{ duration: 2.6, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
+                        className="flex shrink-0"
+                      >
+                        <MapPin size={14} className="text-amber-500 shrink-0" />
+                      </motion.span>
+                      {invitation.event_address || tBuilder.address_placeholder}
+                    </div>
+                  </div>
+
+                  <div className="mt-6 flex justify-center gap-4">
+                    <button onClick={addToCalendar} className="p-3 bg-amber-50 rounded-full shadow-sm active:scale-95 transition-transform">
+                      <Calendar size={18} className="text-amber-600" />
+                    </button>
+                    <button onClick={openMaps} className="p-3 bg-amber-50 rounded-full shadow-sm active:scale-95 transition-transform">
+                      <MapPin size={18} className="text-amber-600" />
+                    </button>
+                  </div>
                 </motion.div>
-              )}
 
-              <div className="space-y-12">
-                <motion.h3 {...revealProps()} className="text-[14px] font-semibold text-amber-600 text-center relative inline-block w-full">
-                  {tBuilder.program_title}
-                  <motion.span
-                    className="block h-[1.5px] bg-amber-400 mx-auto mt-2 origin-center"
-                    style={{ width: '32px' }}
-                    initial={{ scaleX: 0 }}
-                    whileInView={{ scaleX: 1 }}
-                    viewport={{ once: true, amount: 0.6 }}
-                    transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
-                  />
-                </motion.h3>
+                {invitation.description && (
+                  <motion.div {...revealProps(0.05)} className="text-center italic opacity-85" style={{ fontFamily: fontStyle }}>
+                    <p className="text-[14px] leading-relaxed px-4 whitespace-pre-wrap">{invitation.description}</p>
+                    <motion.div
+                      className="w-12 h-[1px] bg-amber-200 mx-auto mt-6 origin-center"
+                      initial={{ scaleX: 0 }}
+                      whileInView={{ scaleX: 1 }}
+                      viewport={{ once: true, amount: 0.6 }}
+                      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
+                    />
+                  </motion.div>
+                )}
 
-                <div className="relative flex flex-col items-center">
-                  <motion.div
-                    className="absolute top-0 w-[2px] h-full bg-gradient-to-b from-amber-100 via-amber-500 to-amber-100 origin-top"
-                    animate={{
-                      boxShadow: [
-                        '0 0 10px rgba(245,158,11,0.35)',
-                        '0 0 20px rgba(245,158,11,0.65)',
-                        '0 0 10px rgba(245,158,11,0.35)'
-                      ]
-                    }}
-                    transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
-                  />
+                <div className="space-y-12">
+                  <motion.h3 {...revealProps()} className="text-[14px] font-semibold text-amber-600 text-center relative inline-block w-full">
+                    {tBuilder.program_title}
+                    <motion.span
+                      className="block h-[1.5px] bg-amber-400 mx-auto mt-2 origin-center"
+                      style={{ width: '32px' }}
+                      initial={{ scaleX: 0 }}
+                      whileInView={{ scaleX: 1 }}
+                      viewport={{ once: true, amount: 0.6 }}
+                      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
+                    />
+                  </motion.h3>
 
-                  <div className="relative space-y-12 w-full">
-                    {(invitation.event_program || []).map((step: any, i: number) => {
-                      const isEven = i % 2 === 0;
+                  <div className="relative flex flex-col items-center">
+                    <motion.div
+                      className="absolute top-0 w-[2px] h-full bg-gradient-to-b from-amber-100 via-amber-500 to-amber-100 origin-top"
+                      animate={{
+                        boxShadow: [
+                          '0 0 10px rgba(245,158,11,0.35)',
+                          '0 0 20px rgba(245,158,11,0.65)',
+                          '0 0 10px rgba(245,158,11,0.35)'
+                        ]
+                      }}
+                      transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+                    />
 
-                      return (
-                        <motion.div
-                          key={i}
-                          initial={{ opacity: 0, x: isEven ? -22 : 22 }}
-                          whileInView={{ opacity: 1, x: 0 }}
-                          viewport={{ once: true, amount: 0.4 }}
-                          transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1], delay: Math.min(i * 0.1, 0.4) }}
-                          className={`flex items-center w-full relative ${isEven ? 'flex-row' : 'flex-row-reverse'}`}
-                        >
-                          <div className="w-[45%]">
-                            <div className={`overflow-hidden bg-white/65 backdrop-blur-sm rounded-2xl border border-amber-100 shadow-lg ${isEven ? 'text-right' : 'text-left'}`}>
-                              {isPremium && step.image_url && (
-                                <div className="w-full aspect-video overflow-hidden">
-                                  <img
-                                    src={step.image_url}
-                                    loading="lazy"
-                                    className="w-full h-full object-cover"
-                                    alt=""
-                                  />
-                                </div>
-                              )}
+                    <div className="relative space-y-12 w-full">
+                      {(invitation.event_program || []).map((step: any, i: number) => {
+                        const isEven = i % 2 === 0;
 
-                              <div className="p-4">
-                                <div className="text-[13px] font-medium leading-tight" style={{ fontFamily: fontStyle }}>
-                                  {step.activity}
+                        return (
+                          <motion.div
+                            key={i}
+                            initial={{ opacity: 0, x: isEven ? -22 : 22 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true, amount: 0.4 }}
+                            transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1], delay: Math.min(i * 0.1, 0.4) }}
+                            className={`flex items-center w-full relative ${isEven ? 'flex-row' : 'flex-row-reverse'}`}
+                          >
+                            <div className="w-[45%]">
+                              <div className={`overflow-hidden bg-white/65 backdrop-blur-sm rounded-2xl border border-amber-100 shadow-lg ${isEven ? 'text-right' : 'text-left'}`}>
+                                {isPremium && step.image_url && (
+                                  <div className="w-full aspect-video overflow-hidden">
+                                    <img
+                                      src={step.image_url}
+                                      loading="lazy"
+                                      className="w-full h-full object-cover"
+                                      alt=""
+                                    />
+                                  </div>
+                                )}
+
+                                <div className="p-4">
+                                  <div className="text-[13px] font-medium leading-tight" style={{ fontFamily: fontStyle }}>
+                                    {step.activity}
+                                  </div>
                                 </div>
                               </div>
                             </div>
-                          </div>
 
-                          <div className="w-[10%] flex flex-col items-center justify-center gap-2">
-                            <div className="text-[10px] font-semibold text-amber-600 leading-none whitespace-nowrap">
-                              {step.time}
+                            <div className="w-[10%] flex flex-col items-center justify-center gap-2">
+                              <div className="text-[10px] font-semibold text-amber-600 leading-none whitespace-nowrap">
+                                {step.time}
+                              </div>
+                              <div className="relative z-10">
+                                <div className="w-3 h-3 bg-amber-500 rounded-full ring-4 ring-white shadow-sm" />
+                                <motion.div
+                                  animate={{ scale: [1, 2.2, 1], opacity: [0.45, 0, 0.45] }}
+                                  transition={{ duration: 2.4, repeat: Infinity, delay: i * 0.15 }}
+                                  className="absolute inset-0 rounded-full bg-amber-400"
+                                />
+                              </div>
                             </div>
-                            <div className="relative z-10">
-                              <div className="w-3 h-3 bg-amber-500 rounded-full ring-4 ring-white shadow-sm" />
-                              <motion.div
-                                animate={{ scale: [1, 2.2, 1], opacity: [0.45, 0, 0.45] }}
-                                transition={{ duration: 2.4, repeat: Infinity, delay: i * 0.15 }}
-                                className="absolute inset-0 rounded-full bg-amber-400"
-                              />
-                            </div>
-                          </div>
 
-                          <div className="w-[45%]" />
-                        </motion.div>
-                      );
-                    })}
+                            <div className="w-[45%]" />
+                          </motion.div>
+                        );
+                      })}
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <PremiumStorySection isPremium={isPremium} title={premiumMidTitle} text={premiumMidText} imageUrl={premiumMidPhotoUrl} imageKey="premium_mid_photo_url" invitation={invitation} fontStyle={fontStyle} />
+                <PremiumStorySection isPremium={isPremium} title={premiumMidTitle} text={premiumMidText} imageUrl={premiumMidPhotoUrl} imageKey="premium_mid_photo_url" invitation={invitation} fontStyle={fontStyle} />
 
-              {isPremium && premiumGalleryPhotos.length === 1 && <PremiumSingleAlbumPhoto photo={premiumGalleryPhotos[0]} lang={lang} invitation={invitation} />}
-              {isPremium && premiumGalleryPhotos.length >= 2 && <PremiumPhotoCarousel photos={premiumGalleryPhotos.slice(0, 6)} lang={lang} invitation={invitation} />}
+                {isPremium && premiumGalleryPhotos.length === 1 && <PremiumSingleAlbumPhoto photo={premiumGalleryPhotos[0]} lang={lang} invitation={invitation} />}
+                {isPremium && premiumGalleryPhotos.length >= 2 && <PremiumPhotoCarousel photos={premiumGalleryPhotos.slice(0, 6)} lang={lang} invitation={invitation} />}
 
-              {isPremium && endPhotoUrl && (
-                <motion.div {...revealProps()} className="px-2">
-                  <div className="text-center mb-5">
-                    <p className="text-[13px] font-semibold text-amber-600">
-                      {getKeepsakeText(lang)}
-                    </p>
-                  </div>
-
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    viewport={{ once: true, amount: 0.3 }}
-                    transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                    className="relative rounded-[3rem] overflow-hidden shadow-2xl border-4 border-white bg-white"
-                  >
-                    <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-tr from-black/10 via-transparent to-white/20" />
-                    <img
-                      src={endPhotoUrl}
-                      loading="lazy"
-                      className="w-full h-auto"
-                      style={{
-                        transform: `translate(${pick(invitation, ['end_photo_url_pos_x', 'endphotourlposx'], 0)}px, ${pick(invitation, ['end_photo_url_pos_y', 'endphotourlposy'], 0)}px) scale(${pick(invitation, ['end_photo_url_scale', 'endphotourlscale'], 1)})`
-                      }}
-                      alt=""
-                    />
-                  </motion.div>
-                </motion.div>
-              )}
-
-              <PremiumStorySection isPremium={isPremium} title={premiumFinalTitle} text={premiumFinalText} imageUrl={premiumFinalPhotoUrl} imageKey="premium_final_photo_url" invitation={invitation} fontStyle={fontStyle} />
-
-              <motion.div
-                {...revealProps()}
-                className="relative bg-gray-900 rounded-[3rem] p-8 shadow-2xl border border-amber-300/20 overflow-hidden"
-              >
-                <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.22),transparent_42%)]" />
-                <motion.div
-                  className="absolute -top-10 -right-10 w-32 h-32 bg-amber-400/10 rounded-full blur-3xl"
-                  animate={{ opacity: [0.5, 1, 0.5], scale: [1, 1.15, 1] }}
-                  transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
-                />
-
-                {!isSubmitted ? (
-                  <form onSubmit={handleRSVP} className="relative z-10 space-y-6">
-                    <h3 className="font-semibold text-sm text-white text-center">{t.confirm_rsvp}</h3>
-
-                    <div className="flex items-center justify-between bg-white/5 p-2 rounded-2xl border border-white/10">
-                      <button type="button" onClick={() => setGuestCount(Math.max(1, guestCount - 1))} className="w-12 h-12 bg-white/10 text-white rounded-xl font-semibold active:scale-95 transition-transform">
-                        -
-                      </button>
-                      <span className="text-white font-semibold text-2xl">{guestCount}</span>
-                      <button type="button" onClick={() => setGuestCount(guestCount + 1)} className="w-12 h-12 bg-white/10 text-white rounded-xl font-semibold active:scale-95 transition-transform">
-                        +
-                      </button>
+                {isPremium && endPhotoUrl && (
+                  <motion.div {...revealProps()} className="px-2">
+                    <div className="text-center mb-5">
+                      <p className="text-[13px] font-semibold text-amber-600">
+                        {getKeepsakeText(lang)}
+                      </p>
                     </div>
 
-                    {guests.map((guest, i) => (
-                      <div key={i} className="grid grid-cols-2 gap-3">
-                        <input
-                          required
-                          placeholder={t.first_name}
-                          className="bg-white/10 h-12 px-4 rounded-xl text-sm text-white focus:ring-1 ring-amber-400 outline-none placeholder:text-white/35"
-                          value={guest.firstName}
-                          onChange={(e) => {
-                            const n = [...guests];
-                            n[i].firstName = e.target.value;
-                            setGuests(n);
-                          }}
-                        />
-                        <input
-                          required
-                          placeholder={t.last_name}
-                          className="bg-white/10 h-12 px-4 rounded-xl text-sm text-white focus:ring-1 ring-amber-400 outline-none placeholder:text-white/35"
-                          value={guest.lastName}
-                          onChange={(e) => {
-                            const n = [...guests];
-                            n[i].lastName = e.target.value;
-                            setGuests(n);
-                          }}
-                        />
-                      </div>
-                    ))}
-
-                    <motion.button type="submit" disabled={isSubmitting} whileTap={{ scale: 0.97 }} className="w-full h-14 bg-white text-gray-900 rounded-2xl font-semibold text-sm shadow-xl transition-all disabled:opacity-60">
-                      {isSubmitting ? '...' : t.send}
-                    </motion.button>
-                  </form>
-                ) : (
-                  <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.55 }} className="relative z-10 py-8 text-center space-y-4">
-                    <CheckCircle2 size={46} className="text-amber-400 mx-auto drop-shadow-[0_0_12px_rgba(251,191,36,0.5)]" />
-                    <p className="text-white font-semibold text-sm">{t.thank_you}</p>
-                    <p className="text-white/45 text-[12px] font-medium">{t.success_msg}</p>
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.95 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      viewport={{ once: true, amount: 0.3 }}
+                      transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                      className="relative rounded-[3rem] overflow-hidden shadow-2xl border-4 border-white bg-white"
+                    >
+                      <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-tr from-black/10 via-transparent to-white/20" />
+                      <img
+                        src={endPhotoUrl}
+                        loading="lazy"
+                        className="w-full h-auto"
+                        style={{
+                          transform: `translate(${pick(invitation, ['end_photo_url_pos_x', 'endphotourlposx'], 0)}px, ${pick(invitation, ['end_photo_url_pos_y', 'endphotourlposy'], 0)}px) scale(${pick(invitation, ['end_photo_url_scale', 'endphotourlscale'], 1)})`
+                        }}
+                        alt=""
+                      />
+                    </motion.div>
                   </motion.div>
                 )}
-              </motion.div>
+
+                <PremiumStorySection isPremium={isPremium} title={premiumFinalTitle} text={premiumFinalText} imageUrl={premiumFinalPhotoUrl} imageKey="premium_final_photo_url" invitation={invitation} fontStyle={fontStyle} />
+
+                <motion.div
+                  {...revealProps()}
+                  className="relative bg-gray-900 rounded-[3rem] p-8 shadow-2xl border border-amber-300/20 overflow-hidden"
+                >
+                  <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_top,rgba(245,158,11,0.22),transparent_42%)]" />
+                  <motion.div
+                    className="absolute -top-10 -right-10 w-32 h-32 bg-amber-400/10 rounded-full blur-3xl"
+                    animate={{ opacity: [0.5, 1, 0.5], scale: [1, 1.15, 1] }}
+                    transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
+                  />
+
+                  {!isSubmitted ? (
+                    <form onSubmit={handleRSVP} className="relative z-10 space-y-6">
+                      <h3 className="font-semibold text-sm text-white text-center">{t.confirm_rsvp}</h3>
+
+                      <div className="flex items-center justify-between bg-white/5 p-2 rounded-2xl border border-white/10">
+                        <button type="button" onClick={() => setGuestCount(Math.max(1, guestCount - 1))} className="w-12 h-12 bg-white/10 text-white rounded-xl font-semibold active:scale-95 transition-transform">
+                          -
+                        </button>
+                        <span className="text-white font-semibold text-2xl">{guestCount}</span>
+                        <button type="button" onClick={() => setGuestCount(guestCount + 1)} className="w-12 h-12 bg-white/10 text-white rounded-xl font-semibold active:scale-95 transition-transform">
+                          +
+                        </button>
+                      </div>
+
+                      {guests.map((guest, i) => (
+                        <div key={i} className="grid grid-cols-2 gap-3">
+                          <input
+                            required
+                            placeholder={t.first_name}
+                            className="bg-white/10 h-12 px-4 rounded-xl text-sm text-white focus:ring-1 ring-amber-400 outline-none placeholder:text-white/35"
+                            value={guest.firstName}
+                            onChange={(e) => {
+                              const n = [...guests];
+                              n[i].firstName = e.target.value;
+                              setGuests(n);
+                            }}
+                          />
+                          <input
+                            required
+                            placeholder={t.last_name}
+                            className="bg-white/10 h-12 px-4 rounded-xl text-sm text-white focus:ring-1 ring-amber-400 outline-none placeholder:text-white/35"
+                            value={guest.lastName}
+                            onChange={(e) => {
+                              const n = [...guests];
+                              n[i].lastName = e.target.value;
+                              setGuests(n);
+                            }}
+                          />
+                        </div>
+                      ))}
+
+                      <motion.button type="submit" disabled={isSubmitting} whileTap={{ scale: 0.97 }} className="w-full h-14 bg-white text-gray-900 rounded-2xl font-semibold text-sm shadow-xl transition-all disabled:opacity-60">
+                        {isSubmitting ? '...' : t.send}
+                      </motion.button>
+                    </form>
+                  ) : (
+                    <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.55 }} className="relative z-10 py-8 text-center space-y-4">
+                      <CheckCircle2 size={46} className="text-amber-400 mx-auto drop-shadow-[0_0_12px_rgba(251,191,36,0.5)]" />
+                      <p className="text-white font-semibold text-sm">{t.thank_you}</p>
+                      <p className="text-white/45 text-[12px] font-medium">{t.success_msg}</p>
+                    </motion.div>
+                  )}
+                </motion.div>
+              </div>
             </div>
           </motion.div>
         )}
