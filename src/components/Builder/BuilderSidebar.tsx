@@ -279,9 +279,9 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
   const lang = (localStorage.getItem('invite_lang') as Language) || (invitation.language as Language) || 'en';
   const t = translations[lang].builder;
   const isPremium = invitation.plan_type === 'PREMIUM';
-  // Le pack Business (plan_package) donne accès au Mode personnalisé.
-  // Un utilisateur Business a plan_type = 'PREMIUM' ET plan_package = 'business'.
-  const isBusiness = invitation.plan_package === 'business';
+  // Le Mode personnalisé est un déblocage permanent (acquis via le pack de 10
+  // invitations), indépendant du statut Premium et de son expiration.
+  const hasCustomBranding = !!invitation.has_custom_branding;
 
   const openingMode = isPremium && invitation.container_open === 'video' ? 'video' : 'envelope';
 
@@ -316,7 +316,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       opening_category_label: 'Famille de vidéo',
       opening_theme_label: 'Thème vidéo',
       premium_locked_msg: 'Disponible avec Premium',
-      business_locked_msg: "Disponible avec l'abonnement Business",
+      business_locked_msg: "Disponible en achetant le pack de 10 invitations",
       trigger_mode_emoji: 'Émojis',
       trigger_mode_decor: 'Décor',
       bg_color_label: 'Fond',
@@ -369,7 +369,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       opening_category_label: 'Video family',
       opening_theme_label: 'Video theme',
       premium_locked_msg: 'Available with Premium',
-      business_locked_msg: 'Available with the Business plan',
+      business_locked_msg: 'Available when you purchase the 10-invitation pack',
       trigger_mode_emoji: 'Emoji',
       trigger_mode_decor: 'Decor',
       bg_color_label: 'Background',
@@ -422,7 +422,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       opening_category_label: 'Nhóm video',
       opening_theme_label: 'Chủ đề video',
       premium_locked_msg: 'Có sẵn với Premium',
-      business_locked_msg: 'Có sẵn với gói Business',
+      business_locked_msg: 'Có sẵn khi mua gói 10 thiệp mời',
       trigger_mode_emoji: 'Emoji',
       trigger_mode_decor: 'Trang trí',
       bg_color_label: 'Nền',
@@ -508,8 +508,8 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     return true;
   };
 
-  const checkBusinessAccess = () => {
-    if (!isBusiness) {
+  const checkCustomBrandingAccess = () => {
+    if (!hasCustomBranding) {
       alert(localLabels.business_locked_msg);
       return false;
     }
@@ -634,12 +634,12 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
   };
 
   const handleCustomBrandingToggle = (enabled: boolean) => {
-    if (!checkBusinessAccess()) return;
+    if (!checkCustomBrandingAccess()) return;
     onInvitationChange({ ...invitation, custom_branding_enabled: enabled });
   };
 
   const handleCustomBrandingColorClick = (color: string) => {
-    if (!checkBusinessAccess()) return;
+    if (!checkCustomBrandingAccess()) return;
     onInvitationChange({ ...invitation, custom_branding_color: color });
   };
 
@@ -809,7 +809,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
 
   const Section = useCallback(({ id, title, children, premium = false, business = false }: any) => {
     const isOpen = openSections[id];
-    const locked = (premium && !isPremium) || (business && !isBusiness);
+    const locked = (premium && !isPremium) || (business && !hasCustomBranding);
 
     return (
       <div className={`rounded-2xl border border-gray-100 bg-white shadow-sm overflow-hidden ${locked ? 'opacity-90' : ''}`}>
@@ -832,7 +832,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
         {isOpen && <div className="px-4 pb-4 space-y-4">{children}</div>}
       </div>
     );
-  }, [openSections, isPremium, isBusiness, toggleSection]);
+  }, [openSections, isPremium, hasCustomBranding, toggleSection]);
 
   const PremiumMark = ({ locked }: { locked: boolean }) => {
     if (!locked) return null;
@@ -1307,7 +1307,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
           </Section>
 
           <Section id="customBranding" title={localLabels.custom_mode} business>
-            <div className={`space-y-4 ${!isBusiness ? 'opacity-60 grayscale pointer-events-none' : ''}`}>
+            <div className={`space-y-4 ${!hasCustomBranding ? 'opacity-60 grayscale pointer-events-none' : ''}`}>
               <p className="text-[11px] leading-relaxed text-gray-500">
                 {localLabels.custom_mode_desc}
               </p>
