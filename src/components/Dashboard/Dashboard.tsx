@@ -39,7 +39,6 @@ import { useWallet } from '../../features/wallet/useWallet';
 const BRAND_FONT_LINK_ID = 'invit-studio-brand-font';
 
 type AppChannel = 'web' | 'android_apk' | 'android_play';
-type PlanPackage = 'free' | 'solo' | 'multi' | 'business' | 'demo';
 
 const APP_CHANNEL = ((import.meta as any).env?.VITE_APP_CHANNEL || 'web') as AppChannel;
 const ZALO_PHONE_NUMBER = '84384920800';
@@ -53,54 +52,55 @@ const REFERRALS_NEEDED_FOR_REWARD = 3;
 const isAndroidPlayChannel = APP_CHANNEL === 'android_play';
 const canUseExternalPayments = APP_CHANNEL === 'web' || APP_CHANNEL === 'android_apk';
 
-const PACKAGE_INVITATION_LIMITS: Record<PlanPackage, number> = {
-  free: 1,
-  solo: 1,
-  multi: 3,
-  business: 10,
-  demo: 10
-};
-
-// --- Plans PREMIUM : prix de base (VND) et durée (mois) ---
-// Doit rester synchronisé avec l'objet `plans` de l'edge function create-sepay-checkout
-const PLAN_BASE: Array<{
-  id: 'solo' | 'multi' | 'business';
-  months: number;
+// --- Packs d'invitations cumulables ---
+// Remplace l'ancien système de paliers nommés (SOLO/MULTI/BUSINESS avec durée
+// Premium variable). Chaque achat ajoute `quantity` au quota déjà existant de
+// l'utilisateur (ex: 1 + 3 = 4) et accorde 1 mois d'accès Premium (empilable
+// si acheté avant expiration). Seul le pack de 10 débloque, de façon
+// permanente, le Mode personnalisé.
+// Doit rester synchronisé avec l'objet `packs` de l'edge function create-sepay-checkout.
+const INVITATION_PACKS: Array<{
+  id: 'pack_1' | 'pack_3' | 'pack_10';
+  quantity: number;
   totalPrice: number;
   tag: 'popular' | 'best' | null;
+  unlocksCustomBranding: boolean;
   descKey: { fr: string; vi: string; en: string };
 }> = [
   {
-    id: 'solo',
-    months: 1,
+    id: 'pack_1',
+    quantity: 1,
     totalPrice: 299000,
     tag: null,
+    unlocksCustomBranding: false,
     descKey: {
-      fr: '1 invitation Premium pendant 1 mois',
-      vi: '1 thiệp Premium trong 1 tháng',
-      en: '1 Premium invitation for 1 month'
+      fr: '1 invitation supplémentaire, cumulable avec vos crédits actuels. Inclut 1 mois d\'accès Premium.',
+      vi: 'Thêm 1 thiệp mời, cộng dồn với số bạn đang có. Tặng kèm 1 tháng truy cập Premium.',
+      en: '1 extra invitation, added to your existing credits. Includes 1 month of Premium access.'
     }
   },
   {
-    id: 'multi',
-    months: 3,
+    id: 'pack_3',
+    quantity: 3,
     totalPrice: 799000,
     tag: 'popular',
+    unlocksCustomBranding: false,
     descKey: {
-      fr: '3 invitations Premium pendant 3 mois',
-      vi: '3 thiệp Premium trong 3 tháng',
-      en: '3 Premium invitations for 3 months'
+      fr: '3 invitations supplémentaires, cumulables avec vos crédits actuels. Inclut 1 mois d\'accès Premium.',
+      vi: 'Thêm 3 thiệp mời, cộng dồn với số bạn đang có. Tặng kèm 1 tháng truy cập Premium.',
+      en: '3 extra invitations, added to your existing credits. Includes 1 month of Premium access.'
     }
   },
   {
-    id: 'business',
-    months: 6,
+    id: 'pack_10',
+    quantity: 10,
     totalPrice: 2500000,
     tag: 'best',
+    unlocksCustomBranding: true,
     descKey: {
-      fr: '10 invitations Premium pendant 6 mois',
-      vi: '10 thiệp Premium trong 6 tháng',
-      en: '10 Premium invitations for 6 months'
+      fr: '10 invitations supplémentaires, cumulables avec vos crédits actuels. Inclut 1 mois d\'accès Premium et débloque définitivement le Mode personnalisé.',
+      vi: 'Thêm 10 thiệp mời, cộng dồn với số bạn đang có. Tặng kèm 1 tháng Premium và mở khóa vĩnh viễn Chế độ tùy chỉnh.',
+      en: '10 extra invitations, added to your existing credits. Includes 1 month of Premium access and permanently unlocks Custom mode.'
     }
   }
 ];
@@ -182,22 +182,19 @@ const translations: any = {
       placeholder: 'Enter activation code',
       activate: 'Activate',
       status: 'Account Status',
-      duration: 'Subscription duration:'
+      duration: 'Premium access until:'
     },
     plans: {
-      title: 'Upgrade to PREMIUM',
-      subtitle: 'Unlock all templates, personalized messages, paper textures, photo albums and many more features.',
-      month: 'month',
-      months: 'months',
+      title: 'Buy invitations',
+      subtitle: 'Buy invitations one at a time, or in packs of 3 or 10. They stack with the ones you already have, and each purchase also gives you 1 month of Premium feature access.',
       popular: 'Most Popular',
       best: 'Best Value',
       save: 'Save',
-      current: '/mo',
       buy: 'Select'
     },
     checkout: {
       title: 'Select Payment Method',
-      subtitle: 'Choose your payment method to activate PREMIUM automatically.',
+      subtitle: 'Choose your payment method to add these invitations automatically.',
       qr: 'Pay by QR Code',
       cb: 'Pay by Credit Card'
     },
@@ -247,22 +244,19 @@ const translations: any = {
       placeholder: 'Entrez votre code unique',
       activate: 'Activer',
       status: 'Statut du compte',
-      duration: "Durée de l'abonnement :"
+      duration: "Accès Premium jusqu'au :"
     },
     plans: {
-      title: 'Passez au PREMIUM',
-      subtitle: "Accédez à toute l'expérience Invit Studio : designs exclusifs, messages personnalisés, albums enrichis et finitions haut de gamme.",
-      month: 'mois',
-      months: 'mois',
+      title: 'Acheter des invitations',
+      subtitle: "Achetez des invitations à l'unité, en pack de 3 ou de 10. Elles se cumulent avec celles que vous avez déjà, et chaque achat vous donne aussi 1 mois d'accès aux fonctionnalités Premium.",
       popular: 'Le plus populaire',
       best: 'Meilleure offre',
       save: 'Économisez',
-      current: '/mois',
       buy: 'Sélectionner'
     },
     checkout: {
       title: 'Choisir le moyen de paiement',
-      subtitle: 'Sélectionnez votre mode de règlement pour activer PREMIUM automatiquement.',
+      subtitle: 'Sélectionnez votre mode de règlement pour ajouter ces invitations automatiquement.',
       qr: 'Payer par QR Code',
       cb: 'Payer par CB'
     },
@@ -312,22 +306,19 @@ const translations: any = {
       placeholder: 'Nhập mã kích hoạt',
       activate: 'Kích hoạt',
       status: 'Trạng thái tài khoản',
-      duration: 'Thời hạn gói:'
+      duration: 'Truy cập Premium đến:'
     },
     plans: {
-      title: 'Nâng cấp lên PREMIUM',
-      subtitle: 'Mở khóa toàn bộ giao diện, tin nhắn cá nhân, chất liệu giấy, album ảnh và nhiều tính năng khác.',
-      month: 'tháng',
-      months: 'tháng',
+      title: 'Mua thêm thiệp mời',
+      subtitle: 'Mua thêm thiệp mời theo từng cái, gói 3 hoặc gói 10. Số lượng sẽ được cộng dồn với số bạn đang có, và mỗi lần mua cũng tặng kèm 1 tháng truy cập tính năng Premium.',
       popular: 'Phổ biến',
       best: 'Tiết kiệm nhất',
       save: 'Tiết kiệm',
-      current: '/tháng',
       buy: 'Chọn'
     },
     checkout: {
       title: 'Chọn phương thức thanh toán',
-      subtitle: 'Chọn cách thanh toán để tự động kích hoạt PREMIUM.',
+      subtitle: 'Chọn cách thanh toán để cộng thêm số thiệp mời này tự động.',
       qr: 'Thanh toán qua mã QR',
       cb: 'Thanh toán thẻ ngân hàng'
     },
@@ -429,7 +420,10 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
   const [zaloWasDragged, setZaloWasDragged] = useState(false);
 
   const [lang, setLang] = useState<Language>((localStorage.getItem('invite_lang') as Language) || 'en');
-  const [planPackage, setPlanPackage] = useState<PlanPackage>('free');
+
+  // Quota d'invitations cumulé : source de vérité = profiles.max_invitations
+  // (s'additionne à chaque achat, voir apply_invitation_purchase côté SQL).
+  const [maxInvitations, setMaxInvitations] = useState<number>(1);
 
   const { coins, refreshWallet, setCoins } = useWallet();
   const [isShopOpen, setIsShopOpen] = useState(false);
@@ -615,32 +609,13 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     return message;
   };
 
-  const getDurationLabel = (months?: number, days?: number) => {
-    if (days && days > 0) {
-      if (lang === 'fr') return `${days} jour${days > 1 ? 's' : ''}`;
-      if (lang === 'vi') return `${days} ngày`;
-      return `${days} day${days > 1 ? 's' : ''}`;
-    }
-    const safeMonths = months || 0;
-    if (lang === 'fr') return `${safeMonths} mois`;
-    if (lang === 'vi') return `${safeMonths} tháng`;
-    return `${safeMonths} month${safeMonths > 1 ? 's' : ''}`;
-  };
-
-  // Libellé de durée court, utilisé par les cartes de plans (ex: "3 mois")
-  const getPlanDurationText = (months: number) => {
-    if (lang === 'fr') return `${months} mois`;
-    if (lang === 'vi') return `${months} tháng`;
-    return `${months} month${months > 1 ? 's' : ''}`;
-  };
-
   const loadAccountStatus = async () => {
     if (!user) return;
     try {
       const { data, error } = await supabase
         .from('profiles')
         .select(
-          'plan_type, premium_duration_months, premium_expires_at, plan_package, max_invitations, referral_code, referral_count, referred_by, active_discount_percent'
+          'plan_type, premium_expires_at, max_invitations, referral_code, referral_count, referred_by, active_discount_percent'
         )
         .eq('id', user.id)
         .maybeSingle();
@@ -649,8 +624,8 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
         const profile: any = data;
         const expiresAt = profile.premium_expires_at ? new Date(profile.premium_expires_at) : null;
         const isPremiumActive = profile.plan_type === 'PREMIUM' && expiresAt && expiresAt > new Date();
-        const nextPlan = (profile.plan_package || 'free') as PlanPackage;
-        setPlanPackage(nextPlan);
+
+        setMaxInvitations(profile.max_invitations || 1);
 
         setReferralCode(profile.referral_code || '');
         setReferralCount(profile.referral_count || 0);
@@ -670,22 +645,19 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
 
         if (isPremiumActive) {
           setAccountStatus('PREMIUM');
-          if (profile.premium_duration_months) {
-            setPremiumDuration(getDurationLabel(profile.premium_duration_months, 0));
-          } else {
-            setPremiumDuration(
-              lang === 'fr'
-                ? `Jusqu'au ${expiresAt.toLocaleDateString('fr-FR')}`
-                : lang === 'vi'
-                  ? `Đến ${expiresAt.toLocaleDateString('vi-VN')}`
-                  : `Until ${expiresAt.toLocaleDateString('en-US')}`
-            );
-          }
+          setPremiumDuration(
+            lang === 'fr'
+              ? expiresAt.toLocaleDateString('fr-FR')
+              : lang === 'vi'
+                ? expiresAt.toLocaleDateString('vi-VN')
+                : expiresAt.toLocaleDateString('en-US')
+          );
         } else {
           setAccountStatus('FREE');
           setPremiumDuration('');
         }
       } else {
+        setMaxInvitations(1);
         setAccountStatus('FREE');
         setPremiumDuration('');
       }
@@ -1075,7 +1047,6 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     return () => clearInterval(timer);
   }, [isAccountOpen, accountStep, sepayPayment?.id, sepayPayment?.status, paymentConfirmed]);
 
-  const maxInvitations = PACKAGE_INVITATION_LIMITS[planPackage] ?? 1;
   const usedInvitations = invitations.length;
   const remainingInvitations = Math.max(maxInvitations - usedInvitations, 0);
   const hasReachedInvitationLimit = usedInvitations >= maxInvitations;
@@ -1090,22 +1061,27 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     onCreateNew();
   };
 
-  // --- Plans PREMIUM : prix mensuel calculé (gros) + prix total (petit), avec remise active éventuelle ---
-  const paymentPlans = PLAN_BASE.map((plan) => {
+  const invitationUnitLabel = (quantity: number) => {
+    if (lang === 'vi') return 'thiệp';
+    if (quantity > 1) return 'invitations';
+    return 'invitation';
+  };
+
+  // --- Packs d'invitations : prix total (avec remise active éventuelle appliquée) ---
+  const paymentPacks = INVITATION_PACKS.map((pack) => {
     const discountedTotal = activeDiscount
-      ? plan.totalPrice * (1 - activeDiscount.percent / 100)
-      : plan.totalPrice;
-    const monthlyPrice = discountedTotal / plan.months;
+      ? pack.totalPrice * (1 - activeDiscount.percent / 100)
+      : pack.totalPrice;
 
     return {
-      id: plan.id,
-      duration: getPlanDurationText(plan.months),
-      monthlyPrice: formatVND(monthlyPrice),
-      totalPrice: formatVND(plan.totalPrice),
+      id: pack.id,
+      quantity: pack.quantity,
+      totalPrice: formatVND(pack.totalPrice),
       discountedTotalPrice: activeDiscount ? formatVND(discountedTotal) : null,
-      description: plan.descKey[lang] || plan.descKey.en,
+      description: pack.descKey[lang] || pack.descKey.en,
       discount: activeDiscount ? `-${activeDiscount.percent}%` : null,
-      tag: plan.tag === 'popular' ? tPln.popular : plan.tag === 'best' ? tPln.best : null
+      tag: pack.tag === 'popular' ? tPln.popular : pack.tag === 'best' ? tPln.best : null,
+      unlocksCustomBranding: pack.unlocksCustomBranding
     };
   });
 
@@ -1350,7 +1326,8 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                       <p className="text-[10px] text-amber-600 font-bold uppercase tracking-widest">
                         {accountStep === 'PROFILE' && (isGuest ? tGuestBanner.title : user?.email)}
                         {accountStep === 'PLANS' && canUseExternalPayments && tPln.subtitle}
-                        {accountStep === 'CHECKOUT' && canUseExternalPayments && `${selectedPlan?.duration} - ${selectedPlan?.discountedTotalPrice || selectedPlan?.totalPrice}`}
+                        {accountStep === 'CHECKOUT' && canUseExternalPayments &&
+                          `+${selectedPlan?.quantity} ${invitationUnitLabel(selectedPlan?.quantity || 1)} - ${selectedPlan?.discountedTotalPrice || selectedPlan?.totalPrice}`}
                       </p>
                     </div>
                   </div>
@@ -1424,17 +1401,14 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                       <div className="flex items-center justify-between p-4 bg-amber-50 rounded-2xl border border-amber-100">
                         <div>
                           <p className="text-xs text-amber-700 font-bold uppercase tracking-wider">
-                            {lang === 'fr' ? 'Plan actif' : lang === 'vi' ? 'Gói hiện tại' : 'Active plan'}
-                          </p>
-                          <p className="text-xl font-black text-amber-700 uppercase">{planPackage}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xs text-amber-600 font-bold uppercase tracking-wider">
-                            {lang === 'fr' ? 'Quota' : lang === 'vi' ? 'Giới hạn' : 'Quota'}
+                            {lang === 'fr' ? 'Invitations disponibles' : lang === 'vi' ? 'Thiệp mời khả dụng' : 'Available invitations'}
                           </p>
                           <p className="text-xl font-black text-amber-700">
                             {usedInvitations} / {maxInvitations}
                           </p>
+                        </div>
+                        <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-sm bg-white">
+                          <Ticket className="w-6 h-6 text-amber-500" />
                         </div>
                       </div>
 
@@ -1640,60 +1614,52 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                         </div>
                       )}
 
-                      {paymentPlans.map((plan, idx) => (
+                      {paymentPacks.map((pack, idx) => (
                         <div
                           key={idx}
                           className={`bg-white rounded-2xl p-5 border flex items-center justify-between relative transition-all duration-300 ${
-                            plan.tag ? 'border-amber-400 shadow-md bg-gradient-to-r from-amber-50/10 via-white to-white' : 'border-gray-100 shadow-sm'
+                            pack.tag ? 'border-amber-400 shadow-md bg-gradient-to-r from-amber-50/10 via-white to-white' : 'border-gray-100 shadow-sm'
                           }`}
                         >
                           <div className="space-y-1">
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <h4 className="text-sm font-black text-gray-900 uppercase tracking-tight">
-                                {plan.duration}
+                                +{pack.quantity} {invitationUnitLabel(pack.quantity)}
                               </h4>
-                              {plan.discount && (
+                              {pack.discount && (
                                 <span className="px-1.5 py-0.5 bg-rose-100 text-rose-600 rounded text-[9px] font-black">
-                                  {plan.discount}
+                                  {pack.discount}
                                 </span>
                               )}
-                              {plan.tag && (
+                              {pack.tag && (
                                 <span className="px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded text-[9px] font-black">
-                                  {plan.tag}
+                                  {pack.tag}
                                 </span>
                               )}
                             </div>
 
-                            <p className="text-sm text-gray-600 font-medium leading-snug max-w-[220px]">
-                              {plan.description}
-                            </p>
-
-                            <p className="text-[10px] text-gray-400 font-bold uppercase">
-                              Total:{' '}
-                              {plan.discountedTotalPrice ? (
-                                <>
-                                  <span className="line-through">{plan.totalPrice}</span>{' '}
-                                  <span className="text-emerald-600 font-black">{plan.discountedTotalPrice}</span>
-                                </>
-                              ) : (
-                                <span className="text-gray-700 font-black">{plan.totalPrice}</span>
-                              )}
+                            <p className="text-sm text-gray-600 font-medium leading-snug max-w-[240px]">
+                              {pack.description}
                             </p>
                           </div>
 
                           <div className="flex items-center gap-4">
                             <div className="text-right">
-                              <p className="text-base font-black text-gray-900 tracking-tight">
-                                {plan.monthlyPrice}
-                                <span className="text-[10px] text-gray-400 font-normal">{tPln.current}</span>
-                              </p>
+                              {pack.discountedTotalPrice ? (
+                                <>
+                                  <p className="text-[10px] text-gray-400 font-bold line-through">{pack.totalPrice}</p>
+                                  <p className="text-base font-black text-emerald-600 tracking-tight">{pack.discountedTotalPrice}</p>
+                                </>
+                              ) : (
+                                <p className="text-base font-black text-gray-900 tracking-tight">{pack.totalPrice}</p>
+                              )}
                             </div>
 
                             <button
                               type="button"
-                              onClick={() => handleSelectPlan(plan)}
+                              onClick={() => handleSelectPlan(pack)}
                               className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all ${
-                                plan.tag ? 'bg-amber-500 text-white hover:bg-amber-600 shadow-sm' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
+                                pack.tag ? 'bg-amber-500 text-white hover:bg-amber-600 shadow-sm' : 'bg-gray-100 text-gray-800 hover:bg-gray-200'
                               }`}
                             >
                               {tPln.buy || 'Sélectionner'}
@@ -1805,7 +1771,11 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                           <div className="py-4">
                             <ShieldCheck className="w-14 h-14 text-amber-500 mx-auto mb-3" />
                             <h4 className="text-lg font-black text-gray-900 uppercase tracking-tight">
-                              {lang === 'fr' ? 'Compte PREMIUM activé' : lang === 'vi' ? 'Tài khoản PREMIUM đã kích hoạt' : 'PREMIUM account activated'}
+                              {lang === 'fr'
+                                ? `+${selectedPlan?.quantity} invitations ajoutées`
+                                : lang === 'vi'
+                                  ? `Đã thêm ${selectedPlan?.quantity} thiệp mời`
+                                  : `+${selectedPlan?.quantity} invitations added`}
                             </h4>
                             <p className="text-[11px] text-gray-400 font-bold uppercase tracking-widest">
                               {lang === 'fr' ? 'Paiement confirmé avec succès' : lang === 'vi' ? 'Thanh toán đã được xác nhận' : 'Payment confirmed successfully'}
@@ -1814,7 +1784,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
 
                           <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
                             <p className="text-[10px] text-amber-700 font-black uppercase tracking-widest mb-2">
-                              {lang === 'fr' ? 'Votre accès Premium est maintenant disponible' : lang === 'vi' ? 'Quyền truy cập Premium hiện đã sẵn sàng' : 'Your Premium access is now available'}
+                              {lang === 'fr' ? '1 mois d\'accès Premium activé' : lang === 'vi' ? 'Đã kích hoạt 1 tháng Premium' : '1 month of Premium access activated'}
                             </p>
                             <p className="text-sm font-bold text-gray-700 leading-snug">
                               {lang === 'fr'
