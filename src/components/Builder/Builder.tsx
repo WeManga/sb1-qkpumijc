@@ -10,8 +10,10 @@ type Invitation = Database['public']['Tables']['invitations']['Row'];
 
 type BuilderInvitation = Partial<Invitation> & {
   plan_type?: 'FREE' | 'PREMIUM';
-  // 'business' donne accès au Mode personnalisé (logo/couleur perso sur le volet d'ouverture).
-  plan_package?: 'solo' | 'multi' | 'business' | null;
+  // Déblocage permanent du Mode personnalisé (logo/couleur perso sur le volet
+  // d'ouverture), acquis en achetant le pack de 10 invitations. Indépendant de
+  // l'expiration du Premium, comme c'était déjà le cas fonctionnellement avant.
+  has_custom_branding?: boolean;
 };
 
 // --- Brouillon local (localStorage) ---
@@ -65,7 +67,7 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
   const tAuth = translations[lang].auth;
 
   const [accountPlanType, setAccountPlanType] = useState<'FREE' | 'PREMIUM'>('FREE');
-  const [accountPlanPackage, setAccountPlanPackage] = useState<'solo' | 'multi' | 'business' | null>(null);
+  const [accountHasCustomBranding, setAccountHasCustomBranding] = useState<boolean>(false);
 
   const [invitation, setInvitation] = useState<BuilderInvitation>({
     event_type: 'wedding',
@@ -103,7 +105,7 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
     custom_branding_color: '#FFFFFF',
     custom_logo_url: '',
     plan_type: 'FREE',
-    plan_package: null
+    has_custom_branding: false
   });
 
   const [loading, setLoading] = useState(true);
@@ -134,31 +136,36 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
     onBack();
   };
 
-  // Lit le plan réellement actif de l'utilisateur (profiles.plan_type + plan_package),
-  // en tenant compte de l'expiration. C'est ce couple qui détermine :
-  // - isPremium (plan_type === 'PREMIUM')
-  // - isBusiness (plan_package === 'business'), utilisé pour le Mode personnalisé
+  // Lit le plan réellement actif de l'utilisateur (profiles.plan_type +
+  // has_custom_branding), en tenant compte de l'expiration du Premium.
+  // - isPremium (plan_type === 'PREMIUM') détermine l'accès aux fonctionnalités
+  //   Premium classiques (templates, textures, messages personnalisés...), et
+  //   expire 1 mois après le dernier achat (voir apply_invitation_purchase côté SQL).
+  // - has_custom_branding détermine l'accès au Mode personnalisé : un
+  //   déblocage PERMANENT acquis via le pack de 10 invitations, qui ne dépend
+  //   pas de l'expiration du Premium (jamais remis à false automatiquement).
   const getEffectivePlan = async (): Promise<{
     planType: 'FREE' | 'PREMIUM';
-    planPackage: 'solo' | 'multi' | 'business' | null;
+    hasCustomBranding: boolean;
   }> => {
-    if (!user) return { planType: 'FREE', planPackage: null };
+    if (!user) return { planType: 'FREE', hasCustomBranding: false };
 
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('plan_type, plan_package, premium_expires_at')
+        .select('plan_type, has_custom_branding, premium_expires_at')
         .eq('id', user.id)
         .single();
 
-      if (error || !data) return { planType: 'FREE', planPackage: null };
+      if (error || !data) return { planType: 'FREE', hasCustomBranding: false };
 
       const profile: any = data;
       const expiresAt = profile.premium_expires_at ? new Date(profile.premium_expires_at) : null;
       const isPremiumActive = profile.plan_type === 'PREMIUM' && expiresAt && expiresAt > new Date();
+      const hasCustomBranding = !!profile.has_custom_branding;
 
       if (isPremiumActive) {
-        return { planType: 'PREMIUM', planPackage: profile.plan_package || null };
+        return { planType: 'PREMIUM', hasCustomBranding };
       }
 
       if (profile.plan_type === 'PREMIUM' && expiresAt && expiresAt <= new Date()) {
@@ -166,29 +173,27 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
           .from('profiles')
           .update({
             plan_type: 'FREE',
-            plan_package: null,
-            premium_duration_months: null,
             premium_expires_at: null
           } as any)
           .eq('id', user.id);
       }
 
-      return { planType: 'FREE', planPackage: null };
+      return { planType: 'FREE', hasCustomBranding };
     } catch (error) {
       console.error('Erreur lecture profil:', error);
-      return { planType: 'FREE', planPackage: null };
+      return { planType: 'FREE', hasCustomBranding: false };
     }
   };
 
   const initialiseBuilder = async () => {
     setLoading(true);
 
-    const { planType: effectivePlanType, planPackage: effectivePlanPackage } = await getEffectivePlan();
+    const { planType: effectivePlanType, hasCustomBranding: effectiveHasCustomBranding } = await getEffectivePlan();
     setAccountPlanType(effectivePlanType);
-    setAccountPlanPackage(effectivePlanPackage);
+    setAccountHasCustomBranding(effectiveHasCustomBranding);
 
     if (invitationId) {
-      await loadInvitation(effectivePlanType, effectivePlanPackage);
+      await loadInvitation(effectivePlanType, effectiveHasCustomBranding);
     } else {
       const localDraft = readDraftFromStorage(undefined);
 
@@ -196,7 +201,7 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
         ...current,
         ...(localDraft || {}),
         plan_type: effectivePlanType,
-        plan_package: effectivePlanPackage
+        has_custom_branding: effectiveHasCustomBranding
       }));
       setLoading(false);
     }
@@ -204,7 +209,7 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
 
   const loadInvitation = async (
     effectivePlanType: 'FREE' | 'PREMIUM',
-    effectivePlanPackage: 'solo' | 'multi' | 'business' | null
+    effectiveHasCustomBranding: boolean
   ) => {
     if (!invitationId) return;
 
@@ -247,7 +252,7 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
           // Le brouillon local (saisies pas encore enregistrées) prime sur ce qui vient du serveur.
           ...(localDraft || {}),
           plan_type: effectivePlanType,
-          plan_package: effectivePlanPackage
+          has_custom_branding: effectiveHasCustomBranding
         });
       }
     } catch (error) {
@@ -274,9 +279,9 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
     setSaving(true);
 
     try {
-      const { planType: effectivePlanType, planPackage: effectivePlanPackage } = await getEffectivePlan();
+      const { planType: effectivePlanType, hasCustomBranding: effectiveHasCustomBranding } = await getEffectivePlan();
       setAccountPlanType(effectivePlanType);
-      setAccountPlanPackage(effectivePlanPackage);
+      setAccountHasCustomBranding(effectiveHasCustomBranding);
 
       const payload = {
         ...invitation,
@@ -303,13 +308,13 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
         album_photo_url_4: invitation.album_photo_url_4 || '',
         album_photo_url_5: invitation.album_photo_url_5 || '',
         album_photo_url_6: invitation.album_photo_url_6 || '',
-        // Mode personnalisé : seul un compte Business peut réellement l'activer,
-        // mais la préférence est conservée pour ne pas perdre les réglages si le pack expire.
+        // Mode personnalisé : préférence conservée même si l'accès venait à
+        // changer, pour ne pas perdre les réglages (logo/couleur) déjà saisis.
         custom_branding_enabled: invitation.custom_branding_enabled || false,
         custom_branding_color: invitation.custom_branding_color || '#FFFFFF',
         custom_logo_url: invitation.custom_logo_url || '',
         plan_type: effectivePlanType,
-        plan_package: effectivePlanPackage,
+        has_custom_branding: effectiveHasCustomBranding,
         updated_at: new Date().toISOString()
       };
 
@@ -331,7 +336,7 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
       setInvitation((current) => ({
         ...current,
         plan_type: effectivePlanType,
-        plan_package: effectivePlanPackage
+        has_custom_branding: effectiveHasCustomBranding
       }));
 
       clearDraftFromStorage(invitationId);
@@ -365,7 +370,7 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
       invitation={{
         ...invitation,
         plan_type: accountPlanType,
-        plan_package: accountPlanPackage
+        has_custom_branding: accountHasCustomBranding
       }}
       onInvitationChange={handleInvitationChange}
       onSave={handleSave}
