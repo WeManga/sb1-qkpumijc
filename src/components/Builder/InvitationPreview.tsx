@@ -370,7 +370,10 @@ const ContentOrnaments = () => {
         id: i,
         left: `${8 + Math.random() * 84}%`,
         top: `${8 + Math.random() * 86}%`,
-        rotate: `${-28 + Math.random() * 56}deg`,
+        // Rotation totalement aléatoire (0-360°) : évite que les fils dorés ne
+        // ressemblent à un champ de "traits verticaux" (ce qu'un intervalle proche
+        // de 0° donnerait, puisque l'orientation de base du trait est verticale).
+        rotate: `${Math.random() * 360}deg`,
         delay: Math.random() * 2.4,
         duration: 4 + Math.random() * 2
       })),
@@ -415,22 +418,23 @@ const ContentOrnaments = () => {
   );
 };
 
-// Barre lumineuse qui balaie l'écran une seule fois à l'ouverture du contenu complet.
-// (identique à GuestView : pas de halo/lueur autour de l'écran)
+// Barre lumineuse qui balaie l'écran une seule fois, une fois le "page turn" 3D terminé
+// (le parent ne la monte qu'après la fin du flip, voir isContentSettled plus bas).
+// Simplifiée : plus de filter/blur ni mix-blend-mode (sources classiques de coutures
+// de rendu quand elles cohabitent avec un contexte de compositing 3D sur mobile), et
+// animation en `x` (transform, GPU) plutôt qu'en `left` (layout, CPU).
 const RevealSweepBar = () => (
   <div className="pointer-events-none absolute inset-0 z-[130] overflow-hidden rounded-[3.5rem]">
     <motion.div
-      className="absolute top-0 bottom-0"
+      className="absolute top-0 bottom-0 left-0"
       style={{
         width: '55%',
         background:
-          'linear-gradient(115deg, transparent 0%, rgba(255,255,255,0) 28%, rgba(255,255,255,0.9) 48%, rgba(251,191,36,0.7) 57%, rgba(255,255,255,0) 76%, transparent 100%)',
-        filter: 'blur(1.5px)',
-        mixBlendMode: 'screen'
+          'linear-gradient(115deg, transparent 0%, rgba(255,255,255,0) 28%, rgba(255,255,255,0.55) 48%, rgba(251,191,36,0.4) 57%, rgba(255,255,255,0) 76%, transparent 100%)'
       }}
-      initial={{ left: '120%' }}
-      animate={{ left: '-70%' }}
-      transition={{ duration: 0.95, ease: [0.16, 1, 0.3, 1], delay: 0.05 }}
+      initial={{ x: '-160%', opacity: 0 }}
+      animate={{ x: '220%', opacity: [0, 1, 1, 0] }}
+      transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
     />
   </div>
 );
@@ -649,6 +653,9 @@ export function InvitationPreview({ invitation }: any) {
   const [isOpeningFading, setIsOpeningFading] = useState(false);
   const [isVideoReady, setIsVideoReady] = useState(false);
   const [openingReplayKey, setOpeningReplayKey] = useState(0);
+  // Devient true une fois que l'animation 3D "page qui se tourne" est terminée.
+  // Sert à retarder RevealSweepBar et à repasser en rendu 2D plat (fix traits verticaux).
+  const [isContentSettled, setIsContentSettled] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement>(null);
   const openingTimersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -781,6 +788,13 @@ export function InvitationPreview({ invitation }: any) {
   useEffect(() => {
     setIsVideoReady(false);
   }, [openingVideoUrl, openingReplayKey]);
+
+  // Dès qu'on quitte la vue "content", on réarme isContentSettled pour la prochaine ouverture.
+  useEffect(() => {
+    if (view !== 'content') {
+      setIsContentSettled(false);
+    }
+  }, [view]);
 
   useEffect(() => {
     if (isOpened && musicUrl && audioRef.current) {
@@ -934,7 +948,10 @@ export function InvitationPreview({ invitation }: any) {
             className="relative w-full h-full flex items-center justify-center"
             style={{ perspective: '1200px' }}
           >
-            {isVideoOpening && !isOpened && <OpeningVideoLayer />}
+            {/* Appelée comme une fonction simple (pas <OpeningVideoLayer/>) : évite que React
+                ne la traite comme un nouveau type de composant à chaque re-render, ce qui
+                démontait/remontait tout l'arbre et empêchait l'animation de montée de jouer. */}
+            {isVideoOpening && !isOpened && OpeningVideoLayer()}
 
             {isOpened && musicUrl && (
               <button
@@ -1090,7 +1107,7 @@ export function InvitationPreview({ invitation }: any) {
                   </motion.div>
 
                   <div className="absolute inset-0 z-50 w-full h-full flex" style={{ perspective: '2200px', transformStyle: 'preserve-3d' }}>
-                    {isFreeShutterOpening && <FreeShutterLayer />}
+                    {isFreeShutterOpening && FreeShutterLayer()}
                   </div>
                 </motion.div>
               </div>
@@ -1108,10 +1125,15 @@ export function InvitationPreview({ invitation }: any) {
             animate={{ opacity: 1, rotateY: 0, scale: 1, x: 0 }}
             exit={{ opacity: 0, rotateY: 18, scale: 0.97, x: -22 }}
             transition={{ duration: CONTENT_TRANSITION_DURATION, ease: [0.16, 1, 0.3, 1] }}
+            onAnimationComplete={() => setIsContentSettled(true)}
             className="relative w-full h-full z-[100]"
             style={
               {
-                transformStyle: 'preserve-3d',
+                // La perspective 3D n'est active QUE pendant l'animation de "page qui se
+                // tourne". Une fois la carte installée (isContentSettled), on repasse en
+                // rendu 2D plat : ça élimine les artefacts de compositing (traits/coutures
+                // verticaux) qu'un contexte 3D actif peut produire pendant le scroll mobile.
+                transformStyle: isContentSettled ? 'flat' : 'preserve-3d',
                 transformOrigin: 'center right',
                 backfaceVisibility: 'hidden',
                 WebkitBackfaceVisibility: 'hidden'
@@ -1123,7 +1145,7 @@ export function InvitationPreview({ invitation }: any) {
               style={{ '--dynamic-color': cardPaperColor, WebkitOverflowScrolling: 'touch' } as CSSProperties}
             >
               <ContentOrnaments />
-              <RevealSweepBar />
+              {isContentSettled && <RevealSweepBar />}
 
               <div className="h-[32%] relative overflow-hidden shrink-0">
                 {mainPhotoUrl && (
