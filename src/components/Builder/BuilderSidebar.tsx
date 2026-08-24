@@ -67,6 +67,19 @@ const TEXTURES = [
   { id: 'velvet', labelKey: 'texture_velvet', premium: true }
 ];
 
+// Styles de contour disponibles pour "l'enveloppe" (la carte fermée de l'invitation).
+// Le rendu réel de chaque style est fait par EnvelopeBorderOverlay dans
+// InvitationPreview.tsx et GuestView.tsx à partir du champ `envelope_border`.
+const ENVELOPE_BORDER_OPTIONS = [
+  { id: 'none', labelKey: 'envelope_border_none', descKey: 'envelope_border_none_desc' },
+  { id: 'double', labelKey: 'envelope_border_double', descKey: 'envelope_border_double_desc' },
+  { id: 'gold', labelKey: 'envelope_border_gold', descKey: 'envelope_border_gold_desc' },
+  { id: 'antique', labelKey: 'envelope_border_antique', descKey: 'envelope_border_antique_desc' },
+  { id: 'dotted', labelKey: 'envelope_border_dotted', descKey: 'envelope_border_dotted_desc' }
+];
+
+const ENVELOPE_BORDER_DEFAULT = 'gold';
+
 const ALBUM_PHOTO_FIELDS = [
   { key: 'album_photo_url_1' },
   { key: 'album_photo_url_2' },
@@ -122,6 +135,7 @@ const DEFAULT_OPEN_SECTIONS: Record<string, boolean> = {
   adjustMedia: false,
   opening: true,
   customBranding: true,
+  envelopeBorder: true,
   paperTexture: true,
   ambiance: true,
   fonts: false
@@ -234,6 +248,54 @@ const compressImageFile = async (file: File): Promise<File> => {
   }
 };
 
+// Aperçu miniature (44x44) du style de contour, purement en Tailwind — utilisé dans
+// la rubrique "Contour de l'enveloppe" pour visualiser chaque option avant de la choisir.
+const BorderStylePreview = ({ style }: { style: string }) => {
+  if (style === 'none') {
+    return <div className="w-11 h-11 rounded-xl border border-dashed border-gray-200 bg-white" />;
+  }
+
+  if (style === 'double') {
+    return (
+      <div className="relative w-11 h-11 rounded-xl bg-white overflow-hidden">
+        <div className="absolute inset-[3px] rounded-lg border border-amber-900/30" />
+        <div className="absolute inset-[6px] rounded-lg border-2 border-amber-800/70" />
+      </div>
+    );
+  }
+
+  if (style === 'gold') {
+    return (
+      <div
+        className="w-11 h-11 rounded-xl"
+        style={{
+          background: 'conic-gradient(from 0deg, #d4af37, #fdf6e3, #b8860b, #f6e7b0, #d4af37)',
+          padding: '3px'
+        }}
+      >
+        <div className="w-full h-full rounded-[7px] bg-white" />
+      </div>
+    );
+  }
+
+  if (style === 'antique') {
+    return (
+      <div className="relative w-11 h-11 rounded-xl border border-amber-800/25 bg-white overflow-hidden">
+        <span className="absolute top-1 left-1 w-2.5 h-2.5 border-t border-l border-amber-700/70" />
+        <span className="absolute top-1 right-1 w-2.5 h-2.5 border-t border-r border-amber-700/70" />
+        <span className="absolute bottom-1 left-1 w-2.5 h-2.5 border-b border-l border-amber-700/70" />
+        <span className="absolute bottom-1 right-1 w-2.5 h-2.5 border-b border-r border-amber-700/70" />
+      </div>
+    );
+  }
+
+  if (style === 'dotted') {
+    return <div className="w-11 h-11 rounded-xl border-[1.5px] border-dotted border-neutral-400 bg-white" />;
+  }
+
+  return null;
+};
+
 export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: any) {
   const [uploading, setUploading] = useState(false);
   const [selectedPhotoKey, setSelectedPhotoKey] = useState('main_photo_url');
@@ -298,6 +360,8 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       ? invitation.opening_theme
       : DEFAULT_THEME_BY_CATEGORY[selectedOpeningCategory as keyof typeof DEFAULT_THEME_BY_CATEGORY] || DEFAULT_THEME_BY_CATEGORY.other;
 
+  const selectedEnvelopeBorder = invitation.envelope_border || ENVELOPE_BORDER_DEFAULT;
+
   const localLabels = {
     fr: {
       info: 'Informations',
@@ -350,7 +414,18 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       custom_mode_toggle_on: 'Activé',
       custom_mode_toggle_off: 'Désactivé',
       custom_mode_color_label: 'Couleur de fond',
-      custom_mode_logo_label: 'Votre logo ou image'
+      custom_mode_logo_label: 'Votre logo ou image',
+      envelope_border_label: "Contour de l'enveloppe",
+      envelope_border_none: 'Sans',
+      envelope_border_none_desc: 'Aucun contour décoratif, un rendu épuré et minimal.',
+      envelope_border_double: 'Double Liseré',
+      envelope_border_double_desc: 'Un double liseré classique : une fine ligne extérieure et une ligne intérieure plus épaisse.',
+      envelope_border_gold: 'Cadre Doré',
+      envelope_border_gold_desc: 'Un bord fin au dégradé subtil, effet or brossé, pour une ambiance luxueuse.',
+      envelope_border_antique: 'Coins Antiques',
+      envelope_border_antique_desc: 'Un cadre discret avec de petites arabesques calligraphiées dans les 4 coins, esprit mariage rétro et royal.',
+      envelope_border_dotted: 'Pointillé Chic',
+      envelope_border_dotted_desc: 'Un effet couture, papier piqué très fin, pour une ambiance minimaliste et rustique.'
     },
     en: {
       info: 'Information',
@@ -403,7 +478,18 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       custom_mode_toggle_on: 'On',
       custom_mode_toggle_off: 'Off',
       custom_mode_color_label: 'Background color',
-      custom_mode_logo_label: 'Your logo or image'
+      custom_mode_logo_label: 'Your logo or image',
+      envelope_border_label: 'Envelope border',
+      envelope_border_none: 'None',
+      envelope_border_none_desc: 'No decorative border, a clean and minimal look.',
+      envelope_border_double: 'Double Border',
+      envelope_border_double_desc: 'A classic double border: a thin outer line and a thicker inner line.',
+      envelope_border_gold: 'Golden Frame',
+      envelope_border_gold_desc: 'A thin edge with a subtle gradient, brushed gold effect, for a luxurious feel.',
+      envelope_border_antique: 'Antique Corners',
+      envelope_border_antique_desc: 'A discreet frame with small calligraphic flourishes in the 4 corners, for a retro, royal wedding feel.',
+      envelope_border_dotted: 'Chic Dotted',
+      envelope_border_dotted_desc: 'A fine stitched, quilted-paper effect, for a minimal and rustic mood.'
     },
     vi: {
       info: 'Thông tin',
@@ -456,7 +542,18 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       custom_mode_toggle_on: 'Bật',
       custom_mode_toggle_off: 'Tắt',
       custom_mode_color_label: 'Màu nền',
-      custom_mode_logo_label: 'Logo hoặc hình ảnh của bạn'
+      custom_mode_logo_label: 'Logo hoặc hình ảnh của bạn',
+      envelope_border_label: 'Viền phong bì',
+      envelope_border_none: 'Không có',
+      envelope_border_none_desc: 'Không có viền trang trí, vẻ ngoài tối giản và gọn gàng.',
+      envelope_border_double: 'Viền Đôi',
+      envelope_border_double_desc: 'Viền đôi cổ điển: một đường viền ngoài mảnh và một đường viền trong dày hơn.',
+      envelope_border_gold: 'Khung Vàng',
+      envelope_border_gold_desc: 'Viền mảnh với dải màu chuyển nhẹ, hiệu ứng vàng xước, mang cảm giác sang trọng.',
+      envelope_border_antique: 'Góc Cổ Điển',
+      envelope_border_antique_desc: 'Khung viền tinh tế với hoa văn thư pháp nhỏ ở 4 góc, phong cách cưới hoài cổ và hoàng gia.',
+      envelope_border_dotted: 'Chấm Bi Tinh Tế',
+      envelope_border_dotted_desc: 'Hiệu ứng đường may, giấy chần chỉ mảnh, mang không khí tối giản và mộc mạc.'
     }
   }[lang];
 
@@ -631,6 +728,10 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
   const handleTextureClick = (textureId: string, premium: boolean) => {
     if (!checkPremiumAccess(!premium)) return;
     onInvitationChange({ ...invitation, paper_type: textureId });
+  };
+
+  const handleEnvelopeBorderClick = (styleId: string) => {
+    onInvitationChange({ ...invitation, envelope_border: styleId });
   };
 
   const handleCustomBrandingToggle = (enabled: boolean) => {
@@ -860,6 +961,21 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       </button>
     );
   };
+
+  // Bouton d'option pour la rubrique "Contour de l'enveloppe" : aperçu visuel + libellé,
+  // sur une grille responsive (s'adapte à la largeur de la sidebar, y compris mobile).
+  const BorderStyleOption = ({ id, label, active, onClick }: any) => (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex flex-col items-center gap-2 rounded-2xl border p-3 transition-all ${
+        active ? 'border-amber-400 bg-amber-50 shadow-sm' : 'border-gray-100 bg-gray-50'
+      }`}
+    >
+      <BorderStylePreview style={id} />
+      <span className="text-[9px] font-black uppercase text-gray-600 text-center leading-tight">{label}</span>
+    </button>
+  );
 
   const Swatch = ({ value, selected, premium, gradient, onClick }: any) => {
     const locked = premium && !isPremium;
@@ -1360,6 +1476,27 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 </>
               )}
             </div>
+          </Section>
+
+          <Section id="envelopeBorder" title={localLabels.envelope_border_label}>
+            <div className="grid grid-cols-3 gap-2">
+              {ENVELOPE_BORDER_OPTIONS.map(option => (
+                <BorderStyleOption
+                  key={option.id}
+                  id={option.id}
+                  label={localLabels[option.labelKey as keyof typeof localLabels]}
+                  active={selectedEnvelopeBorder === option.id}
+                  onClick={() => handleEnvelopeBorderClick(option.id)}
+                />
+              ))}
+            </div>
+
+            <p className="text-[10px] leading-relaxed text-gray-400 text-center px-1">
+              {localLabels[
+                (ENVELOPE_BORDER_OPTIONS.find(option => option.id === selectedEnvelopeBorder)?.descKey ||
+                  'envelope_border_gold_desc') as keyof typeof localLabels
+              ]}
+            </p>
           </Section>
 
           <Section id="paperTexture" title={localLabels.paper_texture}>
