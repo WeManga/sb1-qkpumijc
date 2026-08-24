@@ -28,18 +28,13 @@ const THEME_EMOJIS: Record<string, string[]> = {
 };
 
 const OPENING_FADE_DURATION = 0.85;
-// Durée/courbe partagées par TOUS les volets d'ouverture (enveloppe libre ET vidéo)
-// afin qu'ils "montent" exactement de la même façon, quel que soit le mode.
 const OPENING_RISE_DURATION = 0.82;
 const OPENING_RISE_EASE: [number, number, number, number] = [0.43, 0.13, 0.23, 0.96];
-// Délai avant de révéler le contenu (identique pour les deux modes désormais,
-// pour rester synchronisé avec l'animation de montée du volet).
 const OPENING_REVEAL_DELAY = 720;
 const CONTENT_TRANSITION_DURATION = 0.95;
 const LEAF_FRAME_URL =
   'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/feuille%20carousselle.png';
 
-// Styles de contour disponibles pour "l'enveloppe" (la carte fermée de l'invitation).
 type EnvelopeBorderStyle = 'none' | 'double' | 'gold' | 'antique' | 'dotted';
 const ENVELOPE_BORDER_DEFAULT: EnvelopeBorderStyle = 'gold';
 
@@ -99,7 +94,6 @@ const getGuestFormPreviewLabel = (lang: Language) => {
   return 'Aperçu du formulaire invité';
 };
 
-// Petit helper de reveal au scroll : fondu + léger glissement, une seule fois.
 const revealProps = (delay = 0) => ({
   initial: { opacity: 0, y: 26 },
   whileInView: { opacity: 1, y: 0 },
@@ -107,9 +101,6 @@ const revealProps = (delay = 0) => ({
   transition: { duration: 0.75, ease: [0.16, 1, 0.3, 1], delay }
 });
 
-// Overlay décoratif appliqué autour de "l'enveloppe" (la carte fermée de l'invitation).
-// Purement visuel (pointer-events-none), positionné en premier enfant pour rester
-// sous le contenu texte, et 100% responsive puisqu'il ne dépend que de `inset-[Npx]`.
 const EnvelopeBorderOverlay = ({
   style,
   radiusClass = 'rounded-[3rem]'
@@ -370,9 +361,6 @@ const ContentOrnaments = () => {
         id: i,
         left: `${8 + Math.random() * 84}%`,
         top: `${8 + Math.random() * 86}%`,
-        // Rotation totalement aléatoire (0-360°) : évite que les fils dorés ne
-        // ressemblent à un champ de "traits verticaux" (ce qu'un intervalle proche
-        // de 0° donnerait, puisque l'orientation de base du trait est verticale).
         rotate: `${Math.random() * 360}deg`,
         delay: Math.random() * 2.4,
         duration: 4 + Math.random() * 2
@@ -418,11 +406,6 @@ const ContentOrnaments = () => {
   );
 };
 
-// Barre lumineuse qui balaie l'écran une seule fois, une fois le "page turn" 3D terminé
-// (le parent ne la monte qu'après la fin du flip, voir isContentSettled plus bas).
-// Simplifiée : plus de filter/blur ni mix-blend-mode (sources classiques de coutures
-// de rendu quand elles cohabitent avec un contexte de compositing 3D sur mobile), et
-// animation en `x` (transform, GPU) plutôt qu'en `left` (layout, CPU).
 const RevealSweepBar = () => (
   <div className="pointer-events-none absolute inset-0 z-[130] overflow-hidden rounded-[3.5rem]">
     <motion.div
@@ -653,8 +636,6 @@ export function InvitationPreview({ invitation }: any) {
   const [isOpeningFading, setIsOpeningFading] = useState(false);
   const [isVideoReady, setIsVideoReady] = useState(false);
   const [openingReplayKey, setOpeningReplayKey] = useState(0);
-  // Devient true une fois que l'animation 3D "page qui se tourne" est terminée.
-  // Sert à retarder RevealSweepBar et à repasser en rendu 2D plat (fix traits verticaux).
   const [isContentSettled, setIsContentSettled] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -670,8 +651,6 @@ export function InvitationPreview({ invitation }: any) {
   const planType = pick(invitation, ['plan_type', 'plantype'], 'FREE');
   const planPackage = pick(invitation, ['plan_package', 'planpackage'], '');
   const isPremium = planType === 'PREMIUM';
-  // Le pack Business (plan_package) donne accès au Mode personnalisé.
-  // Un utilisateur Business a plan_type = 'PREMIUM' ET plan_package = 'business'.
   const isBusiness = planPackage === 'business';
 
   const paperType = pick(invitation, ['paper_type', 'papertype'], 'smooth');
@@ -713,13 +692,11 @@ export function InvitationPreview({ invitation }: any) {
   const premiumFinalText = pick(invitation, ['premium_final_text'], '');
   const premiumFinalPhotoUrl = pick(invitation, ['premium_final_photo_url'], '');
 
-  // Mode personnalisé (Business) : remplace l'image "Powered by" du volet d'ouverture.
   const customBrandingEnabled = pick(invitation, ['custom_branding_enabled', 'custombrandingenabled'], false);
   const customBrandingColor = pick(invitation, ['custom_branding_color', 'custombrandingcolor'], '#FFFFFF');
   const customLogoUrl = pick(invitation, ['custom_logo_url', 'customlogourl'], '');
   const useCustomBranding = isBusiness && Boolean(customBrandingEnabled);
 
-  // Contour visuel de "l'enveloppe" (carte fermée) : none | double | gold | antique | dotted.
   const envelopeBorderStyle = pick(
     invitation,
     ['envelope_border', 'envelopeborder'],
@@ -789,7 +766,6 @@ export function InvitationPreview({ invitation }: any) {
     setIsVideoReady(false);
   }, [openingVideoUrl, openingReplayKey]);
 
-  // Dès qu'on quitte la vue "content", on réarme isContentSettled pour la prochaine ouverture.
   useEffect(() => {
     if (view !== 'content') {
       setIsContentSettled(false);
@@ -807,8 +783,6 @@ export function InvitationPreview({ invitation }: any) {
     audioRef.current?.play().catch(() => {});
   };
 
-  // Le volet (enveloppe libre OU vidéo premium) monte toujours de la même façon :
-  // on attend la fin visuelle de la montée avant de révéler le contenu.
   const handleTriggerClick = () => {
     if (isOpeningFading) return;
 
@@ -851,9 +825,6 @@ export function InvitationPreview({ invitation }: any) {
     }
   };
 
-  // Volet vidéo : monte désormais comme le volet "enveloppe libre" (translation Y),
-  // au lieu de simplement s'effacer en fondu. Même durée/courbe que FreeShutterLayer
-  // pour une sensation identique entre les deux modes.
   const OpeningVideoLayer = () => (
     <motion.div
       key={`opening-layer-${openingReplayKey}`}
@@ -948,9 +919,6 @@ export function InvitationPreview({ invitation }: any) {
             className="relative w-full h-full flex items-center justify-center"
             style={{ perspective: '1200px' }}
           >
-            {/* Appelée comme une fonction simple (pas <OpeningVideoLayer/>) : évite que React
-                ne la traite comme un nouveau type de composant à chaque re-render, ce qui
-                démontait/remontait tout l'arbre et empêchait l'animation de montée de jouer. */}
             {isVideoOpening && !isOpened && OpeningVideoLayer()}
 
             {isOpened && musicUrl && (
@@ -1046,7 +1014,6 @@ export function InvitationPreview({ invitation }: any) {
               )}
             </motion.div>
 
-            {/* Carte "Voir les détails" — le contour est désormais géré par EnvelopeBorderOverlay (configurable). */}
             <motion.div
               initial={{ scale: 0.8, y: 0, opacity: 0 }}
               animate={isOpened ? { scale: 1, y: 80, opacity: 1 } : { y: 0, opacity: 0 }}
@@ -1114,11 +1081,6 @@ export function InvitationPreview({ invitation }: any) {
             )}
           </motion.div>
         ) : (
-          // FIX traits verticaux : on sépare la rotation 3D (rotateY, sur ce conteneur externe,
-          // sans overflow ni scroll) du contenu scrollable (conteneur interne juste en dessous).
-          // Combiner overflow-y-auto + rotateY sur le MÊME élément est la cause classique des
-          // fines coutures/traits verticaux visibles pendant l'animation de "page qui se tourne"
-          // (artefact de compositing 3D très courant sur Chrome/Android).
           <motion.div
             key="content"
             initial={{ opacity: 0, rotateY: -24, scale: 0.94, x: 38 }}
@@ -1129,10 +1091,6 @@ export function InvitationPreview({ invitation }: any) {
             className="relative w-full h-full z-[100]"
             style={
               {
-                // La perspective 3D n'est active QUE pendant l'animation de "page qui se
-                // tourne". Une fois la carte installée (isContentSettled), on repasse en
-                // rendu 2D plat : ça élimine les artefacts de compositing (traits/coutures
-                // verticaux) qu'un contexte 3D actif peut produire pendant le scroll mobile.
                 transformStyle: isContentSettled ? 'flat' : 'preserve-3d',
                 transformOrigin: 'center right',
                 backfaceVisibility: 'hidden',
@@ -1377,6 +1335,13 @@ export function InvitationPreview({ invitation }: any) {
                   </div>
                 </motion.div>
               </div>
+            </div>
+
+            {/* Bordure décorative de l'invitation ouverte : même style que l'enveloppe fermée,
+                fixe par rapport à la carte (pas dans le flux scrollable), donc reste visible
+                pendant tout le scroll du contenu, sans se répéter à chaque section. */}
+            <div className="pointer-events-none absolute inset-0 z-[140]">
+              <EnvelopeBorderOverlay style={envelopeBorderStyle} radiusClass="rounded-[3.5rem]" />
             </div>
           </motion.div>
         )}
