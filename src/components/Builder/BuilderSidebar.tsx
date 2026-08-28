@@ -80,6 +80,9 @@ const ENVELOPE_BORDER_OPTIONS = [
 
 const ENVELOPE_BORDER_DEFAULT = 'gold';
 
+// Styles disponibles gratuitement ; gold, antique et dotted sont réservés au Premium.
+const FREE_ENVELOPE_BORDERS = ['none', 'double'];
+
 const ALBUM_PHOTO_FIELDS = [
   { key: 'album_photo_url_1' },
   { key: 'album_photo_url_2' },
@@ -360,8 +363,12 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
       ? invitation.opening_theme
       : DEFAULT_THEME_BY_CATEGORY[selectedOpeningCategory as keyof typeof DEFAULT_THEME_BY_CATEGORY] || DEFAULT_THEME_BY_CATEGORY.other;
 
-  const selectedEnvelopeBorder = invitation.envelope_border || ENVELOPE_BORDER_DEFAULT;
-
+  const rawSelectedEnvelopeBorder = invitation.envelope_border || (isPremium ? ENVELOPE_BORDER_DEFAULT : 'double');
+  const selectedEnvelopeBorder =
+    isPremium || FREE_ENVELOPE_BORDERS.includes(rawSelectedEnvelopeBorder)
+      ? rawSelectedEnvelopeBorder
+      : 'double';
+  
   const localLabels = {
     fr: {
       info: 'Informations',
@@ -730,7 +737,8 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     onInvitationChange({ ...invitation, paper_type: textureId });
   };
 
-  const handleEnvelopeBorderClick = (styleId: string) => {
+    const handleEnvelopeBorderClick = (styleId: string) => {
+    if (!FREE_ENVELOPE_BORDERS.includes(styleId) && !checkPremiumAccess(false)) return;
     onInvitationChange({ ...invitation, envelope_border: styleId });
   };
 
@@ -962,18 +970,19 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     );
   };
 
-  // Bouton d'option pour la rubrique "Contour de l'enveloppe" : aperçu visuel + libellé,
+    // Bouton d'option pour la rubrique "Contour de l'enveloppe" : aperçu visuel + libellé,
   // sur une grille responsive (s'adapte à la largeur de la sidebar, y compris mobile).
-  const BorderStyleOption = ({ id, label, active, onClick }: any) => (
+  const BorderStyleOption = ({ id, label, active, locked, onClick }: any) => (
     <button
       type="button"
       onClick={onClick}
-      className={`flex flex-col items-center gap-2 rounded-2xl border p-3 transition-all ${
+      className={`relative flex flex-col items-center gap-2 rounded-2xl border p-3 transition-all ${
         active ? 'border-amber-400 bg-amber-50 shadow-sm' : 'border-gray-100 bg-gray-50'
-      }`}
+      } ${locked ? 'opacity-50 grayscale' : ''}`}
     >
       <BorderStylePreview style={id} />
       <span className="text-[9px] font-black uppercase text-gray-600 text-center leading-tight">{label}</span>
+      <PremiumMark locked={locked} />
     </button>
   );
 
@@ -1478,7 +1487,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </Section>
 
-          <Section id="envelopeBorder" title={localLabels.envelope_border_label}>
+       <Section id="envelopeBorder" title={localLabels.envelope_border_label}>
             <div className="grid grid-cols-3 gap-2">
               {ENVELOPE_BORDER_OPTIONS.map(option => (
                 <BorderStyleOption
@@ -1486,6 +1495,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                   id={option.id}
                   label={localLabels[option.labelKey as keyof typeof localLabels]}
                   active={selectedEnvelopeBorder === option.id}
+                  locked={!FREE_ENVELOPE_BORDERS.includes(option.id) && !isPremium}
                   onClick={() => handleEnvelopeBorderClick(option.id)}
                 />
               ))}
