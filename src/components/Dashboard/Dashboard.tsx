@@ -70,7 +70,7 @@ const INVITATION_PACKS: Array<{
   {
     id: 'pack_1',
     quantity: 1,
-    totalPrice: 299000,
+    totalPrice: 199000,
     tag: null,
     unlocksCustomBranding: false,
     descKey: {
@@ -82,7 +82,7 @@ const INVITATION_PACKS: Array<{
   {
     id: 'pack_3',
     quantity: 3,
-    totalPrice: 799000,
+    totalPrice: 449000,
     tag: 'popular',
     unlocksCustomBranding: false,
     descKey: {
@@ -94,7 +94,7 @@ const INVITATION_PACKS: Array<{
   {
     id: 'pack_10',
     quantity: 10,
-    totalPrice: 2500000,
+    totalPrice: 1299000,
     tag: 'best',
     unlocksCustomBranding: true,
     descKey: {
