@@ -1432,8 +1432,8 @@ export function GuestView({ invitation }: any) {
 
             {/* Bordure décorative de l'invitation ouverte : même style que l'enveloppe fermée,
                 fixe (hors du conteneur scrollable), donc reste visible pendant tout le scroll.
-                Écran plein bord côté invité => pas d'arrondi. */}
-            <div className="pointer-events-none absolute inset-0 z-[140]">
+                Écran plein bord côté invité => arrondi. */}
+            <div className="pointer-events-none absolute inset-0 z-[140] rounded overflow-hidden">
               <EnvelopeBorderOverlay style={envelopeBorderStyle} radiusClass="rounded" />
             </div>
           </motion.div>
