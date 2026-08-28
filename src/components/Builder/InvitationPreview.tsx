@@ -31,12 +31,21 @@ const OPENING_FADE_DURATION = 0.85;
 const OPENING_RISE_DURATION = 0.82;
 const OPENING_RISE_EASE: [number, number, number, number] = [0.43, 0.13, 0.23, 0.96];
 const OPENING_REVEAL_DELAY = 720;
-const CONTENT_TRANSITION_DURATION = 0.95;
+// Page-turn plus lente et plus marquée à l'ouverture du contenu ("Voir les détails") :
+// on ralentit nettement la durée et on utilise une courbe douce accélération/décélération
+// pour laisser le temps de voir l'effet de bascule 3D (effet "waouh").
+const CONTENT_TRANSITION_DURATION = 1.5;
+const CONTENT_TRANSITION_EASE: [number, number, number, number] = [0.65, 0, 0.35, 1];
 const LEAF_FRAME_URL =
   'https://njvnmribopknrqvtjkup.supabase.co/storage/v1/object/public/invitations/feuille%20carousselle.png';
 
 type EnvelopeBorderStyle = 'none' | 'double' | 'gold' | 'antique' | 'dotted';
 const ENVELOPE_BORDER_DEFAULT: EnvelopeBorderStyle = 'gold';
+
+// Styles disponibles gratuitement ; les autres (gold, antique, dotted) sont réservés aux
+// invitations Premium. Sert de garde-fou côté affichage si une invitation redevient FREE
+// après avoir eu un style premium sélectionné (ex : abonnement expiré).
+const FREE_ENVELOPE_BORDERS: EnvelopeBorderStyle[] = ['none', 'double'];
 
 const isAndroidDevice = () =>
   typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent);
@@ -101,6 +110,9 @@ const revealProps = (delay = 0) => ({
   transition: { duration: 0.75, ease: [0.16, 1, 0.3, 1], delay }
 });
 
+// Overlay décoratif appliqué autour de "l'enveloppe" (la carte fermée de l'invitation).
+// Purement visuel (pointer-events-none), positionné en premier enfant pour rester
+// sous le contenu texte, et 100% responsive puisqu'il ne dépend que de `inset-[Npx]`.
 const EnvelopeBorderOverlay = ({
   style,
   radiusClass = 'rounded-[3rem]'
@@ -138,28 +150,30 @@ const EnvelopeBorderOverlay = ({
   }
 
   if (style === 'antique') {
+    // Coins renforcés : arabesques plus grandes, traits plus épais et opacité pleine
+    // pour que le style se voie clairement même sur des photos claires en fond.
     const Corner = () => (
-      <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M1 1 L1 16 M1 1 L16 1" stroke="#B8860B" strokeWidth="1.1" opacity="0.8" />
-        <path d="M1 1 C 9 3, 12 8, 9 14" stroke="#B8860B" strokeWidth="1" fill="none" opacity="0.5" />
-        <path d="M1 1 C 3 9, 8 12, 14 9" stroke="#B8860B" strokeWidth="1" fill="none" opacity="0.5" />
-        <circle cx="1" cy="1" r="2" fill="#B8860B" opacity="0.85" />
+      <svg width="46" height="46" viewBox="0 0 46 46" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2 2 L2 26 M2 2 L26 2" stroke="#B8860B" strokeWidth="2.2" strokeLinecap="round" opacity="1" />
+        <path d="M2 2 C 14 5, 20 13, 15 23" stroke="#B8860B" strokeWidth="1.7" fill="none" strokeLinecap="round" opacity="0.85" />
+        <path d="M2 2 C 5 14, 13 20, 23 15" stroke="#B8860B" strokeWidth="1.7" fill="none" strokeLinecap="round" opacity="0.85" />
+        <circle cx="2" cy="2" r="3.2" fill="#B8860B" opacity="1" />
       </svg>
     );
 
     return (
       <div className={`pointer-events-none absolute inset-0 ${radiusClass} overflow-hidden`}>
-        <div className={`absolute inset-[6px] ${radiusClass} border border-amber-800/25`} />
-        <div className="absolute top-3 left-3">
+        <div className={`absolute inset-[7px] ${radiusClass} border-[1.5px] border-amber-800/45`} />
+        <div className="absolute top-2 left-2">
           <Corner />
         </div>
-        <div className="absolute top-3 right-3" style={{ transform: 'scaleX(-1)' }}>
+        <div className="absolute top-2 right-2" style={{ transform: 'scaleX(-1)' }}>
           <Corner />
         </div>
-        <div className="absolute bottom-3 left-3" style={{ transform: 'scaleY(-1)' }}>
+        <div className="absolute bottom-2 left-2" style={{ transform: 'scaleY(-1)' }}>
           <Corner />
         </div>
-        <div className="absolute bottom-3 right-3" style={{ transform: 'scale(-1,-1)' }}>
+        <div className="absolute bottom-2 right-2" style={{ transform: 'scale(-1,-1)' }}>
           <Corner />
         </div>
       </div>
@@ -167,9 +181,12 @@ const EnvelopeBorderOverlay = ({
   }
 
   if (style === 'dotted') {
+    // Effet "couture" renforcé : deux lignes pointillées superposées, plus épaisses et
+    // plus contrastées, pour un rendu réellement visible au lieu d'un simple filet clair.
     return (
       <div className={`pointer-events-none absolute inset-0 ${radiusClass} overflow-hidden`}>
-        <div className={`absolute inset-[8px] ${radiusClass} border-[1.5px] border-dotted border-neutral-400/70`} />
+        <div className={`absolute inset-[7px] ${radiusClass} border-[2.5px] border-dotted border-neutral-500/90`} />
+        <div className={`absolute inset-[13px] ${radiusClass} border-[1.5px] border-dotted border-neutral-400/70`} />
       </div>
     );
   }
@@ -697,11 +714,19 @@ export function InvitationPreview({ invitation }: any) {
   const customLogoUrl = pick(invitation, ['custom_logo_url', 'customlogourl'], '');
   const useCustomBranding = isBusiness && Boolean(customBrandingEnabled);
 
-  const envelopeBorderStyle = pick(
+  const rawEnvelopeBorderStyle = pick(
     invitation,
     ['envelope_border', 'envelopeborder'],
-    ENVELOPE_BORDER_DEFAULT
+    isPremium ? ENVELOPE_BORDER_DEFAULT : 'double'
   ) as EnvelopeBorderStyle;
+
+  // Un utilisateur FREE (ou dont le Premium a expiré) ne doit jamais afficher un contour
+  // verrouillé (Doré, Coins Antiques, Pointillé Chic), même si la valeur est restée en base
+  // suite à un downgrade : on retombe alors sur "Double Liseré".
+  const envelopeBorderStyle: EnvelopeBorderStyle =
+    isPremium || FREE_ENVELOPE_BORDERS.includes(rawEnvelopeBorderStyle)
+      ? rawEnvelopeBorderStyle
+      : 'double';
 
   const selectedOpeningThemeId = pick(
     invitation,
@@ -905,7 +930,7 @@ export function InvitationPreview({ invitation }: any) {
   return (
     <div
       className="relative w-full h-full max-h-[650px] flex items-center justify-center overflow-hidden rounded-[3.5rem] shadow-2xl border-[12px] border-gray-50/50"
-      style={{ fontFamily: fontStyle, background: previewBackgroundColor, perspective: '1600px' } as CSSProperties}
+      style={{ fontFamily: fontStyle, background: previewBackgroundColor, perspective: '900px' } as CSSProperties}
     >
       {musicUrl && <audio ref={audioRef} src={musicUrl} loop />}
 
@@ -1083,10 +1108,21 @@ export function InvitationPreview({ invitation }: any) {
         ) : (
           <motion.div
             key="content"
-            initial={{ opacity: 0, rotateY: -24, scale: 0.94, x: 38 }}
-            animate={{ opacity: 1, rotateY: 0, scale: 1, x: 0 }}
-            exit={{ opacity: 0, rotateY: 18, scale: 0.97, x: -22 }}
-            transition={{ duration: CONTENT_TRANSITION_DURATION, ease: [0.16, 1, 0.3, 1] }}
+            initial={{ opacity: 0, rotateY: -70, scale: 0.86, x: 60 }}
+            animate={{
+              opacity: 1,
+              rotateY: 0,
+              scale: 1,
+              x: 0,
+              boxShadow: [
+                '0 10px 30px rgba(0,0,0,0)',
+                '0 45px 90px rgba(0,0,0,0.55)',
+                '0 20px 45px rgba(0,0,0,0.28)',
+                '0 8px 24px rgba(0,0,0,0.16)'
+              ]
+            }}
+            exit={{ opacity: 0, rotateY: 42, scale: 0.93, x: -36 }}
+            transition={{ duration: CONTENT_TRANSITION_DURATION, ease: CONTENT_TRANSITION_EASE }}
             onAnimationComplete={() => setIsContentSettled(true)}
             className="relative w-full h-full z-[100]"
             style={
