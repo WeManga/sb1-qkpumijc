@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Sparkles, X } from 'lucide-react';
+import { Sparkles, X, ChevronLeft } from 'lucide-react';
 
 const POSITION_STORAGE_KEY = 'wheel_button_position';
 const COLLAPSED_STORAGE_KEY = 'wheel_button_collapsed';
@@ -10,28 +10,7 @@ const COLLAPSED_STORAGE_KEY = 'wheel_button_collapsed';
 // est un peu plus petit visuellement (64px) — mieux vaut une marge trop
 // prudente qu'un bouton qui dépasse de l'écran.
 const EXPANDED_SIZE = 80;
-// Taille "rangée" : une mini-roue discrète, toujours ancrée en bas à droite.
-const COLLAPSED_SIZE = 56;
 const EDGE_MARGIN = 16;
-
-const WHEEL_SLICE_COLORS = ['#FCD34D', '#F59E0B', '#EA580C', '#DC2626'];
-
-const renderWheelSlices = () =>
-  Array.from({ length: 8 }).map((_, i) => {
-    const angle = (i * 360) / 8;
-    const toRad = (deg) => ((deg - 90) * Math.PI) / 180;
-    const x1 = 50 + 48 * Math.cos(toRad(angle));
-    const y1 = 50 + 48 * Math.sin(toRad(angle));
-    const x2 = 50 + 48 * Math.cos(toRad(angle + 45));
-    const y2 = 50 + 48 * Math.sin(toRad(angle + 45));
-    return (
-      <path
-        key={i}
-        d={`M50,50 L${x1},${y1} A48,48 0 0,1 ${x2},${y2} Z`}
-        fill={WHEEL_SLICE_COLORS[i % WHEEL_SLICE_COLORS.length]}
-      />
-    );
-  });
 
 const clampPosition = (position, size) => {
   if (typeof window === 'undefined') return position;
@@ -75,19 +54,6 @@ const getInitialExpandedPosition = () => {
   };
 };
 
-// La pastille rangée n'a pas de position "personnalisable" : elle est
-// toujours ancrée en bas à droite, quel que soit l'endroit où la roue
-// dépliée se trouvait avant d'être rangée (comportement voulu, plus
-// prévisible qu'une pastille qui hérite d'une position déplacée).
-const getCollapsedPosition = () => {
-  if (typeof window === 'undefined') return { x: 24, y: 400 };
-
-  return {
-    x: window.innerWidth - COLLAPSED_SIZE - EDGE_MARGIN,
-    y: window.innerHeight - COLLAPSED_SIZE - EDGE_MARGIN
-  };
-};
-
 const getInitialCollapsed = () => {
   if (typeof window === 'undefined') return false;
   return localStorage.getItem(COLLAPSED_STORAGE_KEY) === 'true';
@@ -96,7 +62,6 @@ const getInitialCollapsed = () => {
 export function FloatingWheelButton({ onClick }) {
   const [isCollapsed, setIsCollapsed] = useState(getInitialCollapsed);
   const [expandedPosition, setExpandedPosition] = useState(getInitialExpandedPosition);
-  const [collapsedPosition, setCollapsedPosition] = useState(getCollapsedPosition);
   const [isDragging, setIsDragging] = useState(false);
   const [wasDragged, setWasDragged] = useState(false);
 
@@ -120,14 +85,8 @@ export function FloatingWheelButton({ onClick }) {
     }
   }, [isCollapsed]);
 
-  // La pastille rangée reste ancrée bas-droite même si la fenêtre change de
-  // taille (rotation d'écran, redimensionnement navigateur...).
   useEffect(() => {
-    const handleResize = () => {
-      setCollapsedPosition(getCollapsedPosition());
-      setExpandedPosition((current) => snapToEdge(current, EXPANDED_SIZE));
-    };
-
+    const handleResize = () => setExpandedPosition((current) => snapToEdge(current, EXPANDED_SIZE));
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
@@ -176,10 +135,6 @@ export function FloatingWheelButton({ onClick }) {
     onClick();
   };
 
-  const handleExpandClick = () => {
-    setIsCollapsed(false);
-  };
-
   const handleCollapseClick = (event) => {
     event.stopPropagation();
     setIsCollapsed(true);
@@ -191,54 +146,24 @@ export function FloatingWheelButton({ onClick }) {
     event.stopPropagation();
   };
 
-  // --- État "rangé" : mini-roue, toujours ancrée en bas à droite ---
+  // --- État "rangé" : une languette collée au bord droit de l'écran,
+  // en bas, avec une flèche pour la déplier. Position fixe (pas de drag),
+  // exactement comme un onglet qu'on aurait poussé contre le bord. ---
   if (isCollapsed) {
     return (
       <motion.button
         type="button"
-        onClick={handleExpandClick}
-        initial={{ scale: 0, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        whileHover={{ scale: 1.1 }}
-        whileTap={{ scale: 0.9 }}
-        style={{
-          transform: `translate3d(${collapsedPosition.x}px, ${collapsedPosition.y}px, 0)`,
-          left: 0,
-          top: 0
-        }}
-        className="fixed z-[410] w-14 h-14"
+        onClick={() => setIsCollapsed(false)}
+        initial={{ x: 56, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        whileHover={{ x: -6 }}
+        whileTap={{ scale: 0.94 }}
+        transition={{ type: 'spring', damping: 18, stiffness: 260 }}
+        className="fixed z-[410] right-0 bottom-6 flex flex-col items-center gap-0.5 py-3 pl-2.5 pr-1.5 rounded-l-2xl bg-gradient-to-br from-amber-400 to-rose-500 text-white shadow-xl border-y-2 border-l-2 border-white/60"
         aria-label="Afficher la roue de la chance"
       >
-        <motion.span
-          className="absolute -inset-1 rounded-full bg-gradient-to-br from-amber-300 via-amber-500 to-rose-500 opacity-70"
-          animate={{ rotate: 360 }}
-          transition={{ duration: 6, repeat: Infinity, ease: 'linear' }}
-          style={{ filter: 'blur(1.5px)' }}
-        />
-
-        <motion.div
-          className="relative w-full h-full rounded-full bg-gradient-to-br from-amber-400 to-rose-500 shadow-xl border-[3px] border-white flex items-center justify-center overflow-hidden"
-          animate={{ rotate: [0, -8, 8, -4, 4, 0] }}
-          transition={{ duration: 2.4, repeat: Infinity, repeatDelay: 1.6, ease: 'easeInOut' }}
-        >
-          <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full">
-            <defs>
-              <path id="wheelPillTextPath" d="M50,50 m-40,0 a40,40 0 1,1 80,0 a40,40 0 1,1 -80,0" />
-            </defs>
-
-            {renderWheelSlices()}
-
-            <text fontSize="8.5" fontWeight="800" letterSpacing="0.5" fill="#FFFDF5">
-              <textPath href="#wheelPillTextPath" startOffset="1%">
-                INVIT STUDIO WIN • INVIT STUDIO WIN •
-              </textPath>
-            </text>
-
-            <circle cx="50" cy="50" r="11" fill="white" />
-          </svg>
-
-          <Sparkles className="relative z-10 w-4 h-4 text-amber-500 drop-shadow" />
-        </motion.div>
+        <ChevronLeft size={16} className="shrink-0" />
+        <Sparkles size={14} className="shrink-0" />
       </motion.button>
     );
   }
@@ -292,7 +217,18 @@ export function FloatingWheelButton({ onClick }) {
           transition={{ duration: 2.4, repeat: Infinity, repeatDelay: 1.6, ease: 'easeInOut' }}
         >
           <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full opacity-90">
-            {renderWheelSlices()}
+            {Array.from({ length: 8 }).map((_, i) => {
+              const angle = (i * 360) / 8;
+              const colors = ['#FCD34D', '#F59E0B', '#EA580C', '#DC2626'];
+              const toRad = (deg) => ((deg - 90) * Math.PI) / 180;
+              const x1 = 50 + 48 * Math.cos(toRad(angle));
+              const y1 = 50 + 48 * Math.sin(toRad(angle));
+              const x2 = 50 + 48 * Math.cos(toRad(angle + 45));
+              const y2 = 50 + 48 * Math.sin(toRad(angle + 45));
+              return (
+                <path key={i} d={`M50,50 L${x1},${y1} A48,48 0 0,1 ${x2},${y2} Z`} fill={colors[i % colors.length]} />
+              );
+            })}
             <circle cx="50" cy="50" r="10" fill="white" />
           </svg>
           <Sparkles className="relative z-10 w-6 h-6 text-white drop-shadow" />
