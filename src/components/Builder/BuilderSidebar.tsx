@@ -1299,6 +1299,14 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 />
               </div>
 
+              {/* Zone de cadrage : le conteneur garde overflow-hidden (le "cadre" final
+                  reste rectangulaire), mais l'image elle-même n'est PLUS en object-cover.
+                  Elle est positionnée en absolu, centrée, avec min-width/min-height:100%
+                  (ce qui donne le même rendu "rempli" qu'avant au repos), SANS jamais
+                  supprimer les pixels hors-cadre : seul le transform (déplacement + zoom)
+                  décide quelle portion est visible. Dézoomer révèle donc bien le reste de
+                  la photo, et le cadrage choisi ici correspond pixel pour pixel à ce que
+                  verra l'invité (même technique utilisée dans InvitationPreview.tsx). */}
               <div
                 className="w-full h-[420px] bg-gray-100 rounded-2xl overflow-hidden relative border border-gray-100 shadow-sm cursor-move touch-none flex items-center justify-center"
                 onMouseDown={e => {
@@ -1334,10 +1342,18 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 <img
                   src={invitation[selectedPhotoKey]}
                   style={{
-                    transform: `translate(${invitation[`${selectedPhotoKey}_pos_x`] || 0}px, ${invitation[`${selectedPhotoKey}_pos_y`] || 0}px) scale(${invitation[`${selectedPhotoKey}_scale`] || 1})`,
+                    position: 'absolute',
+                    top: '50%',
+                    left: '50%',
+                    minWidth: '100%',
+                    minHeight: '100%',
+                    width: 'auto',
+                    height: 'auto',
+                    maxWidth: 'none',
+                    transform: `translate(-50%, -50%) translate(${invitation[`${selectedPhotoKey}_pos_x`] || 0}px, ${invitation[`${selectedPhotoKey}_pos_y`] || 0}px) scale(${invitation[`${selectedPhotoKey}_scale`] || 1})`,
                     pointerEvents: 'none'
                   }}
-                  className="w-full h-full object-cover origin-center select-none"
+                  className="select-none"
                 />
               </div>
             </Section>
