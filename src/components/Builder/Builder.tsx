@@ -14,6 +14,7 @@ type BuilderInvitation = Partial<Invitation> & {
   // d'ouverture), acquis en achetant le pack de 10 invitations. Indépendant de
   // l'expiration du Premium, comme c'était déjà le cas fonctionnellement avant.
   has_custom_branding?: boolean;
+  slug?: string | null;
 };
 
 // --- Brouillon local (localStorage) ---
@@ -54,6 +55,28 @@ const clearDraftFromStorage = (id: string | undefined) => {
     console.error('Erreur suppression brouillon local:', error);
   }
 };
+
+// --- Slug lisible pour le lien d'invitation ---
+// "Mariage" + "John & Jane"  ->  "mariage-john-jane"
+const toSlug = (text: string) =>
+  (text || '')
+    .toLowerCase()
+    .replace(/đ/g, 'd')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '') // enlève les accents
+    .replace(/[^a-z0-9]+/g, '-') // espaces, &, symboles -> "-"
+    .replace(/(^-|-$)/g, '');
+
+const buildBaseSlug = (title?: string, hostNames?: string) =>
+  [toSlug(title || ''), toSlug(hostNames || '')]
+    .filter(Boolean)
+    .join('-')
+    .substring(0, 60)
+    .replace(/-$/, '') || 'invitation';
+
+// Code d'erreur Postgres : violation de contrainte d'unicité.
+const isUniqueViolation = (error: any) =>
+  error?.code === '23505' || /duplicate key|unique/i.test(error?.message || '');
 
 interface BuilderProps {
   invitationId?: string;
@@ -262,15 +285,70 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
     }
   };
 
-  const generateSlug = () => {
-    return `${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 7)}`;
-  };
-
   // Toute modification passe par ici : elle met à jour l'état ET le brouillon local,
   // pour ne rien perdre si l'appli est déchargée pendant que l'utilisateur fait autre chose.
   const handleInvitationChange = (next: BuilderInvitation) => {
     setInvitation(next);
     saveDraftToStorage(invitationId, next);
+  };
+
+  // Insère l'invitation avec un slug lisible (titre + hôtes).
+  // Si le slug est déjà pris (contrainte d'unicité), on essaie -2, -3, etc.
+  // On s'appuie sur l'erreur de la base plutôt que sur un SELECT préalable,
+  // car la RLS peut masquer les invitations des autres utilisateurs.
+  const insertWithUniqueSlug = async (payload: any) => {
+    const base = buildBaseSlug(payload.title, payload.host_names);
+
+    for (let attempt = 1; attempt <= 30; attempt++) {
+      const candidate = attempt === 1 ? base : `${base}-${attempt}`;
+
+      const { error } = await supabase
+        .from('invitations')
+        .insert([{ ...payload, slug: candidate }]);
+
+      if (!error) return;
+      if (!isUniqueViolation(error)) throw error;
+    }
+
+    // Dernier recours : suffixe aléatoire
+    const { error } = await supabase
+      .from('invitations')
+      .insert([{ ...payload, slug: `${base}-${Math.random().toString(36).substring(2, 6)}` }]);
+
+    if (error) throw error;
+  };
+
+  // Met à jour une invitation existante. Le slug n'est généré que s'il n'existe
+  // pas encore (anciennes invitations) : un lien déjà envoyé ne change jamais.
+  const updateInvitation = async (id: string, payload: any) => {
+    if (invitation.slug) {
+      const { error } = await supabase
+        .from('invitations')
+        .update({ ...payload, slug: invitation.slug })
+        .eq('id', id);
+
+      if (error) throw error;
+      return;
+    }
+
+    const base = buildBaseSlug(payload.title, payload.host_names);
+
+    for (let attempt = 1; attempt <= 30; attempt++) {
+      const candidate = attempt === 1 ? base : `${base}-${attempt}`;
+
+      const { error } = await supabase
+        .from('invitations')
+        .update({ ...payload, slug: candidate })
+        .eq('id', id);
+
+      if (!error) {
+        setInvitation((current) => ({ ...current, slug: candidate }));
+        return;
+      }
+      if (!isUniqueViolation(error)) throw error;
+    }
+
+    throw new Error('Impossible de générer un lien unique pour cette invitation.');
   };
 
   const handleSave = async () => {
@@ -318,19 +396,13 @@ export function Builder({ invitationId, onBack }: BuilderProps) {
         updated_at: new Date().toISOString()
       };
 
+      // Le slug est géré séparément (voir insertWithUniqueSlug / updateInvitation).
+      delete (payload as any).slug;
+
       if (!invitationId) {
-        const { error } = await supabase
-          .from('invitations')
-          .insert([{ ...payload, slug: generateSlug() }]);
-
-        if (error) throw error;
+        await insertWithUniqueSlug(payload);
       } else {
-        const { error } = await supabase
-          .from('invitations')
-          .update(payload)
-          .eq('id', invitationId);
-
-        if (error) throw error;
+        await updateInvitation(invitationId, payload);
       }
 
       setInvitation((current) => ({
