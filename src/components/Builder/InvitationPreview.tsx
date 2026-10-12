@@ -47,6 +47,62 @@ const ENVELOPE_BORDER_DEFAULT: EnvelopeBorderStyle = 'gold';
 // après avoir eu un style premium sélectionné (ex : abonnement expiré).
 const FREE_ENVELOPE_BORDERS: EnvelopeBorderStyle[] = ['none', 'double'];
 
+// ---------------------------------------------------------------------------
+// Cadres photo adaptatifs : chaque cadre prend le ratio (largeur / hauteur) réel de la
+// photo importée (9:16, 16:9, carré...), borné pour rester raisonnable. À zoom 1, la photo
+// est donc affichée en entier, sans découpe.
+// ATTENTION : ces limites doivent rester identiques à celles de BuilderSidebar.tsx pour que
+// le cadrage choisi dans la sidebar corresponde à ce que voit l'invité.
+// ---------------------------------------------------------------------------
+const MIN_FRAME_RATIO = 9 / 16;
+const MAX_FRAME_RATIO = 16 / 9;
+// L'en-tête (photo d'ouverture) est limité pour qu'une photo verticale n'occupe pas tout l'écran.
+const HEADER_MIN_RATIO = 0.75;
+const HEADER_MAX_RATIO = 1.9;
+
+const clampRatio = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+
+const imageRatioCache = new Map<string, number>();
+
+// Lit les dimensions naturelles d'une image (sans rien stocker en base) et renvoie son ratio.
+const useImageRatio = (src?: string, fallback = 4 / 3) => {
+  const [ratio, setRatio] = useState<number>(() => (src && imageRatioCache.get(src)) || fallback);
+
+  useEffect(() => {
+    if (!src) {
+      setRatio(fallback);
+      return;
+    }
+
+    const cached = imageRatioCache.get(src);
+
+    if (cached) {
+      setRatio(cached);
+      return;
+    }
+
+    let cancelled = false;
+    const img = new Image();
+
+    img.onload = () => {
+      if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+        const next = img.naturalWidth / img.naturalHeight;
+        imageRatioCache.set(src, next);
+        if (!cancelled) setRatio(next);
+      }
+    };
+
+    img.src = src;
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [src]);
+
+  return ratio;
+};
+
 const isAndroidDevice = () =>
   typeof navigator !== 'undefined' && /Android/i.test(navigator.userAgent);
 
@@ -452,6 +508,7 @@ const getPhotoFrameStyle = (invitation: any, sourceKey?: string): CSSProperties 
   };
 };
 
+// Photo dans un cadre de taille fixe (miniatures du carrousel) : recadrage "cover".
 const CroppedPhoto = ({ src, sourceKey, invitation, className }: any) => (
   <img
     src={src}
@@ -461,6 +518,35 @@ const CroppedPhoto = ({ src, sourceKey, invitation, className }: any) => (
     alt=""
   />
 );
+
+// Photo dans un cadre ADAPTATIF : le cadre épouse le ratio réel de la photo (borné par
+// minRatio / maxRatio). Le zoom et le déplacement choisis dans la sidebar s'appliquent
+// par-dessus, avec overflow-hidden pour garder un cadre net.
+const AdaptivePhoto = ({
+  src,
+  sourceKey,
+  invitation,
+  minRatio = MIN_FRAME_RATIO,
+  maxRatio = MAX_FRAME_RATIO,
+  className = '',
+  children
+}: any) => {
+  const ratio = clampRatio(useImageRatio(src), minRatio, maxRatio);
+
+  return (
+    <div className={`relative w-full overflow-hidden ${className}`} style={{ aspectRatio: ratio }}>
+      <img
+        src={src}
+        loading="lazy"
+        className="absolute inset-0 w-full h-full object-cover"
+        style={getPhotoFrameStyle(invitation, sourceKey)}
+        alt=""
+      />
+      {children}
+    </div>
+  );
+};
+
 const PremiumStorySection = ({ isPremium, title, text, imageUrl, imageKey, invitation, fontStyle }: any) => {
   if (!isPremium || (!title && !text && !imageUrl)) return null;
 
@@ -469,7 +555,7 @@ const PremiumStorySection = ({ isPremium, title, text, imageUrl, imageKey, invit
       <div className="flex flex-col items-center text-center gap-5">
         {imageUrl && (
           <div className="w-full overflow-hidden rounded-[2.25rem] border-4 border-white shadow-2xl bg-white">
-            <CroppedPhoto src={imageUrl} sourceKey={imageKey} invitation={invitation} className="w-full aspect-[4/3] object-cover" />
+            <AdaptivePhoto src={imageUrl} sourceKey={imageKey} invitation={invitation} />
           </div>
         )}
 
@@ -520,7 +606,7 @@ const PremiumSingleAlbumPhoto = ({ photo, lang, invitation }: any) => {
 
         <div className="relative mx-auto w-full max-w-[310px] overflow-hidden rounded-[2.4rem] border-[7px] border-white bg-white shadow-[0_28px_65px_rgba(15,23,42,0.2)]">
           <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-tr from-black/10 via-transparent to-white/25" />
-          <CroppedPhoto src={photo.url} sourceKey={photo.key} invitation={invitation} className="aspect-[4/5] w-full object-cover" />
+          <AdaptivePhoto src={photo.url} sourceKey={photo.key} invitation={invitation} />
 
           <div className="absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/50 to-transparent px-5 pb-5 pt-12">
             <p className="truncate text-center text-[11px] font-medium text-white/90">
@@ -576,7 +662,8 @@ const PremiumPhotoCarousel = ({ photos, lang, invitation }: any) => {
           {getAlbumTitle(lang)}
         </h3>
 
-        <div className="relative h-[330px] flex items-center justify-center">
+        {/* La hauteur s'adapte à la photo active (min 330px) au lieu d'être fixe. */}
+        <div className="relative min-h-[330px] flex items-center justify-center">
           <motion.button
             type="button"
             onClick={() => goTo(previousIndex)}
@@ -605,7 +692,7 @@ const PremiumPhotoCarousel = ({ photos, lang, invitation }: any) => {
               className="relative z-20 w-[74%] max-w-[300px] overflow-hidden rounded-[2.35rem] border-[7px] border-white bg-white shadow-[0_28px_65px_rgba(15,23,42,0.22)]"
             >
               <div className="absolute inset-0 z-10 pointer-events-none bg-gradient-to-tr from-black/10 via-transparent to-white/25" />
-              <CroppedPhoto src={activePhoto.url} sourceKey={activePhoto.key} invitation={invitation} className="aspect-[4/5] w-full object-cover" />
+              <AdaptivePhoto src={activePhoto.url} sourceKey={activePhoto.key} invitation={invitation} />
 
               <div className="absolute inset-x-0 bottom-0 z-20 bg-gradient-to-t from-black/55 to-transparent px-5 pb-5 pt-12">
                 <p className="truncate text-center text-[11px] font-medium text-white/90">
@@ -750,6 +837,11 @@ export function InvitationPreview({ invitation }: any) {
   const mainPhotoPosX = pick(invitation, ['main_photo_url_pos_x', 'mainphotourlposx'], 0);
   const mainPhotoPosY = pick(invitation, ['main_photo_url_pos_y', 'mainphotourlposy'], 0);
   const mainPhotoScale = pick(invitation, ['main_photo_url_scale', 'mainphotourlscale'], 1);
+
+  // Ratio réel de la photo d'ouverture : l'en-tête de l'invitation ouverte s'y adapte
+  // (au lieu d'une hauteur fixe à 32 %) pour ne plus la découper.
+  const mainPhotoRatio = useImageRatio(mainPhotoUrl, 16 / 10);
+  const headerRatio = clampRatio(mainPhotoRatio, HEADER_MIN_RATIO, HEADER_MAX_RATIO);
 
   const isVideoOpening = isPremium && containerOpen === 'video';
   const isFreeShutterOpening = !isVideoOpening;
@@ -1141,12 +1233,17 @@ export function InvitationPreview({ invitation }: any) {
               <ContentOrnaments />
               {isContentSettled && <RevealSweepBar />}
 
-              <div className="h-[32%] relative overflow-hidden shrink-0">
+              {/* En-tête adaptatif : sa hauteur suit le ratio réel de la photo d'ouverture
+                  (borné par HEADER_MIN_RATIO / HEADER_MAX_RATIO) au lieu d'une hauteur fixe. */}
+              <div
+                className="relative overflow-hidden shrink-0 w-full"
+                style={{ aspectRatio: headerRatio }}
+              >
                 {mainPhotoUrl && (
                   <img
                     src={mainPhotoUrl}
-                    className="w-full h-full object-cover"
-                    style={{ transform: `translate(${mainPhotoPosX}px, ${mainPhotoPosY}px) scale(${mainPhotoScale})` }}
+                    className="absolute inset-0 w-full h-full object-cover"
+                    style={{ transform: `translate(${mainPhotoPosX}px, ${mainPhotoPosY}px) scale(${mainPhotoScale})`, transformOrigin: 'center center' }}
                     alt=""
                   />
                 )}
