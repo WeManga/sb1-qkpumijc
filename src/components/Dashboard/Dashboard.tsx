@@ -357,6 +357,7 @@ const translations: any = {
 };
 
 type Invitation = Database['public']['Tables']['invitations']['Row'] & {
+  slug?: string | null;
   response_count?: number;
 };
 
@@ -722,8 +723,12 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
     }
   };
 
-  const handleCopyLink = (id: string) => {
-    const url = `${window.location.origin}/invite/${id}`;
+  // Lien public d'une invitation : slug lisible si disponible, sinon ancien lien avec l'id.
+  const getInvitationPath = (invitation: Invitation) =>
+    `/invite/${invitation.slug || invitation.id}`;
+
+  const handleCopyLink = (invitation: Invitation) => {
+    const url = `${window.location.origin}${getInvitationPath(invitation)}`;
     navigator.clipboard.writeText(url);
     alert(t.share);
   };
@@ -1227,7 +1232,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                       </button>
 
                       <button
-                        onClick={() => window.open(`/invite/${invitation.id}`, '_blank')}
+                        onClick={() => window.open(getInvitationPath(invitation), '_blank')}
                         className="py-3 bg-gray-50 text-gray-400 rounded-2xl flex items-center justify-center hover:bg-gray-100 border border-gray-100"
                       >
                         <Eye className="w-4 h-4" />
@@ -1242,7 +1247,7 @@ export function Dashboard({ onCreateNew, onEdit }: DashboardProps) {
                     </div>
 
                     <button
-                      onClick={() => handleCopyLink(invitation.id)}
+                      onClick={() => handleCopyLink(invitation)}
                       className="w-full py-2.5 bg-amber-50 text-amber-700 rounded-xl text-[9px] font-bold uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-amber-100 border border-amber-100"
                     >
                       <Copy className="w-3 h-3" />
