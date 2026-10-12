@@ -9,7 +9,8 @@ import { PrivacyPolicy } from './components/Privacy/PrivacyPolicy';
 import { supabase } from './lib/supabase';
 
 // --- COMPOSANT DE CHARGEMENT POUR L'INVITÉ ---
-// Ce composant s'occupe de récupérer les infos de l'invitation via l'ID du lien
+// Récupère l'invitation via le slug du lien (ex: /invite/mariage-john-jane).
+// Repli sur l'ancien format (id) pour que les anciens liens continuent de fonctionner.
 function GuestViewLoader() {
   const { slug } = useParams();
   const [invitation, setInvitation] = useState<any>(null);
@@ -20,16 +21,31 @@ function GuestViewLoader() {
       if (!slug) return;
 
       try {
-        const { data, error } = await supabase
+        // 1. Recherche par slug (nouveau format)
+        const { data: bySlug, error: slugError } = await supabase
+          .from('invitations')
+          .select('*')
+          .eq('slug', slug)
+          .maybeSingle();
+
+        if (slugError) throw slugError;
+
+        if (bySlug) {
+          setInvitation(bySlug);
+          return;
+        }
+
+        // 2. Repli : ancien lien contenant l'id de l'invitation
+        const { data: byId } = await supabase
           .from('invitations')
           .select('*')
           .eq('id', slug)
-          .single();
+          .maybeSingle();
 
-        if (error) throw error;
-        setInvitation(data);
+        setInvitation(byId || null);
       } catch (err) {
         console.error("Erreur lors du chargement de l'invitation:", err);
+        setInvitation(null);
       } finally {
         setLoading(false);
       }
