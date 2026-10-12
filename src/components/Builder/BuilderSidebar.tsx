@@ -127,6 +127,66 @@ const getResetPhotoAdjustments = (field: string) => {
 const clampPhotoScale = (value: number) => Math.min(4, Math.max(0.2, value));
 const IMAGE_ACCEPT = 'image/jpeg,image/png,image/webp,image/heic,image/heif,image/*';
 
+// ---------------------------------------------------------------------------
+// Cadre adaptatif : le cadre de cadrage prend le ratio (largeur / hauteur) de la
+// photo importée (9:16, 16:9, carré...), borné pour rester raisonnable.
+// ATTENTION : ces limites doivent rester identiques à celles d'InvitationPreview.tsx
+// pour que le cadrage choisi ici corresponde à ce que verra l'invité.
+// ---------------------------------------------------------------------------
+const MIN_FRAME_RATIO = 9 / 16;
+const MAX_FRAME_RATIO = 16 / 9;
+// L'en-tête (photo d'ouverture) est limité pour ne pas occuper tout l'écran avec une photo verticale.
+const HEADER_MIN_RATIO = 0.75;
+const HEADER_MAX_RATIO = 1.9;
+// Hauteur maximale du cadre de cadrage dans la sidebar (px).
+const FRAME_MAX_HEIGHT = 420;
+
+const clampRatio = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+
+const getFrameRatioLimits = (field: string): [number, number] =>
+  field === 'main_photo_url' ? [HEADER_MIN_RATIO, HEADER_MAX_RATIO] : [MIN_FRAME_RATIO, MAX_FRAME_RATIO];
+
+const imageRatioCache = new Map<string, number>();
+
+// Lit les dimensions naturelles d'une image (sans rien stocker en base) et renvoie son ratio.
+const useImageRatio = (src?: string, fallback = 4 / 3) => {
+  const [ratio, setRatio] = useState<number>(() => (src && imageRatioCache.get(src)) || fallback);
+
+  useEffect(() => {
+    if (!src) {
+      setRatio(fallback);
+      return;
+    }
+
+    const cached = imageRatioCache.get(src);
+
+    if (cached) {
+      setRatio(cached);
+      return;
+    }
+
+    let cancelled = false;
+    const img = new Image();
+
+    img.onload = () => {
+      if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+        const next = img.naturalWidth / img.naturalHeight;
+        imageRatioCache.set(src, next);
+        if (!cancelled) setRatio(next);
+      }
+    };
+
+    img.src = src;
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [src]);
+
+  return ratio;
+};
+
 // État par défaut des accordéons de la sidebar. Utilisé comme base et comme
 // fallback si rien n'est encore enregistré dans localStorage pour cette invitation.
 const DEFAULT_OPEN_SECTIONS: Record<string, boolean> = {
@@ -317,6 +377,14 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     isDragging: false,
     lastDist: 0
   });
+
+  // Ratio réel de la photo sélectionnée dans "Cadrage des photos" : le cadre s'y adapte.
+  const [selectedMinRatio, selectedMaxRatio] = getFrameRatioLimits(selectedPhotoKey);
+  const selectedPhotoRatio = clampRatio(
+    useImageRatio(invitation[selectedPhotoKey]),
+    selectedMinRatio,
+    selectedMaxRatio
+  );
 
   useEffect(() => {
     setTriggerMode(invitation.premium_trigger_type || 'emoji');
@@ -737,7 +805,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     onInvitationChange({ ...invitation, paper_type: textureId });
   };
 
-    const handleEnvelopeBorderClick = (styleId: string) => {
+  const handleEnvelopeBorderClick = (styleId: string) => {
     if (!FREE_ENVELOPE_BORDERS.includes(styleId) && !checkPremiumAccess(false)) return;
     onInvitationChange({ ...invitation, envelope_border: styleId });
   };
@@ -970,7 +1038,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
     );
   };
 
-    // Bouton d'option pour la rubrique "Contour de l'enveloppe" : aperçu visuel + libellé,
+  // Bouton d'option pour la rubrique "Contour de l'enveloppe" : aperçu visuel + libellé,
   // sur une grille responsive (s'adapte à la largeur de la sidebar, y compris mobile).
   const BorderStyleOption = ({ id, label, active, locked, onClick }: any) => (
     <button
@@ -1299,62 +1367,67 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
                 />
               </div>
 
-              {/* Zone de cadrage : le conteneur garde overflow-hidden (le "cadre" final
-                  reste rectangulaire), mais l'image elle-même n'est PLUS en object-cover.
-                  Elle est positionnée en absolu, centrée, avec min-width/min-height:100%
-                  (ce qui donne le même rendu "rempli" qu'avant au repos), SANS jamais
-                  supprimer les pixels hors-cadre : seul le transform (déplacement + zoom)
-                  décide quelle portion est visible. Dézoomer révèle donc bien le reste de
-                  la photo, et le cadrage choisi ici correspond pixel pour pixel à ce que
-                  verra l'invité (même technique utilisée dans InvitationPreview.tsx). */}
-              <div
-                className="w-full h-[420px] bg-gray-100 rounded-2xl overflow-hidden relative border border-gray-100 shadow-sm cursor-move touch-none flex items-center justify-center"
-                onMouseDown={e => {
-                  dragRef.current = { x: e.clientX, y: e.clientY, isDragging: true, lastDist: 0 };
-                }}
-                onTouchStart={e => {
-                  if (e.touches.length === 2) {
-                    const dist = Math.hypot(
-                      e.touches[0].clientX - e.touches[1].clientX,
-                      e.touches[0].clientY - e.touches[1].clientY
-                    );
-
-                    dragRef.current = { ...dragRef.current, isDragging: true, lastDist: dist };
-                  } else {
-                    dragRef.current = {
-                      x: e.touches[0].clientX,
-                      y: e.touches[0].clientY,
-                      isDragging: true,
-                      lastDist: 0
-                    };
-                  }
-                }}
-                onMouseMove={handleDragMove}
-                onTouchMove={handleDragMove}
-                onMouseUp={() => (dragRef.current.isDragging = false)}
-                onMouseLeave={() => (dragRef.current.isDragging = false)}
-                onTouchEnd={() => {
-                  dragRef.current.isDragging = false;
-                  dragRef.current.lastDist = 0;
-                }}
-                onWheel={handleWheel}
-              >
-                <img
-                  src={invitation[selectedPhotoKey]}
+              {/* Zone de cadrage ADAPTATIVE : le cadre prend le ratio réel de la photo importée
+                  (9:16, 16:9, carré...), borné par getFrameRatioLimits(). À zoom 1, la photo
+                  est donc affichée en entier, sans découpe. Le conteneur garde overflow-hidden
+                  (le "cadre" final reste net) et seul le transform (déplacement + zoom) décide
+                  de la portion visible. Même technique et mêmes limites de ratio que dans
+                  InvitationPreview.tsx, pour que le cadrage choisi ici corresponde à ce que
+                  verra l'invité. */}
+              <div className="w-full flex justify-center">
+                <div
+                  className="bg-gray-100 rounded-2xl overflow-hidden relative border border-gray-100 shadow-sm cursor-move touch-none"
                   style={{
-                    position: 'absolute',
-                    top: '50%',
-                    left: '50%',
-                    minWidth: '100%',
-                    minHeight: '100%',
-                    width: 'auto',
-                    height: 'auto',
-                    maxWidth: 'none',
-                    transform: `translate(-50%, -50%) translate(${invitation[`${selectedPhotoKey}_pos_x`] || 0}px, ${invitation[`${selectedPhotoKey}_pos_y`] || 0}px) scale(${invitation[`${selectedPhotoKey}_scale`] || 1})`,
-                    pointerEvents: 'none'
+                    aspectRatio: selectedPhotoRatio,
+                    width: `min(100%, ${Math.round(FRAME_MAX_HEIGHT * selectedPhotoRatio)}px)`
                   }}
-                  className="select-none"
-                />
+                  onMouseDown={e => {
+                    dragRef.current = { x: e.clientX, y: e.clientY, isDragging: true, lastDist: 0 };
+                  }}
+                  onTouchStart={e => {
+                    if (e.touches.length === 2) {
+                      const dist = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                      );
+
+                      dragRef.current = { ...dragRef.current, isDragging: true, lastDist: dist };
+                    } else {
+                      dragRef.current = {
+                        x: e.touches[0].clientX,
+                        y: e.touches[0].clientY,
+                        isDragging: true,
+                        lastDist: 0
+                      };
+                    }
+                  }}
+                  onMouseMove={handleDragMove}
+                  onTouchMove={handleDragMove}
+                  onMouseUp={() => (dragRef.current.isDragging = false)}
+                  onMouseLeave={() => (dragRef.current.isDragging = false)}
+                  onTouchEnd={() => {
+                    dragRef.current.isDragging = false;
+                    dragRef.current.lastDist = 0;
+                  }}
+                  onWheel={handleWheel}
+                >
+                  <img
+                    src={invitation[selectedPhotoKey]}
+                    draggable={false}
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      transformOrigin: 'center center',
+                      transform: `translate(${invitation[`${selectedPhotoKey}_pos_x`] || 0}px, ${invitation[`${selectedPhotoKey}_pos_y`] || 0}px) scale(${invitation[`${selectedPhotoKey}_scale`] || 1})`,
+                      pointerEvents: 'none'
+                    }}
+                    className="select-none"
+                    alt=""
+                  />
+                </div>
               </div>
             </Section>
           )}
@@ -1503,7 +1576,7 @@ export function BuilderSidebar({ invitation, onInvitationChange, activeTab }: an
             </div>
           </Section>
 
-       <Section id="envelopeBorder" title={localLabels.envelope_border_label}>
+          <Section id="envelopeBorder" title={localLabels.envelope_border_label}>
             <div className="grid grid-cols-3 gap-2">
               {ENVELOPE_BORDER_OPTIONS.map(option => (
                 <BorderStyleOption
